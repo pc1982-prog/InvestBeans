@@ -11,6 +11,8 @@ import {
   Calendar,
   Clock,
   Share2,
+  Tag,
+  Bookmark,
 } from "lucide-react";
 import { useAuth } from "@/controllers/AuthContext";
 
@@ -133,8 +135,8 @@ const BlogDetailView = () => {
   if (loading) {
     return (
       <Layout>
-        <div className="flex justify-center items-center min-h-screen bg-white">
-          <Loader2 className="animate-spin text-navy" size={48} />
+        <div className="flex justify-center items-center min-h-screen bg-gradient-to-b from-blue-50/30 via-white to-purple-50/20">
+          <Loader2 className="animate-spin text-navy" size={56} />
         </div>
       </Layout>
     );
@@ -163,67 +165,75 @@ const BlogDetailView = () => {
 
   return (
     <Layout>
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-gradient-to-b from-blue-50/30 via-white to-purple-50/20">
         {/* Reading Progress Bar */}
-        <div className="fixed top-0 left-0 w-full h-0.5 bg-gray-100 z-50">
+        <div className="fixed top-0 left-0 w-full h-1 bg-gray-200 z-50">
           <div
-            className="h-full bg-accent transition-all duration-300"
+            className="h-full bg-gradient-to-r from-navy via-accent to-purple-600 transition-all duration-300 shadow-lg"
             style={{ width: `${progress}%` }}
           />
         </div>
 
-        {/* Hero Image Section */}
-        <div className="relative w-full">
-          <div className="relative h-[400px] sm:h-[500px] lg:h-[600px] overflow-hidden bg-gray-100">
-            <img
-              src={blog.blogImage}
-              alt={blog.title}
-              className="w-full h-full object-cover"
-            />
-            {!blog.isPublished && (
-              <div className="absolute top-6 right-6">
-                <span className="bg-yellow-500 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg">
-                  Draft
-                </span>
+        {/* Hero Image Section - With Proper Spacing */}
+        <div className="pt-8 sm:pt-12 pb-8">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
+            {/* Back Button */}
+            <div className="mb-6">
+              <button
+                onClick={() => navigate("/blogs")}
+                className="inline-flex items-center gap-2 text-gray-600 hover:text-navy transition-colors group bg-white px-4 py-2 rounded-xl shadow-sm hover:shadow-md"
+              >
+                <ArrowLeft
+                  size={18}
+                  className="group-hover:-translate-x-1 transition-transform"
+                />
+                <span className="text-sm font-semibold">Back to Blogs</span>
+              </button>
+            </div>
+
+            {/* Hero Image with Rounded Corners */}
+            <div className="relative w-full rounded-3xl overflow-hidden shadow-2xl">
+              <div className="relative h-[300px] sm:h-[400px] lg:h-[500px] overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200">
+                <img
+                  src={blog.blogImage}
+                  alt={blog.title}
+                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+                
+                {!blog.isPublished && (
+                  <div className="absolute top-6 right-6">
+                    <span className="bg-yellow-500 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg backdrop-blur-sm">
+                      Draft
+                    </span>
+                  </div>
+                )}
               </div>
-            )}
+            </div>
           </div>
         </div>
 
         {/* Main Content Container */}
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl">
-          {/* Back Button */}
-          <div className="py-6">
-            <button
-              onClick={() => navigate("/blogs")}
-              className="inline-flex items-center gap-2 text-gray-600 hover:text-navy transition-colors group"
-            >
-              <ArrowLeft
-                size={18}
-                className="group-hover:-translate-x-1 transition-transform"
-              />
-              <span className="text-sm font-medium">Back to Blogs</span>
-            </button>
-          </div>
-
           {/* Article Content */}
           <article ref={articleRef} className="pb-12">
             {/* Category Badge */}
-            <div className="mb-4">
-              <span className="inline-block bg-accent/10 text-accent px-4 py-1.5 rounded-full text-sm font-semibold">
+            <div className="mb-6">
+              <span className="inline-flex items-center gap-2 bg-gradient-to-r from-accent/10 to-purple-500/10 text-accent px-5 py-2 rounded-full text-sm font-bold border border-accent/20 shadow-sm">
+                <Tag size={14} />
                 {blog.category}
               </span>
             </div>
 
             {/* Title */}
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-6 leading-tight">
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold text-gray-900 mb-8 leading-tight">
               {blog.title}
             </h1>
 
-            {/* Metadata Bar */}
-            <div className="flex flex-wrap items-center gap-4 sm:gap-6 pb-6 mb-8 border-b border-gray-200">
-              <div className="flex items-center gap-2 text-gray-600 text-sm">
-                <Calendar size={16} />
+            {/* Metadata Bar - Better Mobile Layout */}
+            <div className="flex flex-wrap items-center gap-3 sm:gap-6 pb-6 mb-8 border-b-2 border-gray-200">
+              <div className="flex items-center gap-2 text-gray-600 text-sm font-medium bg-gray-50 px-4 py-2 rounded-lg">
+                <Calendar size={16} className="text-accent" />
                 <span>
                   {new Date(blog.createdAt).toLocaleDateString("en-US", {
                     month: "short",
@@ -232,24 +242,24 @@ const BlogDetailView = () => {
                   })}
                 </span>
               </div>
-              <div className="flex items-center gap-2 text-gray-600 text-sm">
-                <Clock size={16} />
+              <div className="flex items-center gap-2 text-gray-600 text-sm font-medium bg-gray-50 px-4 py-2 rounded-lg">
+                <Clock size={16} className="text-accent" />
                 <span>{blog.readTime}</span>
               </div>
-              <div className="flex items-center gap-2 text-gray-600 text-sm">
-                <Eye size={16} />
+              <div className="flex items-center gap-2 text-gray-600 text-sm font-medium bg-gray-50 px-4 py-2 rounded-lg">
+                <Eye size={16} className="text-accent" />
                 <span>{blog.views} views</span>
               </div>
             </div>
 
-            {/* Author & Actions */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 mb-12 pb-8 border-b border-gray-200">
+            {/* Author & Actions - Improved Mobile Layout */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 mb-12 pb-8 border-b-2 border-gray-200">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-navy to-accent rounded-full flex items-center justify-center text-white font-bold text-lg shadow-md">
+                <div className="w-14 h-14 bg-gradient-to-br from-navy via-accent to-purple-600 rounded-2xl flex items-center justify-center text-white font-bold text-xl shadow-lg">
                   {blog.author.name.charAt(0)}
                 </div>
                 <div>
-                  <p className="font-semibold text-gray-900 text-base">
+                  <p className="font-bold text-gray-900 text-base sm:text-lg">
                     {blog.author.name}
                   </p>
                   <p className="text-sm text-gray-500">{blog.author.email}</p>
@@ -260,7 +270,7 @@ const BlogDetailView = () => {
                 <div className="flex gap-3 w-full sm:w-auto">
                   <button
                     onClick={handleEdit}
-                    className="flex-1 sm:flex-none bg-navy text-white px-5 py-2.5 rounded-lg hover:bg-navy/90 transition-all flex items-center justify-center gap-2 text-sm font-medium"
+                    className="flex-1 sm:flex-none bg-navy text-white px-6 py-3 rounded-xl hover:bg-navy/90 transition-all flex items-center justify-center gap-2 text-sm font-bold shadow-md hover:shadow-lg"
                   >
                     <Edit2 size={16} />
                     Edit
@@ -268,7 +278,7 @@ const BlogDetailView = () => {
                   <button
                     onClick={handleDelete}
                     disabled={deleteLoading}
-                    className="flex-1 sm:flex-none bg-red-500 text-white px-5 py-2.5 rounded-lg hover:bg-red-600 transition-all flex items-center justify-center gap-2 text-sm font-medium disabled:opacity-50"
+                    className="flex-1 sm:flex-none bg-red-500 text-white px-6 py-3 rounded-xl hover:bg-red-600 transition-all flex items-center justify-center gap-2 text-sm font-bold shadow-md hover:shadow-lg disabled:opacity-50"
                   >
                     {deleteLoading ? (
                       <Loader2 className="animate-spin" size={16} />
@@ -283,41 +293,47 @@ const BlogDetailView = () => {
 
             {/* Description */}
             {blog.description && (
-              <div className="mb-12">
-                <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">
-                  Descriptions
+              <div className="mb-12 bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-6 sm:p-8 border-l-4 border-accent shadow-sm">
+                <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <div className="w-1.5 h-8 bg-gradient-to-b from-accent to-purple-600 rounded-full" />
+                  Overview
                 </h2>
-                <p className="text-xl sm:text-2xl text-gray-700 leading-relaxed font-light border-l-4 border-accent pl-6">
+                <p className="text-lg sm:text-xl text-gray-700 leading-relaxed">
                   {blog.description}
                 </p>
               </div>
             )}
 
-            {/* Tags - Mobile Optimized */}
+            {/* Tags - Enhanced Design */}
             {blog.tags && blog.tags.length > 0 && (
               <div className="mb-12">
-                
-                <div className="flex flex-wrap gap-2">
+                <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <Tag size={18} className="text-accent" />
+                  Topics
+                </h3>
+                <div className="flex flex-wrap gap-2 sm:gap-3">
                   {blog.tags.map((tag, index) => (
                     <span
                       key={index}
-                      className="inline-block bg-gray-100 text-gray-700 px-3 py-1.5 rounded-md text-xs sm:text-sm font-medium hover:bg-gray-200 transition-colors"
+                      className="inline-flex items-center gap-1.5 bg-white text-gray-700 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold hover:bg-gray-50 transition-colors border border-gray-200 shadow-sm hover:shadow-md hover:scale-105 cursor-pointer"
                     >
-                      #{tag}
+                      <span className="text-accent">#</span>
+                      {tag}
                     </span>
                   ))}
                 </div>
               </div>
             )}
 
-            {/* Key Insights */}
+            {/* Key Insights - Enhanced Cards */}
             {blog.headerSections && blog.headerSections.length > 0 && (
               <div className="mb-12">
-                <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-8">
+                <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-8 flex items-center gap-3">
+                  <div className="w-1.5 h-10 bg-gradient-to-b from-navy via-accent to-purple-600 rounded-full" />
                   Key Insights
                 </h2>
 
-                <div className="space-y-6">
+                <div className="space-y-4 sm:space-y-6">
                   {blog.headerSections.map(
                     (section: HeaderSection, index: number) => {
                       const { preview, hasMore } = truncateSubHeader(section.subHeader);
@@ -326,22 +342,29 @@ const BlogDetailView = () => {
                       return (
                         <div
                           key={index}
-                          className="bg-gray-50 rounded-lg p-6 hover:bg-gray-100 transition-colors"
+                          className="bg-white rounded-2xl p-6 sm:p-8 hover:shadow-lg transition-all duration-300 border border-gray-100 shadow-sm"
                         >
-                          <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-3">
-                            {section.header}
-                          </h3>
-                          <p className="text-gray-700 leading-relaxed text-sm sm:text-base">
-                            {isExpanded ? section.subHeader : preview}
-                          </p>
-                          {hasMore && (
-                            <button
-                              onClick={() => toggleSection(index)}
-                              className="mt-3 text-accent hover:text-accent/80 font-medium text-sm"
-                            >
-                              {isExpanded ? "Show less" : "Read more"}
-                            </button>
-                          )}
+                          <div className="flex items-start gap-4">
+                            <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-accent to-purple-600 rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-md">
+                              {index + 1}
+                            </div>
+                            <div className="flex-1">
+                              <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-3">
+                                {section.header}
+                              </h3>
+                              <p className="text-gray-700 leading-relaxed text-sm sm:text-base">
+                                {isExpanded ? section.subHeader : preview}
+                              </p>
+                              {hasMore && (
+                                <button
+                                  onClick={() => toggleSection(index)}
+                                  className="mt-4 text-accent hover:text-accent/80 font-bold text-sm flex items-center gap-1"
+                                >
+                                  {isExpanded ? "Show less ↑" : "Read more →"}
+                                </button>
+                              )}
+                            </div>
+                          </div>
                         </div>
                       );
                     }
@@ -350,14 +373,16 @@ const BlogDetailView = () => {
               </div>
             )}
 
-            {/* Full Article */}
-            <div className="mb-12">
-               <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3">
-                  Contents
-                </h2>
+            {/* Full Article - Enhanced Typography */}
+            <div className="mb-12 bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-gray-100">
+              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+                <div className="w-1.5 h-10 bg-gradient-to-b from-navy via-accent to-purple-600 rounded-full" />
+                Full Article
+              </h2>
               <div className="prose prose-sm sm:prose-base lg:prose-lg max-w-none">
                 <div
-                  className="text-gray-700 leading-relaxed"
+                  className="text-gray-700 leading-relaxed text-base sm:text-lg"
+                  style={{ lineHeight: '1.8' }}
                   dangerouslySetInnerHTML={{
                     __html: showFullContent
                       ? blog.content.replace(/\n/g, "<br />")
@@ -371,39 +396,45 @@ const BlogDetailView = () => {
                 <div className="mt-8 text-center">
                   <button
                     onClick={() => setShowFullContent(!showFullContent)}
-                    className="inline-block bg-navy text-white px-8 py-3 rounded-lg font-medium hover:bg-navy/90 transition-all"
+                    className="inline-flex items-center gap-2 bg-gradient-to-r from-navy via-accent to-purple-600 text-white px-8 py-4 rounded-xl font-bold hover:shadow-xl transition-all hover:scale-105"
                   >
-                    {showFullContent ? "Show Less" : "Continue Reading"}
+                    {showFullContent ? "Show Less ↑" : "Continue Reading →"}
                   </button>
                 </div>
               )}
             </div>
-
-          
           </article>
 
-          {/* Newsletter */}
-          <div className="bg-gradient-to-r from-navy to-navy/95 text-white rounded-2xl p-8 sm:p-12 text-center mb-12">
-            <h2 className="text-2xl sm:text-3xl font-bold mb-4">
-              Stay Informed
-            </h2>
-            <p className="text-base sm:text-lg mb-8 opacity-90 max-w-2xl mx-auto">
-              Get the latest investment insights delivered to your inbox
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Your email address"
-                className="flex-1 px-5 py-3 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white/50"
-              />
-              <button
-                onClick={handleSubscribe}
-                className="bg-accent text-white px-8 py-3 rounded-lg font-medium hover:bg-accent/90 transition-all"
-              >
-                {subscribed ? "Subscribed ✓" : "Subscribe"}
-              </button>
+          {/* Newsletter - Enhanced Design */}
+          <div className="bg-gradient-to-br from-navy via-accent to-purple-600 text-white rounded-3xl p-8 sm:p-12 text-center mb-12 shadow-2xl relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32" />
+            <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/5 rounded-full -ml-32 -mb-32" />
+            
+            <div className="relative z-10">
+              <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center mx-auto mb-6 backdrop-blur-sm">
+                <Bookmark size={32} className="text-white" />
+              </div>
+              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4">
+                Stay Informed
+              </h2>
+              <p className="text-base sm:text-lg lg:text-xl mb-8 opacity-90 max-w-2xl mx-auto">
+                Get the latest investment insights delivered straight to your inbox
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Your email address"
+                  className="flex-1 px-6 py-4 rounded-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-4 focus:ring-white/30 font-medium shadow-lg"
+                />
+                <button
+                  onClick={handleSubscribe}
+                  className="bg-white text-navy px-8 py-4 rounded-xl font-bold hover:bg-gray-100 transition-all shadow-lg hover:shadow-xl hover:scale-105"
+                >
+                  {subscribed ? "Subscribed ✓" : "Subscribe"}
+                </button>
+              </div>
             </div>
           </div>
         </div>

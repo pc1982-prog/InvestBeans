@@ -126,15 +126,15 @@ const BlogsView = () => {
 
   return (
     <Layout>
-      <div className="min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-50">
+      <div className="min-h-screen bg-gradient-to-b from-blue-50/30 via-white to-purple-50/20">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 max-w-7xl">
           {/* Header */}
           <div className="text-center mb-12 sm:mb-16">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-6 mb-8">
               <div className="text-center sm:text-left">
                 <div className="inline-flex items-center gap-3 mb-4">
-                  <div className="h-12 w-1 bg-gradient-to-b from-navy to-accent rounded-full" />
-                  <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-navy">
+                  <div className="h-12 w-1.5 bg-black rounded-full shadow-lg" />
+                  <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold  bg-clip-text text-">
                     Investment Blog
                   </h1>
                 </div>
@@ -145,7 +145,7 @@ const BlogsView = () => {
               {isAdmin && (
                 <button
                   onClick={() => setShowForm(true)}
-                  className="w-full sm:w-auto bg-gradient-to-r from-navy to-accent text-white px-8 py-4 rounded-xl hover:shadow-2xl transition-all flex items-center justify-center gap-3 font-bold text-base shadow-lg hover:scale-105"
+                  className="w-full sm:w-auto bg-gradient-to-r from-navy via-accent to-purple-600 text-white px-8 py-4 rounded-2xl hover:shadow-2xl transition-all flex items-center justify-center gap-3 font-bold text-base shadow-lg hover:scale-105 hover:rotate-1"
                 >
                   <Plus size={22} />
                   Create Blog
@@ -155,11 +155,11 @@ const BlogsView = () => {
           </div>
 
           {/* Filters Section */}
-          <div className="mb-10 sm:mb-12 space-y-6">
+          <div className="mb-10 sm:mb-12 space-y-6 bg-white p-6 rounded-2xl shadow-md border border-gray-100">
             {/* Search and Sort */}
             <div className="flex flex-col lg:flex-row gap-4">
-              <div className="flex-1 relative">
-                <Search className="absolute left-5 top-1/2 transform -translate-y-1/2 text-gray-400" size={22} />
+              <div className="flex-1 relative group">
+                <Search className="absolute left-5 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-accent transition-colors" size={22} />
                 <input
                   type="text"
                   placeholder="Search blogs by title, description..."
@@ -168,42 +168,47 @@ const BlogsView = () => {
                     setSearchQuery(e.target.value);
                     setCurrentPage(1);
                   }}
-                  className="w-full pl-14 pr-6 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-navy focus:border-navy transition-all shadow-sm text-base font-medium placeholder-gray-400"
+                  className="w-full pl-14 pr-6 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-accent focus:border-accent transition-all shadow-sm text-base font-medium placeholder-gray-400 bg-gray-50 focus:bg-white"
                 />
               </div>
               <select
                 value={sortOrder}
                 onChange={(e) => setSortOrder(e.target.value as 'asc' | 'desc')}
-                className="lg:w-56 px-6 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-navy focus:border-navy transition-all shadow-sm font-semibold text-base bg-white cursor-pointer"
+                className="lg:w-56 px-6 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-accent focus:border-accent transition-all shadow-sm font-semibold text-base bg-gray-50 cursor-pointer hover:bg-white"
               >
                 <option value="desc">📅 Newest First</option>
                 <option value="asc">📅 Oldest First</option>
               </select>
             </div>
 
-            {/* Categories - Improved Responsive Grid */}
+            {/* Categories - Horizontal Scrollable Pills */}
             <div>
               <h3 className="text-sm font-bold text-gray-600 uppercase tracking-wider mb-4 flex items-center gap-2">
                 <Sparkles size={16} className="text-accent" />
-                Filter by Category
+                Categories
               </h3>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
-                {categories.map((category) => (
-                  <button
-                    key={category}
-                    onClick={() => {
-                      setSelectedCategory(category);
-                      setCurrentPage(1);
-                    }}
-                    className={`px-4 py-3 rounded-xl text-sm font-bold transition-all shadow-sm hover:shadow-md ${
-                      selectedCategory === category
-                        ? 'bg-gradient-to-r from-navy to-accent text-white shadow-lg scale-105 ring-2 ring-navy/20'
-                        : 'bg-white text-gray-700 hover:bg-gray-50 border-2 border-gray-200 hover:border-navy/30'
-                    }`}
-                  >
-                    {category}
-                  </button>
-                ))}
+              <div className="relative">
+                <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide scroll-smooth snap-x snap-mandatory -mx-2 px-2">
+                  {categories.map((category) => (
+                    <button
+                      key={category}
+                      onClick={() => {
+                        setSelectedCategory(category);
+                        setCurrentPage(1);
+                      }}
+                      className={`flex-shrink-0 px-6 py-3 rounded-full text-sm font-semibold transition-all duration-300 snap-start whitespace-nowrap ${
+                        selectedCategory === category
+                          ? 'bg-gradient-to-r from-navy to-accent text-white shadow-lg scale-105'
+                          : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300 hover:border-navy hover:shadow-md'
+                      }`}
+                    >
+                      {category}
+                    </button>
+                  ))}
+                </div>
+                {/* Gradient Fade Effects
+                <div className="absolute left-0 top-0 bottom-4 w-8 bg-gradient-to-r from-white to-transparent pointer-events-none" />
+                <div className="absolute right-0 top-0 bottom-4 w-8 bg-gradient-to-l from-white to-transparent pointer-events-none" /> */}
               </div>
             </div>
           </div>

@@ -1,7 +1,6 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { User } from "../models/user.model.js";
-import GoogleAuth from "../models/googleAuth.model.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
@@ -221,128 +220,6 @@ const getCurrentUser = asyncHandler(async (req, res) => {
         ));
 });
 
-// ✅ FIXED VERSION - Explicitly check and send cookie info
-const getGoogleProfile = asyncHandler(async (req, res) => {
-    console.log('👤 Google profile request');
-    console.log('🔑 Session ID:', req.sessionID);
-    console.log('🔐 Authenticated:', req.isAuthenticated());
-    console.log('👥 User in session:', req.user ? 'Yes' : 'No');
-    console.log('🍪 Cookies received:', req.cookies);
-    console.log('📋 Headers:', req.headers.cookie);
-    
-    // Check if user is authenticated via passport
-    if (!req.isAuthenticated() || !req.user) {
-        console.log('❌ User not authenticated - session may have expired');
-        
-        // ✅ Send explicit response with cookie info for debugging
-        return res.status(401).json({
-            success: false,
-            message: "User session not found or expired",
-            debug: {
-                hasSession: !!req.sessionID,
-                hasCookie: !!req.cookies['investbeans.sid'],
-                authenticated: req.isAuthenticated()
-            }
-        });
-    }
-
-    try {
-        // Fetch fresh user data from database
-        const googleUser = await GoogleAuth.findById(req.user._id);
-
-        if (!googleUser) {
-            console.log('❌ Google user not found in database for ID:', req.user._id);
-            throw new ApiError(404, "User not found");
-        }
-
-        // Check if user is admin based on ADMIN_EMAILS
-        const isAdmin = ADMIN_EMAILS.includes(googleUser.email.toLowerCase());
-
-        const userData = {
-            _id: googleUser._id,
-            name: googleUser.displayName,
-            email: googleUser.email,
-            image: googleUser.image,
-            googleId: googleUser.googleId,
-            createdAt: googleUser.createdAt,
-            updatedAt: googleUser.updatedAt,
-            isAdmin
-        };
-
-        console.log('✅ Sending Google user profile:', {
-            email: userData.email,
-            name: userData.name,
-            hasImage: !!userData.image,
-            isAdmin: userData.isAdmin,
-            sessionId: req.sessionID
-        });
-
-        // ✅ Explicitly set CORS headers for cookie
-        res.header('Access-Control-Allow-Credentials', 'true');
-        res.header('Access-Control-Allow-Origin', req.headers.origin);
-
-        return res
-            .status(200)
-            .json(new ApiResponse(200, userData, "Google user profile fetched successfully"));
-    } catch (error) {
-        console.error('❌ Error fetching Google profile:', error);
-        if (error instanceof ApiError) {
-            throw error;
-        }
-        throw new ApiError(500, "Failed to fetch user profile");
-    }
-});
-
-const googleLogout = asyncHandler(async (req, res) => {
-    console.log('🚪 Google logout called');
-    console.log('🔑 Session ID before logout:', req.sessionID);
-    
-    try {
-        // Passport logout
-        await new Promise((resolve, reject) => {
-            req.logout((err) => {
-                if (err) {
-                    console.error("❌ Passport logout error:", err);
-                    reject(err);
-                } else {
-                    console.log('✅ Passport logout successful');
-                    resolve();
-                }
-            });
-        });
-
-        // Destroy session
-        await new Promise((resolve, reject) => {
-            req.session.destroy((err) => {
-                if (err) {
-                    console.error("❌ Session destroy error:", err);
-                    reject(err);
-                } else {
-                    console.log('✅ Session destroyed');
-                    resolve();
-                }
-            });
-        });
-
-        // Clear session cookie
-        res.clearCookie('investbeans.sid', {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-            path: '/'
-        });
-
-        console.log('✅ Google logout completed successfully');
-
-        return res
-            .status(200)
-            .json(new ApiResponse(200, {}, "Logged out successfully"));
-    } catch (error) {
-        console.error('❌ Logout error:', error);
-        res.clearCookie('investbeans.sid', { path: '/' });
-        throw new ApiError(500, "Logout failed");
-    }
-});
 
 export {
     registerUser,
@@ -350,6 +227,5 @@ export {
     logoutUser,
     refreshAccessToken,
     getCurrentUser,
-    getGoogleProfile,
-    googleLogout,
+ 
 };
