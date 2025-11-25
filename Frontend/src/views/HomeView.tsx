@@ -18,6 +18,7 @@ import { useAuth } from "@/controllers/AuthContext";
 import StockWidget from "./StockWidget";
 import DummyChart from "@/components/DummyChart";
 import { useState,useEffect } from "react";
+import BeansOfWisdom from "./BeansOfWisdom";
 
 type ActiveTab = "domestic" | "global";
 
@@ -487,9 +488,10 @@ const HomeView = ({ activeTab, onChangeTab }: HomeViewProps) => {
             </div>
           </div>
         </section>
+       
 
         {/* Beans of Wisdom */}
-        <section className="mb-20 relative overflow-hidden">
+         {/* <section className="mb-20 relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-orange-50/30 via-transparent to-amber-50/20 rounded-3xl"></div>
           <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-orange-100/20 to-transparent rounded-full blur-3xl"></div>
           <div className="absolute bottom-0 left-0 w-80 h-80 bg-gradient-to-tr from-amber-100/15 to-transparent rounded-full blur-2xl"></div>
@@ -590,8 +592,9 @@ const HomeView = ({ activeTab, onChangeTab }: HomeViewProps) => {
               </div>
             </div>
           </div>
-        </section>
-
+        </section>  */}
+        
+<BeansOfWisdom/>
         {/* Deep Dives */}
         <section className="mb-20 relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-accent/3 via-transparent to-accent/8 rounded-3xl"></div>

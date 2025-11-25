@@ -59,7 +59,7 @@ const blogSchema = new Schema(
                 message: '{VALUE} is not a valid category'
             }
         },
-        // NEW: Array of header-subheader pairs
+      
         headerSections: {
             type: [headerSchema],
             default: []
@@ -90,8 +90,17 @@ const blogSchema = new Schema(
         },
         readTime: {
             type: String
-        }
+        },
+        likes: {
+            type: Number,
+            default: 0
+        },
+        likedBy: [{
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User'
+        }]
     },
+
     {
         timestamps: true
     }
@@ -109,12 +118,12 @@ blogSchema.pre('save', async function (next) {
 
         let slug = baseSlug;
         let counter = 1;
-        
+
         while (await mongoose.models.Blog.findOne({ slug, _id: { $ne: this._id } })) {
             slug = `${baseSlug}-${counter}`;
             counter++;
         }
-        
+
         this.slug = slug;
     }
 

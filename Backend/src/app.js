@@ -39,7 +39,6 @@ if (IS_PRODUCTION) {
 const allowedOrigins = [
   "http://localhost:8080",
   "http://127.0.0.1:8080",
-  "http://localhost:3000",
   FRONTEND_URL,
 ].filter(Boolean);
 
@@ -174,6 +173,8 @@ app.get("/health", (req, res) => {
 import userRouter from "./routes/user.routes.js";
 import googleAuthRouter from "./routes/googleAuth.routes.js";
 import blogRouter from "./routes/blog.routes.js";
+import beansOfWisdom from "./routes/beanOfWisdom.routes.js";
+
 
 
 app.use("/api/v1/users", userRouter);
@@ -183,6 +184,8 @@ app.use("/auth", googleAuthRouter);
 
 
 app.use("/api/v1/blogs", blogRouter);
+app.use("/api/v1/beans-of-wisdom", beansOfWisdom);
+
 
 
 app.use(notFound);

@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -13,7 +13,15 @@ import { useAuth } from "@/controllers/AuthContext";
 import MarketTicker from "./MarketTicker";
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Menu, X, ChevronDown, User, LogOut, Shield } from "lucide-react";
+import {
+  Menu,
+  X,
+  ChevronDown,
+  User,
+  LogOut,
+  Shield,
+  ChevronRight,
+} from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const Header = () => {
@@ -46,8 +54,8 @@ const Header = () => {
 
   // Get user initials for avatar fallback
   const getUserInitials = () => {
-    if (!user?.name) return 'U';
-    const names = user.name.split(' ');
+    if (!user?.name) return "U";
+    const names = user.name.split(" ");
     if (names.length >= 2) {
       return `${names[0][0]}${names[1][0]}`.toUpperCase();
     }
@@ -66,7 +74,7 @@ const Header = () => {
 
   const handleSignOut = async () => {
     await signOut();
-    navigate('/');
+    navigate("/");
   };
 
   return (
@@ -83,7 +91,11 @@ const Header = () => {
               className="md:hidden text-white hover:text-accent transition-colors p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-accent/40"
               aria-label="Toggle menu"
             >
-              {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              {isMobileMenuOpen ? (
+                <X className="w-6 h-6" />
+              ) : (
+                <Menu className="w-6 h-6" />
+              )}
             </button>
 
             <Link to="/" className="text-2xl font-bold group">
@@ -113,32 +125,24 @@ const Header = () => {
                   <DropdownMenuContent
                     align="start"
                     sideOffset={6}
-                    className="min-w-[220px] p-2 bg-white text-navy rounded-xl shadow-xl ring-1 ring-black/10 border border-white/10"
+                    className="min-w-[240px] p-2 bg-white text-navy rounded-xl shadow-xl ring-1 ring-black/10 border border-white/10"
                     onMouseEnter={() => setAboutOpen(true)}
                     onMouseLeave={() => setAboutOpen(false)}
                   >
+                    {/* Our Story & Founder's Journey */}
                     <DropdownMenuItem asChild>
                       <button
                         onClick={() => {
-                          scrollToSection("our-story");
+                          scrollToSection("our-story"); 
                           setAboutOpen(false);
                         }}
-                        className="w-full text-left px-3 py-2 text-sm rounded-md hover:bg-accent/10 transition"
+                        className="w-full text-left px-3 py-2 text-sm rounded-md hover:bg-accent/10 transition flex justify-between items-center"
                       >
-                        Our Story
+                        <span>Our Story & Founder's Journey</span>
                       </button>
                     </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <button
-                        onClick={() => {
-                          scrollToSection("founder-journey");
-                          setAboutOpen(false);
-                        }}
-                        className="w-full text-left px-3 py-2 text-sm rounded-md hover:bg-accent/10 transition"
-                      >
-                        Founder's Journey
-                      </button>
-                    </DropdownMenuItem>
+
+                    {/* Mission & Vision */}
                     <DropdownMenuItem asChild>
                       <button
                         onClick={() => {
@@ -147,42 +151,24 @@ const Header = () => {
                         }}
                         className="w-full text-left px-3 py-2 text-sm rounded-md hover:bg-accent/10 transition"
                       >
-                        Mission
+                        Mission & Vision
                       </button>
                     </DropdownMenuItem>
+
+                    {/* Team & Values */}
                     <DropdownMenuItem asChild>
                       <button
                         onClick={() => {
-                          scrollToSection("vision");
+                          scrollToSection("team-members"); // ya "team-values" section jo bhi aapne banaya ho
                           setAboutOpen(false);
                         }}
                         className="w-full text-left px-3 py-2 text-sm rounded-md hover:bg-accent/10 transition"
                       >
-                        Vision
+                        Team & Values
                       </button>
                     </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <button
-                        onClick={() => {
-                          scrollToSection("team-members");
-                          setAboutOpen(false);
-                        }}
-                        className="w-full text-left px-3 py-2 text-sm rounded-md hover:bg-accent/10 transition"
-                      >
-                        Meet Our Team
-                      </button>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <button
-                        onClick={() => {
-                          scrollToSection("core-values");
-                          setAboutOpen(false);
-                        }}
-                        className="w-full text-left px-3 py-2 text-sm rounded-md hover:bg-accent/10 transition"
-                      >
-                        Core Values
-                      </button>
-                    </DropdownMenuItem>
+
+                    {/* Why Us */}
                     <DropdownMenuItem asChild>
                       <button
                         onClick={() => {
@@ -194,6 +180,8 @@ const Header = () => {
                         Why Us
                       </button>
                     </DropdownMenuItem>
+
+                    {/* Certifications */}
                     <DropdownMenuItem asChild>
                       <button
                         onClick={() => {
@@ -203,17 +191,6 @@ const Header = () => {
                         className="w-full text-left px-3 py-2 text-sm rounded-md hover:bg-accent/10 transition"
                       >
                         Certifications
-                      </button>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <button
-                        onClick={() => {
-                          scrollToSection("join");
-                          setAboutOpen(false);
-                        }}
-                        className="w-full text-left px-3 py-2 text-sm rounded-md hover:bg-accent/10 transition"
-                      >
-                        Join Our Mission
                       </button>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -274,7 +251,10 @@ const Header = () => {
               </li>
 
               <li>
-                <DropdownMenu open={dashboardsOpen} onOpenChange={setDashboardsOpen}>
+                <DropdownMenu
+                  open={dashboardsOpen}
+                  onOpenChange={setDashboardsOpen}
+                >
                   <DropdownMenuTrigger asChild>
                     <button
                       className="font-medium hover:text-accent transition-colors px-2 py-1 rounded-md flex items-center gap-1 focus:outline-none focus:ring-2 focus:ring-accent/40"
@@ -339,8 +319,8 @@ const Header = () => {
                     aria-label="User menu"
                   >
                     <Avatar className="h-9 w-9 border-2 border-white/20 ring-2 ring-white/10">
-                      <AvatarImage 
-                        src={getAvatarImage()} 
+                      <AvatarImage
+                        src={getAvatarImage()}
                         alt={user.name}
                         className="object-cover"
                       />
@@ -364,8 +344,8 @@ const Header = () => {
                   <div className="px-3 py-3 border-b border-gray-200">
                     <div className="flex items-center gap-3 mb-2">
                       <Avatar className="h-10 w-10 border-2 border-gray-200">
-                        <AvatarImage 
-                          src={getAvatarImage()} 
+                        <AvatarImage
+                          src={getAvatarImage()}
                           alt={user.name}
                           className="object-cover"
                         />
@@ -374,11 +354,15 @@ const Header = () => {
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-navy truncate">{user.name}</p>
-                        <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                        <p className="text-sm font-semibold text-navy truncate">
+                          {user.name}
+                        </p>
+                        <p className="text-xs text-gray-500 truncate">
+                          {user.email}
+                        </p>
                       </div>
                     </div>
-                    
+
                     {/* Admin Badge */}
                     {isAdmin && (
                       <div className="flex items-center gap-1.5 bg-gradient-to-r from-yellow-50 to-amber-50 border border-yellow-200 text-yellow-700 px-2.5 py-1.5 rounded-lg mt-2">
@@ -407,7 +391,10 @@ const Header = () => {
               </DropdownMenu>
             ) : (
               <div className="hidden md:block">
-                <DropdownMenu open={userMenuOpen} onOpenChange={setUserMenuOpen}>
+                <DropdownMenu
+                  open={userMenuOpen}
+                  onOpenChange={setUserMenuOpen}
+                >
                   <DropdownMenuTrigger asChild>
                     <button
                       className="p-2.5 rounded-full bg-white/10 hover:bg-white/20 transition-all hover:scale-110 focus:outline-none focus:ring-2 focus:ring-accent/40"
@@ -505,20 +492,22 @@ const Header = () => {
 
                   <div
                     className={`mt-1 overflow-hidden transition-[max-height,opacity] duration-200 ease-in-out ${
-                      mobileAboutOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+                      mobileAboutOpen
+                        ? "max-h-96 opacity-100"
+                        : "max-h-0 opacity-0"
                     }`}
                   >
                     <ul className="bg-navy/90 rounded-md border border-white/5 px-2 py-2 space-y-1">
                       {[
-                        { id: "our-story", label: "Our Story" },
-                        { id: "founder-journey", label: "Founder's Journey" },
-                        { id: "mission", label: "Mission" },
-                        { id: "vision", label: "Vision" },
-                        { id: "team-members", label: "Meet Our Team" },
-                        { id: "core-values", label: "Core Values" },
+                        { id: "our-story", label: "Our Story & Founder's Journey" },
+                       
+                        { id: "mission", label: "Mission & Visions" },
+                       
+                        { id: "team-members", label: "Team & Values" },
+                        
                         { id: "why-us", label: "Why Us" },
                         { id: "certifications", label: "Certifications" },
-                        { id: "join", label: "Join Our Mission" },
+                     
                       ].map((it) => (
                         <li key={it.id}>
                           <button
@@ -553,7 +542,9 @@ const Header = () => {
 
                   <div
                     className={`mt-1 overflow-hidden transition-[max-height,opacity] duration-200 ease-in-out ${
-                      mobileMarketsOpen ? "max-h-40 opacity-100" : "max-h-0 opacity-0"
+                      mobileMarketsOpen
+                        ? "max-h-40 opacity-100"
+                        : "max-h-0 opacity-0"
                     }`}
                   >
                     <ul className="bg-navy/90 rounded-md border border-white/5 px-2 py-2 space-y-1">
@@ -613,7 +604,9 @@ const Header = () => {
 
                   <div
                     className={`mt-1 overflow-hidden transition-[max-height,opacity] duration-200 ease-in-out ${
-                      mobileDashboardsOpen ? "max-h-40 opacity-100" : "max-h-0 opacity-0"
+                      mobileDashboardsOpen
+                        ? "max-h-40 opacity-100"
+                        : "max-h-0 opacity-0"
                     }`}
                   >
                     <ul className="bg-navy/90 rounded-md border border-white/5 px-2 py-2 space-y-1">

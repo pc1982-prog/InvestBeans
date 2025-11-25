@@ -28,7 +28,18 @@ router.get(
     console.log(' Session ID before regenerate:', req.sessionID);
 
     try {
- 
+      // Generate JWT tokens
+      const accessToken = req.user.generateAccessToken();
+      const refreshToken = req.user.generateRefreshToken();
+      
+      console.log(' JWT Tokens generated');
+
+      // Save refresh token to database
+      req.user.refreshToken = refreshToken;
+      await req.user.save({ validateBeforeSave: false });
+      console.log(' Refresh token saved to database');
+
+      // Save session
       await new Promise((resolve, reject) => {
         req.session.save((err) => {
           if (err) {
@@ -42,7 +53,6 @@ router.get(
         });
       });
 
-    
       console.log(' Cookie should be set:', {
         name: 'investbeans.sid',
         value: req.sessionID,
@@ -50,7 +60,8 @@ router.get(
         sameSite: 'lax'
       });
 
-      const redirectUrl = `${process.env.FRONTEND_URL}?googleAuth=success`;
+      // Redirect with tokens in query params (temporary, frontend will extract)
+      const redirectUrl = `${process.env.FRONTEND_URL}?googleAuth=success&accessToken=${accessToken}&refreshToken=${refreshToken}`;
       console.log(' Redirecting to:', redirectUrl);
       
       res.redirect(redirectUrl);

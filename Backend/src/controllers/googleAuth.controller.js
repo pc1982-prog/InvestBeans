@@ -127,7 +127,7 @@ export const testSession = asyncHandler(async (req, res) => {
     sessionData: req.session
   };
 
-  console.log('🧪 Session test:', sessionData);
+  console.log(' Session test:', sessionData);
 
   return res
     .status(200)

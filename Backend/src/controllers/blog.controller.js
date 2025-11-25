@@ -5,7 +5,7 @@ import { Blog } from "../models/blog.model.js";
 import { uploadOnCloudinary, deleteFromCloudinary } from "../utils/cloudinary.js";
 import mongoose from "mongoose";
 
-// Helper function to parse comma-separated string to array
+
 const parseCommaSeparated = (str) => {
     if (!str || typeof str !== 'string') return [];
     return str
@@ -14,7 +14,7 @@ const parseCommaSeparated = (str) => {
         .filter(item => item.length > 0);
 };
 
-// Helper to parse headerSections from JSON string
+
 const parseHeaderSections = (headerSectionsStr) => {
     if (!headerSectionsStr) return [];
     try {
@@ -169,32 +169,7 @@ const getAllBlogs = asyncHandler(async (req, res) => {
     );
 });
 
-// Get Single Blog by ID or Slug
-// const getBlogById = asyncHandler(async (req, res) => {
-//     const { id } = req.params;
 
-//     let blog;
-
-//     if (mongoose.Types.ObjectId.isValid(id)) {
-//         blog = await Blog.findById(id).populate('author', 'name email');
-//     }
-
-//     if (!blog) {
-//         blog = await Blog.findOne({ slug: id }).populate('author', 'name email');
-//     }
-
-//     if (!blog) {
-//         throw new ApiError(404, "Blog not found");
-//     }
-
-//     blog.views += 1;
-//     await blog.save();
-
-//     return res.status(200).json(
-//         new ApiResponse(200, blog, "Blog fetched successfully")
-//     );
-// });
-// Get Single Blog by ID or Slug
 const getBlogById = asyncHandler(async (req, res) => {
     const { id } = req.params;
 
@@ -378,6 +353,64 @@ const getBlogStats = asyncHandler(async (req, res) => {
     );
 });
 
+const toggleLike = asyncHandler(async (req, res) => {
+    const blogId = req.params.id;
+    const userId = req.user?._id;
+
+
+ 
+    if (!userId) {
+        throw new ApiError(401, "Please login to like this blog");
+    }
+
+  
+    if (!mongoose.Types.ObjectId.isValid(blogId)) {
+        throw new ApiError(400, "Invalid blog ID");
+    }
+
+ 
+    const blog = await Blog.findById(blogId);
+
+    if (!blog) {
+        throw new ApiError(404, "Blog not found");
+    }
+
+   
+
+
+    const userIdString = userId.toString();
+    const likedIndex = blog.likedBy.findIndex(id => id.toString() === userIdString);
+    const alreadyLiked = likedIndex !== -1;
+
+    console.log('Already Liked?', alreadyLiked);
+
+    if (alreadyLiked) {
+     
+        blog.likes = Math.max(0, blog.likes - 1);
+        blog.likedBy.splice(likedIndex, 1);
+        console.log('UNLIKED - New likes:', blog.likes);
+    } else {
+    
+        blog.likes = blog.likes + 1;
+        blog.likedBy.push(userId);
+        console.log('LIKED - New likes:', blog.likes);
+    }
+
+    // Save blog
+    await blog.save({ validateBeforeSave: false });
+
+    console.log('Blog saved successfully');
+    console.log('====== TOGGLE LIKE COMPLETED ======');
+
+    return res.status(200).json(
+        new ApiResponse(200, {
+            likes: blog.likes,
+            isLiked: !alreadyLiked,
+            likedBy: blog.likedBy.map(id => id.toString())
+        }, `Blog ${alreadyLiked ? 'unliked' : 'liked'} successfully`)
+    );
+});
+
 export {
     createBlog,
     getAllBlogs,
@@ -385,5 +418,6 @@ export {
     updateBlog,
     deleteBlog,
     getAdminBlogs,
-    getBlogStats
+    getBlogStats,
+    toggleLike
 };

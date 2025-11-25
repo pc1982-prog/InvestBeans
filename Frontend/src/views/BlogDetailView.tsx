@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Layout from "@/components/Layout";
-import { getBlogById, deleteBlog, Blog } from "@/services/blogService";
+import { getBlogById, deleteBlog, toggleLike, Blog } from "@/services/blogService";
 import {
   Loader2,
   ArrowLeft,
@@ -10,9 +10,9 @@ import {
   Eye,
   Calendar,
   Clock,
-  Share2,
   Tag,
   Bookmark,
+  Heart,
 } from "lucide-react";
 import { useAuth } from "@/controllers/AuthContext";
 
@@ -26,17 +26,22 @@ const SUBHEADER_PREVIEW_LENGTH = 150;
 const BlogDetailView = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { isAdmin } = useAuth();
+  const { isAdmin, user } = useAuth();
 
   const [blog, setBlog] = useState<Blog | null>(null);
   const [loading, setLoading] = useState(true);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [likeLoading, setLikeLoading] = useState(false);
   const [showFullContent, setShowFullContent] = useState(false);
   const [expandedSections, setExpandedSections] = useState<Record<number, boolean>>({});
   const [progress, setProgress] = useState<number>(0);
   const articleRef = useRef<HTMLDivElement | null>(null);
   const [email, setEmail] = useState("");
   const [subscribed, setSubscribed] = useState(false);
+
+  // Derived state for like status
+  const isLiked = blog && user && blog.likedBy ? blog.likedBy.includes(user._id) : false;
+  const likesCount = blog?.likes || 0;
 
   useEffect(() => {
     if (id) {
@@ -82,6 +87,33 @@ const BlogDetailView = () => {
       navigate("/blogs");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleLike = async () => {
+    if (!blog) return;
+    
+    if (!user) {
+      alert("Please login to like this blog");
+      return;
+    }
+
+    setLikeLoading(true);
+    try {
+      const response = await toggleLike(blog._id);
+      
+      // Update blog state with new like data
+      setBlog(prev => prev ? {
+        ...prev,
+        likes: response.likes,
+        likedBy: response.likedBy
+      } : null);
+    } catch (error) {
+      console.error("Error toggling like:", error);
+      const errorMessage = error?.response?.data?.message || "Failed to update like";
+      alert(errorMessage);
+    } finally {
+      setLikeLoading(false);
     }
   };
 
@@ -174,7 +206,7 @@ const BlogDetailView = () => {
           />
         </div>
 
-        {/* Hero Image Section - With Proper Spacing */}
+        {/* Hero Image Section */}
         <div className="pt-8 sm:pt-12 pb-8">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
             {/* Back Button */}
@@ -191,7 +223,7 @@ const BlogDetailView = () => {
               </button>
             </div>
 
-            {/* Hero Image with Rounded Corners */}
+            {/* Hero Image */}
             <div className="relative w-full rounded-3xl overflow-hidden shadow-2xl">
               <div className="relative h-[300px] sm:h-[400px] lg:h-[500px] overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200">
                 <img
@@ -230,7 +262,7 @@ const BlogDetailView = () => {
               {blog.title}
             </h1>
 
-            {/* Metadata Bar - Better Mobile Layout */}
+            {/* Metadata Bar with Like Button */}
             <div className="flex flex-wrap items-center gap-3 sm:gap-6 pb-6 mb-8 border-b-2 border-gray-200">
               <div className="flex items-center gap-2 text-gray-600 text-sm font-medium bg-gray-50 px-4 py-2 rounded-lg">
                 <Calendar size={16} className="text-accent" />
@@ -250,9 +282,30 @@ const BlogDetailView = () => {
                 <Eye size={16} className="text-accent" />
                 <span>{blog.views} views</span>
               </div>
+              
+              {/* Like Button */}
+              <button
+                onClick={handleLike}
+                disabled={likeLoading}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                  isLiked
+                    ? "bg-red-50 text-red-600 hover:bg-red-100"
+                    : "bg-gray-50 text-gray-600 hover:bg-gray-100"
+                } disabled:opacity-50 disabled:cursor-not-allowed`}
+              >
+                {likeLoading ? (
+                  <Loader2 size={16} className="animate-spin" />
+                ) : (
+                  <Heart
+                    size={16}
+                    className={isLiked ? "fill-current" : ""}
+                  />
+                )}
+                <span>{likesCount}</span>
+              </button>
             </div>
 
-            {/* Author & Actions - Improved Mobile Layout */}
+            {/* Author & Actions */}
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 mb-12 pb-8 border-b-2 border-gray-200">
               <div className="flex items-center gap-4">
                 <div className="w-14 h-14 bg-gradient-to-br from-navy via-accent to-purple-600 rounded-2xl flex items-center justify-center text-white font-bold text-xl shadow-lg">
@@ -304,7 +357,7 @@ const BlogDetailView = () => {
               </div>
             )}
 
-            {/* Tags - Enhanced Design */}
+            {/* Tags */}
             {blog.tags && blog.tags.length > 0 && (
               <div className="mb-12">
                 <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
@@ -325,7 +378,7 @@ const BlogDetailView = () => {
               </div>
             )}
 
-            {/* Key Insights - Enhanced Cards */}
+            {/* Key Insights */}
             {blog.headerSections && blog.headerSections.length > 0 && (
               <div className="mb-12">
                 <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-8 flex items-center gap-3">
@@ -373,7 +426,7 @@ const BlogDetailView = () => {
               </div>
             )}
 
-            {/* Full Article - Enhanced Typography */}
+            {/* Full Article */}
             <div className="mb-12 bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-gray-100">
               <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6 flex items-center gap-3">
                 <div className="w-1.5 h-10 bg-gradient-to-b from-navy via-accent to-purple-600 rounded-full" />
@@ -405,7 +458,7 @@ const BlogDetailView = () => {
             </div>
           </article>
 
-          {/* Newsletter - Enhanced Design */}
+          {/* Newsletter */}
           <div className="bg-gradient-to-br from-navy via-accent to-purple-600 text-white rounded-3xl p-8 sm:p-12 text-center mb-12 shadow-2xl relative overflow-hidden">
             <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32" />
             <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/5 rounded-full -ml-32 -mb-32" />

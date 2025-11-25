@@ -26,6 +26,8 @@ export type Blog = {
   slug?: string;
   createdAt: string;
   updatedAt: string;
+  likes: number;
+  likedBy: string[];
 };
 
 export type BlogParams = {
@@ -57,6 +59,12 @@ export type BlogResponse = {
     startDate?: string;
     endDate?: string;
   };
+};
+
+export type LikeResponse = {
+  likes: number;
+  isLiked: boolean;
+  likedBy: string[];
 };
 
 // Get all public blogs
@@ -107,5 +115,11 @@ export const deleteBlog = async (id: string): Promise<void> => {
 // Get blog statistics (admin only)
 export const getBlogStats = async () => {
   const response = await api.get('/blogs/admin/stats');
+  return response.data.data;
+};
+
+// Toggle like (requires authentication)
+export const toggleLike = async (blogId: string): Promise<LikeResponse> => {
+  const response = await api.post(`/blogs/${blogId}/like`);
   return response.data.data;
 };

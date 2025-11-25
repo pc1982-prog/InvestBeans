@@ -6,9 +6,10 @@ import {
     updateBlog,
     deleteBlog,
     getAdminBlogs,
-    getBlogStats
+    getBlogStats,
+    toggleLike
 } from "../controllers/blog.controller.js";
-import { verifyJWT } from "../middlewares/auth.middleware.js";
+import { verifyJWT, verifyJWTOrSession } from "../middlewares/auth.middleware.js";
 import { verifyAdmin } from "../middlewares/admin.middleware.js";
 import { upload } from "../middlewares/multer.middleware.js";
 
@@ -20,6 +21,7 @@ router.route("/")
 
 router.route("/:id")
     .get(getBlogById); 
+    router.post('/:id/like', verifyJWTOrSession, toggleLike);
 
 router.route("/admin/create")
     .post(verifyJWT, verifyAdmin, upload.single("blogImage"), createBlog);
@@ -33,5 +35,10 @@ router.route("/admin/stats")
 router.route("/admin/:id")
     .put(verifyJWT, verifyAdmin, upload.single("blogImage"), updateBlog)
     .delete(verifyJWT, verifyAdmin, deleteBlog);
+
+
+
+router.route("/:id")
+    .get(getBlogById); 
 
 export default router;

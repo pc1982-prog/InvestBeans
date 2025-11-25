@@ -58,6 +58,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const params = new URLSearchParams(window.location.search);
     const googleAuth = params.get('googleAuth');
     const error = params.get('error');
+    const accessToken = params.get('accessToken');
+    const refreshToken = params.get('refreshToken');
 
     if (error) {
       console.error(' Google auth error:', error);
@@ -69,9 +71,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (googleAuth === 'success') {
       console.log(' Google auth success detected');
 
-  
-      window.history.replaceState({}, document.title, window.location.pathname);
+      // Extract and save tokens from URL
+      if (accessToken && refreshToken) {
+        console.log('✅ JWT Tokens received from callback');
+        localStorage.setItem('accessToken', accessToken);
+        localStorage.setItem('refreshToken', refreshToken);
+        localStorage.setItem('authMethod', 'jwt');
+        api.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+        setAuthMethod('jwt');
+      } else {
+        // Fallback to session-based auth if no tokens in URL
+        localStorage.setItem('authMethod', 'google');
+        setAuthMethod('google');
+      }
 
+      // Clear URL params
+      window.history.replaceState({}, document.title, window.location.pathname);
 
       let attempts = 0;
       const maxAttempts = 5;
@@ -92,8 +107,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             console.log(' Google user fetched:', googleUser.email);
 
             setUser(googleUser);
-            setAuthMethod('google');
-            localStorage.setItem('authMethod', 'google');
 
             // Redirect to intended page
             const redirectTo = localStorage.getItem('preAuthPath') || '/';
@@ -113,6 +126,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           if (attempts === maxAttempts) {
             console.error(' Failed to fetch Google profile after all retries');
             localStorage.removeItem('authMethod');
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('refreshToken');
             alert('Google login failed. Session cookie might not be set. Please try again.');
             window.location.href = '/signin';
             return null;

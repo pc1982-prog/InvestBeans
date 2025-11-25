@@ -1,15 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import AdminBlogForm from '@/components/AdminBlogForm';
-import { getAllBlogs, getAdminBlogs, deleteBlog, getBlogById, Blog } from '@/services/blogService';
-import { Loader2, Plus, Edit2, Trash2, Eye, Search, Tag, Calendar, TrendingUp, Sparkles } from 'lucide-react';
+import { getAllBlogs, getAdminBlogs, deleteBlog, getBlogById, toggleLike, Blog } from '@/services/blogService';
+import { Loader2, Plus, Edit2, Trash2, Eye, Search, Tag, Calendar, TrendingUp, Sparkles, Heart } from 'lucide-react';
 import { useAuth } from '@/controllers/AuthContext';
 
 const BlogsView = () => {
-  const { isAdmin } = useAuth();
+  const { isAdmin, user } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [blogs, setBlogs] = useState<Blog[]>([]);
@@ -17,6 +16,7 @@ const BlogsView = () => {
   const [showForm, setShowForm] = useState(false);
   const [editBlog, setEditBlog] = useState<Blog | null>(null);
   const [deleteLoading, setDeleteLoading] = useState<string | null>(null);
+  const [likeLoading, setLikeLoading] = useState<string | null>(null);
   
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
@@ -41,13 +41,11 @@ const BlogsView = () => {
   useEffect(() => {
     const editBlogId = searchParams.get('edit');
     if (editBlogId && isAdmin) {
-      // Fetch the blog to edit
       const fetchEditBlog = async () => {
         try {
           const blog = await getBlogById(editBlogId);
           setEditBlog(blog);
           setShowForm(true);
-          // Remove the edit parameter from URL after a small delay
           setTimeout(() => {
             searchParams.delete('edit');
             setSearchParams(searchParams, { replace: true });
@@ -89,6 +87,35 @@ const BlogsView = () => {
     fetchBlogs();
   }, [selectedCategory, searchQuery, currentPage, sortOrder, isAdmin]);
 
+  const handleLike = async (blogId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    if (!user) {
+      alert("Please login to like blogs");
+      return;
+    }
+
+    setLikeLoading(blogId);
+    try {
+      const response = await toggleLike(blogId);
+      
+      // Update the specific blog in the list
+      setBlogs(prevBlogs => 
+        prevBlogs.map(blog => 
+          blog._id === blogId 
+            ? { ...blog, likes: response.likes, likedBy: response.likedBy }
+            : blog
+        )
+      );
+    } catch (error) {
+      console.error('Error toggling like:', error);
+      const errorMessage = error?.response?.data?.message || "Failed to update like";
+      alert(errorMessage);
+    } finally {
+      setLikeLoading(null);
+    }
+  };
+
   const handleDelete = async (blogId: string) => {
     if (!confirm('Are you sure you want to delete this blog?')) return;
 
@@ -122,6 +149,10 @@ const BlogsView = () => {
     navigate(`/blogs/${blogId}`);
   };
 
+  const isLikedByUser = (blog: Blog) => {
+    return user && blog.likedBy ? blog.likedBy.includes(user._id) : false;
+  };
+
   const featuredBlog = blogs.find(blog => blog.isPublished) || blogs[0];
 
   return (
@@ -134,7 +165,7 @@ const BlogsView = () => {
               <div className="text-center sm:text-left">
                 <div className="inline-flex items-center gap-3 mb-4">
                   <div className="h-12 w-1.5 bg-black rounded-full shadow-lg" />
-                  <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold  bg-clip-text text-">
+                  <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold bg-clip-text">
                     Investment Blog
                   </h1>
                 </div>
@@ -156,7 +187,6 @@ const BlogsView = () => {
 
           {/* Filters Section */}
           <div className="mb-10 sm:mb-12 space-y-6 bg-white p-6 rounded-2xl shadow-md border border-gray-100">
-            {/* Search and Sort */}
             <div className="flex flex-col lg:flex-row gap-4">
               <div className="flex-1 relative group">
                 <Search className="absolute left-5 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-accent transition-colors" size={22} />
@@ -181,7 +211,6 @@ const BlogsView = () => {
               </select>
             </div>
 
-            {/* Categories - Horizontal Scrollable Pills */}
             <div>
               <h3 className="text-sm font-bold text-gray-600 uppercase tracking-wider mb-4 flex items-center gap-2">
                 <Sparkles size={16} className="text-accent" />
@@ -206,9 +235,6 @@ const BlogsView = () => {
                     </button>
                   ))}
                 </div>
-                {/* Gradient Fade Effects
-                <div className="absolute left-0 top-0 bottom-4 w-8 bg-gradient-to-r from-white to-transparent pointer-events-none" />
-                <div className="absolute right-0 top-0 bottom-4 w-8 bg-gradient-to-l from-white to-transparent pointer-events-none" /> */}
               </div>
             </div>
           </div>
@@ -219,7 +245,7 @@ const BlogsView = () => {
             </div>
           ) : blogs.length === 0 ? (
             <div className="text-center py-32 bg-white rounded-3xl shadow-lg">
-              <p className="text-gray-500 text-2xl font-semibold">📭 No blogs found</p>
+              <p className="text-gray-500 text-2xl font-semibold">🔭 No blogs found</p>
               <p className="text-gray-400 mt-2">Try adjusting your filters</p>
             </div>
           ) : (
@@ -236,7 +262,6 @@ const BlogsView = () => {
                   
                   <div className="bg-white rounded-3xl shadow-2xl overflow-hidden hover:shadow-3xl transition-all duration-300">
                     <div className="grid grid-cols-1 lg:grid-cols-2">
-                      {/* Image */}
                       <div 
                         className="relative h-80 lg:h-full cursor-pointer group overflow-hidden"
                         onClick={() => handleReadMore(featuredBlog._id)}
@@ -249,9 +274,7 @@ const BlogsView = () => {
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                       </div>
 
-                      {/* Content */}
                       <div className="p-8 sm:p-10 lg:p-12 flex flex-col justify-center">
-                        {/* Metadata */}
                         <div className="flex flex-wrap items-center gap-3 mb-6">
                           <span className="inline-flex items-center gap-2 bg-gradient-to-r from-accent to-accent/80 text-white px-4 py-2 rounded-full text-sm font-bold shadow-md">
                             <Sparkles size={14} />
@@ -260,6 +283,28 @@ const BlogsView = () => {
                           <span className="text-gray-500 text-sm font-semibold">
                             {featuredBlog.readTime}
                           </span>
+                          
+                          {/* Like Button for Featured */}
+                          <button
+                            onClick={(e) => handleLike(featuredBlog._id, e)}
+                            disabled={likeLoading === featuredBlog._id}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-bold transition-all ${
+                              isLikedByUser(featuredBlog)
+                                ? "bg-red-50 text-red-600 hover:bg-red-100"
+                                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                            } disabled:opacity-50`}
+                          >
+                            {likeLoading === featuredBlog._id ? (
+                              <Loader2 size={14} className="animate-spin" />
+                            ) : (
+                              <Heart
+                                size={14}
+                                className={isLikedByUser(featuredBlog) ? "fill-current" : ""}
+                              />
+                            )}
+                            <span>{featuredBlog.likes}</span>
+                          </button>
+                          
                           {!featuredBlog.isPublished && (
                             <span className="bg-yellow-500 text-white px-3 py-1.5 rounded-full text-sm font-bold">
                               Draft
@@ -267,7 +312,6 @@ const BlogsView = () => {
                           )}
                         </div>
                         
-                        {/* Title */}
                         <h3 
                           onClick={() => handleReadMore(featuredBlog._id)}
                           className="text-2xl sm:text-3xl lg:text-4xl font-bold text-navy mb-5 hover:text-navy/80 cursor-pointer line-clamp-2 leading-tight"
@@ -275,12 +319,10 @@ const BlogsView = () => {
                           {featuredBlog.title}
                         </h3>
                         
-                        {/* Description */}
                         <p className="text-gray-600 mb-6 text-base sm:text-lg line-clamp-3 leading-relaxed">
                           {featuredBlog.description}
                         </p>
                         
-                        {/* Tags */}
                         {featuredBlog.tags && featuredBlog.tags.length > 0 && (
                           <div className="flex flex-wrap gap-2 mb-8">
                             {featuredBlog.tags.slice(0, 5).map((tag, index) => (
@@ -295,7 +337,6 @@ const BlogsView = () => {
                           </div>
                         )}
                         
-                        {/* Author and Actions */}
                         <div className="flex flex-col gap-6">
                           <div className="flex items-center gap-3">
                             <div className="w-12 h-12 bg-gradient-to-br from-navy to-accent rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg">
@@ -316,7 +357,6 @@ const BlogsView = () => {
                             </div>
                           </div>
                           
-                          {/* Action Buttons */}
                           <div className="flex gap-3">
                             {isAdmin ? (
                               <>
@@ -371,7 +411,6 @@ const BlogsView = () => {
                         key={post._id}
                         className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 flex flex-col group"
                       >
-                        {/* Image */}
                         <div 
                           className="relative h-56 overflow-hidden cursor-pointer"
                           onClick={() => handleReadMore(post._id)}
@@ -384,9 +423,7 @@ const BlogsView = () => {
                           <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                         </div>
 
-                        {/* Content */}
                         <div className="p-6 flex flex-col flex-grow">
-                          {/* Metadata */}
                           <div className="flex items-center gap-2 mb-4 flex-wrap">
                             <span className="inline-flex items-center gap-1.5 bg-gray-100 text-gray-700 px-3 py-1.5 rounded-lg text-xs font-bold border border-gray-200">
                               <Sparkles size={12} />
@@ -398,9 +435,29 @@ const BlogsView = () => {
                             <span className="text-gray-500 text-xs flex items-center gap-1">
                               <Eye size={12} /> {post.views}
                             </span>
+                            
+                            {/* Like Button for Grid Cards */}
+                            <button
+                              onClick={(e) => handleLike(post._id, e)}
+                              disabled={likeLoading === post._id}
+                              className={`flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-bold transition-all ${
+                                isLikedByUser(post)
+                                  ? "bg-red-50 text-red-600"
+                                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                              } disabled:opacity-50`}
+                            >
+                              {likeLoading === post._id ? (
+                                <Loader2 size={12} className="animate-spin" />
+                              ) : (
+                                <Heart
+                                  size={12}
+                                  className={isLikedByUser(post) ? "fill-current" : ""}
+                                />
+                              )}
+                              <span>{post.likes}</span>
+                            </button>
                           </div>
                           
-                          {/* Title */}
                           <h3 
                             onClick={() => handleReadMore(post._id)}
                             className="text-xl font-bold text-navy mb-3 line-clamp-2 hover:text-navy/80 cursor-pointer leading-tight"
@@ -408,12 +465,10 @@ const BlogsView = () => {
                             {post.title}
                           </h3>
                           
-                          {/* Description */}
                           <p className="text-gray-600 text-sm mb-5 line-clamp-3 flex-grow leading-relaxed">
                             {post.description}
                           </p>
                           
-                          {/* Tags */}
                           {post.tags && post.tags.length > 0 && (
                             <div className="flex flex-wrap gap-2 mb-5">
                               {post.tags.slice(0, 3).map((tag, index) => (
@@ -428,7 +483,6 @@ const BlogsView = () => {
                             </div>
                           )}
                           
-                          {/* Footer */}
                           <div className="flex items-center justify-between pt-5 border-t-2 border-gray-100">
                             <div className="flex items-center gap-2.5">
                               <div className="w-10 h-10 bg-gradient-to-br from-navy to-accent rounded-full flex items-center justify-center text-white font-bold text-sm shadow-md">
@@ -447,7 +501,6 @@ const BlogsView = () => {
                               </div>
                             </div>
                             
-                            {/* Action Buttons */}
                             {isAdmin ? (
                               <div className="flex gap-2">
                                 <button 
