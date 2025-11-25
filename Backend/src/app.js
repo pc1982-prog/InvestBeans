@@ -40,6 +40,7 @@ const allowedOrigins = [
   "http://localhost:8080",
   "http://127.0.0.1:8080",
   FRONTEND_URL,
+  "https://companytask-1-1.onrender.com/"
 ].filter(Boolean);
 
 const uniqueOrigins = [...new Set(allowedOrigins)];
