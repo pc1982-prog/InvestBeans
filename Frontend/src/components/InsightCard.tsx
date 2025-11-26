@@ -1,43 +1,108 @@
-import { TrendingUp, TrendingDown, Clock, Eye, ArrowRight } from "lucide-react";
+import { TrendingUp, TrendingDown, Eye, Edit, Trash2, ThumbsUp } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useEffect, useState } from "react";
 
 interface InsightCardProps {
-  title: string;
-  description: string;
-  sentiment?: "positive" | "negative" | "neutral";
-  readTime?: string;
-  views?: number;
-  category?: string;
+  insight: {
+    _id: string;
+    title: string;
+    description: string;
+    sentiment?: "positive" | "negative" | "neutral";
+    views?: number;
+    likes?: number;
+    isLiked?: boolean;
+    category?: string;
+  };
+  isAdmin?: boolean;
+  onReadMore: (id: string) => void;
+  onLike?: (id: string) => Promise<void>;
+  onEdit?: (insight: unknown) => void;
+  onDelete?: (id: string) => void;
 }
 
-const InsightCard = ({ 
-  title, 
-  description, 
-  sentiment = "neutral", 
-  readTime = "3 min read",
-  views = 1250,
-  category = "Market Analysis"
+const InsightCard = ({
+  insight,
+  isAdmin = false,
+  onReadMore,
+  onLike,
+  onEdit,
+  onDelete,
 }: InsightCardProps) => {
+  const {
+    _id,
+    title,
+    description,
+    sentiment = "neutral",
+    views = 0,
+    likes = 0,
+    isLiked = false,
+    category = "Market Analysis",
+  } = insight;
+
+  const [liked, setLiked] = useState(isLiked);
+  const [likeCount, setLikeCount] = useState(likes);
+  const [isLiking, setIsLiking] = useState(false);
+
+  // Update local state when prop changes
+  useEffect(() => {
+    setLiked(isLiked);
+    setLikeCount(likes);
+  }, [isLiked, likes]);
+
   const getSentimentColor = () => {
     switch (sentiment) {
-      case "positive": return "from-green-500/10 to-emerald-500/5 border-green-200/50";
-      case "negative": return "from-red-500/10 to-rose-500/5 border-red-200/50";
-      default: return "from-blue-500/10 to-indigo-500/5 border-blue-200/50";
+      case "positive":
+        return "from-green-500/10 to-emerald-500/5 border-green-200/50";
+      case "negative":
+        return "from-red-500/10 to-rose-500/5 border-red-200/50";
+      default:
+        return "from-blue-500/10 to-indigo-500/5 border-blue-200/50";
     }
   };
 
   const getSentimentIcon = () => {
     switch (sentiment) {
-      case "positive": return <TrendingUp className="w-4 h-4 text-green-600" />;
-      case "negative": return <TrendingDown className="w-4 h-4 text-red-600" />;
-      default: return <Eye className="w-4 h-4 text-blue-600" />;
+      case "positive":
+        return <TrendingUp className="w-4 h-4 text-green-600" />;
+      case "negative":
+        return <TrendingDown className="w-4 h-4 text-red-600" />;
+      default:
+        return <Eye className="w-4 h-4 text-blue-600" />;
+    }
+  };
+
+  const handleLike = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!onLike || isLiking) return;
+
+    setIsLiking(true);
+    const previousLiked = liked;
+    const previousCount = likeCount;
+
+    // Optimistic update
+    setLiked(!liked);
+    setLikeCount(liked ? likeCount - 1 : likeCount + 1);
+
+    try {
+      await onLike(_id);
+    } catch (error) {
+      // Rollback on error
+      setLiked(previousLiked);
+      setLikeCount(previousCount);
+      console.error("Failed to like insight:", error);
+      alert("Failed to update like. Please try again.");
+    } finally {
+      setIsLiking(false);
     }
   };
 
   return (
-    <div className={`group relative overflow-hidden rounded-2xl bg-gradient-to-br ${getSentimentColor()} border backdrop-blur-sm hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 hover:scale-[1.02] animate-slide-up active:scale-[0.98] touch-manipulation`}>
+    <div
+      className={`group relative overflow-hidden rounded-2xl bg-gradient-to-br ${getSentimentColor()} border backdrop-blur-sm hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 hover:scale-[1.02] animate-slide-up active:scale-[0.98] touch-manipulation`}
+    >
       {/* Animated background gradient */}
       <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-      
+
       {/* Content */}
       <div className="relative z-10 p-6 md:p-8">
         {/* Header with category and sentiment */}
@@ -47,7 +112,9 @@ const InsightCard = ({
           </span>
           <div className="flex items-center gap-2">
             {getSentimentIcon()}
-            <span className="text-xs font-medium text-foreground/60 capitalize">{sentiment}</span>
+            <span className="text-xs font-medium text-foreground/60 capitalize">
+              {sentiment}
+            </span>
           </div>
         </div>
 
@@ -62,22 +129,68 @@ const InsightCard = ({
         </p>
 
         {/* Footer with stats and CTA */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="flex flex-col gap-4">
           <div className="flex items-center gap-3 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
             <div className="flex items-center gap-1">
-              <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
-              <span>{readTime}</span>
-            </div>
-            <div className="flex items-center gap-1">
               <Eye className="w-3 h-3 sm:w-4 sm:h-4" />
-              <span>{views.toLocaleString()}</span>
+              <span>{views.toLocaleString()} views</span>
             </div>
+            <button
+              onClick={handleLike}
+              className={`flex items-center gap-1 transition-colors ${
+                liked ? "text-blue-600" : "hover:text-blue-600"
+              }`}
+            >
+              <ThumbsUp
+                className={`w-3 h-3 sm:w-4 sm:h-4 ${liked ? "fill-current" : ""}`}
+              />
+              <span>{likeCount.toLocaleString()} likes</span>
+            </button>
           </div>
-          
-          <button className="group/btn inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-accent to-accent/80 text-white font-semibold hover:from-accent/90 hover:to-accent/70 transition-all duration-300 hover:shadow-lg hover:scale-105 active:scale-95 touch-manipulation text-sm sm:text-base w-full sm:w-auto justify-center">
-            <span>Read More</span>
-            <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 group-hover/btn:translate-x-1 transition-transform duration-300" />
-          </button>
+
+          {/* Action Buttons */}
+          <div className="flex gap-2">
+            <button
+              onClick={() => onReadMore(_id)}
+              className="group/btn flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-accent to-accent/80 text-white font-semibold hover:from-accent/90 hover:to-accent/70 transition-all duration-300 hover:shadow-lg hover:scale-105 active:scale-95 touch-manipulation text-sm sm:text-base"
+            >
+              <span>View Details</span>
+            </button>
+
+            {/* Admin Actions */}
+            {isAdmin && onEdit && onDelete && (
+              <>
+                <Button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEdit(insight);
+                  }}
+                  variant="outline"
+                  size="icon"
+                  className="flex-shrink-0 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-300"
+                >
+                  <Edit className="w-4 h-4" />
+                </Button>
+                <Button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (
+                      window.confirm(
+                        "Are you sure you want to delete this insight?"
+                      )
+                    ) {
+                      onDelete(_id);
+                    }
+                  }}
+                  variant="outline"
+                  size="icon"
+                  className="flex-shrink-0 hover:bg-red-50 hover:text-red-600 hover:border-red-300"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </>
+            )}
+          </div>
         </div>
       </div>
 

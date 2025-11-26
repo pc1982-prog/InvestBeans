@@ -18,6 +18,7 @@ import TeamView from "@/views/TeamView";
 import BlogsView from "@/views/BlogsView";
 import BlogDetailView from "./views/BlogDetailView";
 
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -46,6 +47,8 @@ const App = () => (
           />
           <Route path="/signin" element={<SignInController />} />
           <Route path="/signup" element={<SignUpController />} />
+        
+          
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFoundController />} />
         </Routes>

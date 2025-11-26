@@ -175,6 +175,8 @@ import userRouter from "./routes/user.routes.js";
 import googleAuthRouter from "./routes/googleAuth.routes.js";
 import blogRouter from "./routes/blog.routes.js";
 import beansOfWisdom from "./routes/beanOfWisdom.routes.js";
+import insightRouter from "./routes/insight.routes.js";
+
 
 
 
@@ -186,6 +188,8 @@ app.use("/auth", googleAuthRouter);
 
 app.use("/api/v1/blogs", blogRouter);
 app.use("/api/v1/beans-of-wisdom", beansOfWisdom);
+app.use("/api/v1/insights", insightRouter);
+
 
 
 
