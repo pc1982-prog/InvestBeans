@@ -27,9 +27,13 @@ export const verifyJWT = asyncHandler(async (req, res, next) => {
         }
 
         // Find user
-        const user = await User.findById(decodedToken?._id).select(
-            "-password -refreshToken"
-        );
+        // const user = await User.findById(decodedToken?._id).select(
+        //     "-password -refreshToken"
+        // );
+        let user = await GoogleAuth.findById(decodedToken?._id).select('-refreshToken -__v');
+  if (!user) {
+    user = await User.findById(decodedToken?._id).select('-password -refreshToken');
+  }
 
         if (!user) {
             throw new ApiError(401, "Invalid access token - user not found");

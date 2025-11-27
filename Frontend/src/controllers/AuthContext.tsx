@@ -143,55 +143,99 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
  
-  const refreshUser = useCallback(async (): Promise<User | null> => {
-    const storedAuthMethod = localStorage.getItem('authMethod') as 'jwt' | 'google' | null;
+  // const refreshUser = useCallback(async (): Promise<User | null> => {
+  //   const storedAuthMethod = localStorage.getItem('authMethod') as 'jwt' | 'google' | null;
 
-    try {
-      if (storedAuthMethod === 'google') {
-        console.log(' Refreshing Google session');
+  //   try {
+  //     if (storedAuthMethod === 'google') {
+  //       console.log(' Refreshing Google session');
       
-        const { data } = await axios.get(`${getBaseURL()}/auth/profile`, {
-          withCredentials: true
-        });
+  //       const { data } = await axios.get(`${getBaseURL()}/auth/profile`, {
+  //         withCredentials: true
+  //       });
 
-        if (data?.success && data?.data) {
-          const u = data.data;
-          setUser(u);
-          setAuthMethod('google');
-          console.log(' Google session restored:', u.email);
-          return u;
-        }
-      } else if (storedAuthMethod === 'jwt') {
-        const token = localStorage.getItem('accessToken');
-        if (token) {
-          console.log(' Refreshing JWT session');
-          const { data } = await api.get('/users/current-user');
+  //       if (data?.success && data?.data) {
+  //         const u = data.data;
+  //         setUser(u);
+  //         setAuthMethod('google');
+  //         console.log(' Google session restored:', u.email);
+  //         return u;
+  //       }
+  //     } else if (storedAuthMethod === 'jwt') {
+  //       const token = localStorage.getItem('accessToken');
+  //       if (token) {
+  //         console.log(' Refreshing JWT session');
+  //         const { data } = await api.get('/users/current-user');
 
-          if (data?.success && data?.data) {
-            const u = data.data;
-            setUser(u);
-            setAuthMethod('jwt');
-            console.log(' JWT session restored:', u.email);
-            return u;
-          }
-        }
+  //         if (data?.success && data?.data) {
+  //           const u = data.data;
+  //           setUser(u);
+  //           setAuthMethod('jwt');
+  //           console.log(' JWT session restored:', u.email);
+  //           return u;
+  //         }
+  //       }
+  //     }
+  //   } catch (err: any) {
+  //     if (err.response?.status === 401) {
+  //       console.log(' No active session found');
+  //       localStorage.removeItem('authMethod');
+  //       localStorage.removeItem('accessToken');
+  //       localStorage.removeItem('refreshToken');
+  //       setUser(null);
+  //       setAuthMethod(null);
+  //     } else {
+  //       console.error(' Error refreshing user:', err);
+  //     }
+  //   }
+  //   return null;
+  // }, []);
+
+ const refreshUser = useCallback(async () => {
+  try {
+    // Step 1: Try Google session first (withCredentials, no token)
+    try {
+      const { data } = await axios.get(`${getBaseURL()}/auth/profile`, { withCredentials: true });
+      if (data?.success && data?.data) {
+        setUser(data.data);
+        localStorage.setItem('authMethod', 'google');
+        setAuthMethod('google');
+        console.log('✅ Google session restored');
+        return data.data;
       }
-    } catch (err: any) {
-      if (err.response?.status === 401) {
-        console.log(' No active session found');
-        localStorage.removeItem('authMethod');
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
-        setUser(null);
-        setAuthMethod(null);
-      } else {
-        console.error(' Error refreshing user:', err);
+    } catch (sessionErr) {
+      console.log('No Google session, trying JWT...');
+    }
+
+    // Step 2: Fallback to JWT (sets header if token exists)
+    const token = localStorage.getItem('accessToken');
+    if (token) {
+      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      const { data } = await api.get('/users/current-user');
+      if (data?.success && data?.data) {
+        setUser(data.data);
+        localStorage.setItem('authMethod', 'jwt');
+        setAuthMethod('jwt');
+        console.log('✅ JWT restored');
+        return data.data;
       }
     }
-    return null;
-  }, []);
 
- 
+    // No auth
+    throw new Error('No session');
+  } catch (err: any) {
+    if (err.response?.status === 401 || err.message === 'No session') {
+      console.log('No active auth, clearing...');
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('authMethod');
+      setUser(null);
+      setAuthMethod(null);
+      delete api.defaults.headers.common['Authorization'];
+    }
+    return null;
+  }
+}, []);
   useEffect(() => {
     const init = async () => {
       setLoading(true);
