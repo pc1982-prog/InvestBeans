@@ -112,7 +112,7 @@ export default function BeansOfWisdomView() {
           <div className="text-center mb-8 md:mb-16">
             <div className="inline-flex items-center justify-center gap-2 md:gap-3 mb-4 md:mb-6 flex-wrap">
               <div className="h-10 w-1 md:h-12 md:w-1.5 bg-gradient-to-b from-orange-500 to-amber-500 rounded-full" />
-              <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold text-gray-900">
+              <h1 className="text-2xl sm:text-5xl md:text-5xl font-bold text-gray-900">
                 Beans of Wisdom
               </h1>
             </div>
@@ -148,23 +148,23 @@ export default function BeansOfWisdomView() {
         <div className="text-center mb-6 md:mb-12">
           <div className="inline-flex items-center justify-center gap-2 md:gap-3 mb-4 md:mb-6 flex-wrap">
             <div className="h-10 w-1 md:h-12 md:w-1.5 bg-gradient-to-b from-orange-500 to-amber-500 rounded-full shadow-lg" />
-            <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold text-gray-900">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900">
               Beans of Wisdom
             </h1>
           </div>
-          <p className="text-xs sm:text-base md:text-lg text-gray-600 max-w-2xl mx-auto mb-4 px-2">
+          <p className="text-sm sm:text-base md:text-lg text-gray-600 max-w-2xl mx-auto mb-4 px-2">
             Daily investment insights to help you grow your financial knowledge
           </p>
 
           {/* Date Badge & Admin Controls Container */}
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-center md:gap-4">
             {/* Date Badge */}
-            <div className="inline-flex items-center justify-center gap-2 bg-white px-4 md:px-6 py-2 md:py-3 rounded-full shadow-md border border-orange-200/50">
+            {/* <div className="inline-flex items-center justify-center gap-2 bg-white px-4 md:px-6 py-2 md:py-3 rounded-full shadow-md border border-orange-200/50">
               <Calendar className="w-4 md:w-5 h-4 md:h-5 text-orange-600 flex-shrink-0" />
               <span className="text-xs md:text-sm font-semibold text-gray-700">
                 {getTodayDate()}
               </span>
-            </div>
+            </div> */}
 
             {/* Admin Controls */}
             {isAdmin && (
@@ -241,12 +241,12 @@ export default function BeansOfWisdomView() {
               {/* Main Content - Left Side */}
               <div className="lg:col-span-2 space-y-4 md:space-y-6 lg:space-y-8">
                 {/* Description */}
-                <div>
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 md:gap-3 mb-2 md:mb-4">
+                <div >
+                  <div className="flex  sm:flex-row items-start sm:items-center gap-2 md:gap-3 mb-3 md:mb-4 ">
                     <div className="p-2 bg-orange-100 rounded-xl border border-orange-300/50 flex-shrink-0">
                       <BookOpen className="w-4 md:w-5 h-4 md:h-5 text-orange-600" />
                     </div>
-                    <h3 className="text-lg sm:text-2xl font-bold text-gray-900">
+                    <h3 className="text-sm sm:text-2xl font-bold text-gray-900 mt-2 md:mb-3">
                       {bean.sectionTitle}
                     </h3>
                   </div>
@@ -271,27 +271,16 @@ export default function BeansOfWisdomView() {
                   </blockquote>
                 </div>
 
-                <div className="bg-gradient-to-br from-orange-100 to-amber-100 rounded-2xl p-4 md:p-8 shadow-md border border-orange-300/50">
-                  <div className="flex flex-col sm:flex-row items-start gap-3 md:gap-4">
-                    {/* ICON */}
-                    <div className="p-2 md:p-3 bg-white rounded-xl flex-shrink-0 shadow-md">
-                      <Lightbulb className="w-5 md:w-6 h-5 md:h-6 text-orange-600" />
-                    </div>
-
-                    <div className="flex-1 w-full">
-                      {/* TAG */}
-                      <div className="inline-flex items-center gap-2 bg-orange-200/50 px-3 md:px-4 py-1.5 md:py-2 rounded-full mb-2 md:mb-3 border border-orange-300/50">
-                        <span className="text-xs md:text-sm font-bold text-orange-800">
-                          {bean.insightTag}
-                        </span>
-                      </div>
-
-                      {/* TEXT */}
-                      <p className="text-gray-800 text-sm sm:text-base md:text-lg leading-relaxed w-full">
-                        {bean.insightText}
-                      </p>
-                    </div>
+                  <div className="bg-orange-50 rounded-2xl p-4 md:p-6 border border-orange-200/50">
+                  <div className="flex items-center gap-2 mb-2 md:mb-3">
+                    <Lightbulb className="w-5 md:w-6 h-5 md:h-6 text-orange-600" />
+                    <h3 className="font-bold text-gray-900 text-xl md:text-xl">
+                    {bean.insightTag}
+                    </h3>
                   </div>
+                  <p className="text-sm md:text-xl text-gray-700 leading-relaxed">
+                      {bean.insightText}
+                  </p>
                 </div>
               </div>
 
