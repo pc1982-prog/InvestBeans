@@ -34,7 +34,7 @@ type AuthContextType = {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const ADMIN_EMAILS = ['admin@example.com', 'manutyagi@example.com'].map(e => e.toLowerCase());
+const ADMIN_EMAILS = ['admin@example.com', 'superadmin@example.com'].map(e => e.toLowerCase());
 
 function getErrorMessage(err: unknown): string {
   if (!err) return 'Unknown error';

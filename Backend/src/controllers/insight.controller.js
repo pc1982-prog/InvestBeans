@@ -24,7 +24,7 @@ export const createInsight = asyncHandler(async (req, res) => {
     sentiment,
     category,
     marketType,
-    isPublished,
+    
   } = req.body;
 
   // Validate required fields
@@ -57,7 +57,6 @@ export const createInsight = asyncHandler(async (req, res) => {
     category,
     marketType,
     readTime,
-    isPublished: isPublished !== undefined ? isPublished : true,
     author: req.user._id,
     publishedAt: new Date(),
   });
@@ -233,7 +232,6 @@ export const updateInsight = asyncHandler(async (req, res) => {
     sentiment,
     category,
     marketType,
-    isPublished,
   } = req.body;
 
   const insight = await Insight.findById(id);
@@ -266,7 +264,7 @@ export const updateInsight = asyncHandler(async (req, res) => {
   if (sentiment) insight.sentiment = sentiment;
   if (category) insight.category = category;
   if (marketType) insight.marketType = marketType;
-  if (isPublished !== undefined) insight.isPublished = isPublished;
+ 
 
   await insight.save();
 
@@ -314,7 +312,7 @@ export const getAdminInsights = asyncHandler(async (req, res) => {
   if (marketType) query.marketType = marketType;
   if (category) query.category = category;
   if (sentiment) query.sentiment = sentiment;
-  if (isPublished !== undefined) query.isPublished = isPublished === "true";
+
 
   // Calculate pagination
   const skip = (parseInt(page) - 1) * parseInt(limit);
@@ -418,7 +416,7 @@ export const togglePublishStatus = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Insight not found");
   }
 
-  insight.isPublished = !insight.isPublished;
+
   await insight.save();
 
   return res

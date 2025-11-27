@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import AdminBlogForm from '@/components/AdminBlogForm';
@@ -11,18 +11,43 @@ const BlogsView = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const [blogs, setBlogs] = useState<Blog[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [blogs, setBlogs] = useState<Blog[]>(() => {
+    // Load from sessionStorage on mount
+    const cached = sessionStorage.getItem('blogsCache');
+    if (cached) {
+      try {
+        const parsed = JSON.parse(cached);
+        const age = Date.now() - parsed.timestamp;
+        if (age < 5 * 60 * 1000) { // 5 minutes
+          return parsed.blogs;
+        }
+      } catch (e) {
+        console.error('Cache parse error:', e);
+      }
+    }
+    return [];
+  });
+  const [loading, setLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [editBlog, setEditBlog] = useState<Blog | null>(null);
   const [deleteLoading, setDeleteLoading] = useState<string | null>(null);
-  const [likeLoading, setLikeLoading] = useState<string | null>(null);
   
-  const [selectedCategory, setSelectedCategory] = useState('All');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
+  const [selectedCategory, setSelectedCategory] = useState(() => {
+    return sessionStorage.getItem('selectedCategory') || 'All';
+  });
+  const [searchQuery, setSearchQuery] = useState(() => {
+    return sessionStorage.getItem('searchQuery') || '';
+  });
+  const [currentPage, setCurrentPage] = useState(() => {
+    const cached = sessionStorage.getItem('currentPage');
+    return cached ? parseInt(cached) : 1;
+  });
   const [totalPages, setTotalPages] = useState(1);
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>(() => {
+    return (sessionStorage.getItem('sortOrder') as 'asc' | 'desc') || 'desc';
+  });
+
+  const initialLoadRef = useRef(false);
 
   const categories = [
     'All',
@@ -60,7 +85,13 @@ const BlogsView = () => {
   }, [searchParams.get('edit'), isAdmin]);
 
   const fetchBlogs = async () => {
-    setLoading(true);
+    // If we have cached blogs and haven't fetched yet, don't show loading
+    const hasCachedData = blogs.length > 0 && !initialLoadRef.current;
+    
+    if (!hasCachedData) {
+      setLoading(true);
+    }
+    
     try {
       const params = {
         search: searchQuery,
@@ -76,6 +107,17 @@ const BlogsView = () => {
 
       setBlogs(response.blogs);
       setTotalPages(response.pagination.totalPages);
+      
+      // Save to sessionStorage
+      sessionStorage.setItem('blogsCache', JSON.stringify({
+        blogs: response.blogs,
+        timestamp: Date.now(),
+      }));
+      sessionStorage.setItem('selectedCategory', selectedCategory);
+      sessionStorage.setItem('searchQuery', searchQuery);
+      sessionStorage.setItem('currentPage', currentPage.toString());
+      sessionStorage.setItem('sortOrder', sortOrder);
+      
     } catch (error) {
       console.error('Error fetching blogs:', error);
     } finally {
@@ -84,7 +126,15 @@ const BlogsView = () => {
   };
 
   useEffect(() => {
-    fetchBlogs();
+    // Only fetch if we don't have cached data or filters changed
+    if (!initialLoadRef.current) {
+      if (blogs.length === 0) {
+        fetchBlogs();
+      }
+      initialLoadRef.current = true;
+    } else {
+      fetchBlogs();
+    }
   }, [selectedCategory, searchQuery, currentPage, sortOrder, isAdmin]);
 
   const handleLike = async (blogId: string, e: React.MouseEvent) => {
@@ -95,24 +145,46 @@ const BlogsView = () => {
       return;
     }
 
-    setLikeLoading(blogId);
+    // Optimistic update - instant UI change
+    setBlogs(prevBlogs => 
+      prevBlogs.map(blog => {
+        if (blog._id === blogId) {
+          const isCurrentlyLiked = blog.likedBy?.includes(user._id);
+          return {
+            ...blog,
+            likes: isCurrentlyLiked ? Math.max(0, blog.likes - 1) : blog.likes + 1,
+            likedBy: isCurrentlyLiked 
+              ? blog.likedBy.filter(id => id !== user._id)
+              : [...(blog.likedBy || []), user._id]
+          };
+        }
+        return blog;
+      })
+    );
+
     try {
-      const response = await toggleLike(blogId);
-      
-      // Update the specific blog in the list
-      setBlogs(prevBlogs => 
-        prevBlogs.map(blog => 
-          blog._id === blogId 
-            ? { ...blog, likes: response.likes, likedBy: response.likedBy }
-            : blog
-        )
-      );
+      await toggleLike(blogId);
     } catch (error) {
+      // Rollback on error
+      setBlogs(prevBlogs => 
+        prevBlogs.map(blog => {
+          if (blog._id === blogId) {
+            const wasLiked = blog.likedBy?.includes(user._id);
+            return {
+              ...blog,
+              likes: wasLiked ? Math.max(0, blog.likes - 1) : blog.likes + 1,
+              likedBy: wasLiked 
+                ? blog.likedBy.filter(id => id !== user._id)
+                : [...(blog.likedBy || []), user._id]
+            };
+          }
+          return blog;
+        })
+      );
+      
       console.error('Error toggling like:', error);
       const errorMessage = error?.response?.data?.message || "Failed to update like";
       alert(errorMessage);
-    } finally {
-      setLikeLoading(null);
     }
   };
 
@@ -122,6 +194,7 @@ const BlogsView = () => {
     setDeleteLoading(blogId);
     try {
       await deleteBlog(blogId);
+      sessionStorage.removeItem('blogsCache'); // Clear cache
       fetchBlogs();
     } catch (error) {
       console.error('Error deleting blog:', error);
@@ -142,6 +215,7 @@ const BlogsView = () => {
   };
 
   const handleFormSuccess = () => {
+    sessionStorage.removeItem('blogsCache'); // Clear cache on form success
     fetchBlogs();
   };
 
@@ -287,21 +361,16 @@ const BlogsView = () => {
                           {/* Like Button for Featured */}
                           <button
                             onClick={(e) => handleLike(featuredBlog._id, e)}
-                            disabled={likeLoading === featuredBlog._id}
                             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-bold transition-all ${
                               isLikedByUser(featuredBlog)
                                 ? "bg-red-50 text-red-600 hover:bg-red-100"
                                 : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                            } disabled:opacity-50`}
+                            }`}
                           >
-                            {likeLoading === featuredBlog._id ? (
-                              <Loader2 size={14} className="animate-spin" />
-                            ) : (
-                              <Heart
-                                size={14}
-                                className={isLikedByUser(featuredBlog) ? "fill-current" : ""}
-                              />
-                            )}
+                            <Heart
+                              size={14}
+                              className={isLikedByUser(featuredBlog) ? "fill-current" : ""}
+                            />
                             <span>{featuredBlog.likes}</span>
                           </button>
                           
@@ -439,21 +508,16 @@ const BlogsView = () => {
                             {/* Like Button for Grid Cards */}
                             <button
                               onClick={(e) => handleLike(post._id, e)}
-                              disabled={likeLoading === post._id}
                               className={`flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-bold transition-all ${
                                 isLikedByUser(post)
                                   ? "bg-red-50 text-red-600"
                                   : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                              } disabled:opacity-50`}
+                              }`}
                             >
-                              {likeLoading === post._id ? (
-                                <Loader2 size={12} className="animate-spin" />
-                              ) : (
-                                <Heart
-                                  size={12}
-                                  className={isLikedByUser(post) ? "fill-current" : ""}
-                                />
-                              )}
+                              <Heart
+                                size={12}
+                                className={isLikedByUser(post) ? "fill-current" : ""}
+                              />
                               <span>{post.likes}</span>
                             </button>
                           </div>

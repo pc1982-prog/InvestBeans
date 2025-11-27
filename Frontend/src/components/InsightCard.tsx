@@ -119,7 +119,7 @@ const InsightCard = ({
         </div>
 
         {/* Title */}
-        <h3 className="text-xl md:text-2xl font-bold text-foreground mb-4 leading-tight group-hover:text-accent transition-colors duration-300">
+        <h3 className="text-xl md:text-2xl font-bold text-foreground mb-4 leading-tight line-clamp-1 group-hover:text-accent transition-colors duration-300">
           {title}
         </h3>
 

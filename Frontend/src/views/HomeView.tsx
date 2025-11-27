@@ -14,8 +14,9 @@ import {
 import { useAuth } from "@/controllers/AuthContext";
 import StockWidget from "./StockWidget";
 import DummyChart from "@/components/DummyChart";
-import BeansOfWisdom from "./BeansOfWisdom";
+
 import DecodeMarket from "./DecodeMarket";
+import BeansOfWisdomView from "./BeansOfWisdom";
 
 type ActiveTab = "domestic" | "global";
 
@@ -208,9 +209,9 @@ const HomeView = ({ activeTab, onChangeTab }: HomeViewProps) => {
         <DecodeMarket activeTab={activeTab} />
 
         {/* Beans of Wisdom */}
-        <section className="mb-20">
-          <BeansOfWisdom />
-        </section>
+      
+          <BeansOfWisdomView  />
+     
 
         {/* Deep Dives */}
         <section className="mb-20 relative overflow-hidden">

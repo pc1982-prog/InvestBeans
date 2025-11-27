@@ -21,8 +21,6 @@ interface HeaderSection {
   subHeader: string;
 }
 
-const SUBHEADER_PREVIEW_LENGTH = 150;
-
 const BlogDetailView = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -32,8 +30,6 @@ const BlogDetailView = () => {
   const [loading, setLoading] = useState(true);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [likeLoading, setLikeLoading] = useState(false);
-  const [showFullContent, setShowFullContent] = useState(false);
-  const [expandedSections, setExpandedSections] = useState<Record<number, boolean>>({});
   const [progress, setProgress] = useState<number>(0);
   const articleRef = useRef<HTMLDivElement | null>(null);
   const [email, setEmail] = useState("");
@@ -149,21 +145,6 @@ const BlogDetailView = () => {
     setTimeout(() => alert("Thanks for subscribing!"), 100);
   }, [email]);
 
-  const toggleSection = (index: number) => {
-    setExpandedSections((prev) => ({
-      ...prev,
-      [index]: !prev[index],
-    }));
-  };
-
-  const truncateSubHeader = (text: string) => {
-    if (text.length <= SUBHEADER_PREVIEW_LENGTH) return { preview: text, hasMore: false };
-    return {
-      preview: text.substring(0, SUBHEADER_PREVIEW_LENGTH) + "...",
-      hasMore: true,
-    };
-  };
-
   if (loading) {
     return (
       <Layout>
@@ -192,9 +173,6 @@ const BlogDetailView = () => {
     );
   }
 
-  const contentPreview = blog.content.substring(0, 500);
-  const hasMoreContent = blog.content.length > 500;
-
   return (
     <Layout>
       <div className="min-h-screen bg-gradient-to-b from-blue-50/30 via-white to-purple-50/20">
@@ -206,7 +184,7 @@ const BlogDetailView = () => {
           />
         </div>
 
-        {/* Hero Image Section */}
+        {/* Hero Image Section - Fixed width */}
         <div className="pt-8 sm:pt-12 pb-8">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
             {/* Back Button */}
@@ -223,9 +201,9 @@ const BlogDetailView = () => {
               </button>
             </div>
 
-            {/* Hero Image */}
+            {/* Hero Image - Smaller height so title is visible */}
             <div className="relative w-full rounded-3xl overflow-hidden shadow-2xl">
-              <div className="relative h-[300px] sm:h-[400px] lg:h-[500px] overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200">
+              <div className="relative h-[200px] sm:h-[280px] lg:h-[350px] overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200">
                 <img
                   src={blog.blogImage}
                   alt={blog.title}
@@ -245,8 +223,8 @@ const BlogDetailView = () => {
           </div>
         </div>
 
-        {/* Main Content Container */}
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl">
+        {/* Main Content Container - Wider width */}
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
           {/* Article Content */}
           <article ref={articleRef} className="pb-12">
             {/* Category Badge */}
@@ -258,7 +236,7 @@ const BlogDetailView = () => {
             </div>
 
             {/* Title */}
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold text-gray-900 mb-8 leading-tight">
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-8 leading-tight">
               {blog.title}
             </h1>
 
@@ -378,83 +356,64 @@ const BlogDetailView = () => {
               </div>
             )}
 
-            {/* Key Insights */}
-            {blog.headerSections && blog.headerSections.length > 0 && (
-              <div className="mb-12">
-                <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-8 flex items-center gap-3">
-                  <div className="w-1.5 h-10 bg-gradient-to-b from-navy via-accent to-purple-600 rounded-full" />
-                  Key Insights
-                </h2>
-
-                <div className="space-y-4 sm:space-y-6">
-                  {blog.headerSections.map(
-                    (section: HeaderSection, index: number) => {
-                      const { preview, hasMore } = truncateSubHeader(section.subHeader);
-                      const isExpanded = expandedSections[index];
-
-                      return (
-                        <div
-                          key={index}
-                          className="bg-white rounded-2xl p-6 sm:p-8 hover:shadow-lg transition-all duration-300 border border-gray-100 shadow-sm"
-                        >
-                          <div className="flex items-start gap-4">
-                            <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-accent to-purple-600 rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-md">
-                              {index + 1}
-                            </div>
-                            <div className="flex-1">
-                              <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-3">
-                                {section.header}
-                              </h3>
-                              <p className="text-gray-700 leading-relaxed text-sm sm:text-base">
-                                {isExpanded ? section.subHeader : preview}
-                              </p>
-                              {hasMore && (
-                                <button
-                                  onClick={() => toggleSection(index)}
-                                  className="mt-4 text-accent hover:text-accent/80 font-bold text-sm flex items-center gap-1"
-                                >
-                                  {isExpanded ? "Show less ↑" : "Read more →"}
-                                </button>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    }
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Full Article */}
-            <div className="mb-12 bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-gray-100">
-              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+            {/* Full Article with Integrated Header Sections */}
+            <div className="mb-12 bg-white rounded-2xl p-6 sm:p-8 lg:p-12 shadow-sm border border-gray-100">
+              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-8 flex items-center gap-3">
                 <div className="w-1.5 h-10 bg-gradient-to-b from-navy via-accent to-purple-600 rounded-full" />
                 Full Article
               </h2>
+              
               <div className="prose prose-sm sm:prose-base lg:prose-lg max-w-none">
+                {/* Main Content */}
                 <div
-                  className="text-gray-700 leading-relaxed text-base sm:text-lg"
+                  className="text-gray-700 leading-relaxed text-base sm:text-lg mb-8"
                   style={{ lineHeight: '1.8' }}
                   dangerouslySetInnerHTML={{
-                    __html: showFullContent
-                      ? blog.content.replace(/\n/g, "<br />")
-                      : contentPreview.replace(/\n/g, "<br />") +
-                        '<span class="text-gray-400"> ...</span>',
+                    __html: blog.content.replace(/\n/g, "<br />")
                   }}
                 />
-              </div>
 
-              {hasMoreContent && (
-                <div className="mt-8 text-center">
-                  <button
-                    onClick={() => setShowFullContent(!showFullContent)}
-                    className="inline-flex items-center gap-2 bg-gradient-to-r from-navy via-accent to-purple-600 text-white px-8 py-4 rounded-xl font-bold hover:shadow-xl transition-all hover:scale-105"
-                  >
-                    {showFullContent ? "Show Less ↑" : "Continue Reading →"}
-                  </button>
+                {/* Header Sections integrated as part of article */}
+                {blog.headerSections && blog.headerSections.length > 0 && (
+                  <div className="mt-12 space-y-10">
+                    {blog.headerSections.map(
+                      (section: HeaderSection, index: number) => (
+                        <div key={index} className="space-y-4">
+                          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight">
+                            {section.header}
+                          </h2>
+                          <p className="text-gray-700 leading-relaxed text-base sm:text-lg" style={{ lineHeight: '1.8' }}>
+                            {section.subHeader}
+                          </p>
+                        </div>
+                      )
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Credits */}
+            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200/50 mb-12">
+              <h3 className="text-lg font-semibold text-foreground mb-4">
+                Source & Credits
+              </h3>
+              <div className="space-y-3">
+                <div>
+                  <span className="text-sm font-medium text-muted-foreground">Author:</span>
+                  <p className="text-foreground font-medium">{blog.author.name}</p>
                 </div>
-              )}
+                <div>
+                  <span className="text-sm font-medium text-muted-foreground">Published:</span>
+                  <p className="text-foreground">
+                    {new Date(blog.createdAt).toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    })}
+                  </p>
+                </div>
+              </div>
             </div>
           </article>
 

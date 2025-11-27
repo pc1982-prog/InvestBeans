@@ -77,10 +77,7 @@ const insightSchema = new mongoose.Schema(
       type: String,
       default: "5 min read",
     },
-    isPublished: {
-      type: Boolean,
-      default: true,
-    },
+   
     publishedAt: {
       type: Date,
       default: Date.now,

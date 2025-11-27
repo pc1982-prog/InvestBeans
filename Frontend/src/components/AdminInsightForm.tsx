@@ -13,7 +13,6 @@ interface InsightData {
   sentiment: string;
   category: string;
   marketType: string;
-  isPublished: boolean;
   credits: {
     source: string;
     author?: string;
@@ -44,7 +43,7 @@ const AdminInsightForm = ({
     sentiment: "neutral",
     category: "",
     marketType: "domestic",
-    isPublished: true,
+  
   });
 
   const [loading, setLoading] = useState(false);
@@ -62,7 +61,7 @@ const AdminInsightForm = ({
         sentiment: (editingInsight.sentiment as string) || "neutral",
         category: (editingInsight.category as string) || "",
         marketType: (editingInsight.marketType as string) || "domestic",
-        isPublished: editingInsight.isPublished !== false,
+   
       });
     } else {
       setFormData({
@@ -75,7 +74,7 @@ const AdminInsightForm = ({
         sentiment: "neutral",
         category: "",
         marketType: "domestic",
-        isPublished: true,
+       
       });
     }
     setError("");
@@ -116,7 +115,7 @@ const AdminInsightForm = ({
         sentiment: formData.sentiment,
         category: formData.category.trim(),
         marketType: formData.marketType,
-        isPublished: formData.isPublished,
+        
       };
 
     //   console.log("Submitting insight payload:", payload);
@@ -352,21 +351,7 @@ const AdminInsightForm = ({
             </div>
           </div>
 
-          {/* Publish Status */}
-          <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
-            <input
-              type="checkbox"
-              id="isPublished"
-              checked={formData.isPublished}
-              onChange={(e) =>
-                setFormData({ ...formData, isPublished: e.target.checked })
-              }
-              className="w-5 h-5 text-accent border-gray-300 rounded focus:ring-accent cursor-pointer"
-            />
-            <Label htmlFor="isPublished" className="text-base font-medium cursor-pointer">
-              Publish immediately
-            </Label>
-          </div>
+         
 
           {/* Buttons */}
           <div className="flex gap-4 pt-4 sticky bottom-0 bg-white pb-4 border-t border-gray-200 -mx-6 sm:-mx-8 px-6 sm:px-8">
