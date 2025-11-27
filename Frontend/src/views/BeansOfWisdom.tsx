@@ -158,13 +158,7 @@ export default function BeansOfWisdomView() {
 
           {/* Date Badge & Admin Controls Container */}
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-center md:gap-4">
-            {/* Date Badge */}
-            {/* <div className="inline-flex items-center justify-center gap-2 bg-white px-4 md:px-6 py-2 md:py-3 rounded-full shadow-md border border-orange-200/50">
-              <Calendar className="w-4 md:w-5 h-4 md:h-5 text-orange-600 flex-shrink-0" />
-              <span className="text-xs md:text-sm font-semibold text-gray-700">
-                {getTodayDate()}
-              </span>
-            </div> */}
+           
 
             {/* Admin Controls */}
             {isAdmin && (

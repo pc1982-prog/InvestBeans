@@ -187,23 +187,9 @@ const BlogDetailView = () => {
         {/* Hero Image Section - Fixed width */}
         <div className="pt-8 sm:pt-12 pb-8">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
-            {/* Back Button */}
-            <div className="mb-6">
-              <button
-                onClick={() => navigate("/blogs")}
-                className="inline-flex items-center gap-2 text-gray-600 hover:text-navy transition-colors group bg-white px-4 py-2 rounded-xl shadow-sm hover:shadow-md"
-              >
-                <ArrowLeft
-                  size={18}
-                  className="group-hover:-translate-x-1 transition-transform"
-                />
-                <span className="text-sm font-semibold">Back to Blogs</span>
-              </button>
-            </div>
-
-            {/* Hero Image - Smaller height so title is visible */}
+            {/* Hero Image - Thinner */}
             <div className="relative w-full rounded-3xl overflow-hidden shadow-2xl">
-              <div className="relative h-[200px] sm:h-[280px] lg:h-[350px] overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200">
+              <div className="relative h-[160px] sm:h-[220px] lg:h-[280px] overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200">
                 <img
                   src={blog.blogImage}
                   alt={blog.title}
@@ -227,109 +213,116 @@ const BlogDetailView = () => {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
           {/* Article Content */}
           <article ref={articleRef} className="pb-12">
-            {/* Category Badge */}
-            <div className="mb-6">
-              <span className="inline-flex items-center gap-2 bg-gradient-to-r from-accent/10 to-purple-500/10 text-accent px-5 py-2 rounded-full text-sm font-bold border border-accent/20 shadow-sm">
-                <Tag size={14} />
+            {/* Title with Category Badge */}
+            {/* <div className="mb-6">
+              <span className="inline-flex items-center gap-2 bg-gradient-to-r from-accent/10 to-purple-500/10 text-accent px-4 py-1.5 rounded-full text-xs font-bold border border-accent/20 shadow-sm">
+                <Tag size={12} />
                 {blog.category}
               </span>
-            </div>
+            </div> */}
 
-            {/* Title */}
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-8 leading-tight">
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-6 leading-tight">
               {blog.title}
             </h1>
 
-            {/* Metadata Bar with Like Button */}
-            <div className="flex flex-wrap items-center gap-3 sm:gap-6 pb-6 mb-8 border-b-2 border-gray-200">
-              <div className="flex items-center gap-2 text-gray-600 text-sm font-medium bg-gray-50 px-4 py-2 rounded-lg">
-                <Calendar size={16} className="text-accent" />
-                <span>
-                  {new Date(blog.createdAt).toLocaleDateString("en-US", {
-                    month: "short",
-                    day: "numeric",
-                    year: "numeric",
-                  })}
-                </span>
-              </div>
-              <div className="flex items-center gap-2 text-gray-600 text-sm font-medium bg-gray-50 px-4 py-2 rounded-lg">
-                <Clock size={16} className="text-accent" />
-                <span>{blog.readTime}</span>
-              </div>
-              <div className="flex items-center gap-2 text-gray-600 text-sm font-medium bg-gray-50 px-4 py-2 rounded-lg">
-                <Eye size={16} className="text-accent" />
-                <span>{blog.views} views</span>
-              </div>
+            {/* Metadata Bar with Author & Actions */}
+            <div className="pb-6 mb-8 border-b-2 border-gray-200">
+          
+              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between lg:gap-6">
               
-              {/* Like Button */}
-              <button
-                onClick={handleLike}
-                disabled={likeLoading}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                  isLiked
-                    ? "bg-red-50 text-red-600 hover:bg-red-100"
-                    : "bg-gray-50 text-gray-600 hover:bg-gray-100"
-                } disabled:opacity-50 disabled:cursor-not-allowed`}
-              >
-                {likeLoading ? (
-                  <Loader2 size={16} className="animate-spin" />
-                ) : (
-                  <Heart
-                    size={16}
-                    className={isLiked ? "fill-current" : ""}
-                  />
-                )}
-                <span>{likesCount}</span>
-              </button>
-            </div>
+                <div className="flex flex-nowrap items-center gap-2 lg:gap-4 mb-4 lg:mb-0 overflow-x-auto pb-2 lg:pb-0">
+                  <div className="flex items-center gap-1.5 text-gray-600 text-xs lg:text-sm font-medium bg-gray-50 px-2.5 lg:px-4 py-1.5 lg:py-2 rounded-lg flex-shrink-0">
+                    <Calendar size={14} className="text-accent" />
+                    <span className="whitespace-nowrap text-xs">
+                      {new Date(blog.createdAt).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-gray-600 text-xs lg:text-sm font-medium bg-gray-50 px-2.5 lg:px-4 py-1.5 lg:py-2 rounded-lg flex-shrink-0">
+                    <Clock size={14} className="text-accent" />
+                    <span className="whitespace-nowrap text-xs">{blog.readTime}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-gray-600 text-xs lg:text-sm font-medium bg-gray-50 px-2.5 lg:px-4 py-1.5 lg:py-2 rounded-lg flex-shrink-0">
+                    <Eye size={14} className="text-accent" />
+                    <span className="whitespace-nowrap text-xs">{blog.views}</span>
+                  </div>
+                  
+                  {/* Like Button */}
+                  <button
+                    onClick={handleLike}
+                    disabled={likeLoading}
+                    className={`flex items-center gap-1.5 px-2.5 lg:px-4 py-1.5 lg:py-2 rounded-lg text-xs lg:text-sm font-medium transition-all flex-shrink-0 ${
+                      isLiked
+                        ? "bg-red-50 text-red-600 hover:bg-red-100"
+                        : "bg-gray-50 text-gray-600 hover:bg-gray-100"
+                    } disabled:opacity-50 disabled:cursor-not-allowed`}
+                  >
+                    {likeLoading ? (
+                      <Loader2 size={14} className="animate-spin" />
+                    ) : (
+                      <Heart
+                        size={14}
+                        className={isLiked ? "fill-current" : ""}
+                      />
+                    )}
+                    <span className="whitespace-nowrap">{likesCount}</span>
+                  </button>
+                </div>
+              {/* Bottom - Author & Admin Actions */}
+              <div className="flex flex-row items-center justify-between gap-3 w-full md:max-w-lg">
+                {/* Author */}
+                <div className="flex items-center gap-2">
+                  <div className="w-9 lg:w-10 h-9 lg:h-10 bg-gradient-to-br from-navy via-accent to-purple-600 rounded-lg lg:rounded-xl flex items-center justify-center text-white font-bold text-xs lg:text-sm shadow-md flex-shrink-0">
+                    {blog.author.name.charAt(0)}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-bold text-gray-900 text-xs lg:text-sm truncate">
+                      {blog.author.name}
+                    </p>
+                    <p className="text-xs text-gray-500 truncate">{blog.author.email}</p>
+                  </div>
+                </div>
 
-            {/* Author & Actions */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 mb-12 pb-8 border-b-2 border-gray-200">
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 bg-gradient-to-br from-navy via-accent to-purple-600 rounded-2xl flex items-center justify-center text-white font-bold text-xl shadow-lg">
-                  {blog.author.name.charAt(0)}
-                </div>
-                <div>
-                  <p className="font-bold text-gray-900 text-base sm:text-lg">
-                    {blog.author.name}
-                  </p>
-                  <p className="text-sm text-gray-500">{blog.author.email}</p>
-                </div>
+                {/* Admin Buttons - Right side */}
+                {isAdmin && (
+                  <div className="flex gap-2 flex-shrink-0">
+                    <button
+                      onClick={handleEdit}
+                      className="bg-navy text-white px-2.5 lg:px-4 py-1.5 lg:py-2 rounded-lg hover:bg-navy/90 transition-all flex items-center gap-1 text-xs lg:text-sm font-bold shadow-sm hover:shadow-md"
+                    >
+                      <Edit2 size={13} />
+                      <span className="hidden lg:inline">Edit</span>
+                    </button>
+                    <button
+                      onClick={handleDelete}
+                      disabled={deleteLoading}
+                      className="bg-red-500 text-white px-2.5 lg:px-4 py-1.5 lg:py-2 rounded-lg hover:bg-red-600 transition-all flex items-center gap-1 text-xs lg:text-sm font-bold shadow-sm hover:shadow-md disabled:opacity-50"
+                    >
+                      {deleteLoading ? (
+                        <Loader2 className="animate-spin" size={13} />
+                      ) : (
+                        <Trash2 size={13} />
+                      )}
+                      <span className="hidden lg:inline">Delete</span>
+                    </button>
+                  </div>
+                )}
+              </div>
               </div>
 
-              {isAdmin && (
-                <div className="flex gap-3 w-full sm:w-auto">
-                  <button
-                    onClick={handleEdit}
-                    className="flex-1 sm:flex-none bg-navy text-white px-6 py-3 rounded-xl hover:bg-navy/90 transition-all flex items-center justify-center gap-2 text-sm font-bold shadow-md hover:shadow-lg"
-                  >
-                    <Edit2 size={16} />
-                    Edit
-                  </button>
-                  <button
-                    onClick={handleDelete}
-                    disabled={deleteLoading}
-                    className="flex-1 sm:flex-none bg-red-500 text-white px-6 py-3 rounded-xl hover:bg-red-600 transition-all flex items-center justify-center gap-2 text-sm font-bold shadow-md hover:shadow-lg disabled:opacity-50"
-                  >
-                    {deleteLoading ? (
-                      <Loader2 className="animate-spin" size={16} />
-                    ) : (
-                      <Trash2 size={16} />
-                    )}
-                    Delete
-                  </button>
-                </div>
-              )}
             </div>
 
             {/* Description */}
             {blog.description && (
-              <div className="mb-12 bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-6 sm:p-8 border-l-4 border-accent shadow-sm">
-                <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                  <div className="w-1.5 h-8 bg-gradient-to-b from-accent to-purple-600 rounded-full" />
+              <div className="mb-8 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-5 border-l-4 border-accent">
+                <h2 className="text-xl font-bold text-gray-900 mb-3 flex items-center gap-2">
+                  <div className="w-1 h-6 bg-gradient-to-b from-accent to-purple-600 rounded-full" />
                   Overview
                 </h2>
-                <p className="text-lg sm:text-xl text-gray-700 leading-relaxed">
+                <p className="text-base text-gray-700 leading-relaxed">
                   {blog.description}
                 </p>
               </div>
@@ -337,16 +330,16 @@ const BlogDetailView = () => {
 
             {/* Tags */}
             {blog.tags && blog.tags.length > 0 && (
-              <div className="mb-12">
-                <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                  <Tag size={18} className="text-accent" />
+              <div className="mb-8">
+                <h3 className="text-base font-bold text-gray-900 mb-3 flex items-center gap-2">
+                  <Tag size={16} className="text-accent" />
                   Topics
                 </h3>
-                <div className="flex flex-wrap gap-2 sm:gap-3">
+                <div className="flex flex-wrap gap-2">
                   {blog.tags.map((tag, index) => (
                     <span
                       key={index}
-                      className="inline-flex items-center gap-1.5 bg-white text-gray-700 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold hover:bg-gray-50 transition-colors border border-gray-200 shadow-sm hover:shadow-md hover:scale-105 cursor-pointer"
+                      className="inline-flex items-center gap-1.5 bg-white text-gray-700 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-gray-50 transition-colors border border-gray-200 shadow-sm hover:shadow-md hover:scale-105 cursor-pointer"
                     >
                       <span className="text-accent">#</span>
                       {tag}
@@ -357,16 +350,16 @@ const BlogDetailView = () => {
             )}
 
             {/* Full Article with Integrated Header Sections */}
-            <div className="mb-12 bg-white rounded-2xl p-6 sm:p-8 lg:p-12 shadow-sm border border-gray-100">
-              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-8 flex items-center gap-3">
-                <div className="w-1.5 h-10 bg-gradient-to-b from-navy via-accent to-purple-600 rounded-full" />
+            <div className="mb-10 bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-gray-100">
+              <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+                <div className="w-1.5 h-8 bg-gradient-to-b from-navy via-accent to-purple-600 rounded-full" />
                 Full Article
               </h2>
               
               <div className="prose prose-sm sm:prose-base lg:prose-lg max-w-none">
                 {/* Main Content */}
                 <div
-                  className="text-gray-700 leading-relaxed text-base sm:text-lg mb-8"
+                  className="text-gray-700 leading-relaxed text-base sm:text-lg mb-6"
                   style={{ lineHeight: '1.8' }}
                   dangerouslySetInnerHTML={{
                     __html: blog.content.replace(/\n/g, "<br />")
@@ -375,14 +368,14 @@ const BlogDetailView = () => {
 
                 {/* Header Sections integrated as part of article */}
                 {blog.headerSections && blog.headerSections.length > 0 && (
-                  <div className="mt-12 space-y-10">
+                  <div className="mt-8 space-y-8">
                     {blog.headerSections.map(
                       (section: HeaderSection, index: number) => (
-                        <div key={index} className="space-y-4">
-                          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight">
+                        <div key={index} className="space-y-3">
+                          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 leading-tight">
                             {section.header}
                           </h2>
-                          <p className="text-gray-700 leading-relaxed text-base sm:text-lg" style={{ lineHeight: '1.8' }}>
+                          <p className="text-gray-700 leading-relaxed text-base" style={{ lineHeight: '1.8' }}>
                             {section.subHeader}
                           </p>
                         </div>
@@ -393,27 +386,18 @@ const BlogDetailView = () => {
               </div>
             </div>
 
-            {/* Credits */}
-            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200/50 mb-12">
-              <h3 className="text-lg font-semibold text-foreground mb-4">
-                Source & Credits
-              </h3>
-              <div className="space-y-3">
-                <div>
-                  <span className="text-sm font-medium text-muted-foreground">Author:</span>
-                  <p className="text-foreground font-medium">{blog.author.name}</p>
-                </div>
-                <div>
-                  <span className="text-sm font-medium text-muted-foreground">Published:</span>
-                  <p className="text-foreground">
-                    {new Date(blog.createdAt).toLocaleDateString("en-US", {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    })}
-                  </p>
-                </div>
-              </div>
+            {/* Back Button at Bottom */}
+            <div className="mb-8">
+              <button
+                onClick={() => navigate("/blogs")}
+                className="inline-flex items-center gap-2 text-gray-600 hover:text-navy transition-colors group bg-white px-5 py-3 rounded-xl shadow-sm hover:shadow-md"
+              >
+                <ArrowLeft
+                  size={18}
+                  className="group-hover:-translate-x-1 transition-transform"
+                />
+                <span className="text-sm font-semibold">Back to Blogs</span>
+              </button>
             </div>
           </article>
 
