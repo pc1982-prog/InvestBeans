@@ -15,6 +15,7 @@ import {
 import { useAuth } from "@/controllers/AuthContext";
 import StockWidget from "./StockWidget";
 import TradingViewWidget from "@/components/TradingViewWidget";
+import DummyChart from "@/components/DummyChart";
 
 import DecodeMarket from "./DecodeMarket";
 import BeansOfWisdomView from "./BeansOfWisdom";
@@ -28,7 +29,6 @@ type HomeViewProps = {
 
 const HomeView = ({ activeTab, onChangeTab }: HomeViewProps) => {
   const { isAuthenticated } = useAuth();
-  
   const checkoutHandler = async (amount) => {
     const API_URL = import.meta.env.VITE_API_URL;
   
@@ -125,66 +125,12 @@ const HomeView = ({ activeTab, onChangeTab }: HomeViewProps) => {
             </div>
 
             {activeTab === "domestic" ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <MarketCard
-                  name="Nifty 50"
-                  value="22,142.30"
-                  change="−72.10"
-                  percentage="−0.33%"
-                  isPositive={false}
-                />
-                <MarketCard
-                  name="Sensex"
-                  value="73,276.64"
-                  change="+394.25"
-                  percentage="+0.54%"
-                  isPositive={true}
-                />
-                <MarketCard
-                  name="Nifty 100"
-                  value="21,102.45"
-                  change="+112.20"
-                  percentage="+0.53%"
-                  isPositive={true}
-                />
-                <MarketCard
-                  name="Nifty 200"
-                  value="12,345.67"
-                  change="−25.10"
-                  percentage="−0.20%"
-                  isPositive={false}
-                />
+              <div className="w-full mb-8">
+                <TradingViewWidget symbol="NSE:NIFTY" theme="dark" height="600px" />
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <MarketCard
-                  name="Dow Jones"
-                  value="38,503.25"
-                  change="+417.09"
-                  percentage="+1.10%"
-                  isPositive={true}
-                />
-                <MarketCard
-                  name="Nasdaq"
-                  value="15,278.27"
-                  change="−91.51"
-                  percentage="−0.20%"
-                  isPositive={false}
-                />
-                <MarketCard
-                  name="S&P 500"
-                  value="5,250.12"
-                  change="+20.15"
-                  percentage="+0.38%"
-                  isPositive={true}
-                />
-                <MarketCard
-                  name="Russell 2000"
-                  value="2,050.30"
-                  change="+5.40"
-                  percentage="+0.26%"
-                  isPositive={true}
-                />
+              <div className="w-full mb-8">
+                <TradingViewWidget symbol="NASDAQ:AAPL" theme="dark" height="600px" />
               </div>
             )}
 
@@ -192,12 +138,31 @@ const HomeView = ({ activeTab, onChangeTab }: HomeViewProps) => {
               <h3 className="text-2xl font-bold text-foreground mb-6 text-center">
                 Market Performance Charts
               </h3>
-              <div className="w-full mx-auto">
-                {activeTab === "domestic" ? (
-                  <TradingViewWidget symbol="NSE:NIFTY" theme="dark" height="500px" />
-                ) : (
-                  <TradingViewWidget symbol="NASDAQ:AAPL" theme="dark" height="500px" />
-                )}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <DummyChart
+                  title="Nifty 50 Trend"
+                  value="22,142.30"
+                  change="−0.33%"
+                  isPositive={false}
+                  chartType="line"
+                  data={[65, 70, 68, 75, 80, 78, 85, 82, 88, 90, 87, 85]}
+                />
+                <DummyChart
+                  title="Sector Performance"
+                  value="+2.4%"
+                  change="+2.4%"
+                  isPositive={true}
+                  chartType="bar"
+                  data={[45, 52, 48, 61, 55, 67, 58, 72]}
+                />
+                <DummyChart
+                  title="Volume Analysis"
+                  value="1.2B"
+                  change="+15.2%"
+                  isPositive={true}
+                  chartType="area"
+                  data={[30, 35, 32, 40, 38, 45, 42, 48, 46, 50, 47, 52]}
+                />
               </div>
             </div>
 
@@ -223,29 +188,29 @@ const HomeView = ({ activeTab, onChangeTab }: HomeViewProps) => {
      
 
         {/* Deep Dives */}
-        <section className="mb-20 relative overflow-hidden">
+        <section className="mb-12 md:mb-20 relative overflow-hidden px-4 md:px-0">
           <div className="absolute inset-0 bg-gradient-to-br from-accent/3 via-transparent to-accent/8 rounded-3xl"></div>
-          <div className="absolute top-0 left-0 w-80 h-80 bg-gradient-to-br from-accent/8 to-transparent rounded-full blur-3xl"></div>
-          <div className="absolute bottom-0 right-0 w-96 h-96 bg-gradient-to-tl from-accent/5 to-transparent rounded-full blur-2xl"></div>
+          <div className="absolute top-0 left-0 w-60 h-60 md:w-80 md:h-80 bg-gradient-to-br from-accent/8 to-transparent rounded-full blur-3xl"></div>
+          <div className="absolute bottom-0 right-0 w-72 h-72 md:w-96 md:h-96 bg-gradient-to-tl from-accent/5 to-transparent rounded-full blur-2xl"></div>
 
           <div className="relative z-10">
-            <div className="text-center mb-16">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-accent/10 to-accent/5 border border-accent/20 mb-6">
-                <BookOpen className="w-4 h-4 text-accent" />
-                <span className="text-sm font-medium text-accent">
+            <div className="text-center mb-8 md:mb-16 px-4">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-full bg-gradient-to-r from-accent/10 to-accent/5 border border-accent/20 mb-4 md:mb-6">
+                <BookOpen className="w-3 h-3 md:w-4 md:h-4 text-accent" />
+                <span className="text-xs md:text-sm font-medium text-accent">
                   Research & Analysis
                 </span>
               </div>
-              <h2 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent mb-4">
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent mb-3 md:mb-4">
                 Deep Dives
               </h2>
-              <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+              <p className="text-base md:text-lg lg:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed px-2">
                 Comprehensive analysis and market forecasts from our expert
                 research team
               </p>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 lg:gap-8 px-2 md:px-0">
               <DeepDiveCard
                 title="Sensex 2025 Forecast: What Analysts Predict"
                 date="April 22, 2024"
@@ -266,12 +231,12 @@ const HomeView = ({ activeTab, onChangeTab }: HomeViewProps) => {
               />
             </div>
 
-            <div className="mt-12 text-center">
-              <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-accent/10 to-accent/5 border border-accent/20 hover:border-accent/30 transition-all duration-300 cursor-pointer group touch-manipulation active:scale-95">
-                <span className="text-accent font-semibold">
+            <div className="mt-8 md:mt-12 text-center px-4">
+              <div className="inline-flex items-center gap-2 px-4 py-2.5 md:px-6 md:py-3 rounded-full bg-gradient-to-r from-accent/10 to-accent/5 border border-accent/20 hover:border-accent/30 transition-all duration-300 cursor-pointer group touch-manipulation active:scale-95">
+                <span className="text-accent font-semibold text-sm md:text-base">
                   Explore All Research
                 </span>
-                <ArrowRight className="w-4 h-4 text-accent group-hover:translate-x-1 transition-transform" />
+                <ArrowRight className="w-3 h-3 md:w-4 md:h-4 text-accent group-hover:translate-x-1 transition-transform" />
               </div>
             </div>
           </div>
