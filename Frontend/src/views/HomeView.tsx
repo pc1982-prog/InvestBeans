@@ -341,7 +341,7 @@ const HomeView = ({ activeTab, onChangeTab }: HomeViewProps) => {
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
 
 {/* CARD 1 */}
-<div className="bg-white rounded-xl overflow-hidden shadow-xl hover:scale-105 transition-transform">
+{/* <div className="bg-white rounded-xl overflow-hidden shadow-xl hover:scale-105 transition-transform">
   <img
     src="https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3"
     alt="Stock Market"
@@ -364,10 +364,10 @@ const HomeView = ({ activeTab, onChangeTab }: HomeViewProps) => {
       Buy Now
     </button>
   </div>
-</div>
+</div> */}
 
 {/* CARD 2 */}
-<div className="bg-white rounded-xl overflow-hidden shadow-xl hover:scale-105 transition-transform">
+{/* <div className="bg-white rounded-xl overflow-hidden shadow-xl hover:scale-105 transition-transform">
   <img
     src="https://images.unsplash.com/photo-1559526324-593bc073d938"
     alt="Stock Market"
@@ -390,7 +390,7 @@ const HomeView = ({ activeTab, onChangeTab }: HomeViewProps) => {
       Buy Now
     </button>
   </div>
-</div>
+</div> */}
 
 </div>
 
