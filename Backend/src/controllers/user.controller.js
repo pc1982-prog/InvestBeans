@@ -206,16 +206,44 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 
 });
 
+// ✅ FINAL FIX: Support both User and GoogleAuth models + Normalize name field
 const getCurrentUser = asyncHandler(async (req, res) => {
     const user = req.user;
 
+    if (!user) {
+        throw new ApiError(401, "User not found");
+    }
+
     const isAdmin = ADMIN_EMAILS.includes(user.email.toLowerCase());
+
+    // Handle both User and GoogleAuth models
+    let userData;
+    
+    if (typeof user.toObject === 'function') {
+    
+        userData = user.toObject();
+    } else if (user._doc) {
+      
+        userData = user._doc;
+    } else {
+     
+        userData = user;
+    }
+
+  
+    const { password, refreshToken, __v, ...safeUserData } = userData;
+
+    const normalizedData = {
+        ...safeUserData,
+        isAdmin,
+        name: safeUserData.name || safeUserData.displayName || 'User'
+    };
 
     return res
         .status(200)
         .json(new ApiResponse(
             200,
-            { ...user.toObject(), isAdmin },
+            normalizedData,
             "Current user fetched successfully"
         ));
 });
@@ -227,5 +255,4 @@ export {
     logoutUser,
     refreshAccessToken,
     getCurrentUser,
- 
 };
