@@ -333,12 +333,12 @@ const HomeView = ({ activeTab, onChangeTab }: HomeViewProps) => {
     <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
     <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
 
-    <div className="relative z-10 max-w-6xl mx-auto">
+    {/* <div className="relative z-10 max-w-6xl mx-auto">
       <h2 className="text-3xl md:text-4xl font-bold text-white text-center mb-10">
         Stock Market Plans
       </h2>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8"> */}
 
 {/* CARD 1 */}
 {/* <div className="bg-white rounded-xl overflow-hidden shadow-xl hover:scale-105 transition-transform">
@@ -392,9 +392,9 @@ const HomeView = ({ activeTab, onChangeTab }: HomeViewProps) => {
   </div>
 </div> */}
 
-</div>
+{/* </div> */}
 
-    </div>
+    {/* </div> */}
   </div>
 </section>
 
