@@ -1,8 +1,16 @@
 import dotenv from "dotenv";
 import connectDB from "./db/index.js";
+import Razorpay from "razorpay";
 import { app } from './app.js';
 
 dotenv.config();
+
+
+export const instance = new Razorpay({
+    key_id: process.env.RAZORPAY_API_KEY,
+    key_secret: process.env.RAZORPAY_APT_SECRET,
+  });
+  
 
 const requiredEnvVars = [
     'MONGODB_URI',

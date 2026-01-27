@@ -18,6 +18,7 @@ import TeamView from "@/views/TeamView";
 import BlogsView from "@/views/BlogsView";
 import BlogDetailView from "./views/BlogDetailView";
 import ScrollToTop from "@/controllers/ScrollToTop";  
+import PaymentSuccess from "./components/PaymentSuccess";
 
 
 const queryClient = new QueryClient();
@@ -39,6 +40,7 @@ const App = () => (
             <Route path="/team" element={<TeamView />} />
             <Route path="/blogs" element={<BlogsView />} />
             <Route path="/blogs/:id" element={<BlogDetailView />} />
+            <Route path="/paymentsuccess" element={<PaymentSuccess />} />
             <Route
               path="/dashboard"
               element={
