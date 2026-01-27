@@ -327,21 +327,21 @@ const HomeView = ({ activeTab, onChangeTab }: HomeViewProps) => {
             </div>
           </div>
         </section>
-        <section className="relative overflow-hidden py-16">
+        {/* <section className="relative overflow-hidden py-16">
   <div className="gradient-accent rounded-2xl p-10 md:p-12 relative">
-    {/* glow effects */}
+ 
     <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
     <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
 
-    {/* <div className="relative z-10 max-w-6xl mx-auto">
+    <div className="relative z-10 max-w-6xl mx-auto">
       <h2 className="text-3xl md:text-4xl font-bold text-white text-center mb-10">
         Stock Market Plans
       </h2>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8"> */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
 
-{/* CARD 1 */}
-{/* <div className="bg-white rounded-xl overflow-hidden shadow-xl hover:scale-105 transition-transform">
+
+<div className="bg-white rounded-xl overflow-hidden shadow-xl hover:scale-105 transition-transform">
   <img
     src="https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3"
     alt="Stock Market"
@@ -364,10 +364,10 @@ const HomeView = ({ activeTab, onChangeTab }: HomeViewProps) => {
       Buy Now
     </button>
   </div>
-</div> */}
+</div>
 
-{/* CARD 2 */}
-{/* <div className="bg-white rounded-xl overflow-hidden shadow-xl hover:scale-105 transition-transform">
+
+<div className="bg-white rounded-xl overflow-hidden shadow-xl hover:scale-105 transition-transform">
   <img
     src="https://images.unsplash.com/photo-1559526324-593bc073d938"
     alt="Stock Market"
@@ -390,13 +390,13 @@ const HomeView = ({ activeTab, onChangeTab }: HomeViewProps) => {
       Buy Now
     </button>
   </div>
-</div> */}
+</div>
 
-{/* </div> */}
+</div>
 
-    {/* </div> */}
+    </div>
   </div>
-</section>
+</section> */}
 
       </div>
     </Layout>
