@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/controllers/AuthContext";
 import StockWidget from "./StockWidget";
-import DummyChart from "@/components/DummyChart";
+import TradingViewWidget from "@/components/TradingViewWidget";
 
 import DecodeMarket from "./DecodeMarket";
 import BeansOfWisdomView from "./BeansOfWisdom";
@@ -28,6 +28,7 @@ type HomeViewProps = {
 
 const HomeView = ({ activeTab, onChangeTab }: HomeViewProps) => {
   const { isAuthenticated } = useAuth();
+  
   const checkoutHandler = async (amount) => {
     const API_URL = import.meta.env.VITE_API_URL;
   
@@ -191,31 +192,12 @@ const HomeView = ({ activeTab, onChangeTab }: HomeViewProps) => {
               <h3 className="text-2xl font-bold text-foreground mb-6 text-center">
                 Market Performance Charts
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <DummyChart
-                  title="Nifty 50 Trend"
-                  value="22,142.30"
-                  change="−0.33%"
-                  isPositive={false}
-                  chartType="line"
-                  data={[65, 70, 68, 75, 80, 78, 85, 82, 88, 90, 87, 85]}
-                />
-                <DummyChart
-                  title="Sector Performance"
-                  value="+2.4%"
-                  change="+2.4%"
-                  isPositive={true}
-                  chartType="bar"
-                  data={[45, 52, 48, 61, 55, 67, 58, 72]}
-                />
-                <DummyChart
-                  title="Volume Analysis"
-                  value="1.2B"
-                  change="+15.2%"
-                  isPositive={true}
-                  chartType="area"
-                  data={[30, 35, 32, 40, 38, 45, 42, 48, 46, 50, 47, 52]}
-                />
+              <div className="w-full mx-auto">
+                {activeTab === "domestic" ? (
+                  <TradingViewWidget symbol="NSE:NIFTY" theme="dark" height="500px" />
+                ) : (
+                  <TradingViewWidget symbol="NASDAQ:AAPL" theme="dark" height="500px" />
+                )}
               </div>
             </div>
 
