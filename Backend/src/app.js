@@ -176,6 +176,8 @@ import googleAuthRouter from "./routes/googleAuth.routes.js";
 import blogRouter from "./routes/blog.routes.js";
 import beansOfWisdom from "./routes/beanOfWisdom.routes.js";
 import insightRouter from "./routes/insight.routes.js";
+
+//payment routes
 import paymentRouter from "./routes/Payment.routes.js"
 
 
@@ -183,20 +185,16 @@ import paymentRouter from "./routes/Payment.routes.js"
 
 
 app.use("/api/v1/users", userRouter);
-
-
 app.use("/auth", googleAuthRouter);
-
-
 app.use("/api/v1/blogs", blogRouter);
 app.use("/api/v1/beans-of-wisdom", beansOfWisdom);
 app.use("/api/v1/insights", insightRouter);
-app.use('/api/v1/payment',paymentRouter)
+
+//payment routes
+
+app.use('/api/v1',paymentRouter)
 
 
-app.get("/api/v1/getkey", (req, res) =>
-  res.status(200).json({ key: process.env.RAZORPAY_API_KEY })
-);
 
 
 

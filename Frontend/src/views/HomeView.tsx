@@ -29,33 +29,42 @@ type HomeViewProps = {
 
 const HomeView = ({ activeTab, onChangeTab }: HomeViewProps) => {
   const { isAuthenticated } = useAuth();
+
+
   const checkoutHandler = async (amount) => {
-    const API_URL = import.meta.env.VITE_API_URL;
-  
-    const { data: { key } } = await axios.get(`${API_URL}/getkey`);
-  
-    const { data: { order } } = await axios.post(
-      `${API_URL}/checkout`,
-      { amount }
-    );
-  
+     const API_URL = import.meta.env.VITE_API_URL;
+     const {data:keyData}=await axios.get(`${API_URL}/getKey`);
+     const {key}=keyData
+    const {data:orderData}=await axios.post(`${API_URL}/payment/process`,{
+      amount
+    }) 
+    const{order}=orderData;
+    console.log(order)
     const options = {
       key,
-      amount: order.amount,
-      currency: "INR",
-      name: "Stock Market Course",
-      description: "Buy Course",
+      amount,
+      currency: 'INR',
+      name: 'InvestBeans',
+      description: 'Test Transaction',
       order_id: order.id,
-      callback_url: `${API_URL}/paymentverification`,
+      callback_url: `${API_URL}/paymentVerification`,
+      prefill: {
+        name: 'InvestBeans',
+        email: 'InvestBeans@example.com',
+        contact: '9999999999'
+      },
       theme: {
-        color: "#121212"
-      }
+        color: '#F37254'
+      },
     };
+
+    const rzp = new Razorpay(options);
+    rzp.open();
+
   
-    const razor = new window.Razorpay(options);
-    razor.open();
+   
   };
-  
+
   return (
     <Layout>
       <Hero />
@@ -126,7 +135,7 @@ const HomeView = ({ activeTab, onChangeTab }: HomeViewProps) => {
 
             {activeTab === "domestic" ? (
               <div className="w-full mb-8">
-                <TradingViewWidget symbol="NSE:NIFTY" theme="dark" height="600px" />
+                <TradingViewWidget  theme="dark" height="600px" />
               </div>
             ) : (
               <div className="w-full mb-8">
@@ -183,9 +192,9 @@ const HomeView = ({ activeTab, onChangeTab }: HomeViewProps) => {
         <DecodeMarket activeTab={activeTab} />
 
         {/* Beans of Wisdom */}
-      
-          <BeansOfWisdomView  />
-     
+
+        <BeansOfWisdomView />
+
 
         {/* Deep Dives */}
         <section className="mb-12 md:mb-20 relative overflow-hidden px-4 md:px-0">
@@ -242,7 +251,7 @@ const HomeView = ({ activeTab, onChangeTab }: HomeViewProps) => {
           </div>
         </section>
 
-        
+
 
         {/* Newsletter Subscription */}
         <section className="relative overflow-hidden">
@@ -274,76 +283,99 @@ const HomeView = ({ activeTab, onChangeTab }: HomeViewProps) => {
             </div>
           </div>
         </section>
-        {/* <section className="relative overflow-hidden py-16">
-  <div className="gradient-accent rounded-2xl p-10 md:p-12 relative">
- 
-    <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
-    <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
-
-    <div className="relative z-10 max-w-6xl mx-auto">
-      <h2 className="text-3xl md:text-4xl font-bold text-white text-center mb-10">
-        Stock Market Plans
-      </h2>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
 
 
-<div className="bg-white rounded-xl overflow-hidden shadow-xl hover:scale-105 transition-transform">
-  <img
-    src="https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3"
-    alt="Stock Market"
-    className="h-48 w-full object-cover"
-  />
+        <section  className="relative overflow-hidden py-16">
+          <div className="gradient-accent rounded-2xl p-10 md:p-12 relative">
 
-  <div className="p-6 text-center">
-    <h3 className="text-xl font-semibold text-navy mb-2">
-      Equity Trading Basics
-    </h3>
+            <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
+            <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
 
-    <p className="text-2xl font-bold text-emerald-600 mb-4">
-      ₹999
-    </p>
+            <div className="relative z-10 max-w-6xl mx-auto">
+              <h2 className="text-3xl md:text-4xl font-bold text-white text-center mb-10">
+                Stock Market Plans
+              </h2>
 
-    <button
-      onClick={() => checkoutHandler(999)}
-      className="w-full bg-navy text-white py-2 rounded-lg font-semibold hover:bg-navy-light transition"
-    >
-      Buy Now
-    </button>
-  </div>
-</div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
 
 
-<div className="bg-white rounded-xl overflow-hidden shadow-xl hover:scale-105 transition-transform">
-  <img
-    src="https://images.unsplash.com/photo-1559526324-593bc073d938"
-    alt="Stock Market"
-    className="h-48 w-full object-cover"
-  />
+                <div className="bg-white rounded-xl overflow-hidden shadow-xl hover:scale-105 transition-transform">
+                  <img
+                    src="https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3"
+                    alt="Stock Market"
+                    className="h-48 w-full object-cover"
+                  />
 
-  <div className="p-6 text-center">
-    <h3 className="text-xl font-semibold text-navy mb-2">
-      Intraday Strategy
-    </h3>
+                  <div className="p-6 text-center">
+                    <h3 className="text-xl font-semibold text-navy mb-2">
+                      Equity Trading Basics
+                    </h3>
 
-    <p className="text-2xl font-bold text-emerald-600 mb-4">
-      ₹1499
-    </p>
+                    <p className="text-2xl font-bold text-emerald-600 mb-4">
+                      ₹999
+                    </p>
 
-    <button
-      onClick={() => checkoutHandler(1499)}
-      className="w-full bg-navy text-white py-2 rounded-lg font-semibold hover:bg-navy-light transition"
-    >
-      Buy Now
-    </button>
-  </div>
-</div>
+                    <button
+                      onClick={() => checkoutHandler(999)}
+                      className="w-full bg-navy text-white py-2 rounded-lg font-semibold hover:bg-navy-light transition"
+                    >
+                      Buy Now
+                    </button>
+                  </div>
+                </div>
+                <div className="bg-white rounded-xl overflow-hidden shadow-xl hover:scale-105 transition-transform">
+                  <img
+                    src="https://images.unsplash.com/photo-1559526324-593bc073d938"
+                    alt="Stock Market"
+                    className="h-48 w-full object-cover"
+                  />
 
-</div>
+                  <div className="p-6 text-center">
+                    <h3 className="text-xl font-semibold text-navy mb-2">
+                      Intraday Strategy
+                    </h3>
 
-    </div>
-  </div>
-</section> */}
+                    <p className="text-2xl font-bold text-emerald-600 mb-4">
+                      ₹1499
+                    </p>
+
+                    <button
+                      onClick={() => checkoutHandler(1499)}
+                      className="w-full bg-navy text-white py-2 rounded-lg font-semibold hover:bg-navy-light transition"
+                    >
+                      Buy Now
+                    </button>
+                  </div>
+                </div>
+                <div className="bg-white rounded-xl overflow-hidden shadow-xl hover:scale-105 transition-transform">
+                  <img
+                    src="https://images.unsplash.com/photo-1559526324-593bc073d938"
+                    alt="Stock Market"
+                    className="h-48 w-full object-cover"
+                  />
+
+                  <div className="p-6 text-center">
+                    <h3 className="text-xl font-semibold text-navy mb-2">
+                     Indian Petrolium
+                    </h3>
+
+                    <p className="text-2xl font-bold text-emerald-600 mb-4">
+                      ₹30000
+                    </p>
+
+                    <button
+                      onClick={() => checkoutHandler(1499)}
+                      className="w-full bg-navy text-white py-2 rounded-lg font-semibold hover:bg-navy-light transition"
+                    >
+                      Buy Now
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </section>
 
       </div>
     </Layout>
