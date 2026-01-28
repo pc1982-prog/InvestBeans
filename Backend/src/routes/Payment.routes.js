@@ -1,13 +1,16 @@
 import express from "express";
 import {
-  checkout,
+  getKey,
   paymentVerification,
+  processPayment,
 } from "../controllers/paymentController.js";
 
 const router = express.Router();
 
-router.route("/checkout").post(checkout);
+router.route("/payment/process").post(processPayment);
+router.route("/getKey").get(getKey);
+router.route("/paymentVerification").post(paymentVerification)
 
-router.route("/paymentverification").post(paymentVerification);
+
 
 export default router;
