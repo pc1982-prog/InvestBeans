@@ -15,10 +15,12 @@ import {
 import { useAuth } from "@/controllers/AuthContext";
 import StockWidget from "./StockWidget";
 import TradingViewWidget from "@/components/TradingViewWidget";
-import DummyChart from "@/components/DummyChart";
+import StockHeatmapWidget from "@/components/Stockheatmapwidget";
+// import DummyChart from "@/components/DummyChart";
 
 import DecodeMarket from "./DecodeMarket";
 import BeansOfWisdomView from "./BeansOfWisdom";
+import IPOSection from "./Iposection";
 
 type ActiveTab = "domestic" | "global";
 
@@ -143,35 +145,13 @@ const HomeView = ({ activeTab, onChangeTab }: HomeViewProps) => {
               </div>
             )}
 
+            {/* Market Performance Charts - Stock Heatmap Widget */}
             <div className="mb-8">
-              <h3 className="text-2xl font-bold text-foreground mb-6 text-center">
-                Market Performance Charts
+              <h3 className="text-3xl font-bold text-foreground mb-8 text-center">
+                Market Heatmap
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <DummyChart
-                  title="Nifty 50 Trend"
-                  value="22,142.30"
-                  change="−0.33%"
-                  isPositive={false}
-                  chartType="line"
-                  data={[65, 70, 68, 75, 80, 78, 85, 82, 88, 90, 87, 85]}
-                />
-                <DummyChart
-                  title="Sector Performance"
-                  value="+2.4%"
-                  change="+2.4%"
-                  isPositive={true}
-                  chartType="bar"
-                  data={[45, 52, 48, 61, 55, 67, 58, 72]}
-                />
-                <DummyChart
-                  title="Volume Analysis"
-                  value="1.2B"
-                  change="+15.2%"
-                  isPositive={true}
-                  chartType="area"
-                  data={[30, 35, 32, 40, 38, 45, 42, 48, 46, 50, 47, 52]}
-                />
+              <div className="w-full h-[600px] rounded-xl overflow-hidden bg-card/50 backdrop-blur-sm border border-border/50 shadow-lg">
+                <StockHeatmapWidget dataSource={activeTab === "domestic" ? "SENSEX" : "World"} />
               </div>
             </div>
 
@@ -182,23 +162,25 @@ const HomeView = ({ activeTab, onChangeTab }: HomeViewProps) => {
               </div>
               <div className="flex items-center gap-2 text-sm">
                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <span className="text-green-600 font-medium">Live</span>
+                <span className="text-muted-foreground">
+                  Market Status:{" "}
+                  <span className="text-green-500 font-medium">Open</span>
+                </span>
               </div>
             </div>
           </div>
         </section>
-
+        <IPOSection/>
+        
         {/* Decode the Market - Now imported from separate component */}
         <DecodeMarket activeTab={activeTab} />
 
         {/* Beans of Wisdom */}
-
         <BeansOfWisdomView />
 
-
-        {/* Deep Dives */}
-        <section className="mb-12 md:mb-20 relative overflow-hidden px-4 md:px-0">
-          <div className="absolute inset-0 bg-gradient-to-br from-accent/3 via-transparent to-accent/8 rounded-3xl"></div>
+        {/* Deep Dives Section */}
+        <section className="mb-20 relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-accent/5 via-transparent to-accent/10 rounded-3xl"></div>
           <div className="absolute top-0 left-0 w-60 h-60 md:w-80 md:h-80 bg-gradient-to-br from-accent/8 to-transparent rounded-full blur-3xl"></div>
           <div className="absolute bottom-0 right-0 w-72 h-72 md:w-96 md:h-96 bg-gradient-to-tl from-accent/5 to-transparent rounded-full blur-2xl"></div>
 
