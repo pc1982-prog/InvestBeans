@@ -10,6 +10,8 @@ import GlobalController from "@/controllers/GlobalController";
 import DashboardController from "@/controllers/DashboardController";
 import SignInController from "@/controllers/SignInController";
 import SignUpController from "@/controllers/SignUpController";
+import ForgotPasswordController from "@/controllers/ForgotPasswordController";
+import ResetPasswordController from "@/controllers/ResetPasswordController";
 import ProtectedRoute from "@/controllers/ProtectedRoute";
 import { AuthProvider } from "@/controllers/AuthContext";
 import MarketsView from "@/views/MarketsView";
@@ -27,7 +29,7 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
-    <GlobalToastListener /> 
+      <GlobalToastListener /> 
       <TooltipProvider>
         <Toaster />
         <Sonner />
@@ -43,6 +45,11 @@ const App = () => (
             <Route path="/blogs" element={<BlogsView />} />
             <Route path="/blogs/:id" element={<BlogDetailView />} />
             <Route path="/paymentsuccess" element={<PaymentSuccess />} />
+            
+            {/* ✅ NEW: Password Reset Routes */}
+            <Route path="/forgot-password" element={<ForgotPasswordController />} />
+            <Route path="/reset-password" element={<ResetPasswordController />} />
+            
             <Route
               path="/dashboard"
               element={

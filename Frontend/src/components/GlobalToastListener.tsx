@@ -1,18 +1,15 @@
 import { useEffect } from 'react';
 import { useToast, ToastContainer } from '@/components/ui/Toasts';
 
-/**
- * Global Toast Listener Component
- * Ye component ek baar App.tsx ya Layout.tsx mein add karo
- * Ye AuthContext se toast events sunega aur show karega
- */
+
 const GlobalToastListener = () => {
-  const { toasts, removeToast, showSuccess, showError } = useToast();
+  const { toasts,removeToast, showSuccess, showError } = useToast();
 
   useEffect(() => {
     // Listen for toast events from AuthContext
     const handleToastEvent = (event: CustomEvent) => {
       const { message, type } = event.detail;
+      
       
       if (type === 'success') {
         showSuccess(message);

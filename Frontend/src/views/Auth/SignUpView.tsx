@@ -70,18 +70,20 @@ const SignUpView = () => {
   return (
     <>
       <ToastContainer toasts={toasts} removeToast={removeToast} />
-      
+
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 px-4 py-12">
         <div className="w-full max-w-md">
           {/* Main Card */}
           <div className="bg-white rounded-3xl shadow-2xl border border-gray-100 p-8 sm:p-10">
             {/* Logo & Heading */}
             <div className="text-center mb-8">
-              <div className="inline-block mb-4">
-                <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
-                  <span className="text-white text-2xl font-bold">IB</span>
+              <Link to="/" className="inline-block mb-4">
+                <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg cursor-pointer">
+                  <span className="text-white text-2xl font-bold">
+                    IB
+                  </span>
                 </div>
-              </div>
+              </Link>
               <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
                 Create Account
               </h1>
