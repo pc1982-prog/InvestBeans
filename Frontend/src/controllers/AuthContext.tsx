@@ -27,6 +27,7 @@ type AuthContextType = {
   loginWithGoogle: () => void;
   signOut: (callback?: () => void) => Promise<void>;
   refreshUser: () => Promise<User | null>;
+  showToast: (message: string, type?: 'success' | 'error') => void; // ✅ NEW: Toast function
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -51,7 +52,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const isAdmin = user ? (user.isAdmin === true || ADMIN_EMAILS.includes(user.email.toLowerCase())) : false;
 
-  // ✅ FIXED: Google OAuth callback handler using JWT tokens
+  // ✅ NEW: Toast notification function
+  const showToast = useCallback((message: string, type: 'success' | 'error' = 'success') => {
+    // Dispatch custom event that components can listen to
+    window.dispatchEvent(new CustomEvent('show-toast', { 
+      detail: { message, type } 
+    }));
+  }, []);
+
+  // ✅ UPDATED: Google OAuth callback handler with toast
   const checkGoogleAuthCallback = useCallback(async () => {
     const params = new URLSearchParams(window.location.search);
     const googleAuth = params.get('googleAuth');
@@ -61,7 +70,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     if (error) {
       console.error('❌ Google auth error:', error);
-      alert('Google authentication failed. Please try again.');
+      showToast('Google authentication failed. Please try again.', 'error');
       window.history.replaceState({}, document.title, '/signin');
       return null;
     }
@@ -89,6 +98,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             console.log('✅ Google user fetched:', googleUser.email);
             setUser(googleUser);
 
+            // ✅ NEW: Show success toast for Google login
+            showToast('Login successful! Welcome back.');
+
             // Redirect to intended page
             const redirectTo = localStorage.getItem('preAuthPath') || '/';
             localStorage.removeItem('preAuthPath');
@@ -96,7 +108,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             if (window.location.pathname !== redirectTo) {
               setTimeout(() => {
                 window.location.href = redirectTo;
-              }, 100);
+              }, 1000);
             }
 
             return googleUser;
@@ -106,20 +118,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           localStorage.removeItem('authMethod');
           localStorage.removeItem('accessToken');
           localStorage.removeItem('refreshToken');
-          alert('Failed to fetch user profile. Please try again.');
+          showToast('Failed to fetch user profile. Please try again.', 'error');
           window.location.href = '/signin';
           return null;
         }
       } else {
         console.error('❌ No tokens in callback URL');
-        alert('Authentication failed. No tokens received.');
+        showToast('Authentication failed. No tokens received.', 'error');
         window.location.href = '/signin';
         return null;
       }
     }
 
     return null;
-  }, []);
+  }, [showToast]);
 
   const refreshUser = useCallback(async () => {
     try {
@@ -263,7 +275,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       signUp,
       signOut,
       refreshUser,
-      loginWithGoogle
+      loginWithGoogle,
+      showToast // ✅ NEW: Export toast function
     }}>
       {children}
     </AuthContext.Provider>

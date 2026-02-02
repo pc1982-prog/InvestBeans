@@ -41,7 +41,7 @@ const Header = () => {
     }, 120);
   }
 
-  const { isAuthenticated, signOut, user, isAdmin } = useAuth();
+  const { isAuthenticated, signOut, user, isAdmin, showToast } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [mobileMarketsOpen, setMobileMarketsOpen] = useState(false);
   const [mobileDashboardsOpen, setMobileDashboardsOpen] = useState(false);
@@ -51,6 +51,7 @@ const Header = () => {
   const [marketsOpen, setMarketsOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
+ 
 
   // Get user initials for avatar fallback
   const getUserInitials = () => {
@@ -73,8 +74,12 @@ const Header = () => {
   };
 
   const handleSignOut = async () => {
-    await signOut();
-    navigate("/");
+    await signOut(() => {
+      showToast("Logged out successfully. See you soon!", 'success'); // ✅ NEW
+      setTimeout(() => {
+        navigate('/');
+      }, 1000); 
+    });
   };
 
   return (

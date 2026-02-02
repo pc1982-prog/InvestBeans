@@ -19,6 +19,7 @@ import BlogsView from "@/views/BlogsView";
 import BlogDetailView from "./views/BlogDetailView";
 import ScrollToTop from "@/controllers/ScrollToTop";  
 import PaymentSuccess from "./components/PaymentSuccess";
+import GlobalToastListener from "./components/GlobalToastListener";
 
 
 const queryClient = new QueryClient();
@@ -26,6 +27,7 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
+    <GlobalToastListener /> 
       <TooltipProvider>
         <Toaster />
         <Sonner />
