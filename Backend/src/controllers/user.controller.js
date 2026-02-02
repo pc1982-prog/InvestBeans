@@ -4,7 +4,9 @@ import { User } from "../models/user.model.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
+import crypto from "crypto";
 import { ADMIN_EMAILS } from "../middlewares/admin.middleware.js";
+import { sendPasswordResetEmail, sendPasswordResetConfirmation } from "../utils/email.utils.js";
 
 const generateAccessAndRefreshTokens = async (userId) => {
     try {
@@ -206,7 +208,6 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 
 });
 
-// ✅ FINAL FIX: Support both User and GoogleAuth models + Normalize name field
 const getCurrentUser = asyncHandler(async (req, res) => {
     const user = req.user;
 
@@ -216,22 +217,17 @@ const getCurrentUser = asyncHandler(async (req, res) => {
 
     const isAdmin = ADMIN_EMAILS.includes(user.email.toLowerCase());
 
-    // Handle both User and GoogleAuth models
     let userData;
     
     if (typeof user.toObject === 'function') {
-    
         userData = user.toObject();
     } else if (user._doc) {
-      
         userData = user._doc;
     } else {
-     
         userData = user;
     }
 
-  
-    const { password, refreshToken, __v, ...safeUserData } = userData;
+    const { password, refreshToken, __v, resetPasswordToken, resetPasswordExpires, ...safeUserData } = userData;
 
     const normalizedData = {
         ...safeUserData,
@@ -248,6 +244,143 @@ const getCurrentUser = asyncHandler(async (req, res) => {
         ));
 });
 
+//  NEW: Forgot Password - Send reset email
+const forgotPassword = asyncHandler(async (req, res) => {
+    const { email } = req.body;
+
+    if (!email || !email.trim()) {
+        throw new ApiError(400, "Email is required");
+    }
+
+    // Find user by email
+    const user = await User.findOne({ email: email.toLowerCase().trim() });
+
+    if (!user) {
+        // Don't reveal if user exists or not (security best practice)
+        return res
+            .status(200)
+            .json(new ApiResponse(
+                200,
+                {},
+                "If an account exists with this email, a password reset link has been sent"
+            ));
+    }
+
+    // Generate reset token
+    const resetToken = user.createPasswordResetToken();
+    await user.save({ validateBeforeSave: false });
+
+    try {
+        // Send reset email
+        await sendPasswordResetEmail(user.email, resetToken, user.name);
+
+        console.log(`✅ Password reset email sent to: ${user.email}`);
+        console.log(`🔗 Reset token (for dev): ${resetToken}`);
+
+        return res
+            .status(200)
+            .json(new ApiResponse(
+                200,
+                { email: user.email },
+                "Password reset link has been sent to your email"
+            ));
+    } catch (error) {
+        // If email fails, clear the reset token
+        user.resetPasswordToken = undefined;
+        user.resetPasswordExpires = undefined;
+        await user.save({ validateBeforeSave: false });
+
+        console.error('❌ Error sending reset email:', error);
+        throw new ApiError(500, "Failed to send reset email. Please try again later.");
+    }
+});
+
+// ✅ NEW: Verify Reset Token (optional - for frontend validation)
+const verifyResetToken = asyncHandler(async (req, res) => {
+    const { token } = req.params;
+
+    if (!token) {
+        throw new ApiError(400, "Reset token is required");
+    }
+
+    // Hash the token to compare with database
+    const hashedToken = crypto
+        .createHash('sha256')
+        .update(token)
+        .digest('hex');
+
+    // Find user with valid token
+    const user = await User.findOne({
+        resetPasswordToken: hashedToken,
+        resetPasswordExpires: { $gt: Date.now() }
+    });
+
+    if (!user) {
+        throw new ApiError(400, "Reset link is invalid or has expired");
+    }
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200, { valid: true }, "Reset token is valid"));
+});
+
+// ✅ NEW: Reset Password - Update password with token
+const resetPassword = asyncHandler(async (req, res) => {
+    const { token, newPassword } = req.body;
+
+    if (!token || !newPassword) {
+        throw new ApiError(400, "Token and new password are required");
+    }
+
+    if (newPassword.length < 6) {
+        throw new ApiError(400, "Password must be at least 6 characters long");
+    }
+
+    // Hash the token to compare with database
+    const hashedToken = crypto
+        .createHash('sha256')
+        .update(token)
+        .digest('hex');
+
+    // Find user with valid token
+    const user = await User.findOne({
+        resetPasswordToken: hashedToken,
+        resetPasswordExpires: { $gt: Date.now() }
+    });
+
+    if (!user) {
+        throw new ApiError(400, "Reset link is invalid or has expired");
+    }
+
+    // Update password
+    user.password = newPassword;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpires = undefined;
+    
+    // Clear refresh token for security
+    user.refreshToken = undefined;
+
+    await user.save();
+
+    console.log(`✅ Password reset successful for: ${user.email}`);
+
+    // Send confirmation email (optional)
+    try {
+        await sendPasswordResetConfirmation(user.email, user.name);
+    } catch (error) {
+        console.error('⚠️ Failed to send confirmation email:', error);
+        // Don't throw error - password was already reset
+    }
+
+    return res
+        .status(200)
+        .json(new ApiResponse(
+            200,
+            {},
+            "Password has been reset successfully. You can now sign in with your new password."
+        ));
+});
+
 
 export {
     registerUser,
@@ -255,4 +388,7 @@ export {
     logoutUser,
     refreshAccessToken,
     getCurrentUser,
+    forgotPassword,
+    verifyResetToken,
+    resetPassword,
 };
