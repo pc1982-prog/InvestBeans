@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Link } from "react-router-dom";
 import { Mail, ArrowLeft, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 import { useToast, ToastContainer } from "@/components/ui/Toasts";
+import api from "@/api/axios";
 
 const ForgotPasswordView = () => {
   const { toasts, removeToast, showSuccess, showError } = useToast();
@@ -14,40 +15,22 @@ const ForgotPasswordView = () => {
   const [emailSent, setEmailSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // ✅ Get API URL from environment variable
-  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000/api/v1";
-
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
 
     try {
-      // ✅ Direct fetch call without axios
-      const response = await fetch(`${API_URL}/users/forgot-password`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Failed to send reset email");
-      }
-
+      const { data } = await api.post("/users/forgot-password", { email });
+      
       if (data.success) {
         setEmailSent(true);
         showSuccess("Password reset link sent! Check your email.");
-        console.log("✅ Reset email sent to:", email);
       }
     } catch (err: any) {
-      const errorMsg = err.message || "Failed to send reset email. Please try again.";
+      const errorMsg = err?.response?.data?.message || "Failed to send reset email. Please try again.";
       setError(errorMsg);
       showError(errorMsg);
-      console.error("❌ Forgot password error:", err);
     } finally {
       setLoading(false);
     }

@@ -1,30 +1,23 @@
 import nodemailer from 'nodemailer';
 
-// ✅ IMPROVED: Better email transporter creation
+// Create email transporter
 const createTransporter = () => {
+    // For production, use your email service (Gmail, SendGrid, etc.)
+    // For development, you can use Ethereal (fake SMTP service)
+
     try {
-        // Check if Gmail credentials are available
-        if (process.env.EMAIL_USER && process.env.EMAIL_PASSWORD) {
-            console.log('📧 Configuring Gmail transporter...');
-            console.log('📧 Email User:', process.env.EMAIL_USER);
-            
-            return nodemailer.createTransporter({
+        if (process.env.NODE_ENV === 'production' && process.env.EMAIL_USER && process.env.EMAIL_PASSWORD) {
+            // Production email service (Gmail example)
+            return nodemailer.createTransport({
                 service: 'gmail',
                 auth: {
                     user: process.env.EMAIL_USER,
                     pass: process.env.EMAIL_PASSWORD,
                 },
-                // ✅ Better timeout and connection settings for Render
-                connectionTimeout: 10000,
-                greetingTimeout: 5000,
-                socketTimeout: 10000,
             });
-        } 
-        
-        // Fallback: Ethereal for testing
-        if (process.env.ETHEREAL_EMAIL && process.env.ETHEREAL_PASSWORD) {
-            console.log('📧 Configuring Ethereal transporter (testing)...');
-            return nodemailer.createTransporter({
+        } else if (process.env.ETHEREAL_EMAIL && process.env.ETHEREAL_PASSWORD) {
+            // Development - Use Ethereal for testing
+            return nodemailer.createTransport({
                 host: 'smtp.ethereal.email',
                 port: 587,
                 auth: {
@@ -32,13 +25,11 @@ const createTransporter = () => {
                     pass: process.env.ETHEREAL_PASSWORD,
                 },
             });
+        } else {
+            // No email configured - return null (will skip sending)
+            console.log('⚠️ No email service configured. Emails will be logged to console only.');
+            return null;
         }
-        
-        // No email configured
-        console.log('⚠️ No email service configured. Emails will be logged to console only.');
-        console.log('⚠️ Please set EMAIL_USER and EMAIL_PASSWORD environment variables');
-        return null;
-        
     } catch (error) {
         console.error('❌ Error creating email transporter:', error);
         return null;
@@ -55,35 +46,19 @@ export const sendPasswordResetEmail = async (email, resetToken, userName) => {
     try {
         const transporter = createTransporter();
 
-        // ✅ FIXED: Use FRONTEND_URL from environment (supports both localhost and production)
+        // Frontend URL for reset link
         const frontendURL = process.env.FRONTEND_URL || 'http://localhost:8080';
         const resetLink = `${frontendURL}/reset-password?token=${resetToken}`;
 
-        console.log('📧 Attempting to send password reset email...');
-        console.log('📧 To:', email);
-        console.log('📧 Frontend URL:', frontendURL);
-        console.log('📧 Reset Link:', resetLink);
-
-        // If no transporter, log and throw error
+        // If no transporter (email not configured), just log
         if (!transporter) {
-            console.error('❌ Email transporter not configured!');
             console.log('📧 ===== PASSWORD RESET EMAIL (NOT SENT - NO CONFIG) =====');
             console.log('To:', email);
             console.log('User:', userName);
             console.log('Reset Link:', resetLink);
             console.log('Token:', resetToken);
             console.log('=======================================================');
-            
-            throw new Error('Email service not configured. Please contact administrator.');
-        }
-        
-        // ✅ Verify transporter before sending
-        try {
-            await transporter.verify();
-            console.log('✅ Email transporter verified successfully');
-        } catch (verifyError) {
-            console.error('❌ Email transporter verification failed:', verifyError.message);
-            throw new Error('Email service configuration error. Please check credentials.');
+            return { success: true, messageId: 'console-only', mode: 'console' };
         }
         
         // Email HTML template
@@ -125,7 +100,7 @@ export const sendPasswordResetEmail = async (email, resetToken, userName) => {
           }
           .header h1 {
             color: white;
-            margin: 10px 0 0 0;
+            margin: 0;
             font-size: 28px;
             font-weight: 700;
           }
@@ -146,17 +121,23 @@ export const sendPasswordResetEmail = async (email, resetToken, userName) => {
           .button-container {
             text-align: center;
             margin: 35px 0;
+            
           }
           .reset-button {
             display: inline-block;
             padding: 16px 40px;
             background: linear-gradient(135deg, #2563eb 0%, #9333ea 100%);
-            color: white !important;
+            color: white;
             text-decoration: none;
             border-radius: 12px;
             font-weight: 600;
             font-size: 16px;
             box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+            transition: transform 0.2s;
+            color: #ffffff !important;
+          }
+          .reset-button:hover {
+            transform: translateY(-2px);
           }
           .info-box {
             background: #eff6ff;
@@ -193,6 +174,10 @@ export const sendPasswordResetEmail = async (email, resetToken, userName) => {
             font-size: 13px;
             margin: 5px 0;
           }
+          .footer a {
+            color: #2563eb;
+            text-decoration: none;
+          }
           .divider {
             height: 1px;
             background: #e5e7eb;
@@ -202,11 +187,13 @@ export const sendPasswordResetEmail = async (email, resetToken, userName) => {
       </head>
       <body>
         <div class="email-container">
+          <!-- Header -->
           <div class="header">
             <div class="logo">InvestBeans</div>
             <h1>Password Reset Request</h1>
           </div>
 
+          <!-- Content -->
           <div class="content">
             <p class="greeting">Hi ${userName || 'there'},</p>
             
@@ -236,11 +223,20 @@ export const sendPasswordResetEmail = async (email, resetToken, userName) => {
               <p><strong>🔒 Security Notice:</strong> If you didn't request this password reset, please ignore this email. 
               Your password will remain unchanged and your account is secure.</p>
             </div>
+
+            <p class="message" style="margin-top: 30px; font-size: 14px; color: #6b7280;">
+              For security reasons, we never ask for your password via email. InvestBeans will never ask you to 
+              share sensitive information through email or phone calls.
+            </p>
           </div>
 
+          <!-- Footer -->
           <div class="footer">
             <p><strong>InvestBeans</strong></p>
             <p>Smart Investing Made Simple</p>
+            <p style="margin-top: 15px;">
+              Need help? <a href="mailto:support@investbeans.com">Contact Support</a>
+            </p>
             <p style="margin-top: 20px; font-size: 12px; color: #9ca3af;">
               © 2025 InvestBeans. All rights reserved.
             </p>
@@ -252,40 +248,38 @@ export const sendPasswordResetEmail = async (email, resetToken, userName) => {
 
         // Plain text version (fallback)
         const textContent = `
-Hi ${userName || 'there'},
+      Hi ${userName || 'there'},
 
-We received a request to reset your password for your InvestBeans account.
+      We received a request to reset your password for your InvestBeans account.
 
-Click the link below to reset your password:
-${resetLink}
+      Click the link below to reset your password:
+      ${resetLink}
 
-This link will expire in 1 hour for security purposes.
+      This link will expire in 1 hour for security purposes.
 
-If you didn't request this password reset, please ignore this email. Your password will remain unchanged.
+      If you didn't request this password reset, please ignore this email. Your password will remain unchanged.
 
-Best regards,
-The InvestBeans Team
+      For security reasons, we never ask for your password via email.
 
-© 2025 InvestBeans. All rights reserved.
+      Best regards,
+      The InvestBeans Team
+
+      © 2025 InvestBeans. All rights reserved.
     `;
 
         // Send email
-        console.log('📧 Sending email via Gmail...');
-        
         const info = await transporter.sendMail({
-            from: `"InvestBeans" <${process.env.EMAIL_USER}>`,
+            from: `"InvestBeans" <${process.env.EMAIL_USER || 'noreply@investbeans.com'}>`,
             to: email,
             subject: '🔐 Reset Your InvestBeans Password',
             text: textContent,
             html: htmlContent,
         });
 
-        console.log('✅ Password reset email sent successfully!');
-        console.log('✅ Message ID:', info.messageId);
-        console.log('✅ Response:', info.response);
+        console.log('✅ Password reset email sent:', info.messageId);
 
         // Log preview URL for Ethereal (development only)
-        if (process.env.ETHEREAL_EMAIL) {
+        if (process.env.NODE_ENV !== 'production') {
             const previewUrl = nodemailer.getTestMessageUrl(info);
             if (previewUrl) {
                 console.log('📧 Preview URL:', previewUrl);
@@ -293,15 +287,15 @@ The InvestBeans Team
         }
 
         return { success: true, messageId: info.messageId };
-        
     } catch (error) {
-        console.error('❌ Error sending password reset email:');
-        console.error('❌ Error name:', error.name);
-        console.error('❌ Error message:', error.message);
-        console.error('❌ Error code:', error.code);
+        console.error('❌ Error sending password reset email:', error);
 
-        // Throw the error so controller can handle it
-        throw error;
+        // Don't throw error - just log it and continue
+        // The reset token is still saved, user can try again
+        console.log('⚠️ Email failed but reset token was saved. User can request again.');
+
+        // Return success anyway (token was saved)
+        return { success: false, error: error.message };
     }
 };
 
@@ -318,11 +312,6 @@ export const sendPasswordResetConfirmation = async (email, userName) => {
             console.log('📧 Password reset confirmation (console only) for:', email);
             return { success: true, mode: 'console' };
         }
-
-        // ✅ Use FRONTEND_URL from environment
-        const frontendURL = process.env.FRONTEND_URL || 'http://localhost:8080';
-
-        console.log('📧 Sending password reset confirmation to:', email);
 
         const htmlContent = `
       <!DOCTYPE html>
@@ -349,7 +338,7 @@ export const sendPasswordResetConfirmation = async (email, userName) => {
             <p>Your InvestBeans password has been successfully reset.</p>
             <p>You can now sign in with your new password.</p>
             <p style="text-align: center;">
-              <a href="${frontendURL}/signin" class="button">Sign In Now</a>
+              <a href="${process.env.FRONTEND_URL || 'http://localhost:8080'}/signin" class="button">Sign In Now</a>
             </p>
             <p style="margin-top: 30px; padding: 15px; background: #fef2f2; border-left: 4px solid #ef4444; border-radius: 4px;">
               <strong>Security Alert:</strong> If you didn't make this change, please contact our support team immediately.
@@ -360,21 +349,18 @@ export const sendPasswordResetConfirmation = async (email, userName) => {
       </html>
     `;
 
-        const info = await transporter.sendMail({
-            from: `"InvestBeans" <${process.env.EMAIL_USER}>`,
+        await transporter.sendMail({
+            from: `"InvestBeans" <${process.env.EMAIL_USER || 'noreply@investbeans.com'}>`,
             to: email,
             subject: '✅ Your Password Has Been Reset - InvestBeans',
             html: htmlContent,
         });
 
         console.log('✅ Password reset confirmation email sent');
-        console.log('✅ Message ID:', info.messageId);
-        
-        return { success: true, messageId: info.messageId };
-        
+        return { success: true };
     } catch (error) {
         console.error('❌ Error sending confirmation email:', error);
         // Don't throw error here - password was already reset successfully
-        return { success: false, error: error.message };
+        return { success: false };
     }
 };
