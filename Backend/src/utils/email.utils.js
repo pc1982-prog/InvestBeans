@@ -2,38 +2,38 @@ import nodemailer from 'nodemailer';
 
 // Create email transporter
 const createTransporter = () => {
-  // For production, use your email service (Gmail, SendGrid, etc.)
-  // For development, you can use Ethereal (fake SMTP service)
-  
-  try {
-    if (process.env.NODE_ENV === 'production' && process.env.EMAIL_USER && process.env.EMAIL_PASSWORD) {
-      // Production email service (Gmail example)
-      return nodemailer.createTransport({
-        service: 'gmail',
-        auth: {
-          user: process.env.EMAIL_USER,
-          pass: process.env.EMAIL_PASSWORD,
-        },
-      });
-    } else if (process.env.ETHEREAL_EMAIL && process.env.ETHEREAL_PASSWORD) {
-      // Development - Use Ethereal for testing
-      return nodemailer.createTransport({
-        host: 'smtp.ethereal.email',
-        port: 587,
-        auth: {
-          user: process.env.ETHEREAL_EMAIL,
-          pass: process.env.ETHEREAL_PASSWORD,
-        },
-      });
-    } else {
-      // No email configured - return null (will skip sending)
-      console.log('⚠️ No email service configured. Emails will be logged to console only.');
-      return null;
+    // For production, use your email service (Gmail, SendGrid, etc.)
+    // For development, you can use Ethereal (fake SMTP service)
+
+    try {
+        if (process.env.NODE_ENV === 'production' && process.env.EMAIL_USER && process.env.EMAIL_PASSWORD) {
+            // Production email service (Gmail example)
+            return nodemailer.createTransport({
+                service: 'gmail',
+                auth: {
+                    user: process.env.EMAIL_USER,
+                    pass: process.env.EMAIL_PASSWORD,
+                },
+            });
+        } else if (process.env.ETHEREAL_EMAIL && process.env.ETHEREAL_PASSWORD) {
+            // Development - Use Ethereal for testing
+            return nodemailer.createTransport({
+                host: 'smtp.ethereal.email',
+                port: 587,
+                auth: {
+                    user: process.env.ETHEREAL_EMAIL,
+                    pass: process.env.ETHEREAL_PASSWORD,
+                },
+            });
+        } else {
+            // No email configured - return null (will skip sending)
+            console.log('⚠️ No email service configured. Emails will be logged to console only.');
+            return null;
+        }
+    } catch (error) {
+        console.error('❌ Error creating email transporter:', error);
+        return null;
     }
-  } catch (error) {
-    console.error('❌ Error creating email transporter:', error);
-    return null;
-  }
 };
 
 /**
@@ -43,26 +43,26 @@ const createTransporter = () => {
  * @param {string} userName - User's name
  */
 export const sendPasswordResetEmail = async (email, resetToken, userName) => {
-  try {
-    const transporter = createTransporter();
-    
-    // Frontend URL for reset link
-    const frontendURL = process.env.FRONTEND_URL || 'http://localhost:8080';
-    const resetLink = `${frontendURL}/reset-password?token=${resetToken}`;
+    try {
+        const transporter = createTransporter();
 
-    // If no transporter (email not configured), just log
-    if (!transporter) {
-      console.log('📧 ===== PASSWORD RESET EMAIL (NOT SENT - NO CONFIG) =====');
-      console.log('To:', email);
-      console.log('User:', userName);
-      console.log('Reset Link:', resetLink);
-      console.log('Token:', resetToken);
-      console.log('=======================================================');
-      return { success: true, messageId: 'console-only', mode: 'console' };
-    }
+        // Frontend URL for reset link
+        const frontendURL = process.env.FRONTEND_URL || 'http://localhost:8080';
+        const resetLink = `${frontendURL}/reset-password?token=${resetToken}`;
 
-    // Email HTML template
-    const htmlContent = `
+        // If no transporter (email not configured), just log
+        if (!transporter) {
+            console.log('📧 ===== PASSWORD RESET EMAIL (NOT SENT - NO CONFIG) =====');
+            console.log('To:', email);
+            console.log('User:', userName);
+            console.log('Reset Link:', resetLink);
+            console.log('Token:', resetToken);
+            console.log('=======================================================');
+            return { success: true, messageId: 'console-only', mode: 'console' };
+        }
+        
+        // Email HTML template
+        const htmlContent = `
       <!DOCTYPE html>
       <html>
       <head>
@@ -246,8 +246,8 @@ export const sendPasswordResetEmail = async (email, resetToken, userName) => {
       </html>
     `;
 
-    // Plain text version (fallback)
-    const textContent = `
+        // Plain text version (fallback)
+        const textContent = `
       Hi ${userName || 'there'},
 
       We received a request to reset your password for your InvestBeans account.
@@ -267,36 +267,36 @@ export const sendPasswordResetEmail = async (email, resetToken, userName) => {
       © 2025 InvestBeans. All rights reserved.
     `;
 
-    // Send email
-    const info = await transporter.sendMail({
-      from: `"InvestBeans" <${process.env.EMAIL_USER || 'noreply@investbeans.com'}>`,
-      to: email,
-      subject: '🔐 Reset Your InvestBeans Password',
-      text: textContent,
-      html: htmlContent,
-    });
+        // Send email
+        const info = await transporter.sendMail({
+            from: `"InvestBeans" <${process.env.EMAIL_USER || 'noreply@investbeans.com'}>`,
+            to: email,
+            subject: '🔐 Reset Your InvestBeans Password',
+            text: textContent,
+            html: htmlContent,
+        });
 
-    console.log('✅ Password reset email sent:', info.messageId);
-    
-    // Log preview URL for Ethereal (development only)
-    if (process.env.NODE_ENV !== 'production') {
-      const previewUrl = nodemailer.getTestMessageUrl(info);
-      if (previewUrl) {
-        console.log('📧 Preview URL:', previewUrl);
-      }
+        console.log('✅ Password reset email sent:', info.messageId);
+
+        // Log preview URL for Ethereal (development only)
+        if (process.env.NODE_ENV !== 'production') {
+            const previewUrl = nodemailer.getTestMessageUrl(info);
+            if (previewUrl) {
+                console.log('📧 Preview URL:', previewUrl);
+            }
+        }
+
+        return { success: true, messageId: info.messageId };
+    } catch (error) {
+        console.error('❌ Error sending password reset email:', error);
+
+        // Don't throw error - just log it and continue
+        // The reset token is still saved, user can try again
+        console.log('⚠️ Email failed but reset token was saved. User can request again.');
+
+        // Return success anyway (token was saved)
+        return { success: false, error: error.message };
     }
-
-    return { success: true, messageId: info.messageId };
-  } catch (error) {
-    console.error('❌ Error sending password reset email:', error);
-    
-    // Don't throw error - just log it and continue
-    // The reset token is still saved, user can try again
-    console.log('⚠️ Email failed but reset token was saved. User can request again.');
-    
-    // Return success anyway (token was saved)
-    return { success: false, error: error.message };
-  }
 };
 
 /**
@@ -305,15 +305,15 @@ export const sendPasswordResetEmail = async (email, resetToken, userName) => {
  * @param {string} userName - User's name
  */
 export const sendPasswordResetConfirmation = async (email, userName) => {
-  try {
-    const transporter = createTransporter();
-    
-    if (!transporter) {
-      console.log('📧 Password reset confirmation (console only) for:', email);
-      return { success: true, mode: 'console' };
-    }
+    try {
+        const transporter = createTransporter();
 
-    const htmlContent = `
+        if (!transporter) {
+            console.log('📧 Password reset confirmation (console only) for:', email);
+            return { success: true, mode: 'console' };
+        }
+
+        const htmlContent = `
       <!DOCTYPE html>
       <html>
       <head>
@@ -349,18 +349,18 @@ export const sendPasswordResetConfirmation = async (email, userName) => {
       </html>
     `;
 
-    await transporter.sendMail({
-      from: `"InvestBeans" <${process.env.EMAIL_USER || 'noreply@investbeans.com'}>`,
-      to: email,
-      subject: '✅ Your Password Has Been Reset - InvestBeans',
-      html: htmlContent,
-    });
+        await transporter.sendMail({
+            from: `"InvestBeans" <${process.env.EMAIL_USER || 'noreply@investbeans.com'}>`,
+            to: email,
+            subject: '✅ Your Password Has Been Reset - InvestBeans',
+            html: htmlContent,
+        });
 
-    console.log('✅ Password reset confirmation email sent');
-    return { success: true };
-  } catch (error) {
-    console.error('❌ Error sending confirmation email:', error);
-    // Don't throw error here - password was already reset successfully
-    return { success: false };
-  }
+        console.log('✅ Password reset confirmation email sent');
+        return { success: true };
+    } catch (error) {
+        console.error('❌ Error sending confirmation email:', error);
+        // Don't throw error here - password was already reset successfully
+        return { success: false };
+    }
 };

@@ -27,7 +27,7 @@ type AuthContextType = {
   loginWithGoogle: () => void;
   signOut: (callback?: () => void) => Promise<void>;
   refreshUser: () => Promise<User | null>;
-  showToast: (message: string, type?: 'success' | 'error') => void; // ✅ NEW: Toast function
+  showToast: (message: string, type?: 'success' | 'error') => void;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -52,15 +52,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const isAdmin = user ? (user.isAdmin === true || ADMIN_EMAILS.includes(user.email.toLowerCase())) : false;
 
-  // ✅ NEW: Toast notification function
   const showToast = useCallback((message: string, type: 'success' | 'error' = 'success') => {
-    // Dispatch custom event that components can listen to
     window.dispatchEvent(new CustomEvent('show-toast', { 
       detail: { message, type } 
     }));
   }, []);
 
-  // ✅ UPDATED: Google OAuth callback handler with toast
   const checkGoogleAuthCallback = useCallback(async () => {
     const params = new URLSearchParams(window.location.search);
     const googleAuth = params.get('googleAuth');
@@ -86,22 +83,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         api.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
         setAuthMethod('jwt');
 
-        // Clear URL params
         window.history.replaceState({}, document.title, window.location.pathname);
 
         try {
-          // ✅ FIXED: Fetch user profile using JWT token (not session cookie)
           const { data } = await api.get('/users/current-user');
 
           if (data?.success && data?.data) {
             const googleUser = data.data;
             console.log('✅ Google user fetched:', googleUser.email);
             setUser(googleUser);
-
-            // ✅ NEW: Show success toast for Google login
             showToast('Login successful! Welcome back.');
 
-            // Redirect to intended page
             const redirectTo = localStorage.getItem('preAuthPath') || '/';
             localStorage.removeItem('preAuthPath');
 
@@ -135,25 +127,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const refreshUser = useCallback(async () => {
     try {
-      // Step 1: Try Google session first (withCredentials, no token)
-      try {
-        const { data } = await axios.get(`${getBaseURL()}/auth/profile`, { withCredentials: true });
-        if (data?.success && data?.data) {
-          setUser(data.data);
-          localStorage.setItem('authMethod', 'google');
-          setAuthMethod('google');
-          console.log('✅ Google session restored');
-          return data.data;
+      // ✅ FIXED: Only check Google session if we think we might have one
+      const storedMethod = localStorage.getItem('authMethod');
+      
+      // Try Google session only if authMethod was 'google' or unknown
+      if (!storedMethod || storedMethod === 'google') {
+        try {
+          const { data } = await axios.get(`${getBaseURL()}/auth/profile`, { 
+            withCredentials: true,
+            // ✅ ADDED: Suppress error alerts for this check
+            validateStatus: (status) => status < 500
+          });
+          
+          if (data?.success && data?.data) {
+            setUser(data.data);
+            localStorage.setItem('authMethod', 'google');
+            setAuthMethod('google');
+            console.log('✅ Google session restored');
+            return data.data;
+          }
+        } catch (sessionErr: any) {
+          // ✅ FIXED: Only log if it's not a 401 (which is expected)
+          if (sessionErr.response?.status !== 401) {
+            console.log('❌ Error checking Google session:', sessionErr.message);
+          }
         }
-      } catch (sessionErr) {
-        console.log('No Google session, trying JWT...');
       }
 
-      // Step 2: Fallback to JWT (sets header if token exists)
+      // Try JWT if we have a token
       const token = localStorage.getItem('accessToken');
       if (token) {
         api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
         const { data } = await api.get('/users/current-user');
+        
         if (data?.success && data?.data) {
           setUser(data.data);
           localStorage.setItem('authMethod', 'jwt');
@@ -163,11 +169,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       }
 
-      // No auth
+      // ✅ No valid session found - this is normal for logged-out users
       throw new Error('No session');
+      
     } catch (err: any) {
+      // ✅ FIXED: Clear auth silently without error messages
       if (err.response?.status === 401 || err.message === 'No session') {
-        console.log('No active auth, clearing...');
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
         localStorage.removeItem('authMethod');
@@ -276,7 +283,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       signOut,
       refreshUser,
       loginWithGoogle,
-      showToast // ✅ NEW: Export toast function
+      showToast
     }}>
       {children}
     </AuthContext.Provider>
