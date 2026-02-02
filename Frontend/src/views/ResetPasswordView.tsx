@@ -3,106 +3,137 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { Lock, Eye, EyeOff, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
+import { Lock, Eye, EyeOff, Loader2, CheckCircle2, AlertCircle, KeyRound } from "lucide-react";
 import { useToast, ToastContainer } from "@/components/ui/Toasts";
-import api from "@/api/axios";
 
 const ResetPasswordView = () => {
   const { toasts, removeToast, showSuccess, showError } = useToast();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  
-  const [password, setPassword] = useState("");
+
+  const [token, setToken] = useState<string | null>(null);
+  const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [tokenValid, setTokenValid] = useState<boolean | null>(null);
+  const [verifying, setVerifying] = useState(true);
+  const [tokenValid, setTokenValid] = useState(false);
   const [resetSuccess, setResetSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const token = searchParams.get("token");
-
-  // Password strength indicators
-  const passwordStrength = {
-    hasLength: password.length >= 8,
-    hasLetter: /[a-z]/.test(password),
-    hasCapital: /[A-Z]/.test(password),
-    hasNumber: /[0-9]/.test(password),
-    hasSpecial: /[!@#$%^&*(),.?":{}|<>]/.test(password),
-  };
-
-  const isPasswordValid = Object.values(passwordStrength).every(Boolean);
+  // ✅ Get API URL from environment variable
+  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000/api/v1";
 
   // Verify token on component mount
   useEffect(() => {
     const verifyToken = async () => {
-      if (!token) {
-        setTokenValid(false);
-        setError("Invalid or missing reset token");
+      const tokenParam = searchParams.get("token");
+
+      if (!tokenParam) {
+        setError("No reset token provided. Please check your email link.");
+        setVerifying(false);
         return;
       }
 
+      setToken(tokenParam);
+
       try {
-        await api.get(`/users/verify-reset-token/${token}`);
-        setTokenValid(true);
+        // ✅ Direct fetch call without axios
+        const response = await fetch(`${API_URL}/users/verify-reset-token/${tokenParam}`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.message || "Invalid or expired reset token");
+        }
+
+        if (data.success && data.data?.valid) {
+          setTokenValid(true);
+          console.log("✅ Reset token verified");
+        } else {
+          setError("Invalid or expired reset token");
+        }
       } catch (err: any) {
-        setTokenValid(false);
-        setError(err?.response?.data?.message || "Reset link is invalid or expired");
+        const errorMsg = err.message || "Failed to verify reset token";
+        setError(errorMsg);
+        showError(errorMsg);
+        console.error("❌ Token verification error:", err);
+      } finally {
+        setVerifying(false);
       }
     };
 
     verifyToken();
-  }, [token]);
+  }, [searchParams, API_URL]);
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError(null);
 
-    // Validate passwords match
-    if (password !== confirmPassword) {
-      const errorMsg = "Passwords do not match";
-      setError(errorMsg);
-      showError(errorMsg);
+    // Validation
+    if (newPassword.length < 6) {
+      const msg = "Password must be at least 6 characters long";
+      setError(msg);
+      showError(msg);
       return;
     }
 
-    // Validate password strength
-    if (!isPasswordValid) {
-      const errorMsg = "Password must meet all requirements";
-      setError(errorMsg);
-      showError(errorMsg);
+    if (newPassword !== confirmPassword) {
+      const msg = "Passwords do not match";
+      setError(msg);
+      showError(msg);
       return;
     }
 
     setLoading(true);
 
     try {
-      const { data } = await api.post("/users/reset-password", {
-        token,
-        newPassword: password,
+      // ✅ Direct fetch call without axios
+      const response = await fetch(`${API_URL}/users/reset-password`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          token,
+          newPassword,
+        }),
       });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to reset password");
+      }
 
       if (data.success) {
         setResetSuccess(true);
         showSuccess("Password reset successful! Redirecting to sign in...");
-        
-        // Redirect to signin after 2 seconds
+        console.log("✅ Password reset successful");
+
+        // Redirect to sign in after 2 seconds
         setTimeout(() => {
-          navigate("/Signin");
+          navigate("/signin");
         }, 2000);
       }
     } catch (err: any) {
-      const errorMsg = err?.response?.data?.message || "Failed to reset password. Please try again.";
+      const errorMsg = err.message || "Failed to reset password. Please try again.";
       setError(errorMsg);
       showError(errorMsg);
+      console.error("❌ Reset password error:", err);
     } finally {
       setLoading(false);
     }
   };
 
-  // Show loading while verifying token
-  if (tokenValid === null) {
+  // Loading state while verifying token
+  if (verifying) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50">
         <div className="text-center">
@@ -113,47 +144,49 @@ const ResetPasswordView = () => {
     );
   }
 
-  // Show error if token is invalid
-  if (tokenValid === false) {
+  // Invalid token state
+  if (!tokenValid && !verifying) {
     return (
-      <>
-        <ToastContainer toasts={toasts} removeToast={removeToast} />
-        
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 px-4 py-12">
-          <div className="w-full max-w-md">
-            <div className="bg-white rounded-3xl shadow-2xl border border-gray-100 p-8 sm:p-10">
-              <div className="text-center">
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-6">
-                  <AlertCircle className="w-8 h-8 text-red-600" />
-                </div>
-                
-                <h1 className="text-3xl font-bold text-gray-900 tracking-tight mb-3">
-                  Invalid Reset Link
-                </h1>
-                
-                <p className="text-gray-600 mb-6">
-                  {error || "This password reset link is invalid or has expired."}
-                </p>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 px-4">
+        <div className="w-full max-w-md">
+          <div className="bg-white rounded-3xl shadow-2xl border border-gray-100 p-8 sm:p-10">
+            <div className="text-center">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-6">
+                <AlertCircle className="w-8 h-8 text-red-600" />
+              </div>
+              
+              <h1 className="text-3xl font-bold text-gray-900 tracking-tight mb-3">
+                Invalid Reset Link
+              </h1>
+              
+              <p className="text-gray-600 mb-6">
+                {error || "This password reset link is invalid or has expired."}
+              </p>
 
-                <Link to="/forgot-password">
-                  <Button
-                    size="lg"
-                    className="w-full h-12 text-base font-semibold bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all"
-                  >
-                    Request New Reset Link
-                  </Button>
-                </Link>
-
-                <p className="text-center text-sm text-gray-600 mt-6">
-                  <Link to="/signin" className="font-semibold text-blue-600 hover:text-blue-700 hover:underline">
-                    Back to Sign In
-                  </Link>
+              <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
+                <p className="text-sm text-red-800">
+                  Reset links expire after 1 hour for security purposes.
                 </p>
               </div>
+
+              <Link to="/forgot-password">
+                <Button
+                  size="lg"
+                  className="w-full h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                >
+                  Request New Reset Link
+                </Button>
+              </Link>
+
+              <p className="text-center text-sm text-gray-600 mt-6">
+                <Link to="/signin" className="font-semibold text-blue-600 hover:text-blue-700 hover:underline">
+                  Back to Sign In
+                </Link>
+              </p>
             </div>
           </div>
         </div>
-      </>
+      </div>
     );
   }
 
@@ -163,7 +196,6 @@ const ResetPasswordView = () => {
       
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 px-4 py-12">
         <div className="w-full max-w-md">
-          {/* Main Card */}
           <div className="bg-white rounded-3xl shadow-2xl border border-gray-100 p-8 sm:p-10">
             {!resetSuccess ? (
               <>
@@ -171,14 +203,14 @@ const ResetPasswordView = () => {
                 <div className="text-center mb-8">
                   <div className="inline-block mb-4">
                     <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
-                      <span className="text-white text-2xl font-bold">IB</span>
+                      <KeyRound className="w-8 h-8 text-white" />
                     </div>
                   </div>
                   <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
                     Reset Password
                   </h1>
                   <p className="text-gray-500 mt-2 text-sm">
-                    Enter your new password below
+                    Create a new secure password for your account
                   </p>
                 </div>
 
@@ -199,76 +231,33 @@ const ResetPasswordView = () => {
                 <form onSubmit={onSubmit} className="space-y-5">
                   {/* New Password */}
                   <div className="space-y-2">
-                    <Label htmlFor="password" className="text-sm font-medium text-gray-700">
+                    <Label htmlFor="newPassword" className="text-sm font-medium text-gray-700">
                       New Password
                     </Label>
                     <div className="relative">
                       <Lock className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
                       <Input
-                        id="password"
+                        id="newPassword"
                         type={showPassword ? "text" : "password"}
-                        placeholder="Create a strong password"
-                        className="pl-11 pr-12 h-12 text-base border-gray-200 focus:border-blue-500 focus:ring-blue-500"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="Enter new password"
+                        className="pl-11 pr-11 h-12 text-base border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
                         required
                         disabled={loading}
+                        minLength={6}
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-3.5 text-gray-400 hover:text-gray-600 transition disabled:opacity-50"
-                        disabled={loading}
+                        className="absolute right-3 top-3.5 text-gray-400 hover:text-gray-600"
                       >
                         {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                       </button>
                     </div>
-
-                    {/* Password Strength Indicators */}
-                    {password && (
-                      <div className="mt-3 space-y-1.5">
-                        <div className="flex items-center gap-2 text-xs">
-                          <CheckCircle2
-                            className={`w-4 h-4 ${passwordStrength.hasLength ? 'text-green-600' : 'text-gray-300'}`}
-                          />
-                          <span className={passwordStrength.hasLength ? 'text-green-700' : 'text-gray-500'}>
-                            At least 8 characters
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2 text-xs">
-                          <CheckCircle2
-                            className={`w-4 h-4 ${passwordStrength.hasLetter ? 'text-green-600' : 'text-gray-300'}`}
-                          />
-                          <span className={passwordStrength.hasLetter ? 'text-green-700' : 'text-gray-500'}>
-                            Contains lowercase letters
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2 text-xs">
-                          <CheckCircle2
-                            className={`w-4 h-4 ${passwordStrength.hasCapital ? 'text-green-600' : 'text-gray-300'}`}
-                          />
-                          <span className={passwordStrength.hasCapital ? 'text-green-700' : 'text-gray-500'}>
-                            Contains uppercase letters
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2 text-xs">
-                          <CheckCircle2
-                            className={`w-4 h-4 ${passwordStrength.hasNumber ? 'text-green-600' : 'text-gray-300'}`}
-                          />
-                          <span className={passwordStrength.hasNumber ? 'text-green-700' : 'text-gray-500'}>
-                            Contains numbers
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2 text-xs">
-                          <CheckCircle2
-                            className={`w-4 h-4 ${passwordStrength.hasSpecial ? 'text-green-600' : 'text-gray-300'}`}
-                          />
-                          <span className={passwordStrength.hasSpecial ? 'text-green-700' : 'text-gray-500'}>
-                            Contains special characters
-                          </span>
-                        </div>
-                      </div>
-                    )}
+                    <p className="text-xs text-gray-500">
+                      Password must be at least 6 characters long
+                    </p>
                   </div>
 
                   {/* Confirm Password */}
@@ -281,29 +270,22 @@ const ResetPasswordView = () => {
                       <Input
                         id="confirmPassword"
                         type={showConfirmPassword ? "text" : "password"}
-                        placeholder="Re-enter your password"
-                        className="pl-11 pr-12 h-12 text-base border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+                        placeholder="Confirm new password"
+                        className="pl-11 pr-11 h-12 text-base border-gray-200 focus:border-blue-500 focus:ring-blue-500"
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
                         required
                         disabled={loading}
+                        minLength={6}
                       />
                       <button
                         type="button"
                         onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                        className="absolute right-3 top-3.5 text-gray-400 hover:text-gray-600 transition disabled:opacity-50"
-                        disabled={loading}
+                        className="absolute right-3 top-3.5 text-gray-400 hover:text-gray-600"
                       >
                         {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                       </button>
                     </div>
-                    
-                    {/* Password match indicator */}
-                    {confirmPassword && (
-                      <p className={`text-xs ${password === confirmPassword ? 'text-green-600' : 'text-red-600'}`}>
-                        {password === confirmPassword ? '✓ Passwords match' : '✗ Passwords do not match'}
-                      </p>
-                    )}
                   </div>
 
                   {/* Submit Button */}
@@ -311,7 +293,7 @@ const ResetPasswordView = () => {
                     type="submit"
                     size="lg"
                     className="w-full h-12 text-base font-semibold bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all"
-                    disabled={loading || !isPasswordValid || password !== confirmPassword}
+                    disabled={loading}
                   >
                     {loading ? (
                       <>
@@ -333,18 +315,31 @@ const ResetPasswordView = () => {
                   </div>
                   
                   <h1 className="text-3xl font-bold text-gray-900 tracking-tight mb-3">
-                    Password Reset Successful!
+                    Password Reset!
                   </h1>
                   
                   <p className="text-gray-600 mb-6">
-                    Your password has been successfully reset. You can now sign in with your new password.
+                    Your password has been successfully reset.
                   </p>
                   
-                  <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-                    <p className="text-sm text-blue-800">
-                      Redirecting you to sign in page...
+                  <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-6">
+                    <p className="text-sm text-green-800">
+                      You can now sign in with your new password.
                     </p>
                   </div>
+
+                  <p className="text-sm text-gray-500 mb-4">
+                    Redirecting to sign in page...
+                  </p>
+
+                  <Link to="/signin">
+                    <Button
+                      size="lg"
+                      className="w-full h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                    >
+                      Sign In Now
+                    </Button>
+                  </Link>
                 </div>
               </>
             )}
