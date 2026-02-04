@@ -6,6 +6,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Lock, Eye, EyeOff, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 import { useToast, ToastContainer } from "@/components/ui/Toasts";
 import api from "@/api/axios";
+import axios from "axios";
 
 const ResetPasswordView = () => {
   const { toasts, removeToast, showSuccess, showError } = useToast();
@@ -36,7 +37,9 @@ const ResetPasswordView = () => {
 
   // Verify token on component mount
   useEffect(() => {
+    const API_URL = import.meta.env.VITE_API_URL;
     const verifyToken = async () => {
+
       if (!token) {
         setTokenValid(false);
         setError("Invalid or missing reset token");
@@ -44,7 +47,7 @@ const ResetPasswordView = () => {
       }
 
       try {
-        await api.get(`/users/verify-reset-token/${token}`);
+        await axios.get(`${API_URL}/users/verify-reset-token/${token}`);
         setTokenValid(true);
       } catch (err: any) {
         setTokenValid(false);
@@ -56,6 +59,7 @@ const ResetPasswordView = () => {
   }, [token]);
 
   const onSubmit = async (e: FormEvent) => {
+    const API_URL = import.meta.env.VITE_API_URL;
     e.preventDefault();
     setError(null);
 
@@ -78,7 +82,7 @@ const ResetPasswordView = () => {
     setLoading(true);
 
     try {
-      const { data } = await api.post("/users/reset-password", {
+      const { data } = await axios.post(`${API_URL}/users/reset-password`, {
         token,
         newPassword: password,
       });

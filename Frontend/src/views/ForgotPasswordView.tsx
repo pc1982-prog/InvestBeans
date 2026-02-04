@@ -6,6 +6,7 @@ import { Link } from "react-router-dom";
 import { Mail, ArrowLeft, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 import { useToast, ToastContainer } from "@/components/ui/Toasts";
 import api from "@/api/axios";
+import axios from "axios";
 
 const ForgotPasswordView = () => {
   const { toasts, removeToast, showSuccess, showError } = useToast();
@@ -16,12 +17,13 @@ const ForgotPasswordView = () => {
   const [error, setError] = useState<string | null>(null);
 
   const onSubmit = async (e: FormEvent) => {
+    const API_URL = import.meta.env.VITE_API_URL;
     e.preventDefault();
     setError(null);
     setLoading(true);
 
     try {
-      const { data } = await api.post("/users/forgot-password", { email });
+      const { data } = await axios.post(`${API_URL}/users/forgot-password`, { email });
       
       if (data.success) {
         setEmailSent(true);
