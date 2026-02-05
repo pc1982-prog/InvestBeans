@@ -5,7 +5,6 @@ import { Label } from "@/components/ui/label";
 import { Link } from "react-router-dom";
 import { Mail, ArrowLeft, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 import { useToast, ToastContainer } from "@/components/ui/Toasts";
-import api from "@/api/axios";
 import axios from "axios";
 
 const ForgotPasswordView = () => {
@@ -23,7 +22,7 @@ const ForgotPasswordView = () => {
     setLoading(true);
 
     try {
-      const { data } = await axios.post(`${API_URL}/users/forgot-password`, { email });
+      const { data } = await axios.post(`${API_URL}/api/v1/users/forgot-password`, { email });
       
       if (data.success) {
         setEmailSent(true);

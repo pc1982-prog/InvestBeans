@@ -5,14 +5,12 @@ import { Label } from "@/components/ui/label";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Lock, Eye, EyeOff, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 import { useToast, ToastContainer } from "@/components/ui/Toasts";
-import api from "@/api/axios";
 import axios from "axios";
 
 const ResetPasswordView = () => {
   const { toasts, removeToast, showSuccess, showError } = useToast();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -47,7 +45,7 @@ const ResetPasswordView = () => {
       }
 
       try {
-        await axios.get(`${API_URL}/users/verify-reset-token/${token}`);
+        await axios.get(`${API_URL}/api/v1/users/verify-reset-token/${token}`);
         setTokenValid(true);
       } catch (err: any) {
         setTokenValid(false);
@@ -82,7 +80,7 @@ const ResetPasswordView = () => {
     setLoading(true);
 
     try {
-      const { data } = await axios.post(`${API_URL}/users/reset-password`, {
+      const { data } = await axios.post(`${API_URL}/api/v1/users/reset-password`, {
         token,
         newPassword: password,
       });

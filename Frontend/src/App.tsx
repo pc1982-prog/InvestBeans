@@ -22,6 +22,9 @@ import BlogDetailView from "./views/BlogDetailView";
 import ScrollToTop from "@/controllers/ScrollToTop";  
 import PaymentSuccess from "./components/PaymentSuccess";
 import GlobalToastListener from "./components/GlobalToastListener";
+import TermsOfService from "./views/Termsofservice";
+import HelpCenter from "./views/Helpcenter";
+import PrivacyPolicy from "./views/Privacypolicy";
 
 
 const queryClient = new QueryClient();
@@ -45,6 +48,9 @@ const App = () => (
             <Route path="/blogs" element={<BlogsView />} />
             <Route path="/blogs/:id" element={<BlogDetailView />} />
             <Route path="/paymentsuccess" element={<PaymentSuccess />} />
+            <Route path="/terms-of-service" element={<TermsOfService />} />
+            <Route path="/help-center" element={<HelpCenter />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy/>} />
             
             {/* ✅ NEW: Password Reset Routes */}
             <Route path="/forgot-password" element={<ForgotPasswordController />} />

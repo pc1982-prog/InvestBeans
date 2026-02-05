@@ -274,11 +274,11 @@ const SignUpView = () => {
             {/* Terms */}
             <p className="text-xs text-gray-500 text-center mt-4">
               By signing up, you agree to our{" "}
-              <Link to="/terms" className="text-blue-600 hover:underline">
+              <Link to="/terms-of-service" className="text-blue-600 hover:underline">
                 Terms of Service
               </Link>{" "}
               and{" "}
-              <Link to="/privacy" className="text-blue-600 hover:underline">
+              <Link to="/privacy-policy" className="text-blue-600 hover:underline">
                 Privacy Policy
               </Link>
             </p>

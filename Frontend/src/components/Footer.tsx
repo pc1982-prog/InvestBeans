@@ -55,10 +55,10 @@ const Footer = () => {
           <div>
             <h3 className="text-lg font-semibold mb-4 text-accent">Resources</h3>
             <ul className="space-y-3 text-sm">
-              <li><a href="#" className="opacity-80 hover:opacity-100 hover:text-accent transition-all hover:translate-x-1 inline-block">Blog</a></li>
-              <li><a href="#" className="opacity-80 hover:opacity-100 hover:text-accent transition-all hover:translate-x-1 inline-block">Help Center</a></li>
-              <li><a href="#" className="opacity-80 hover:opacity-100 hover:text-accent transition-all hover:translate-x-1 inline-block">Privacy Policy</a></li>
-              <li><a href="#" className="opacity-80 hover:opacity-100 hover:text-accent transition-all hover:translate-x-1 inline-block">Terms of Service</a></li>
+              <li><a href="/blogs" className="opacity-80 hover:opacity-100 hover:text-accent transition-all hover:translate-x-1 inline-block">Blog</a></li>
+              <li><a href="/help-center" className="opacity-80 hover:opacity-100 hover:text-accent transition-all hover:translate-x-1 inline-block">Help Center</a></li>
+              <li><a href="/privacy-policy" className="opacity-80 hover:opacity-100 hover:text-accent transition-all hover:translate-x-1 inline-block">Privacy Policy</a></li>
+              <li><a href="/terms-of-service" className="opacity-80 hover:opacity-100 hover:text-accent transition-all hover:translate-x-1 inline-block">Terms of Service</a></li>
             </ul>
           </div>
         </div>
