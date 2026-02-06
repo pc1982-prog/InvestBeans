@@ -22,58 +22,14 @@ const ForgotPasswordView = () => {
     setLoading(true);
 
     try {
-      console.log('🚀 Sending forgot password request to:', `${API_URL}/api/v1/users/forgot-password`);
-      console.log('📧 Email:', email);
-
-      // ✅ ADD TIMEOUT - If no response in 30 seconds, show error
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => {
-        controller.abort();
-        console.error('⏱️ Request timed out after 30 seconds');
-      }, 30000); // 30 second timeout
-
-      const { data } = await axios.post(
-        `${API_URL}/api/v1/users/forgot-password`, 
-        { email },
-        {
-          signal: controller.signal,
-          timeout: 30000, // 30 second axios timeout
-          headers: {
-            'Content-Type': 'application/json',
-          }
-        }
-      );
-
-      clearTimeout(timeoutId);
-
-      console.log('✅ Response received:', data);
+      const { data } = await axios.post(`${API_URL}/api/v1/users/forgot-password`, { email });
       
       if (data.success) {
         setEmailSent(true);
         showSuccess("Password reset link sent! Check your email.");
-      } else {
-        throw new Error(data.message || "Failed to send reset email");
       }
     } catch (err: any) {
-      console.error('❌ Forgot password error:', err);
-
-      let errorMsg = "Failed to send reset email. Please try again.";
-
-      // ✅ HANDLE DIFFERENT ERROR TYPES
-      if (err.code === 'ECONNABORTED' || err.name === 'AbortError') {
-        errorMsg = "Request timed out. The server is taking too long to respond. Please check your email inbox anyway - the email might have been sent.";
-      } else if (err.code === 'ERR_NETWORK') {
-        errorMsg = "Network error. Please check your internet connection and try again.";
-      } else if (err.response) {
-        // Server responded with error
-        errorMsg = err.response.data?.message || `Server error: ${err.response.status}`;
-        console.error('Server error response:', err.response.data);
-      } else if (err.request) {
-        // Request made but no response
-        errorMsg = "No response from server. The email might still be sent - please check your inbox.";
-        console.error('No response received:', err.request);
-      }
-
+      const errorMsg = err?.response?.data?.message || "Failed to send reset email. Please try again.";
       setError(errorMsg);
       showError(errorMsg);
     } finally {
@@ -123,26 +79,6 @@ const ForgotPasswordView = () => {
                       <div>
                         <p className="text-sm font-medium text-red-800">Error</p>
                         <p className="text-sm text-red-700 mt-1">{error}</p>
-                        {error.includes('timed out') && (
-                          <p className="text-xs text-red-600 mt-2">
-                            💡 Tip: Check your email inbox anyway - the reset link might have been sent successfully.
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* ✅ INFO BOX - Show while loading */}
-                {loading && (
-                  <div className="mb-6 bg-blue-50 border border-blue-200 rounded-xl p-4">
-                    <div className="flex items-start gap-3">
-                      <Loader2 className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5 animate-spin" />
-                      <div>
-                        <p className="text-sm font-medium text-blue-800">Sending reset link...</p>
-                        <p className="text-xs text-blue-700 mt-1">
-                          This may take up to 30 seconds. Please wait.
-                        </p>
                       </div>
                     </div>
                   </div>
@@ -187,15 +123,6 @@ const ForgotPasswordView = () => {
                     )}
                   </Button>
                 </form>
-
-                {/* ✅ DEBUG INFO - Only in development */}
-                {import.meta.env.DEV && (
-                  <div className="mt-4 p-3 bg-gray-100 rounded text-xs text-gray-600">
-                    <p><strong>Debug Info:</strong></p>
-                    <p>API URL: {import.meta.env.VITE_API_URL}</p>
-                    <p>Endpoint: /api/v1/users/forgot-password</p>
-                  </div>
-                )}
               </>
             ) : (
               <>
@@ -223,18 +150,11 @@ const ForgotPasswordView = () => {
                     </p>
                   </div>
 
-                  <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-6">
-                    <p className="text-sm text-yellow-800">
-                      <strong>💡 Can't find the email?</strong>
-                    </p>
-                    <ul className="text-xs text-yellow-700 mt-2 space-y-1 text-left">
-                      <li>• Check your spam/junk folder</li>
-                      <li>• Wait a few minutes - emails can be delayed</li>
-                      <li>• Make sure you entered the correct email</li>
-                    </ul>
-                  </div>
-
                   <div className="space-y-3">
+                    <p className="text-sm text-gray-500">
+                      Didn't receive the email? Check your spam folder or
+                    </p>
+                    
                     <Button
                       variant="outline"
                       size="lg"
@@ -242,7 +162,6 @@ const ForgotPasswordView = () => {
                       onClick={() => {
                         setEmailSent(false);
                         setEmail("");
-                        setError(null);
                       }}
                     >
                       Try Another Email
