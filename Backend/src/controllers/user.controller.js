@@ -245,55 +245,6 @@ const getCurrentUser = asyncHandler(async (req, res) => {
 });
 
 //  NEW: Forgot Password - Send reset email
-// const forgotPassword = asyncHandler(async (req, res) => {
-//     const { email } = req.body;
-
-//     if (!email || !email.trim()) {
-//         throw new ApiError(400, "Email is required");
-//     }
-
-//     // Find user by email
-//     const user = await User.findOne({ email: email.toLowerCase().trim() });
-
-//     if (!user) {
-//         // Don't reveal if user exists or not (security best practice)
-//         return res
-//             .status(200)
-//             .json(new ApiResponse(
-//                 200,
-//                 {},
-//                 "If an account exists with this email, a password reset link has been sent"
-//             ));
-//     }
-
-//     // Generate reset token
-//     const resetToken = user.createPasswordResetToken();
-//     await user.save({ validateBeforeSave: false });
-
-//     try {
-//         // Send reset email
-//         await sendPasswordResetEmail(user.email, resetToken, user.name);
-
-//         console.log(`✅ Password reset email sent to: ${user.email}`);
-//         console.log(`🔗 Reset token (for dev): ${resetToken}`);
-
-//         return res
-//             .status(200)
-//             .json(new ApiResponse(
-//                 200,
-//                 { email: user.email },
-//                 "Password reset link has been sent to your email"
-//             ));
-//     } catch (error) {
-//         // If email fails, clear the reset token
-//         user.resetPasswordToken = undefined;
-//         user.resetPasswordExpires = undefined;
-//         await user.save({ validateBeforeSave: false });
-
-//         console.error('❌ Error sending reset email:', error);
-//         throw new ApiError(500, "Failed to send reset email. Please try again later.");
-//     }
-// });
 const forgotPassword = asyncHandler(async (req, res) => {
     const { email } = req.body;
 
@@ -319,42 +270,32 @@ const forgotPassword = asyncHandler(async (req, res) => {
     const resetToken = user.createPasswordResetToken();
     await user.save({ validateBeforeSave: false });
 
-    // ✅ KEY CHANGE: Send response FIRST, then send email in background
     try {
-        // Start email sending (don't await it)
-        const emailPromise = sendPasswordResetEmail(user.email, resetToken, user.name);
+        // Send reset email
+        await sendPasswordResetEmail(user.email, resetToken, user.name);
 
-        // ✅ RESPOND IMMEDIATELY - Don't wait for email
-        res.status(200).json(new ApiResponse(
-            200,
-            { email: user.email },
-            "Password reset link has been sent to your email"
-        ));
+        console.log(`âœ… Password reset email sent to: ${user.email}`);
+        console.log(`ðŸ”— Reset token (for dev): ${resetToken}`);
 
-        // ✅ Handle email result in background
-        emailPromise
-            .then(() => {
-                console.log(`✅ Password reset email sent successfully to: ${user.email}`);
-            })
-            .catch((error) => {
-                console.error('❌ Failed to send email (background):', error.message);
-                // Email failed, but user already got success response
-                // This is OK - user can try again if needed
-            });
-
+        return res
+            .status(200)
+            .json(new ApiResponse(
+                200,
+                { email: user.email },
+                "Password reset link has been sent to your email"
+            ));
     } catch (error) {
-        // If there's an error setting up email (not sending), still respond
-        console.error('❌ Error in forgot password:', error);
-        
-        // Clear the reset token
+        // If email fails, clear the reset token
         user.resetPasswordToken = undefined;
         user.resetPasswordExpires = undefined;
         await user.save({ validateBeforeSave: false });
 
-        throw new ApiError(500, "Failed to process password reset. Please try again.");
+        console.error('âŒ Error sending reset email:', error);
+        throw new ApiError(500, "Failed to send reset email. Please try again later.");
     }
 });
-// ✅ NEW: Verify Reset Token (optional - for frontend validation)
+
+// âœ… NEW: Verify Reset Token (optional - for frontend validation)
 const verifyResetToken = asyncHandler(async (req, res) => {
     const { token } = req.params;
 
@@ -383,7 +324,7 @@ const verifyResetToken = asyncHandler(async (req, res) => {
         .json(new ApiResponse(200, { valid: true }, "Reset token is valid"));
 });
 
-// ✅ NEW: Reset Password - Update password with token
+// âœ… NEW: Reset Password - Update password with token
 const resetPassword = asyncHandler(async (req, res) => {
     const { token, newPassword } = req.body;
 
@@ -421,13 +362,13 @@ const resetPassword = asyncHandler(async (req, res) => {
 
     await user.save();
 
-    console.log(`✅ Password reset successful for: ${user.email}`);
+    console.log(`âœ… Password reset successful for: ${user.email}`);
 
     // Send confirmation email (optional)
     try {
         await sendPasswordResetConfirmation(user.email, user.name);
     } catch (error) {
-        console.error('⚠️ Failed to send confirmation email:', error);
+        console.error('âš ï¸ Failed to send confirmation email:', error);
         // Don't throw error - password was already reset
     }
 
