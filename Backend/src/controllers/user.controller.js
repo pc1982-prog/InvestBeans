@@ -245,6 +245,55 @@ const getCurrentUser = asyncHandler(async (req, res) => {
 });
 
 //  NEW: Forgot Password - Send reset email
+// const forgotPassword = asyncHandler(async (req, res) => {
+//     const { email } = req.body;
+
+//     if (!email || !email.trim()) {
+//         throw new ApiError(400, "Email is required");
+//     }
+
+//     // Find user by email
+//     const user = await User.findOne({ email: email.toLowerCase().trim() });
+
+//     if (!user) {
+//         // Don't reveal if user exists or not (security best practice)
+//         return res
+//             .status(200)
+//             .json(new ApiResponse(
+//                 200,
+//                 {},
+//                 "If an account exists with this email, a password reset link has been sent"
+//             ));
+//     }
+
+//     // Generate reset token
+//     const resetToken = user.createPasswordResetToken();
+//     await user.save({ validateBeforeSave: false });
+
+//     try {
+//         // Send reset email
+//         await sendPasswordResetEmail(user.email, resetToken, user.name);
+
+//         console.log(`✅ Password reset email sent to: ${user.email}`);
+//         console.log(`🔗 Reset token (for dev): ${resetToken}`);
+
+//         return res
+//             .status(200)
+//             .json(new ApiResponse(
+//                 200,
+//                 { email: user.email },
+//                 "Password reset link has been sent to your email"
+//             ));
+//     } catch (error) {
+//         // If email fails, clear the reset token
+//         user.resetPasswordToken = undefined;
+//         user.resetPasswordExpires = undefined;
+//         await user.save({ validateBeforeSave: false });
+
+//         console.error('❌ Error sending reset email:', error);
+//         throw new ApiError(500, "Failed to send reset email. Please try again later.");
+//     }
+// });
 const forgotPassword = asyncHandler(async (req, res) => {
     const { email } = req.body;
 
@@ -271,11 +320,15 @@ const forgotPassword = asyncHandler(async (req, res) => {
     await user.save({ validateBeforeSave: false });
 
     try {
-        // Send reset email
-        await sendPasswordResetEmail(user.email, resetToken, user.name);
+        // ✅ SEND EMAIL WITH DETAILED LOGGING
+        console.log(`\n🔐 Password reset requested for: ${user.email}`);
+        console.log(`📧 Attempting to send email...`);
+        
+        const emailResult = await sendPasswordResetEmail(user.email, resetToken, user.name);
 
-        console.log(`✅ Password reset email sent to: ${user.email}`);
-        console.log(`🔗 Reset token (for dev): ${resetToken}`);
+        console.log(`✅ Password reset email sent successfully`);
+        console.log(`📧 Email result:`, emailResult);
+        console.log(`🔗 Reset token (for dev):`, resetToken);
 
         return res
             .status(200)
@@ -285,12 +338,25 @@ const forgotPassword = asyncHandler(async (req, res) => {
                 "Password reset link has been sent to your email"
             ));
     } catch (error) {
+        // ✅ DETAILED ERROR LOGGING
+        console.error('\n❌ ===== EMAIL SEND ERROR =====');
+        console.error('User Email:', user.email);
+        console.error('Error Message:', error.message);
+        console.error('Error Code:', error.code);
+        console.error('Error Stack:', error.stack);
+        console.error('===============================\n');
+
         // If email fails, clear the reset token
         user.resetPasswordToken = undefined;
         user.resetPasswordExpires = undefined;
         await user.save({ validateBeforeSave: false });
 
-        console.error('❌ Error sending reset email:', error);
+        // ✅ RETURN DETAILED ERROR IN DEVELOPMENT
+        if (process.env.NODE_ENV !== 'production') {
+            throw new ApiError(500, `Failed to send reset email: ${error.message}`);
+        }
+        
+        // In production, generic message
         throw new ApiError(500, "Failed to send reset email. Please try again later.");
     }
 });
