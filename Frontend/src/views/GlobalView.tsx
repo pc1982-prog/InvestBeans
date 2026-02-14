@@ -1,7 +1,7 @@
-
 import Layout from "@/components/Layout";
-import MarketCard from "@/components/MarketCard";
-import DummyChart from "@/components/DummyChart";
+import CleanChart from "@/components/CleanChart";
+import ForexCard from "@/components/Forexcard";
+import CommodityCard from "@/components/Commoditycard";
 import { useGlobalMarkets } from "@/hooks/useGlobalMarkets";
 import { IndexQuote, ForexPair, BondYield, Commodity, RegionSummary } from "@/services/globalMarkets/types";
 import {
@@ -19,7 +19,7 @@ function Skeleton({ count = 4 }: { count?: number }) {
   return (
     <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
       {Array.from({ length: count }).map((_, i) => (
-        <div key={i} className="h-32 sm:h-36 bg-muted/50 rounded-2xl border border-border/40 animate-pulse" />
+        <div key={i} className="h-48 sm:h-52 bg-muted/50 rounded-2xl border border-border/40 animate-pulse" />
       ))}
     </div>
   );
@@ -38,20 +38,6 @@ function ErrorBanner({ error }: { error: string | null }) {
   );
 }
 
-function IndexCard({ index }: { index: IndexQuote }) {
-  const isPositive = index.changePercent >= 0;
-  return (
-    <MarketCard
-      name={index.name}
-      value={index.price.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-      change={`${isPositive ? "+" : ""}${index.change.toFixed(2)}`}
-      percentage={`${isPositive ? "+" : ""}${index.changePercent.toFixed(2)}%`}
-      isPositive={isPositive}
-      className="shadow-sm hover:shadow-md transition-all border-border/60 min-w-0"
-    />
-  );
-}
-
 function SectionTitle({ icon: Icon, children }: { icon?: any; children: React.ReactNode }) {
   return (
     <div className="flex items-center gap-2.5 mb-5 md:mb-6">
@@ -59,26 +45,6 @@ function SectionTitle({ icon: Icon, children }: { icon?: any; children: React.Re
       <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground">
         {children}
       </h2>
-    </div>
-  );
-}
-
-// Small reusable card for Forex & Commodities (prevents overflow)
-function CompactCard({ title, value, percent, isPositive }: {
-  title: string;
-  value: string;
-  percent: number;
-  isPositive: boolean;
-}) {
-  return (
-    <div className="bg-card rounded-2xl border border-border/60 shadow-sm hover:shadow-md hover:border-primary/30 transition-all p-4 sm:p-5 min-w-0 overflow-hidden">
-      <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-1.5 truncate">{title}</p>
-      <p className="text-xl sm:text-2xl font-bold tracking-tighter text-foreground overflow-hidden text-ellipsis whitespace-nowrap">
-        {value}
-      </p>
-      <p className={`text-sm sm:text-base font-semibold mt-1 ${isPositive ? "text-emerald-600" : "text-red-600"}`}>
-        {isPositive ? "+" : ""}{percent.toFixed(2)}%
-      </p>
     </div>
   );
 }
@@ -154,12 +120,23 @@ export default function GlobalView() {
 
         <ErrorBanner error={error} />
 
-        {/* US MARKETS - 3 cards on tablet & above */}
+        {/* US MARKETS */}
         <section className="mb-12 md:mb-16">
           <SectionTitle icon={BarChart3}>United States Markets</SectionTitle>
-          {isLoading ? <Skeleton count={4} /> : (
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 ">
-              {data?.indices.us.map((idx) => <IndexCard key={idx.symbol} index={idx} />)}
+          {isLoading ? <Skeleton count={3} /> : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+              {data?.indices.us.map((idx) => (
+                <CleanChart 
+                  key={idx.symbol}
+                  name={idx.name}
+                  price={idx.price}
+                  change={idx.change}
+                  changePercent={idx.changePercent}
+                  high={idx.high}
+                  low={idx.low}
+                  isPositive={idx.changePercent >= 0}
+                />
+              ))}
               {!data?.indices.us.length && (
                 <p className="col-span-full text-center py-12 text-muted-foreground">US data unavailable</p>
               )}
@@ -167,81 +144,69 @@ export default function GlobalView() {
           )}
         </section>
 
-        {/* EUROPE */}
+        {/* EUROPE MARKETS */}
         <section className="mb-12 md:mb-16">
-          <SectionTitle icon={BarChart3}>European Markets</SectionTitle>
-          {isLoading ? <Skeleton count={4} /> : (
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
-              {data?.indices.europe.map((idx) => <IndexCard key={idx.symbol} index={idx} />)}
+          <SectionTitle icon={LineChart}>European Markets</SectionTitle>
+          {isLoading ? <Skeleton count={3} /> : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+              {data?.indices.europe.map((idx) => (
+                <CleanChart 
+                  key={idx.symbol}
+                  name={idx.name}
+                  price={idx.price}
+                  change={idx.change}
+                  changePercent={idx.changePercent}
+                  high={idx.high}
+                  low={idx.low}
+                  isPositive={idx.changePercent >= 0}
+                />
+              ))}
               {!data?.indices.europe.length && (
-                <p className="col-span-full text-center py-12 text-muted-foreground">European data unavailable</p>
+                <p className="col-span-full text-center py-12 text-muted-foreground">Europe data unavailable</p>
               )}
             </div>
           )}
         </section>
 
-        {/* ASIA */}
+        {/* ASIA PACIFIC MARKETS */}
         <section className="mb-12 md:mb-16">
-          <SectionTitle icon={BarChart3}>Asia Pacific Markets</SectionTitle>
-          {isLoading ? <Skeleton count={4} /> : (
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
-              {data?.indices.asia.map((idx) => <IndexCard key={idx.symbol} index={idx} />)}
+          <SectionTitle icon={Activity}>Asia Pacific Markets</SectionTitle>
+          {isLoading ? <Skeleton count={3} /> : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+              {data?.indices.asia.map((idx) => (
+                <CleanChart 
+                  key={idx.symbol}
+                  name={idx.name}
+                  price={idx.price}
+                  change={idx.change}
+                  changePercent={idx.changePercent}
+                  high={idx.high}
+                  low={idx.low}
+                  isPositive={idx.changePercent >= 0}
+                />
+              ))}
               {!data?.indices.asia.length && (
-                <p className="col-span-full text-center py-12 text-muted-foreground">Asian data unavailable</p>
+                <p className="col-span-full text-center py-12 text-muted-foreground">Asia data unavailable</p>
               )}
             </div>
           )}
-        </section>
-
-        {/* CHARTS */}
-        <section className="mb-12 md:mb-16">
-          <SectionTitle icon={LineChart}>Market Trends Analysis</SectionTitle>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {data?.indices.us[0] && (
-              <DummyChart
-                title="US Markets"
-                value={data.indices.us[0].price.toLocaleString()}
-                change={`${data.indices.us[0].changePercent >= 0 ? "+" : ""}${data.indices.us[0].changePercent.toFixed(2)}%`}
-                isPositive={data.indices.us[0].changePercent >= 0}
-                chartType="line"
-                data={[70,75,72,78,82,85,88,90,87,92,89,91]}
-              />
-            )}
-            {data?.indices.europe[0] && (
-              <DummyChart
-                title="European Markets"
-                value={`${data.indices.europe[0].changePercent >= 0 ? "+" : ""}${data.indices.europe[0].changePercent.toFixed(2)}%`}
-                isPositive={data.indices.europe[0].changePercent >= 0}
-                chartType="bar"
-                data={[55,60,58,65,62,68,70,75]}
-              />
-            )}
-            {data?.indices.asia[0] && (
-              <DummyChart
-                title="Asian Markets"
-                value={`${data.indices.asia[0].changePercent >= 0 ? "+" : ""}${data.indices.asia[0].changePercent.toFixed(2)}%`}
-                isPositive={data.indices.asia[0].changePercent >= 0}
-                chartType="area"
-                data={[40,45,42,48,50,52,55,58,56,60,62,65]}
-              />
-            )}
-          </div>
         </section>
 
         {/* FOREX */}
         <section className="mb-12 md:mb-16">
-          <SectionTitle icon={DollarSign}>Global Currencies</SectionTitle>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-5">
+          <SectionTitle icon={DollarSign}>Foreign Exchange</SectionTitle>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-5">
             {isLoading
-              ? Array.from({ length: 6 }).map((_, i) => <div key={i} className="h-32 bg-muted/50 rounded-2xl animate-pulse" />)
+              ? Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-40 bg-muted/50 rounded-2xl animate-pulse" />)
               : data?.forex.map((fx: ForexPair) => {
                   const pos = fx.changePercent >= 0;
                   return (
-                    <CompactCard
+                    <ForexCard
                       key={fx.pair}
-                      title={fx.pair}
-                      value={fx.rate.toFixed(["JPY","INR"].includes(fx.quote) ? 2 : 4)}
-                      percent={fx.changePercent}
+                      pair={fx.pair}
+                      rate={fx.rate}
+                      change={fx.change}
+                      changePercent={fx.changePercent}
                       isPositive={pos}
                     />
                   );
@@ -249,25 +214,34 @@ export default function GlobalView() {
           </div>
         </section>
 
-        {/* BONDS + VIX */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-10 mb-12 md:mb-16">
-          {/* Bonds */}
+        {/* BONDS & VIX */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-12 md:mb-16">
+          {/* BONDS */}
           <div>
-            <SectionTitle icon={Landmark}>Government Bond Yields</SectionTitle>
-            <div className="bg-card rounded-2xl border border-border/60 shadow-sm divide-y divide-border/50 overflow-hidden">
+            <SectionTitle icon={Landmark}>Treasury Yields</SectionTitle>
+            <div className="bg-card rounded-2xl border border-border/60 p-6 shadow-sm">
               {isLoading ? (
-                Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-16 bg-muted/50 m-4 rounded-xl animate-pulse" />)
-              ) : data?.bonds?.length ? (
-                data.bonds.map((b: BondYield) => {
-                  const pos = b.change >= 0;
+                <div className="space-y-4">
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <div key={i} className="h-16 bg-muted/50 rounded-lg animate-pulse" />
+                  ))}
+                </div>
+              ) : data?.bonds.length ? (
+                data.bonds.map((bond: BondYield, i: number) => {
+                  const pos = bond.change >= 0;
                   return (
-                    <div key={b.name} className="flex items-center justify-between px-6 py-4 hover:bg-muted/30 transition-colors">
-                      <span className="font-medium">{b.name}</span>
+                    <div
+                      key={i}
+                      className="flex items-center justify-between py-4 border-b border-border/40 last:border-0"
+                    >
+                      <div>
+                        <h3 className="font-semibold text-foreground">{bond.name}</h3>
+                        <p className={`text-sm font-medium ${pos ? "text-emerald-600" : "text-red-600"}`}>
+                          {pos ? "+" : ""}{bond.change.toFixed(3)}%
+                        </p>
+                      </div>
                       <div className="text-right">
-                        <span className="font-bold text-lg">{b.yield.toFixed(3)}%</span>
-                        <span className={`ml-4 font-semibold ${pos ? "text-emerald-600" : "text-red-600"}`}>
-                          {pos ? "+" : ""}{b.change.toFixed(3)}
-                        </span>
+                        <p className="text-2xl font-bold text-foreground">{bond.yield.toFixed(3)}%</p>
                       </div>
                     </div>
                   );
@@ -308,15 +282,17 @@ export default function GlobalView() {
           <SectionTitle icon={Briefcase}>Key Commodities</SectionTitle>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-5">
             {isLoading
-              ? Array.from({ length: 6 }).map((_, i) => <div key={i} className="h-32 bg-muted/50 rounded-2xl animate-pulse" />)
+              ? Array.from({ length: 5 }).map((_, i) => <div key={i} className="h-40 bg-muted/50 rounded-2xl animate-pulse" />)
               : data?.commodities.map((c: Commodity) => {
                   const pos = c.changePercent >= 0;
                   return (
-                    <CompactCard
+                    <CommodityCard
                       key={c.symbol}
-                      title={c.name}
-                      value={`$${c.price.toLocaleString("en-US", { minimumFractionDigits: 2 })}`}
-                      percent={c.changePercent}
+                      name={c.name}
+                      price={c.price}
+                      change={c.change}
+                      changePercent={c.changePercent}
+                      unit={c.unit}
                       isPositive={pos}
                     />
                   );

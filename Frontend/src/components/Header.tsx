@@ -10,8 +10,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/controllers/AuthContext";
-import MarketTicker from "./MarketTicker";
-import { useState } from "react";
+import { useGlobalMarkets } from "@/hooks/useGlobalMarkets";
+import { TrendingUp, TrendingDown, ChevronLeft, ChevronRight } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   Menu,
@@ -20,9 +21,149 @@ import {
   User,
   LogOut,
   Shield,
-  ChevronRight,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
+// Market Ticker Component (Inline)
+const MarketTickerInline = () => {
+  const { data } = useGlobalMarkets();
+  const [isPaused, setIsPaused] = useState(false);
+  const tickerRef = useRef<HTMLDivElement>(null);
+  const animationRef = useRef<number>();
+
+  // Combine all markets with safety checks
+  const allMarkets = [
+    ...(data?.indices.us || []),
+    ...(data?.indices.europe || []),
+    ...(data?.indices.asia || [])
+  ].map(market => ({
+    name: market.name,
+    value: market.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+    change: `${market.changePercent > 0 ? '+' : ''}${market.changePercent.toFixed(2)}%`,
+    isPositive: market.changePercent >= 0
+  }));
+
+  // Auto-scroll animation
+  useEffect(() => {
+    const startAnimation = () => {
+      if (tickerRef.current && !isPaused && allMarkets.length > 0) {
+        const element = tickerRef.current;
+        const scrollWidth = element.scrollWidth;
+        const clientWidth = element.clientWidth;
+        const maxScroll = scrollWidth - clientWidth;
+        
+        let currentScroll = element.scrollLeft;
+        
+        const animate = () => {
+          if (!isPaused && tickerRef.current) {
+            currentScroll += 0.5;
+            if (currentScroll >= maxScroll / 2) {
+              currentScroll = 0;
+            }
+            element.scrollLeft = currentScroll;
+            animationRef.current = requestAnimationFrame(animate);
+          }
+        };
+        
+        animationRef.current = requestAnimationFrame(animate);
+      }
+    };
+
+    startAnimation();
+
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+    };
+  }, [isPaused, allMarkets.length]);
+
+  const scrollLeft = () => {
+    if (tickerRef.current) {
+      tickerRef.current.scrollBy({ left: -200, behavior: 'smooth' });
+    }
+  };
+
+  const scrollRight = () => {
+    if (tickerRef.current) {
+      tickerRef.current.scrollBy({ left: 200, behavior: 'smooth' });
+    }
+  };
+
+  if (allMarkets.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="relative flex items-center">
+      {/* Left Arrow */}
+      <button
+        onClick={scrollLeft}
+        className="absolute left-2 z-10 bg-navy/80 hover:bg-navy text-white p-1 rounded-full transition-colors"
+        onMouseEnter={() => setIsPaused(true)}
+        onMouseLeave={() => setIsPaused(false)}
+      >
+        <ChevronLeft className="w-4 h-4" />
+      </button>
+
+      {/* Ticker Content */}
+      <div className="flex-1 overflow-hidden mx-10">
+        <div 
+          ref={tickerRef}
+          className="flex items-center gap-8 overflow-x-auto scrollbar-hide"
+          onMouseEnter={() => setIsPaused(true)}
+          onMouseLeave={() => setIsPaused(false)}
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        >
+          {/* First set of markets */}
+          {allMarkets.map((market, index) => (
+            <div key={`${market.name}-${index}`} className="flex items-center gap-4 whitespace-nowrap group hover:scale-105 transition-transform">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-white/80 group-hover:text-white transition-colors">{market.name}</span>
+                <span className="font-bold text-base text-white">{market.value}</span>
+              </div>
+              <div className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium ${
+                market.isPositive 
+                  ? "bg-green-500/30 text-green-100 border border-green-400/50" 
+                  : "bg-red-500/30 text-red-100 border border-red-400/50"
+              }`}>
+                {market.isPositive ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                {market.change}
+              </div>
+            </div>
+          ))}
+          {/* Duplicate set for continuous scrolling */}
+          {allMarkets.map((market, index) => (
+            <div key={`${market.name}-dup-${index}`} className="flex items-center gap-4 whitespace-nowrap group hover:scale-105 transition-transform">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-white/80 group-hover:text-white transition-colors">{market.name}</span>
+                <span className="font-bold text-base text-white">{market.value}</span>
+              </div>
+              <div className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium ${
+                market.isPositive 
+                  ? "bg-green-500/30 text-green-100 border border-green-400/50" 
+                  : "bg-red-500/30 text-red-100 border border-red-400/50"
+              }`}>
+                {market.isPositive ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                {market.change}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Right Arrow */}
+      <button
+        onClick={scrollRight}
+        className="absolute right-2 z-10 bg-navy/80 hover:bg-navy text-white p-1 rounded-full transition-colors"
+        onMouseEnter={() => setIsPaused(true)}
+        onMouseLeave={() => setIsPaused(false)}
+      >
+        <ChevronRight className="w-4 h-4" />
+      </button>
+    </div>
+  );
+};
 
 const Header = () => {
   const navigate = useNavigate();
@@ -75,7 +216,7 @@ const Header = () => {
 
   const handleSignOut = async () => {
     await signOut(() => {
-      showToast("Logged out successfully. See you soon!", 'success'); // ✅ NEW
+      showToast("Logged out successfully. See you soon!", 'success');
       setTimeout(() => {
         navigate('/');
       }, 1000); 
@@ -84,8 +225,9 @@ const Header = () => {
 
   return (
     <div className="sticky top-0 z-50">
-      <div className="bg-navy text-white py-2 shadow-lg">
-        <MarketTicker />
+      {/* Market Ticker - Above Header */}
+      <div className="bg-gradient-to-r from-navy via-navy/95 to-navy py-3 border-b border-white/10">
+        <MarketTickerInline />
       </div>
 
       <header className="bg-navy/95 text-white shadow-lg backdrop-blur-sm">
@@ -134,7 +276,6 @@ const Header = () => {
                     onMouseEnter={() => setAboutOpen(true)}
                     onMouseLeave={() => setAboutOpen(false)}
                   >
-                    {/* Our Story & Founder's Journey */}
                     <DropdownMenuItem asChild>
                       <button
                         onClick={() => {
@@ -147,7 +288,6 @@ const Header = () => {
                       </button>
                     </DropdownMenuItem>
 
-                    {/* Mission & Vision */}
                     <DropdownMenuItem asChild>
                       <button
                         onClick={() => {
@@ -160,11 +300,10 @@ const Header = () => {
                       </button>
                     </DropdownMenuItem>
 
-                    {/* Team & Values */}
                     <DropdownMenuItem asChild>
                       <button
                         onClick={() => {
-                          scrollToSection("team-members"); // ya "team-values" section jo bhi aapne banaya ho
+                          scrollToSection("team-members");
                           setAboutOpen(false);
                         }}
                         className="w-full text-left px-3 py-2 text-sm rounded-md hover:bg-accent/10 transition"
@@ -173,7 +312,6 @@ const Header = () => {
                       </button>
                     </DropdownMenuItem>
 
-                    {/* Why Us */}
                     <DropdownMenuItem asChild>
                       <button
                         onClick={() => {
@@ -186,7 +324,6 @@ const Header = () => {
                       </button>
                     </DropdownMenuItem>
 
-                    {/* Certifications */}
                     <DropdownMenuItem asChild>
                       <button
                         onClick={() => {
@@ -209,6 +346,7 @@ const Header = () => {
                       className="font-medium hover:text-accent transition-colors px-2 py-1 rounded-md flex items-center gap-1 focus:outline-none focus:ring-2 focus:ring-accent/40"
                       onMouseEnter={() => setMarketsOpen(true)}
                       onMouseLeave={() => setMarketsOpen(false)}
+                      onClick={() => setMarketsOpen((s) => !s)}
                       aria-expanded={marketsOpen}
                     >
                       Markets
@@ -223,14 +361,15 @@ const Header = () => {
                   <DropdownMenuContent
                     align="start"
                     sideOffset={6}
-                    className="min-w-[220px] p-2 bg-white text-navy rounded-xl shadow-xl ring-1 ring-black/10 border border-white/10"
+                    className="min-w-[180px] p-2 bg-white text-navy rounded-xl shadow-xl ring-1 ring-black/10 border border-white/10"
                     onMouseEnter={() => setMarketsOpen(true)}
                     onMouseLeave={() => setMarketsOpen(false)}
                   >
                     <DropdownMenuItem asChild>
                       <Link
                         to="/global"
-                        className="block px-3 py-2 rounded-md text-sm font-medium hover:bg-accent/10 transition"
+                        className="px-3 py-2 text-sm rounded-md hover:bg-accent/10 transition block"
+                        onClick={() => setMarketsOpen(false)}
                       >
                         Global
                       </Link>
@@ -238,15 +377,17 @@ const Header = () => {
                     <DropdownMenuItem asChild>
                       <Link
                         to="/domestic"
-                        className="block px-3 py-2 rounded-md text-sm font-medium hover:bg-accent/10 transition"
+                        className="px-3 py-2 text-sm rounded-md hover:bg-accent/10 transition block"
+                        onClick={() => setMarketsOpen(false)}
                       >
-                        Domestics
+                        Domestic
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
                       <Link
                         to="/markets"
-                        className="block px-3 py-2 rounded-md text-sm font-medium hover:bg-accent/10 transition"
+                        className="px-3 py-2 text-sm rounded-md hover:bg-accent/10 transition block"
+                        onClick={() => setMarketsOpen(false)}
                       >
                         Commodities
                       </Link>
@@ -256,15 +397,13 @@ const Header = () => {
               </li>
 
               <li>
-                <DropdownMenu
-                  open={dashboardsOpen}
-                  onOpenChange={setDashboardsOpen}
-                >
+                <DropdownMenu open={dashboardsOpen} onOpenChange={setDashboardsOpen}>
                   <DropdownMenuTrigger asChild>
                     <button
                       className="font-medium hover:text-accent transition-colors px-2 py-1 rounded-md flex items-center gap-1 focus:outline-none focus:ring-2 focus:ring-accent/40"
                       onMouseEnter={() => setDashboardsOpen(true)}
                       onMouseLeave={() => setDashboardsOpen(false)}
+                      onClick={() => setDashboardsOpen((s) => !s)}
                       aria-expanded={dashboardsOpen}
                     >
                       Dashboards
@@ -279,14 +418,15 @@ const Header = () => {
                   <DropdownMenuContent
                     align="start"
                     sideOffset={6}
-                    className="min-w-[220px] p-2 bg-white text-navy rounded-xl shadow-xl ring-1 ring-black/10 border border-white/10"
+                    className="min-w-[250px] p-2 bg-white text-navy rounded-xl shadow-xl ring-1 ring-black/10 border border-white/10"
                     onMouseEnter={() => setDashboardsOpen(true)}
                     onMouseLeave={() => setDashboardsOpen(false)}
                   >
                     <DropdownMenuItem asChild>
                       <Link
                         to="/dashboard"
-                        className="block px-3 py-2 rounded-md text-sm font-medium hover:bg-accent/10 transition"
+                        className="px-3 py-2 text-sm rounded-md hover:bg-accent/10 transition block"
+                        onClick={() => setDashboardsOpen(false)}
                       >
                         InvestBeans Equity / US Stocks
                       </Link>
@@ -298,7 +438,7 @@ const Header = () => {
               <li>
                 <Link
                   to="/education"
-                  className="hover:text-accent transition-colors font-medium"
+                  className="font-medium hover:text-accent transition-colors px-2 py-1 rounded-md focus:outline-none focus:ring-2 focus:ring-accent/40"
                 >
                   Education
                 </Link>
@@ -307,7 +447,7 @@ const Header = () => {
               <li>
                 <Link
                   to="/blogs"
-                  className="hover:text-accent transition-colors font-medium"
+                  className="font-medium hover:text-accent transition-colors px-2 py-1 rounded-md focus:outline-none focus:ring-2 focus:ring-accent/40"
                 >
                   Blogs
                 </Link>
@@ -315,172 +455,89 @@ const Header = () => {
             </ul>
           </div>
 
-          <div className="flex items-center gap-4">
-            {isAuthenticated && user ? (
+          <div className="hidden md:flex items-center gap-4">
+            {isAuthenticated ? (
               <DropdownMenu open={userMenuOpen} onOpenChange={setUserMenuOpen}>
                 <DropdownMenuTrigger asChild>
-                  <button
-                    className="flex items-center gap-3 p-1.5 rounded-full hover:bg-white/10 transition-all focus:outline-none focus:ring-2 focus:ring-accent/40"
-                    aria-label="User menu"
-                  >
-                    <Avatar className="h-9 w-9 border-2 border-white/20 ring-2 ring-white/10">
-                      <AvatarImage
-                        src={getAvatarImage()}
-                        alt={user.name}
-                        className="object-cover"
-                      />
-                      <AvatarFallback className="bg-gradient-to-br from-accent to-accent/80 text-white font-semibold">
+                  <button className="flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-accent/40 rounded-full p-1">
+                    <Avatar className="w-9 h-9 ring-2 ring-white/20">
+                      <AvatarImage src={getAvatarImage()} alt={user?.name || "User"} />
+                      <AvatarFallback className="bg-accent text-white font-semibold">
                         {getUserInitials()}
                       </AvatarFallback>
                     </Avatar>
-                    <span className="hidden md:block text-sm font-medium max-w-[150px] truncate">
-                      {user.name}
-                    </span>
-                    <ChevronDown className="hidden md:block w-4 h-4" />
                   </button>
                 </DropdownMenuTrigger>
 
                 <DropdownMenuContent
                   align="end"
                   sideOffset={8}
-                  className="min-w-[240px] p-2 bg-white text-navy rounded-xl shadow-xl ring-1 ring-black/10 border border-white/10"
+                  className="min-w-[220px] p-2 bg-white text-navy rounded-xl shadow-xl ring-1 ring-black/10"
                 >
-                  {/* User Info Header */}
-                  <div className="px-3 py-3 border-b border-gray-200">
-                    <div className="flex items-center gap-3 mb-2">
-                      <Avatar className="h-10 w-10 border-2 border-gray-200">
-                        <AvatarImage
-                          src={getAvatarImage()}
-                          alt={user.name}
-                          className="object-cover"
-                        />
-                        <AvatarFallback className="bg-gradient-to-br from-accent to-accent/80 text-white font-semibold text-sm">
-                          {getUserInitials()}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-navy truncate">
-                          {user.name}
-                        </p>
-                        <p className="text-xs text-gray-500 truncate">
-                          {user.email}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Admin Badge */}
-                    {isAdmin && (
-                      <div className="flex items-center gap-1.5 bg-gradient-to-r from-yellow-50 to-amber-50 border border-yellow-200 text-yellow-700 px-2.5 py-1.5 rounded-lg mt-2">
-                        <Shield size={14} className="text-yellow-600" />
-                        <span className="text-xs font-bold">Admin Access</span>
-                      </div>
-                    )}
+                  <div className="px-3 py-2 mb-2 border-b border-gray-200">
+                    <p className="text-sm font-semibold truncate">{user?.name || "User"}</p>
+                    <p className="text-xs text-gray-500 truncate">{user?.email}</p>
                   </div>
 
-                  <DropdownMenuSeparator className="my-2" />
+                  <DropdownMenuItem asChild>
+                    <Link
+                      to="/profile"
+                      className="px-3 py-2 text-sm rounded-md hover:bg-accent/10 transition flex items-center gap-2"
+                    >
+                      <User className="w-4 h-4" />
+                      Profile
+                    </Link>
+                  </DropdownMenuItem>
 
-                  {/* Logout Button */}
+                  {isAdmin && (
+                    <>
+                      <DropdownMenuSeparator className="my-1 bg-gray-200" />
+                      <DropdownMenuItem asChild>
+                        <Link
+                          to="/admin"
+                          className="px-3 py-2 text-sm rounded-md hover:bg-accent/10 transition flex items-center gap-2"
+                        >
+                          <Shield className="w-4 h-4" />
+                          Admin Panel
+                        </Link>
+                      </DropdownMenuItem>
+                    </>
+                  )}
+
+                  <DropdownMenuSeparator className="my-1 bg-gray-200" />
                   <DropdownMenuItem asChild>
                     <button
-                      onClick={() => {
-                        setUserMenuOpen(false);
-                        handleSignOut();
-                      }}
-                      className="flex items-center gap-2 w-full px-3 py-2 rounded-md text-sm font-medium hover:bg-destructive/10 text-destructive transition"
+                      onClick={handleSignOut}
+                      className="w-full px-3 py-2 text-sm rounded-md hover:bg-red-50 hover:text-red-600 transition flex items-center gap-2"
                     >
                       <LogOut className="w-4 h-4" />
-                      Logout
+                      Sign Out
                     </button>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <div className="hidden md:block">
-                <DropdownMenu
-                  open={userMenuOpen}
-                  onOpenChange={setUserMenuOpen}
-                >
-                  <DropdownMenuTrigger asChild>
-                    <button
-                      className="p-2.5 rounded-full bg-white/10 hover:bg-white/20 transition-all hover:scale-110 focus:outline-none focus:ring-2 focus:ring-accent/40"
-                      aria-label="User menu"
-                    >
-                      <User className="w-5 h-5 text-white" />
-                    </button>
-                  </DropdownMenuTrigger>
-
-                  <DropdownMenuContent
-                    align="end"
-                    sideOffset={8}
-                    className="min-w-[160px] p-2 bg-white text-navy rounded-xl shadow-xl ring-1 ring-black/10 border border-white/10"
-                  >
-                    <DropdownMenuItem asChild>
-                      <Link
-                        to="/signin"
-                        className="block px-3 py-2 rounded-md text-sm font-medium hover:bg-accent/10 transition"
-                        onClick={() => setUserMenuOpen(false)}
-                      >
-                        Login
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link
-                        to="/signup"
-                        className="block px-3 py-2 rounded-md text-sm font-medium hover:bg-accent/10 transition"
-                        onClick={() => setUserMenuOpen(false)}
-                      >
-                        Sign up
-                      </Link>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            )}
-
-            {!isAuthenticated && (
-              <div className="md:hidden">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <button
-                      className="p-2.5 rounded-full bg-white/10 hover:bg-white/20 transition-all hover:scale-110 focus:outline-none focus:ring-2 focus:ring-accent/40"
-                      aria-label="User menu"
-                    >
-                      <User className="w-5 h-5 text-white" />
-                    </button>
-                  </DropdownMenuTrigger>
-
-                  <DropdownMenuContent
-                    align="end"
-                    sideOffset={8}
-                    className="min-w-[160px] p-2 bg-white text-navy rounded-xl shadow-xl ring-1 ring-black/10 border border-white/10"
-                  >
-                    <DropdownMenuItem asChild>
-                      <Link
-                        to="/signin"
-                        className="block px-3 py-2 rounded-md text-sm font-medium hover:bg-accent/10 transition"
-                      >
-                        Login
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link
-                        to="/signup"
-                        className="block px-3 py-2 rounded-md text-sm font-medium hover:bg-accent/10 transition"
-                      >
-                        Sign up
-                      </Link>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+              <div className="flex items-center gap-3">
+                <Link to="/login">
+                  <Button variant="ghost" className="text-white hover:bg-white/10 hover:text-white font-medium">
+                    Log in
+                  </Button>
+                </Link>
+                <Link to="/signup">
+                  <Button className="bg-white text-navy hover:bg-accent hover:text-white font-semibold transition-all shadow-sm">
+                    Sign up
+                  </Button>
+                </Link>
               </div>
             )}
           </div>
         </nav>
 
+        {/* Mobile Menu */}
         {isMobileMenuOpen && (
-          <div className="md:hidden bg-navy border-t border-white/10">
-            <div className="container mx-auto px-4 py-4">
-              <ul className="space-y-2">
+          <div className="md:hidden bg-navy/98 backdrop-blur-sm border-t border-white/10 px-6 py-4 shadow-xl">
+            <div className="max-h-[70vh] overflow-y-auto overscroll-contain">
+              <ul className="space-y-1">
                 <li className="rounded-md overflow-hidden">
                   <button
                     onClick={() => setMobileAboutOpen((s) => !s)}
@@ -505,14 +562,10 @@ const Header = () => {
                     <ul className="bg-navy/90 rounded-md border border-white/5 px-2 py-2 space-y-1">
                       {[
                         { id: "our-story", label: "Our Story & Founder's Journey" },
-                       
                         { id: "mission", label: "Mission & Visions" },
-                       
                         { id: "team-members", label: "Team & Values" },
-                        
                         { id: "why-us", label: "Why Us" },
                         { id: "certifications", label: "Certifications" },
-                     
                       ].map((it) => (
                         <li key={it.id}>
                           <button
