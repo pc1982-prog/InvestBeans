@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 
 // ── Helpers ────────────────────────────────────────────────
 
@@ -66,9 +66,24 @@ export default function GlobalView() {
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    await refresh();
-    setRefreshing(false);
+    try {
+      await refresh();
+    } catch (err) {
+      console.error("Refresh error:", err);
+    } finally {
+      setRefreshing(false);
+    }
   };
+
+  // Memoize data to prevent unnecessary re-renders
+  const usMarkets = useMemo(() => data?.indices?.us || [], [data?.indices?.us]);
+  const europeMarkets = useMemo(() => data?.indices?.europe || [], [data?.indices?.europe]);
+  const asiaMarkets = useMemo(() => data?.indices?.asia || [], [data?.indices?.asia]);
+  const forexData = useMemo(() => data?.forex || [], [data?.forex]);
+  const commoditiesData = useMemo(() => data?.commodities || [], [data?.commodities]);
+  const bondsData = useMemo(() => data?.bonds || [], [data?.bonds]);
+  const regionsData = useMemo(() => data?.regions || [], [data?.regions]);
+  const eventsData = useMemo(() => data?.events || [], [data?.events]);
 
   return (
     <Layout>
@@ -125,7 +140,7 @@ export default function GlobalView() {
           <SectionTitle icon={BarChart3}>United States Markets</SectionTitle>
           {isLoading ? <Skeleton count={3} /> : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-              {data?.indices.us.map((idx) => (
+              {usMarkets.map((idx) => (
                 <CleanChart 
                   key={idx.symbol}
                   name={idx.name}
@@ -137,7 +152,7 @@ export default function GlobalView() {
                   isPositive={idx.changePercent >= 0}
                 />
               ))}
-              {!data?.indices.us.length && (
+              {usMarkets.length === 0 && (
                 <p className="col-span-full text-center py-12 text-muted-foreground">US data unavailable</p>
               )}
             </div>
@@ -149,7 +164,7 @@ export default function GlobalView() {
           <SectionTitle icon={LineChart}>European Markets</SectionTitle>
           {isLoading ? <Skeleton count={3} /> : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-              {data?.indices.europe.map((idx) => (
+              {europeMarkets.map((idx) => (
                 <CleanChart 
                   key={idx.symbol}
                   name={idx.name}
@@ -161,7 +176,7 @@ export default function GlobalView() {
                   isPositive={idx.changePercent >= 0}
                 />
               ))}
-              {!data?.indices.europe.length && (
+              {europeMarkets.length === 0 && (
                 <p className="col-span-full text-center py-12 text-muted-foreground">Europe data unavailable</p>
               )}
             </div>
@@ -173,7 +188,7 @@ export default function GlobalView() {
           <SectionTitle icon={Activity}>Asia Pacific Markets</SectionTitle>
           {isLoading ? <Skeleton count={3} /> : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-              {data?.indices.asia.map((idx) => (
+              {asiaMarkets.map((idx) => (
                 <CleanChart 
                   key={idx.symbol}
                   name={idx.name}
@@ -185,7 +200,7 @@ export default function GlobalView() {
                   isPositive={idx.changePercent >= 0}
                 />
               ))}
-              {!data?.indices.asia.length && (
+              {asiaMarkets.length === 0 && (
                 <p className="col-span-full text-center py-12 text-muted-foreground">Asia data unavailable</p>
               )}
             </div>
@@ -198,7 +213,7 @@ export default function GlobalView() {
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-5">
             {isLoading
               ? Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-40 bg-muted/50 rounded-2xl animate-pulse" />)
-              : data?.forex.map((fx: ForexPair) => {
+              : forexData.map((fx: ForexPair) => {
                   const pos = fx.changePercent >= 0;
                   return (
                     <ForexCard
@@ -226,8 +241,8 @@ export default function GlobalView() {
                     <div key={i} className="h-16 bg-muted/50 rounded-lg animate-pulse" />
                   ))}
                 </div>
-              ) : data?.bonds.length ? (
-                data.bonds.map((bond: BondYield, i: number) => {
+              ) : bondsData.length > 0 ? (
+                bondsData.map((bond: BondYield, i: number) => {
                   const pos = bond.change >= 0;
                   return (
                     <div
@@ -283,7 +298,7 @@ export default function GlobalView() {
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-5">
             {isLoading
               ? Array.from({ length: 5 }).map((_, i) => <div key={i} className="h-40 bg-muted/50 rounded-2xl animate-pulse" />)
-              : data?.commodities.map((c: Commodity) => {
+              : commoditiesData.map((c: Commodity) => {
                   const pos = c.changePercent >= 0;
                   return (
                     <CommodityCard
@@ -311,7 +326,7 @@ export default function GlobalView() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {isLoading
               ? Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-56 bg-muted/50 rounded-2xl animate-pulse" />)
-              : data?.regions.map((r: RegionSummary) => {
+              : regionsData.map((r: RegionSummary) => {
                   const pos = r.avgChange >= 0;
                   return (
                     <div
@@ -350,7 +365,7 @@ export default function GlobalView() {
         <section className="mb-12 md:mb-16">
           <SectionTitle>Global Events Calendar</SectionTitle>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {data?.events.map((ev, i) => {
+            {eventsData.map((ev, i) => {
               const IC: Record<string, string> = {
                 High:   "bg-red-500/10 text-red-600 border-red-500/20",
                 Medium: "bg-amber-500/10 text-amber-600 border-amber-500/20",
