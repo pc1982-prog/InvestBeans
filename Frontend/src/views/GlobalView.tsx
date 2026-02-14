@@ -1,246 +1,441 @@
+
 import Layout from "@/components/Layout";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import MarketCard from "@/components/MarketCard";
 import DummyChart from "@/components/DummyChart";
-import { TrendingUp, TrendingDown, Activity, Globe, ArrowRight, Clock, Eye, MapPin } from "lucide-react";
+import { useGlobalMarkets } from "@/hooks/useGlobalMarkets";
+import { IndexQuote, ForexPair, BondYield, Commodity, RegionSummary } from "@/services/globalMarkets/types";
+import {
+  TrendingUp, TrendingDown, Activity, Globe, ArrowRight,
+  Clock, MapPin, RefreshCw, AlertCircle, Wifi, WifiOff,
+  Landmark, DollarSign, BarChart3, LineChart, Percent, Briefcase,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useState } from "react";
 
-const GlobalView = () => {
+// ── Helpers ────────────────────────────────────────────────
+
+function Skeleton({ count = 4 }: { count?: number }) {
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
+      {Array.from({ length: count }).map((_, i) => (
+        <div key={i} className="h-32 sm:h-36 bg-muted/50 rounded-2xl border border-border/40 animate-pulse" />
+      ))}
+    </div>
+  );
+}
+
+function ErrorBanner({ error }: { error: string | null }) {
+  if (!error) return null;
+  return (
+    <div className="flex items-start gap-3 p-4 mb-8 rounded-2xl bg-destructive/10 border border-destructive/20 text-destructive text-sm shadow-sm">
+      <AlertCircle className="w-5 h-5 mt-0.5 shrink-0" />
+      <div>
+        <strong className="block mb-1">Error loading data</strong>
+        <span>{error}</span>
+      </div>
+    </div>
+  );
+}
+
+function IndexCard({ index }: { index: IndexQuote }) {
+  const isPositive = index.changePercent >= 0;
+  return (
+    <MarketCard
+      name={index.name}
+      value={index.price.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+      change={`${isPositive ? "+" : ""}${index.change.toFixed(2)}`}
+      percentage={`${isPositive ? "+" : ""}${index.changePercent.toFixed(2)}%`}
+      isPositive={isPositive}
+      className="shadow-sm hover:shadow-md transition-all border-border/60 min-w-0"
+    />
+  );
+}
+
+function SectionTitle({ icon: Icon, children }: { icon?: any; children: React.ReactNode }) {
+  return (
+    <div className="flex items-center gap-2.5 mb-5 md:mb-6">
+      {Icon && <Icon className="w-5 h-5 text-muted-foreground" />}
+      <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground">
+        {children}
+      </h2>
+    </div>
+  );
+}
+
+// Small reusable card for Forex & Commodities (prevents overflow)
+function CompactCard({ title, value, percent, isPositive }: {
+  title: string;
+  value: string;
+  percent: number;
+  isPositive: boolean;
+}) {
+  return (
+    <div className="bg-card rounded-2xl border border-border/60 shadow-sm hover:shadow-md hover:border-primary/30 transition-all p-4 sm:p-5 min-w-0 overflow-hidden">
+      <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-1.5 truncate">{title}</p>
+      <p className="text-xl sm:text-2xl font-bold tracking-tighter text-foreground overflow-hidden text-ellipsis whitespace-nowrap">
+        {value}
+      </p>
+      <p className={`text-sm sm:text-base font-semibold mt-1 ${isPositive ? "text-emerald-600" : "text-red-600"}`}>
+        {isPositive ? "+" : ""}{percent.toFixed(2)}%
+      </p>
+    </div>
+  );
+}
+
+const VIX_STYLE: Record<string, string> = {
+  low:      "bg-emerald-50 border-emerald-200 text-emerald-800 dark:bg-emerald-950/30 dark:border-emerald-800/50",
+  moderate: "bg-amber-50   border-amber-200   text-amber-800   dark:bg-amber-950/30   dark:border-amber-800/50",
+  high:     "bg-orange-50  border-orange-200  text-orange-800  dark:bg-orange-950/30  dark:border-orange-800/50",
+  extreme:  "bg-red-50     border-red-200     text-red-800     dark:bg-red-950/30     dark:border-red-800/50",
+};
+
+// ══════════════════════════════════════════════════════════════
+export default function GlobalView() {
+  const { data, loading, error, lastUpdated, refresh } = useGlobalMarkets();
+  const [selectedIndex, setSelectedIndex] = useState("dow");
+  const [refreshing, setRefreshing] = useState(false);
+
+  const isLoading = loading === "idle" || loading === "loading";
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await refresh();
+    setRefreshing(false);
+  };
+
   return (
     <Layout>
-      <div className="container mx-auto px-6 py-10">
-        {/* Enhanced Header */}
-        <div className="relative overflow-hidden mb-12">
-          {/* Background decorative elements */}
-          <div className="absolute inset-0 bg-gradient-to-br from-accent/5 via-transparent to-accent/10 rounded-3xl"></div>
-          <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-accent/10 to-transparent rounded-full blur-3xl"></div>
-          <div className="absolute bottom-0 left-0 w-80 h-80 bg-gradient-to-tr from-accent/5 to-transparent rounded-full blur-2xl"></div>
-          
-          <div className="relative z-10">
-            <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8">
-              <div className="mb-6 md:mb-0">
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-accent/10 to-accent/5 border border-accent/20 mb-4">
-                  <Globe className="w-4 h-4 text-accent" />
-                  <span className="text-sm font-medium text-accent">Global Markets</span>
-                </div>
-                <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent mb-3">
-                  Global Stock Markets
-                </h1>
-                <p className="text-lg text-muted-foreground">
-                  Worldwide market data and international equity analysis
-                </p>
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 max-w-7xl">
+
+        {/* ── Professional Header ── */}
+        <div className="mb-10 md:mb-16">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 pb-6 border-b border-border/60">
+            <div>
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary/5 text-primary text-sm font-medium mb-3">
+                <Globe className="w-4 h-4" />
+                GLOBAL MARKETS
               </div>
-        <Select defaultValue="dow">
-                <SelectTrigger className="w-80 bg-card/50 backdrop-blur-sm border border-border/50">
-            <SelectValue placeholder="Select Global Index" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="dow">Dow Jones</SelectItem>
-            <SelectItem value="nasdaq">Nasdaq</SelectItem>
-            <SelectItem value="sse">SSE Composite</SelectItem>
-            <SelectItem value="nikkei">Nikkei 225</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-foreground">
+                Global Financial Markets
+              </h1>
+              <p className="mt-2 text-base sm:text-lg text-muted-foreground max-w-xl">
+                Real-time data from major stock exchanges, currencies, bonds, commodities & volatility
+              </p>
+            </div>
+
+            <div className="flex items-center gap-4 flex-wrap">
+              <Button
+                variant="outline"
+                onClick={handleRefresh}
+                disabled={refreshing || isLoading}
+                className="border-primary/40 hover:bg-primary/5 min-w-[120px]"
+              >
+                <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? "animate-spin" : ""}`} />
+                Refresh
+              </Button>
+
+              <Select value={selectedIndex} onValueChange={setSelectedIndex}>
+                <SelectTrigger className="w-48 bg-card border-border/70">
+                  <SelectValue placeholder="Benchmark" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="dow">Dow Jones</SelectItem>
+                  <SelectItem value="spx">S&P 500</SelectItem>
+                  <SelectItem value="nasdaq">Nasdaq</SelectItem>
+                  <SelectItem value="nikkei">Nikkei 225</SelectItem>
+                  <SelectItem value="ftse">FTSE 100</SelectItem>
+                  <SelectItem value="dax">DAX</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
 
-        {/* Global Market Overview */}
-        <div className="mb-12">
-          <h2 className="text-2xl font-bold text-foreground mb-6">Global Market Overview</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <MarketCard name="Dow Jones" value="38,503.25" change="+417.09" percentage="+1.10%" isPositive={true} />
-            <MarketCard name="Nasdaq" value="15,278.27" change="−91.51" percentage="−0.20%" isPositive={false} />
-            <MarketCard name="S&P 500" value="5,250.12" change="+20.15" percentage="+0.38%" isPositive={true} />
-            <MarketCard name="Russell 2000" value="2,050.30" change="+5.40" percentage="+0.26%" isPositive={true} />
+        <ErrorBanner error={error} />
+
+        {/* US MARKETS - 3 cards on tablet & above */}
+        <section className="mb-12 md:mb-16">
+          <SectionTitle icon={BarChart3}>United States Markets</SectionTitle>
+          {isLoading ? <Skeleton count={4} /> : (
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 ">
+              {data?.indices.us.map((idx) => <IndexCard key={idx.symbol} index={idx} />)}
+              {!data?.indices.us.length && (
+                <p className="col-span-full text-center py-12 text-muted-foreground">US data unavailable</p>
+              )}
+            </div>
+          )}
+        </section>
+
+        {/* EUROPE */}
+        <section className="mb-12 md:mb-16">
+          <SectionTitle icon={BarChart3}>European Markets</SectionTitle>
+          {isLoading ? <Skeleton count={4} /> : (
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
+              {data?.indices.europe.map((idx) => <IndexCard key={idx.symbol} index={idx} />)}
+              {!data?.indices.europe.length && (
+                <p className="col-span-full text-center py-12 text-muted-foreground">European data unavailable</p>
+              )}
+            </div>
+          )}
+        </section>
+
+        {/* ASIA */}
+        <section className="mb-12 md:mb-16">
+          <SectionTitle icon={BarChart3}>Asia Pacific Markets</SectionTitle>
+          {isLoading ? <Skeleton count={4} /> : (
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
+              {data?.indices.asia.map((idx) => <IndexCard key={idx.symbol} index={idx} />)}
+              {!data?.indices.asia.length && (
+                <p className="col-span-full text-center py-12 text-muted-foreground">Asian data unavailable</p>
+              )}
+            </div>
+          )}
+        </section>
+
+        {/* CHARTS */}
+        <section className="mb-12 md:mb-16">
+          <SectionTitle icon={LineChart}>Market Trends Analysis</SectionTitle>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {data?.indices.us[0] && (
+              <DummyChart
+                title="US Markets"
+                value={data.indices.us[0].price.toLocaleString()}
+                change={`${data.indices.us[0].changePercent >= 0 ? "+" : ""}${data.indices.us[0].changePercent.toFixed(2)}%`}
+                isPositive={data.indices.us[0].changePercent >= 0}
+                chartType="line"
+                data={[70,75,72,78,82,85,88,90,87,92,89,91]}
+              />
+            )}
+            {data?.indices.europe[0] && (
+              <DummyChart
+                title="European Markets"
+                value={`${data.indices.europe[0].changePercent >= 0 ? "+" : ""}${data.indices.europe[0].changePercent.toFixed(2)}%`}
+                isPositive={data.indices.europe[0].changePercent >= 0}
+                chartType="bar"
+                data={[55,60,58,65,62,68,70,75]}
+              />
+            )}
+            {data?.indices.asia[0] && (
+              <DummyChart
+                title="Asian Markets"
+                value={`${data.indices.asia[0].changePercent >= 0 ? "+" : ""}${data.indices.asia[0].changePercent.toFixed(2)}%`}
+                isPositive={data.indices.asia[0].changePercent >= 0}
+                chartType="area"
+                data={[40,45,42,48,50,52,55,58,56,60,62,65]}
+              />
+            )}
+          </div>
+        </section>
+
+        {/* FOREX */}
+        <section className="mb-12 md:mb-16">
+          <SectionTitle icon={DollarSign}>Global Currencies</SectionTitle>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-5">
+            {isLoading
+              ? Array.from({ length: 6 }).map((_, i) => <div key={i} className="h-32 bg-muted/50 rounded-2xl animate-pulse" />)
+              : data?.forex.map((fx: ForexPair) => {
+                  const pos = fx.changePercent >= 0;
+                  return (
+                    <CompactCard
+                      key={fx.pair}
+                      title={fx.pair}
+                      value={fx.rate.toFixed(["JPY","INR"].includes(fx.quote) ? 2 : 4)}
+                      percent={fx.changePercent}
+                      isPositive={pos}
+                    />
+                  );
+                })}
+          </div>
+        </section>
+
+        {/* BONDS + VIX */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-10 mb-12 md:mb-16">
+          {/* Bonds */}
+          <div>
+            <SectionTitle icon={Landmark}>Government Bond Yields</SectionTitle>
+            <div className="bg-card rounded-2xl border border-border/60 shadow-sm divide-y divide-border/50 overflow-hidden">
+              {isLoading ? (
+                Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-16 bg-muted/50 m-4 rounded-xl animate-pulse" />)
+              ) : data?.bonds?.length ? (
+                data.bonds.map((b: BondYield) => {
+                  const pos = b.change >= 0;
+                  return (
+                    <div key={b.name} className="flex items-center justify-between px-6 py-4 hover:bg-muted/30 transition-colors">
+                      <span className="font-medium">{b.name}</span>
+                      <div className="text-right">
+                        <span className="font-bold text-lg">{b.yield.toFixed(3)}%</span>
+                        <span className={`ml-4 font-semibold ${pos ? "text-emerald-600" : "text-red-600"}`}>
+                          {pos ? "+" : ""}{b.change.toFixed(3)}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <p className="p-8 text-center text-muted-foreground">Bond data unavailable</p>
+              )}
+            </div>
+          </div>
+
+          {/* VIX */}
+          <div>
+            <SectionTitle icon={Percent}>CBOE Volatility Index (VIX)</SectionTitle>
+            {isLoading ? (
+              <div className="h-64 bg-muted/50 rounded-2xl animate-pulse" />
+            ) : data?.vix ? (
+              <div className={`rounded-2xl border p-8 sm:p-10 flex flex-col items-center justify-center gap-4 shadow-sm ${VIX_STYLE[data.vix.sentiment]}`}>
+                <div className="text-6xl sm:text-7xl md:text-8xl font-black tracking-tighter overflow-hidden">
+                  {data.vix.value.toFixed(2)}
+                </div>
+                <p className="text-lg sm:text-xl font-medium">
+                  {data.vix.change >= 0 ? "+" : ""}{data.vix.change.toFixed(2)} ({data.vix.changePercent.toFixed(2)}%)
+                </p>
+                <span className={`px-6 py-2 rounded-full text-sm font-semibold border capitalize ${VIX_STYLE[data.vix.sentiment]}`}>
+                  {data.vix.sentiment} volatility
+                </span>
+              </div>
+            ) : (
+              <div className="h-64 rounded-2xl border bg-muted/30 flex items-center justify-center">
+                <p className="text-muted-foreground">VIX data unavailable</p>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* International Markets */}
-        <div className="mb-12">
-          <h2 className="text-2xl font-bold text-foreground mb-6">International Markets</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <MarketCard name="FTSE 100" value="7,623.45" change="−9.12" percentage="−0.12%" isPositive={false} />
-            <MarketCard name="DAX" value="18,145.20" change="+74.20" percentage="+0.41%" isPositive={true} />
-            <MarketCard name="Nikkei 225" value="39,102.10" change="+86.20" percentage="+0.22%" isPositive={true} />
-            <MarketCard name="SSE Composite" value="3,045.60" change="−5.50" percentage="−0.18%" isPositive={false} />
+        {/* COMMODITIES */}
+        <section className="mb-12 md:mb-16">
+          <SectionTitle icon={Briefcase}>Key Commodities</SectionTitle>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-5">
+            {isLoading
+              ? Array.from({ length: 6 }).map((_, i) => <div key={i} className="h-32 bg-muted/50 rounded-2xl animate-pulse" />)
+              : data?.commodities.map((c: Commodity) => {
+                  const pos = c.changePercent >= 0;
+                  return (
+                    <CompactCard
+                      key={c.symbol}
+                      title={c.name}
+                      value={`$${c.price.toLocaleString("en-US", { minimumFractionDigits: 2 })}`}
+                      percent={c.changePercent}
+                      isPositive={pos}
+                    />
+                  );
+                })}
           </div>
-        </div>
+        </section>
 
-        {/* Interactive Charts Section */}
-        <div className="mb-12">
-          <h2 className="text-2xl font-bold text-foreground mb-6">Global Market Analysis</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <DummyChart
-              title="US Market Trend"
-              value="38,503.25"
-              change="+1.10%"
-              isPositive={true}
-              chartType="line"
-              data={[70, 75, 72, 78, 82, 85, 88, 90, 87, 92, 89, 91]}
-            />
-            <DummyChart
-              title="European Markets"
-              value="+0.8%"
-              change="+0.8%"
-              isPositive={true}
-              chartType="bar"
-              data={[55, 60, 58, 65, 62, 68, 70, 75]}
-            />
-            <DummyChart
-              title="Asian Markets"
-              value="+1.2%"
-              change="+1.2%"
-              isPositive={true}
-              chartType="area"
-              data={[40, 45, 42, 48, 50, 52, 55, 58, 56, 60, 62, 65]}
-            />
-          </div>
-        </div>
-
-        {/* Regional Performance */}
-        <div className="mb-12">
+        {/* REGIONAL PERFORMANCE */}
+        <section className="mb-12 md:mb-16">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-foreground">Regional Performance</h2>
-            <Button variant="outline" className="border-accent/30 text-accent hover:bg-accent/5">
-              View All Regions
-              <ArrowRight className="w-4 h-4 ml-2" />
+            <SectionTitle icon={Globe}>Regional Performance</SectionTitle>
+            <Button variant="ghost" size="sm" className="text-primary gap-2 hover:gap-3">
+              View All <ArrowRight className="w-4 h-4" />
             </Button>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[
-              { 
-                region: "North America", 
-                countries: ["USA", "Canada"], 
-                performance: "+1.2%", 
-                isPositive: true,
-                flag: "🇺🇸"
-              },
-              { 
-                region: "Europe", 
-                countries: ["UK", "Germany", "France"], 
-                performance: "+0.8%", 
-                isPositive: true,
-                flag: "🇪🇺"
-              },
-              { 
-                region: "Asia Pacific", 
-                countries: ["Japan", "China", "India"], 
-                performance: "+0.5%", 
-                isPositive: true,
-                flag: "🇯🇵"
-              },
-              { 
-                region: "Emerging Markets", 
-                countries: ["Brazil", "Russia", "South Africa"], 
-                performance: "-0.3%", 
-                isPositive: false,
-                flag: "🌍"
-              },
-              { 
-                region: "Middle East", 
-                countries: ["UAE", "Saudi Arabia"], 
-                performance: "+2.1%", 
-                isPositive: true,
-                flag: "🇦🇪"
-              },
-              { 
-                region: "Latin America", 
-                countries: ["Mexico", "Argentina"], 
-                performance: "+0.9%", 
-                isPositive: true,
-                flag: "🇲🇽"
-              }
-            ].map((region, index) => (
-              <div key={index} className="bg-gradient-to-br from-card to-card/50 rounded-xl border border-border/50 hover:border-accent/30 hover:shadow-xl transition-all duration-300 p-6 hover:-translate-y-1">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="text-2xl">{region.flag}</div>
-                    <div>
-                      <h3 className="font-bold text-foreground">{region.region}</h3>
-                      <p className="text-sm text-muted-foreground">{region.countries.join(", ")}</p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {isLoading
+              ? Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-56 bg-muted/50 rounded-2xl animate-pulse" />)
+              : data?.regions.map((r: RegionSummary) => {
+                  const pos = r.avgChange >= 0;
+                  return (
+                    <div
+                      key={r.name}
+                      className="bg-card rounded-2xl border border-border/60 shadow-sm hover:shadow-md hover:border-primary/30 transition-all p-6"
+                    >
+                      <div className="flex justify-between mb-4">
+                        <div className="flex items-center gap-3">
+                          <span className="text-3xl">{r.flag}</span>
+                          <div>
+                            <h3 className="font-semibold text-lg">{r.name}</h3>
+                            <p className="text-xs text-muted-foreground">{r.countries.join(", ")}</p>
+                          </div>
+                        </div>
+                        <div className={`text-3xl font-bold ${pos ? "text-emerald-600" : "text-red-600"}`}>
+                          {pos ? "+" : ""}{r.avgChange.toFixed(2)}%
+                        </div>
+                      </div>
+
+                      <div className="space-y-2 text-sm">
+                        <p>Best: <span className="text-emerald-600 font-medium">{r.best.name}</span> ({r.best.change.toFixed(2)}%)</p>
+                        <p>Worst: <span className="text-red-600 font-medium">{r.worst.name}</span> ({r.worst.change.toFixed(2)}%)</p>
+                      </div>
+
+                      <div className="flex justify-between text-xs text-muted-foreground mt-6 pt-4 border-t">
+                        <div><MapPin className="w-4 h-4 inline mr-1" />{r.countries.length} markets</div>
+                        <div><Clock className="w-4 h-4 inline mr-1" />Live</div>
+                      </div>
                     </div>
+                  );
+                })}
+          </div>
+        </section>
+
+        {/* GLOBAL EVENTS */}
+        <section className="mb-12 md:mb-16">
+          <SectionTitle>Global Events Calendar</SectionTitle>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {data?.events.map((ev, i) => {
+              const IC: Record<string, string> = {
+                High:   "bg-red-500/10 text-red-600 border-red-500/20",
+                Medium: "bg-amber-500/10 text-amber-600 border-amber-500/20",
+                Low:    "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
+              };
+              const d = new Date(ev.date);
+              const dateStr = isNaN(d.getTime()) ? ev.date : d.toLocaleDateString("en-IN", { day: "2-digit", month: "short" });
+
+              return (
+                <div key={i} className="bg-card rounded-2xl border border-border/60 p-5 hover:border-primary/30 transition-all">
+                  <div className="flex gap-2 flex-wrap mb-3">
+                    <span className={`px-3 py-1 text-xs font-semibold rounded-full border ${IC[ev.impact]}`}>
+                      {ev.impact}
+                    </span>
+                    <span className="px-3 py-1 bg-blue-500/10 text-blue-600 text-xs font-medium rounded-full border border-blue-500/20">
+                      {ev.region}
+                    </span>
+                    <span className="ml-auto text-xs text-muted-foreground font-medium">{dateStr}</span>
                   </div>
-                  <div className="text-right">
-                    <div className={`text-lg font-bold ${region.isPositive ? 'text-green-600' : 'text-red-600'}`}>
-                      {region.performance}
-                    </div>
-                    <div className="flex items-center gap-1">
-                      {region.isPositive ? <TrendingUp className="w-4 h-4 text-green-600" /> : <TrendingDown className="w-4 h-4 text-red-600" />}
-                      <span className="text-xs text-muted-foreground">24h</span>
-                    </div>
-                  </div>
+                  <h3 className="font-medium leading-snug text-sm sm:text-base">{ev.title}</h3>
                 </div>
-                <div className="flex items-center justify-between text-sm text-muted-foreground">
-                  <div className="flex items-center gap-1">
-                    <MapPin className="w-3 h-3" />
-                    <span>{region.countries.length} markets</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Clock className="w-3 h-3" />
-                    <span>Live</span>
-                  </div>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* STATUS BAR */}
+        <div className="bg-card/80 backdrop-blur-sm border border-border/60 rounded-2xl p-5 shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-sm">
+            <div className="flex items-center gap-3 text-muted-foreground">
+              <Activity className="w-5 h-5 text-primary" />
+              Last updated:{" "}
+              {lastUpdated
+                ? lastUpdated.toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })
+                : "Fetching..."}
+            </div>
+
+            <div className="flex flex-wrap items-center gap-6">
+              {data && (["us", "europe", "asia"] as const).map((region) => (
+                <div key={region} className="flex items-center gap-2">
+                  {data.marketStatus[region] === "open" ? (
+                    <Wifi className="w-4 h-4 text-emerald-500" />
+                  ) : (
+                    <WifiOff className="w-4 h-4 text-muted-foreground" />
+                  )}
+                  <span className={`uppercase font-medium ${data.marketStatus[region] === "open" ? "text-emerald-600" : "text-muted-foreground"}`}>
+                    {region} {data.marketStatus[region]}
+                  </span>
                 </div>
+              ))}
+              <div className="flex items-center gap-2">
+                <div className={`w-3 h-3 rounded-full animate-pulse ${loading === "loading" || refreshing ? "bg-amber-500" : "bg-emerald-500"}`} />
+                <span className="font-medium text-emerald-600">
+                  {loading === "loading" || refreshing ? "Updating..." : "Live"}
+                </span>
               </div>
-            ))}
+            </div>
           </div>
         </div>
 
-        {/* Global News Section */}
-        <div className="mb-12">
-          <h2 className="text-2xl font-bold text-foreground mb-6">Global Market News</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[
-              {
-                title: "Fed signals potential rate cuts ahead",
-                description: "Federal Reserve hints at monetary policy adjustments affecting global markets",
-                time: "1 hour ago",
-                category: "Monetary Policy",
-                region: "US"
-              },
-              {
-                title: "European markets rally on ECB optimism",
-                description: "European Central Bank's dovish stance boosts investor confidence",
-                time: "3 hours ago",
-                category: "Central Banks",
-                region: "Europe"
-              },
-              {
-                title: "Asian markets mixed on China data",
-                description: "Mixed economic indicators from China create uncertainty in Asian markets",
-                time: "5 hours ago",
-                category: "Economic Data",
-                region: "Asia"
-              }
-            ].map((news, index) => (
-              <div key={index} className="bg-gradient-to-br from-card to-card/50 rounded-xl border border-border/50 hover:border-accent/30 hover:shadow-xl transition-all duration-300 p-6 hover:-translate-y-1">
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="px-2 py-1 bg-accent/10 text-accent text-xs font-medium rounded-full">{news.category}</span>
-                  <span className="px-2 py-1 bg-blue-500/10 text-blue-600 text-xs font-medium rounded-full">{news.region}</span>
-                  <span className="text-xs text-muted-foreground">{news.time}</span>
-                </div>
-                <h3 className="font-bold text-foreground mb-2">{news.title}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">{news.description}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Status Bar */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-card/50 backdrop-blur-sm rounded-xl p-4 border border-border/50 shadow-lg">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Activity className="w-4 h-4 text-accent" />
-            <span>Last Updated: 24/04/2024 - 10:45 AM</span>
-          </div>
-          <div className="flex items-center gap-2 text-sm">
-            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-            <span className="text-green-600 font-medium">Live</span>
-          </div>
-        </div>
       </div>
     </Layout>
   );
-};
-
-export default GlobalView;
-
+}
