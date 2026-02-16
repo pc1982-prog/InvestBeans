@@ -8,33 +8,72 @@ const router = express.Router();
 
 const EXCHANGERATE_KEY = process.env.EXCHANGERATE_KEY;
 
+// ── Server-side cache (5 min) to reduce Yahoo Finance calls ──
+let _cache = null;
+let _cacheTs = 0;
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
 // ── Yahoo Quote Helper ─────────────────────────────────────
+// Rotate between query1 and query2 to reduce 429s from Render cloud IPs
+const YF_HOSTS = [
+  "https://query1.finance.yahoo.com",
+  "https://query2.finance.yahoo.com",
+];
+let yfHostIdx = 0;
+
+const YF_HEADERS = {
+  "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+  "Accept": "application/json, text/plain, */*",
+  "Accept-Language": "en-US,en;q=0.9",
+  "Accept-Encoding": "gzip, deflate, br",
+  "Origin": "https://finance.yahoo.com",
+  "Referer": "https://finance.yahoo.com/",
+  "Cache-Control": "no-cache",
+};
+
 async function yahooQuote(symbol) {
-  try {
-    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=1d`;
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`Yahoo ${symbol} → ${res.status}`);
+  // Try both hosts with retry logic
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const host = YF_HOSTS[(yfHostIdx + attempt) % YF_HOSTS.length];
+    const url = `${host}/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=1d`;
 
-    const json = await res.json();
-    const meta = json?.chart?.result?.[0]?.meta;
-    if (!meta?.regularMarketPrice) return null;
+    try {
+      const res = await fetch(url, { headers: YF_HEADERS });
 
-    const price = meta.regularMarketPrice;
-    const prev = meta.chartPreviousClose ?? meta.previousClose ?? price;
-    const change = parseFloat((price - prev).toFixed(2));
-    const changePercent = prev ? parseFloat(((change / prev) * 100).toFixed(2)) : 0;
+      // Rate limited — wait and retry with other host
+      if (res.status === 429) {
+        console.warn(`[Yahoo] 429 on ${host} for ${symbol}, trying next host...`);
+        await new Promise(r => setTimeout(r, 500));
+        continue;
+      }
 
-    return {
-      price,
-      change,
-      changePercent,
-      high: meta.regularMarketDayHigh ?? price,
-      low: meta.regularMarketDayLow ?? price,
-    };
-  } catch (e) {
-    console.error(`[Yahoo] ${symbol} failed:`, e.message);
-    return null;
+      if (!res.ok) throw new Error(`Yahoo ${symbol} → ${res.status}`);
+
+      const json = await res.json();
+      const meta = json?.chart?.result?.[0]?.meta;
+      if (!meta?.regularMarketPrice) return null;
+
+      // Rotate host for next call to distribute load
+      yfHostIdx = (yfHostIdx + 1) % YF_HOSTS.length;
+
+      const price = meta.regularMarketPrice;
+      const prev = meta.chartPreviousClose ?? meta.previousClose ?? price;
+      const change = parseFloat((price - prev).toFixed(2));
+      const changePercent = prev ? parseFloat(((change / prev) * 100).toFixed(2)) : 0;
+
+      return {
+        price,
+        change,
+        changePercent,
+        high: meta.regularMarketDayHigh ?? price,
+        low: meta.regularMarketDayLow ?? price,
+      };
+    } catch (e) {
+      console.error(`[Yahoo] ${symbol} attempt ${attempt + 1} failed:`, e.message);
+      if (attempt === 1) return null;
+    }
   }
+  return null;
 }
 
 // ── Configs ───────────────────────────────────────────────
@@ -113,6 +152,12 @@ function getMarketStatus() {
 // ── MAIN ROUTE ─────────────────────────────────────────────
 router.get("/global", async (req, res) => {
   try {
+    // Return cached data if fresh
+    if (_cache && Date.now() - _cacheTs < CACHE_TTL) {
+      console.log("[GlobalMarkets] Returning cached data");
+      return res.json(_cache);
+    }
+    console.log("[GlobalMarkets] Fetching fresh data from Yahoo Finance...");
     // Fetch all data in parallel
     const allSymbols = [
       ...INDEX_SYMBOLS.us.map(i => i.symbol),
@@ -123,7 +168,14 @@ router.get("/global", async (req, res) => {
       "^VIX"
     ];
 
-    const quotes = await Promise.all(allSymbols.map(yahooQuote));
+    // Stagger requests slightly to avoid Yahoo rate limiting from cloud IPs
+    const quotes = await Promise.all(
+      allSymbols.map((symbol, i) =>
+        new Promise(resolve =>
+          setTimeout(() => yahooQuote(symbol).then(resolve), i * 120)
+        )
+      )
+    );
 
     // Build Indices
     let idx = 0;
@@ -228,7 +280,7 @@ router.get("/global", async (req, res) => {
       worst: { name: r.worst?.name || "—", change: parseFloat((r.worst?.changePercent || 0).toFixed(2)) }
     }));
 
-    res.json({
+    const responseData = {
       indices,
       commodities,
       bonds,
@@ -238,7 +290,13 @@ router.get("/global", async (req, res) => {
       regions: calculateRegions(),
       marketStatus: getMarketStatus(),
       lastUpdated: Date.now(),
-    });
+    };
+
+    // Store in cache
+    _cache = responseData;
+    _cacheTs = Date.now();
+
+    res.json(responseData);
 
   } catch (err) {
     console.error("[GlobalMarkets] CRITICAL ERROR:", err);
