@@ -177,6 +177,7 @@ import blogRouter from "./routes/blog.routes.js";
 import beansOfWisdom from "./routes/beanOfWisdom.routes.js";
 import insightRouter from "./routes/insight.routes.js";
 import globalMarketsRouter from "./routes/globalMarkets.routes.js";
+import marketHistoryRouter from "./routes/marketHistory.routes.js";
 
 
 //payment routes
@@ -196,6 +197,7 @@ app.use("/api/v1/insights", insightRouter);
 
 app.use('/api/v1',paymentRouter)
 app.use("/api/v1/markets", globalMarketsRouter);
+app.use("/api/v1/markets", marketHistoryRouter);
 
 
 

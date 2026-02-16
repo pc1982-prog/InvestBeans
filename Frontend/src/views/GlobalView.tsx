@@ -141,8 +141,9 @@ export default function GlobalView() {
           {isLoading ? <Skeleton count={3} /> : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               {usMarkets.map((idx) => (
-                <CleanChart 
+                <CleanChart
                   key={idx.symbol}
+                  symbol={idx.symbol} 
                   name={idx.name}
                   price={idx.price}
                   change={idx.change}
@@ -150,6 +151,7 @@ export default function GlobalView() {
                   high={idx.high}
                   low={idx.low}
                   isPositive={idx.changePercent >= 0}
+                  candles={idx.candles ?? []}
                 />
               ))}
               {usMarkets.length === 0 && (
@@ -167,6 +169,7 @@ export default function GlobalView() {
               {europeMarkets.map((idx) => (
                 <CleanChart 
                   key={idx.symbol}
+                  symbol={idx.symbol} 
                   name={idx.name}
                   price={idx.price}
                   change={idx.change}
@@ -174,6 +177,7 @@ export default function GlobalView() {
                   high={idx.high}
                   low={idx.low}
                   isPositive={idx.changePercent >= 0}
+                  candles={idx.candles ?? []}
                 />
               ))}
               {europeMarkets.length === 0 && (
@@ -191,6 +195,7 @@ export default function GlobalView() {
               {asiaMarkets.map((idx) => (
                 <CleanChart 
                   key={idx.symbol}
+                  symbol={idx.symbol} 
                   name={idx.name}
                   price={idx.price}
                   change={idx.change}
@@ -198,6 +203,7 @@ export default function GlobalView() {
                   high={idx.high}
                   low={idx.low}
                   isPositive={idx.changePercent >= 0}
+                  candles={idx.candles ?? []}
                 />
               ))}
               {asiaMarkets.length === 0 && (
