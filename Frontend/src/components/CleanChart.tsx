@@ -32,7 +32,7 @@ const PERIOD_LABEL: Record<Period, string> = {
   '1Y': '1Y · Weekly',
 };
 
-const API_BASE = (import.meta as any).env?.VITE_API_URL || 'http://localhost:8000';
+const API_BASE = (import.meta as any).env?.VITE_API_URL?.trim() || 'https://companytask-1-1.onrender.com';
 
 // Fallback candles when real data unavailable (market closed etc.)
 function generateFallback(

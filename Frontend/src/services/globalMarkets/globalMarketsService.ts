@@ -1,10 +1,16 @@
 // ============================================================
-// FINAL WORKING VERSION - Backend Proxy Only
+// InvestBeans — Global Markets Service (FIXED FOR RENDER)
+// FIX: VITE_API_URL undefined hone par fallback URL use hoga
 // ============================================================
 
 import { GlobalMarketData } from "./types";
 
-const API_BASE = import.meta.env.VITE_API_URL;
+// ✅ FIX: Agar VITE_API_URL set nahi hai toh backend ka
+//    Render URL use karo — "undefined/api/..." wala error ab nahi aayega
+const API_BASE = 
+  import.meta.env.VITE_API_URL?.trim() || 
+  "https://companytask-1-1.onrender.com";  // ← apna actual backend URL
+
 const CACHE_MS = 60000; // 1 minute cache
 
 let cache: { data: GlobalMarketData | null; ts: number } = { 
@@ -31,14 +37,14 @@ export async function fetchGlobalMarkets(): Promise<GlobalMarketData> {
   console.log("✅ Backend response:", raw);
 
   const data: GlobalMarketData = {
-    indices: raw.indices || { us: [], europe: [], asia: [], emerging: [] },
-    forex: raw.forex || [],
-    bonds: raw.bonds || [],
-    commodities: raw.commodities || [],
-    vix: raw.vix || null,
-    events: raw.events || [],
-    regions: raw.regions || [],
-    lastUpdated: raw.lastUpdated || Date.now(),
+    indices:      raw.indices      || { us: [], europe: [], asia: [], emerging: [] },
+    forex:        raw.forex        || [],
+    bonds:        raw.bonds        || [],
+    commodities:  raw.commodities  || [],
+    vix:          raw.vix          || null,
+    events:       raw.events       || [],
+    regions:      raw.regions      || [],
+    lastUpdated:  raw.lastUpdated  || Date.now(),
     marketStatus: raw.marketStatus || { us: "closed", europe: "closed", asia: "closed" }
   };
 
