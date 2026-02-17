@@ -1,6 +1,9 @@
 // ============================================================
-// InvestBeans — Forex Service (WORKING ✅ — no changes needed)
-// Source: ExchangeRate API — 1500 req/month free, CORS OK
+// InvestBeans — Forex Service
+// FIX: sessionStorage → in-memory Map
+//      sessionStorage was causing Android Chrome to show
+//      "wants to look for and connect to any device on your
+//       local network" permission popup.
 // ============================================================
 
 import { ForexPair } from "./types";
@@ -8,17 +11,21 @@ import { EXCHANGERATE_BASE, FOREX_PAIRS, CACHE_MS } from "./config";
 
 let cache: { data: ForexPair[]; ts: number } | null = null;
 
+// ✅ FIX: In-memory store instead of sessionStorage
+//    sessionStorage access on mobile can trigger local network
+//    permission requests in some Android Chrome versions.
+const prevRates = new Map<string, number>();
+
 function getPrevRate(pair: string): number | null {
-  try   { const v = sessionStorage.getItem(`fx_${pair}`); return v ? +v : null; }
-  catch { return null; }
+  return prevRates.get(pair) ?? null;
 }
+
 function storePrevRate(pair: string, rate: number) {
-  try   { sessionStorage.setItem(`fx_${pair}`, String(rate)); }
-  catch { /* SSR */ }
+  prevRates.set(pair, rate);
 }
 
 async function fetchFromExchangeRateAPI(): Promise<ForexPair[]> {
-  const res  = await fetch(`${EXCHANGERATE_BASE}/latest/USD`);
+  const res = await fetch(`${EXCHANGERATE_BASE}/latest/USD`);
   if (!res.ok) throw new Error(`ExchangeRate API HTTP ${res.status}`);
 
   const data = await res.json();
