@@ -1,8 +1,3 @@
-// ============================================================
-// InvestBeans — Market History Route
-// GET /api/v1/markets/history/:symbol?period=1D|1W|1M|3M|1Y
-// Returns real OHLC candles from Yahoo Finance
-// ============================================================
 
 import express from "express";
 const router = express.Router();

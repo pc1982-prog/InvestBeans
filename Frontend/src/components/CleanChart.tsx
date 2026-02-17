@@ -97,7 +97,7 @@ const CleanChart = ({
     try {
       // Encode symbol — ^ becomes %5E
       const encodedSymbol = encodeURIComponent(symbol);
-      const url = `${API_BASE}/api/v1/markets/history/${encodedSymbol}?period=${p}`;
+      const url = `${API_BASE}/markets/history/${encodedSymbol}?period=${p}`;
       const res = await fetch(url);
 
       if (!res.ok) throw new Error(`HTTP ${res.status}`);

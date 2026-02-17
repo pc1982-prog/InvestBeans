@@ -1,12 +1,3 @@
-// ============================================================
-// InvestBeans — Config (FIXED)
-// KEY FIX 1: Twelve Data uses ^ prefix for indices e.g. ^DJI
-// KEY FIX 2: YF_PROXY (allorigins.win) REMOVED
-//            allorigins.win was causing Android Chrome to show
-//            "wants to connect to devices on local network"
-//            permission popup. All Yahoo data now goes through
-//            backend proxy at /api/v1/markets/history/:symbol
-// ============================================================
 
 export const API_KEYS = {
   twelveData:   (import.meta.env.VITE_TWELVE_DATA_KEY  as string)?.trim(),
@@ -15,8 +6,7 @@ export const API_KEYS = {
 
 export const CACHE_MS = Number(import.meta.env.VITE_CACHE_DURATION) || 900_000;
 
-// ── Twelve Data — CORRECT symbol formats ──────────────────
-// Indices MUST use ^ prefix. Without it → 404/empty response.
+
 export const INDEX_CONFIG = {
   us: [
     { symbol: "^DJI",  name: "Dow Jones"  },
@@ -35,14 +25,13 @@ export const INDEX_CONFIG = {
   ],
 };
 
-// All symbols flat for batch call
+
 export const ALL_INDEX_SYMBOLS = [
   ...INDEX_CONFIG.us,
   ...INDEX_CONFIG.europe,
   ...INDEX_CONFIG.asia,
 ];
 
-// ── Commodities — Twelve Data forex-style pairs ────────────
 export const COMMODITY_CONFIG = [
   { symbol: "XAU/USD",  name: "Gold",          unit: "USD/oz"    },
   { symbol: "XAG/USD",  name: "Silver",        unit: "USD/oz"    },
