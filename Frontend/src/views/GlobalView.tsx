@@ -282,7 +282,7 @@ export default function GlobalView() {
                           price={c.price}
                           change={c.change}
                           changePercent={c.changePercent}
-                          // unit={c.unit}
+                          unit={c.unit}
                           isPositive={pos}
                           candles={c.candles}
                         />
