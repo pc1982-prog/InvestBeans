@@ -1,19 +1,9 @@
-// ============================================================
-// InvestBeans — Forex Service
-// FIX: sessionStorage → in-memory Map
-//      sessionStorage was causing Android Chrome to show
-//      "wants to look for and connect to any device on your
-//       local network" permission popup.
-// ============================================================
 
 import { ForexPair } from "./types";
 import { EXCHANGERATE_BASE, FOREX_PAIRS, CACHE_MS } from "./config";
 
 let cache: { data: ForexPair[]; ts: number } | null = null;
 
-// ✅ FIX: In-memory store instead of sessionStorage
-//    sessionStorage access on mobile can trigger local network
-//    permission requests in some Android Chrome versions.
 const prevRates = new Map<string, number>();
 
 function getPrevRate(pair: string): number | null {
