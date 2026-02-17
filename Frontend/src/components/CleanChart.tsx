@@ -10,14 +10,14 @@ interface CandlePoint {
 
 interface CleanChartProps {
   name: string;
-  symbol: string;       // e.g. "^DJI", "^GSPC"  — needed for history fetch
+  symbol: string;
   price: number;
   change: number;
   changePercent: number;
   high: number;
   low: number;
   isPositive: boolean;
-  candles?: CandlePoint[];  // initial 1D candles from parent (can be empty)
+  candles?: CandlePoint[];
 }
 
 type Period = '1D' | '1W' | '1M' | '3M' | '1Y';
@@ -34,7 +34,23 @@ const PERIOD_LABEL: Record<Period, string> = {
 
 const API_BASE = (import.meta as any).env?.VITE_API_URL || 'http://localhost:8000';
 
-// Fallback candles when real data unavailable (market closed etc.)
+// Calculate percentage change from candle data
+function calculatePeriodChange(candles: CandlePoint[]): { change: number; changePercent: number } {
+  if (candles.length < 2) return { change: 0, changePercent: 0 };
+  
+  const firstCandle = candles[0];
+  const lastCandle = candles[candles.length - 1];
+  
+  const startPrice = firstCandle.y[0];
+  const endPrice = lastCandle.y[3];
+  
+  const change = endPrice - startPrice;
+  const changePercent = (change / startPrice) * 100;
+  
+  return { change, changePercent };
+}
+
+// Fallback candles
 function generateFallback(
   price: number, high: number, low: number,
   changePercent: number, isPositive: boolean, count = 26
@@ -90,12 +106,17 @@ const CleanChart = ({
   const [chartData, setChartData] = useState<CandlePoint[]>([]);
   const [loading,   setLoading]   = useState(false);
   const [isFallback, setIsFallback] = useState(false);
+  
+  // Period-specific stats
+  const [periodChange, setPeriodChange] = useState(change);
+  const [periodChangePercent, setPeriodChangePercent] = useState(changePercent);
+  const [periodHigh, setPeriodHigh] = useState(high);
+  const [periodLow, setPeriodLow] = useState(low);
 
-  // Fetch real historical candles from backend
+  // Fetch real historical candles
   const fetchHistory = useCallback(async (p: Period) => {
     setLoading(true);
     try {
-      // Encode symbol — ^ becomes %5E
       const encodedSymbol = encodeURIComponent(symbol);
       const url = `${API_BASE}/markets/history/${encodedSymbol}?period=${p}`;
       const res = await fetch(url);
@@ -108,30 +129,47 @@ const CleanChart = ({
       if (candles.length >= 3) {
         setChartData(candles);
         setIsFallback(false);
+        
+        const { change: pChange, changePercent: pChangePercent } = calculatePeriodChange(candles);
+        setPeriodChange(pChange);
+        setPeriodChangePercent(pChangePercent);
+        
+        const allHighs = candles.map(c => c.y[1]);
+        const allLows = candles.map(c => c.y[2]);
+        setPeriodHigh(Math.max(...allHighs));
+        setPeriodLow(Math.min(...allLows));
       } else {
-        // Empty (market closed / weekend) — use fallback
-        setChartData(generateFallback(price, high, low, changePercent, isPositive));
+        const fb = generateFallback(price, high, low, changePercent, isPositive);
+        setChartData(fb);
         setIsFallback(true);
+        
+        setPeriodChange(change);
+        setPeriodChangePercent(changePercent);
+        setPeriodHigh(high);
+        setPeriodLow(low);
       }
     } catch (e) {
       console.error(`[CleanChart] History fetch failed for ${symbol} ${p}:`, e);
-      // Use initialCandles or generate fallback
       const fb = (initialCandles && initialCandles.length >= 3)
         ? initialCandles
         : generateFallback(price, high, low, changePercent, isPositive);
       setChartData(fb);
       setIsFallback(true);
+      
+      setPeriodChange(change);
+      setPeriodChangePercent(changePercent);
+      setPeriodHigh(high);
+      setPeriodLow(low);
     } finally {
       setLoading(false);
     }
-  }, [symbol, price, high, low, changePercent, isPositive, initialCandles]);
+  }, [symbol, price, high, low, changePercent, isPositive, initialCandles, change]);
 
-  // On mount and on period change — fetch real data
   useEffect(() => {
     fetchHistory(period);
   }, [period, fetchHistory]);
 
-  // Render / update ApexCharts
+  // Render ApexCharts
   useEffect(() => {
     if (!chartRef.current || typeof ApexCharts === 'undefined') return;
     if (chartData.length === 0) return;
@@ -140,7 +178,7 @@ const CleanChart = ({
       series: [{ name, data: chartData }],
       chart: {
         type:       'candlestick',
-        height:     140,
+        height:     160,
         toolbar:    { show: false },
         animations: { enabled: false },
         background: 'transparent',
@@ -170,19 +208,22 @@ const CleanChart = ({
       },
       grid: {
         show:            true,
-        borderColor:     'rgba(0,0,0,0.05)',
+        borderColor:     'rgba(55,65,81,0.3)',
         strokeDashArray: 4,
         xaxis: { lines: { show: false } },
         yaxis: { lines: { show: true  } },
-        padding: { top: 2, right: 6, bottom: 0, left: 6 },
+        padding: { top: 4, right: 8, bottom: 0, left: 8 },
       },
       tooltip: {
-        theme: 'light',
+        theme: 'dark',
         x:     { format: period === '1D' || period === '1W' ? 'dd MMM HH:mm' : 'dd MMM yyyy' },
         y:     {
           formatter: (v: number) =>
             v.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
         },
+        style: {
+          fontSize: '12px',
+        }
       },
     };
 
@@ -195,65 +236,76 @@ const CleanChart = ({
     };
   }, [chartData, name, period]);
 
+  const isPeriodPositive = periodChangePercent >= 0;
+
   return (
-    <div className="group bg-white dark:bg-card rounded-2xl border border-border/50 hover:border-primary/30 hover:shadow-lg transition-all duration-300 p-5 sm:p-6 min-w-0 overflow-hidden">
+    <div className="relative group bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl border border-gray-700/50 hover:border-gray-600 hover:shadow-2xl transition-all duration-300 p-6 sm:p-8 overflow-hidden">
+      
+      {/* Glow effect on hover */}
+      <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none rounded-2xl" />
 
       {/* Name */}
-      <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-2">
+      <h3 className="relative z-10 text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">
         {name}
       </h3>
 
       {/* Price + High/Low */}
-      <div className="flex items-start justify-between mb-1">
+      <div className="relative z-10 flex items-start justify-between mb-4">
         <div>
-          <div className="text-3xl sm:text-4xl font-bold text-foreground tracking-tight leading-none">
+          <div className="text-4xl sm:text-5xl font-black text-white tracking-tight leading-none mb-2">
             {price.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
-          <div className={`flex items-center gap-1 mt-1.5 text-sm font-semibold ${
-            isPositive ? 'text-emerald-600' : 'text-red-600'
+          <div className={`flex items-center gap-2 text-base font-bold ${
+            isPeriodPositive ? 'text-emerald-400' : 'text-red-400'
           }`}>
-            {isPositive
-              ? <TrendingUp  className="w-3.5 h-3.5" />
-              : <TrendingDown className="w-3.5 h-3.5" />}
-            {change > 0 ? '+' : ''}{change.toFixed(2)}&nbsp;
-            ({changePercent > 0 ? '+' : ''}{changePercent.toFixed(2)}%)
+            {isPeriodPositive
+              ? <TrendingUp  className="w-5 h-5" />
+              : <TrendingDown className="w-5 h-5" />}
+            <span>
+              {periodChange > 0 ? '+' : ''}{periodChange.toFixed(2)}&nbsp;
+              ({periodChangePercent > 0 ? '+' : ''}{periodChangePercent.toFixed(2)}%)
+            </span>
           </div>
         </div>
-        <div className="text-right text-xs text-muted-foreground leading-relaxed">
-          <div>H: {high.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</div>
-          <div>L: {low.toLocaleString('en-IN',  { maximumFractionDigits: 2 })}</div>
+        <div className="text-right text-xs text-gray-500 leading-relaxed space-y-1">
+          <div className="px-2 py-1 rounded bg-gray-800/50 border border-gray-700/30">
+            H: <span className="text-gray-300 font-semibold">{periodHigh.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</span>
+          </div>
+          <div className="px-2 py-1 rounded bg-gray-800/50 border border-gray-700/30">
+            L: <span className="text-gray-300 font-semibold">{periodLow.toLocaleString('en-IN',  { maximumFractionDigits: 2 })}</span>
+          </div>
         </div>
       </div>
 
       {/* Period Buttons */}
-      <div className="flex items-center gap-1 mt-3 mb-1">
+      <div className="relative z-10 flex items-center gap-1.5 mt-4 mb-3 flex-wrap">
         {PERIODS.map(p => (
           <button
             key={p}
             onClick={() => setPeriod(p)}
             disabled={loading}
-            className={`px-2.5 py-1 rounded-full text-[11px] font-medium transition-all ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
               period === p
-                ? 'bg-primary text-primary-foreground shadow-sm'
-                : 'text-muted-foreground hover:bg-muted'
+                ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg shadow-blue-500/30'
+                : 'bg-gray-800/50 text-gray-400 border border-gray-700/30 hover:bg-gray-800 hover:text-gray-300'
             }`}
           >
             {p}
           </button>
         ))}
-        {loading && <Loader2 className="w-3 h-3 ml-1 animate-spin text-muted-foreground" />}
+        {loading && <Loader2 className="w-4 h-4 ml-2 animate-spin text-blue-400" />}
       </div>
 
       {/* Candlestick Chart */}
-      <div className={`-mx-1 transition-opacity duration-200 ${loading ? 'opacity-40' : 'opacity-100'}`}>
+      <div className={`relative z-10 -mx-2 transition-opacity duration-200 ${loading ? 'opacity-40' : 'opacity-100'}`}>
         <div ref={chartRef} />
       </div>
 
-      {/* Delay note */}
-      <p className="text-[10px] text-muted-foreground/50 text-right mt-0.5">
+      {/* Footer note */}
+      <p className="relative z-10 text-[10px] text-gray-600 text-right mt-2">
         {isFallback
-          ? 'Market closed · estimated shape'
-          : `Real data · ${PERIOD_LABEL[period]}`}
+          ? '🔒 Market closed · estimated shape'
+          : `📊 Real data · ${PERIOD_LABEL[period]}`}
       </p>
     </div>
   );

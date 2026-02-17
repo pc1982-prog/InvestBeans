@@ -1,5 +1,5 @@
 // ============================================================
-// InvestBeans — Global Markets Routes
+// InvestBeans — Global Markets Routes (IMPROVED)
 // Yahoo Finance: indices + commodities + bonds + VIX (real 15min candles)
 // Yahoo Finance: forex daily change (via currency pairs)
 // ExchangeRate API: current forex rates
@@ -50,7 +50,7 @@ async function yahooQuote(symbol) {
 
       const price         = meta.regularMarketPrice;
       const prev          = meta.chartPreviousClose ?? meta.previousClose ?? price;
-      const change        = parseFloat((price - prev).toFixed(2));
+      const change        = parseFloat((price - prev).toFixed(3));
       const changePercent = prev ? parseFloat(((change / prev) * 100).toFixed(2)) : 0;
 
       const timestamps = result?.timestamp || [];
@@ -70,9 +70,42 @@ async function yahooQuote(symbol) {
   return null;
 }
 
+// ── Fetch Treasury Yield with proper formatting ───────────
+async function yahooYield(symbol) {
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const host = YF_HOSTS[(yfHostIdx + attempt) % YF_HOSTS.length];
+    const url  = `${host}/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=5d`;
+    try {
+      const res = await fetch(url, { headers: YF_HEADERS });
+      if (res.status === 429) { await new Promise(r => setTimeout(r, 500)); continue; }
+      if (!res.ok) throw new Error(`Yield ${symbol} → ${res.status}`);
+
+      const json   = await res.json();
+      const result = json?.chart?.result?.[0];
+      const meta   = result?.meta;
+      if (!meta?.regularMarketPrice) {
+        console.warn(`[Yield] No price for ${symbol}`);
+        return null;
+      }
+
+      yfHostIdx = (yfHostIdx + 1) % YF_HOSTS.length;
+
+      const price         = meta.regularMarketPrice;
+      const prev          = meta.chartPreviousClose ?? meta.previousClose ?? price;
+      const change        = parseFloat((price - prev).toFixed(3));
+
+      console.log(`[Yield] ${symbol}: price=${price}, prev=${prev}, change=${change}`);
+
+      return { yield: price, change };
+    } catch (e) {
+      console.error(`[Yield] ${symbol} attempt ${attempt + 1}:`, e.message);
+      if (attempt === 1) return null;
+    }
+  }
+  return null;
+}
+
 // ── Fetch forex daily change from Yahoo (e.g. EURUSD=X) ───
-// Yahoo supports currency pairs as "EURUSD=X", "USDJPY=X" etc.
-// interval=1d&range=5d gives last few daily closes → we use prev close for % change
 async function yahooForexChange(ySymbol) {
   for (let attempt = 0; attempt < 2; attempt++) {
     const host = YF_HOSTS[(yfHostIdx + attempt) % YF_HOSTS.length];
@@ -89,7 +122,6 @@ async function yahooForexChange(ySymbol) {
 
       yfHostIdx = (yfHostIdx + 1) % YF_HOSTS.length;
 
-      // Use meta fields for reliable daily change
       const price         = meta.regularMarketPrice;
       const prev          = meta.chartPreviousClose ?? meta.previousClose ?? price;
       const change        = parseFloat((price - prev).toFixed(4));
@@ -105,7 +137,6 @@ async function yahooForexChange(ySymbol) {
 }
 
 // ── Yahoo symbol map for forex pairs ──────────────────────
-// ExchangeRate API gives current rate; Yahoo gives daily % change
 const FOREX_YAHOO_MAP = {
   "EUR/USD": "EURUSD=X",
   "USD/JPY": "USDJPY=X",
@@ -128,10 +159,11 @@ const COMMODITY_CONFIG = [
   { symbol: "NG=F",  name: "Natural Gas",   unit: "USD/MMBtu" },
 ];
 
+// Updated yield symbols for better data
 const YIELD_SYMBOLS = [
-  { symbol: "^TNX", name: "US 10Y" },
-  { symbol: "^FVX", name: "US 5Y"  },
-  { symbol: "^IRX", name: "US 3M"  },
+  { symbol: "^TNX", name: "US 10Y" },  // 10-year Treasury yield
+  { symbol: "^FVX", name: "US 5Y"  },  // 5-year Treasury yield
+  { symbol: "^IRX", name: "US 3M"  },  // 3-month Treasury yield
 ];
 
 const FOREX_PAIRS = [
@@ -181,26 +213,34 @@ router.get("/global", async (req, res) => {
       return res.json(_cache);
     }
 
-    // ── Step 1: Fetch all index/commodity/bond/VIX quotes ─
-    const allSymbols = [
+    // ── Step 1: Fetch all index/commodity quotes ─────────
+    const indexCommoditySymbols = [
       ...INDEX_SYMBOLS.us.map(i => i.symbol),
       ...INDEX_SYMBOLS.europe.map(i => i.symbol),
       ...INDEX_SYMBOLS.asia.map(i => i.symbol),
       ...COMMODITY_CONFIG.map(c => c.symbol),
-      ...YIELD_SYMBOLS.map(y => y.symbol),
       "^VIX",
     ];
 
     const quotes = await Promise.all(
-      allSymbols.map((symbol, i) =>
+      indexCommoditySymbols.map((symbol, i) =>
         new Promise(resolve =>
           setTimeout(() => yahooQuote(symbol).then(resolve), i * 120)
         )
       )
     );
 
-    // ── Step 2: Fetch forex daily % change from Yahoo ─────
-    // Run in parallel with a small stagger
+    // ── Step 2: Fetch Treasury Yields separately ──────────
+    console.log("[Bonds] Fetching Treasury Yields...");
+    const yieldResults = await Promise.all(
+      YIELD_SYMBOLS.map((item, i) =>
+        new Promise(resolve =>
+          setTimeout(() => yahooYield(item.symbol).then(resolve), i * 150)
+        )
+      )
+    );
+
+    // ── Step 3: Fetch forex daily % change from Yahoo ─────
     const forexChangeResults = await Promise.all(
       FOREX_PAIRS.map(({ pair }, i) =>
         new Promise(resolve =>
@@ -235,13 +275,19 @@ router.get("/global", async (req, res) => {
       return { ...item, ...q };
     }).filter(Boolean);
 
-    // ── Bonds ─────────────────────────────────────────────
-    let bonds = YIELD_SYMBOLS.map(item => {
-      const q = quotes[idx++];
-      if (!q) return null;
-      return { name: item.name, yield: q.price, change: q.change };
+    // ── Bonds (Treasury Yields) ───────────────────────────
+    let bonds = YIELD_SYMBOLS.map((item, i) => {
+      const y = yieldResults[i];
+      if (!y) {
+        console.warn(`[Bonds] No data for ${item.name}`);
+        return null;
+      }
+      return { name: item.name, yield: y.yield, change: y.change };
     }).filter(Boolean);
 
+    console.log("[Bonds] Final bonds data:", bonds);
+
+    // Add spread calculation if we have 10Y and 5Y
     const y10 = bonds.find(b => b.name === "US 10Y");
     const y5  = bonds.find(b => b.name === "US 5Y");
     if (y10 && y5) {

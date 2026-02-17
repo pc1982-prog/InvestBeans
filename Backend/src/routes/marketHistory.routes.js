@@ -1,4 +1,3 @@
-
 import express from "express";
 const router = express.Router();
 
@@ -18,10 +17,10 @@ const YF_HEADERS = {
   "Cache-Control": "no-cache",
 };
 
-// Period → Yahoo interval + range params
+// Period → Yahoo interval + range params (INCREASED for more candles)
 const PERIOD_PARAMS = {
-  "1D":  { interval: "15m",  range: "1d"  },   // 15-min candles, today
-  "1W":  { interval: "1h",   range: "5d"  },   // 1-hr candles, last 5 days
+  "1D":  { interval: "5m",   range: "1d"  },   // 5-min candles (more data points)
+  "1W":  { interval: "30m",  range: "5d"  },   // 30-min candles (more data points)
   "1M":  { interval: "1d",   range: "1mo" },   // daily candles, 1 month
   "3M":  { interval: "1d",   range: "3mo" },   // daily candles, 3 months
   "1Y":  { interval: "1wk",  range: "1y"  },   // weekly candles, 1 year
@@ -84,6 +83,8 @@ async function fetchYahooHistory(symbol, period) {
         .filter(Boolean);
 
       yfHostIdx = (yfHostIdx + 1) % YF_HOSTS.length;
+
+      console.log(`[History] ${symbol} ${period}: Fetched ${candles.length} candles`);
 
       return {
         symbol,

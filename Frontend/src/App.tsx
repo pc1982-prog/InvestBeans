@@ -25,6 +25,7 @@ import GlobalToastListener from "./components/GlobalToastListener";
 import TermsOfService from "./views/Termsofservice";
 import HelpCenter from "./views/Helpcenter";
 import PrivacyPolicy from "./views/Privacypolicy";
+import ChartPage from "./components/Chartpage";
 
 
 const queryClient = new QueryClient();
@@ -43,6 +44,7 @@ const App = () => (
             <Route path="/domestic" element={<DomesticController />} />
             <Route path="/global" element={<GlobalController />} />
             <Route path="/markets" element={<MarketsView />} />
+            <Route path="/chart/:symbol" element={<ChartPage />} />
             <Route path="/education" element={<EducationView />} />
             <Route path="/team" element={<TeamView />} />
             <Route path="/blogs" element={<BlogsView />} />
