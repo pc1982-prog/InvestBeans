@@ -18,10 +18,10 @@ import { useState, useMemo } from "react";
 function ErrorBanner({ error }: { error: string | null }) {
   if (!error) return null;
   return (
-    <div className="flex items-start gap-3 p-4 mb-8 rounded-xl bg-red-900/20 border border-red-800/30 text-red-300 text-sm">
+    <div className="flex items-start gap-3 p-4 mb-8 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm">
       <AlertCircle className="w-5 h-5 mt-0.5 shrink-0" />
       <div>
-        <strong className="block mb-1">Error loading data</strong>
+        <strong className="block mb-1 text-red-800">Error loading data</strong>
         <span>{error}</span>
       </div>
     </div>
@@ -31,17 +31,17 @@ function ErrorBanner({ error }: { error: string | null }) {
 function SectionTitle({ icon: Icon, children }: { icon?: any; children: React.ReactNode }) {
   return (
     <div className="flex items-center gap-3 mb-5">
-      {Icon && <Icon className="w-5 h-5 text-gray-400" />}
-      <h2 className="text-2xl font-bold text-white">{children}</h2>
+      {Icon && <Icon className="w-5 h-5 text-slate-600" />}
+      <h2 className="text-2xl font-bold text-slate-900">{children}</h2>
     </div>
   );
 }
 
 const VIX_STYLE: Record<string, string> = {
-  low:      "bg-emerald-900/20 border-emerald-800/30 text-emerald-400",
-  moderate: "bg-amber-900/20 border-amber-800/30 text-amber-400",
-  high:     "bg-orange-900/20 border-orange-800/30 text-orange-400",
-  extreme:  "bg-red-900/20 border-red-800/30 text-red-400",
+  low:      "bg-emerald-50 border-emerald-200 text-emerald-700",
+  moderate: "bg-amber-50 border-amber-200 text-amber-700",
+  high:     "bg-orange-50 border-orange-200 text-orange-700",
+  extreme:  "bg-red-50 border-red-200 text-red-700",
 };
 
 // ── Market Selector Component ──
@@ -57,7 +57,7 @@ function MarketSelector({ title, markets, icon, onChartClick }: MarketSelectorPr
 
   if (markets.length === 0) {
     return (
-      <div className="text-center py-16 text-gray-500">
+      <div className="text-center py-16 text-slate-400">
         <Activity className="w-12 h-12 mx-auto mb-3 opacity-30" />
         <p>No market data available</p>
       </div>
@@ -78,15 +78,15 @@ function MarketSelector({ title, markets, icon, onChartClick }: MarketSelectorPr
             <button
               key={market.symbol}
               onClick={() => setSelectedIndex(idx)}
-              className={`px-4 py-2.5 rounded-lg font-semibold text-sm transition-all ${
+              className={`px-4 py-2.5 rounded-lg font-semibold text-sm transition-all border ${
                 selectedIndex === idx
-                  ? 'bg-gray-700 text-white border border-gray-600'
-                  : 'bg-gray-800/50 text-gray-400 border border-gray-700/50 hover:bg-gray-800 hover:border-gray-600'
+                  ? 'bg-slate-900 text-white border-slate-900 shadow-md'
+                  : 'bg-white text-slate-700 border-slate-300 hover:border-slate-400 hover:bg-slate-50'
               }`}
             >
               <span className="flex items-center gap-2">
                 {market.name}
-                <span className={`text-xs font-bold ${isPositive ? 'text-emerald-400' : 'text-red-400'}`}>
+                <span className={`text-xs font-bold ${isPositive ? 'text-emerald-600' : 'text-red-600'}`}>
                   {isPositive ? '+' : ''}{market.changePercent.toFixed(2)}%
                 </span>
               </span>
@@ -155,23 +155,23 @@ export default function GlobalView() {
 
   return (
     <Layout>
-      {/* Simple dark background */}
-      <div className="min-h-screen bg-[#0a0e1a]">
+      {/* Clean white background */}
+      <div className="min-h-screen bg-white">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 max-w-7xl">
 
-          {/* ── Simple Header ── */}
+          {/* ── Premium Header ── */}
           <div className="mb-10">
-            <div className="bg-gray-900 rounded-2xl border border-gray-800 p-8 shadow-xl">
+            <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl border border-slate-200 p-8 shadow-sm">
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
                 <div>
-                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-gray-400 text-xs font-semibold mb-3">
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-900 text-white text-xs font-semibold mb-3">
                     <Activity className="w-3.5 h-3.5" />
                     LIVE MARKETS
                   </div>
-                  <h1 className="text-4xl sm:text-5xl font-black text-white mb-2">
+                  <h1 className="text-4xl sm:text-5xl font-black text-slate-900 mb-2">
                     Global Financial Markets
                   </h1>
-                  <p className="text-gray-400">
+                  <p className="text-slate-600">
                     Real-time data · Click any chart for detailed analysis
                   </p>
                 </div>
@@ -179,7 +179,7 @@ export default function GlobalView() {
                 <Button
                   onClick={handleRefresh}
                   disabled={refreshing || isLoading}
-                  className="bg-gray-800 hover:bg-gray-700 text-white border border-gray-700 px-6 py-6"
+                  className="bg-slate-900 hover:bg-slate-800 text-white border-0 px-6 py-6 shadow-md"
                 >
                   <RefreshCw className={`w-5 h-5 mr-2 ${refreshing ? "animate-spin" : ""}`} />
                   <span className="font-semibold">Refresh</span>
@@ -193,7 +193,7 @@ export default function GlobalView() {
           {/* US MARKETS */}
           {isLoading ? (
             <div className="mb-10">
-              <div className="h-96 bg-gray-900/50 rounded-2xl animate-pulse border border-gray-800" />
+              <div className="h-96 bg-slate-50 rounded-2xl animate-pulse border border-slate-200" />
             </div>
           ) : (
             <MarketSelector
@@ -207,7 +207,7 @@ export default function GlobalView() {
           {/* EUROPE MARKETS */}
           {isLoading ? (
             <div className="mb-10">
-              <div className="h-96 bg-gray-900/50 rounded-2xl animate-pulse border border-gray-800" />
+              <div className="h-96 bg-slate-50 rounded-2xl animate-pulse border border-slate-200" />
             </div>
           ) : (
             <MarketSelector
@@ -221,7 +221,7 @@ export default function GlobalView() {
           {/* ASIA MARKETS */}
           {isLoading ? (
             <div className="mb-10">
-              <div className="h-96 bg-gray-900/50 rounded-2xl animate-pulse border border-gray-800" />
+              <div className="h-96 bg-slate-50 rounded-2xl animate-pulse border border-slate-200" />
             </div>
           ) : (
             <MarketSelector
@@ -238,7 +238,7 @@ export default function GlobalView() {
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
               {isLoading
                 ? Array.from({ length: 4 }).map((_, i) => (
-                    <div key={i} className="h-40 bg-gray-900/50 rounded-xl animate-pulse border border-gray-800" />
+                    <div key={i} className="h-40 bg-slate-50 rounded-xl animate-pulse border border-slate-200" />
                   ))
                 : forexData.map((fx: ForexPair) => {
                     const pos = fx.changePercent >= 0;
@@ -267,7 +267,7 @@ export default function GlobalView() {
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
               {isLoading
                 ? Array.from({ length: 5 }).map((_, i) => (
-                    <div key={i} className="h-40 bg-gray-900/50 rounded-xl animate-pulse border border-gray-800" />
+                    <div key={i} className="h-40 bg-slate-50 rounded-xl animate-pulse border border-slate-200" />
                   ))
                 : commoditiesData.map((c: Commodity) => {
                     const pos = c.changePercent >= 0;
@@ -297,28 +297,28 @@ export default function GlobalView() {
             {/* Treasury Yields */}
             <div>
               <SectionTitle icon={Landmark}>Treasury Yields</SectionTitle>
-              <div className="bg-gray-900 rounded-2xl border border-gray-800 overflow-hidden">
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
                 {isLoading ? (
                   <div className="h-64 flex items-center justify-center">
-                    <div className="animate-pulse text-gray-500">Loading...</div>
+                    <div className="animate-pulse text-slate-400">Loading...</div>
                   </div>
                 ) : bondsData.length > 0 ? (
-                  <div className="divide-y divide-gray-800">
+                  <div className="divide-y divide-slate-100">
                     {bondsData.map((bond: BondYield, i: number) => {
                       const pos = bond.change >= 0;
                       return (
-                        <div key={i} className="p-5 flex items-center justify-between hover:bg-gray-800/50 transition-colors">
+                        <div key={i} className="p-5 flex items-center justify-between hover:bg-slate-50 transition-colors">
                           <div>
-                            <h3 className="font-bold text-white">{bond.name}</h3>
-                            <p className={`text-sm font-semibold mt-1 ${pos ? "text-emerald-400" : "text-red-400"}`}>
+                            <h3 className="font-bold text-slate-900">{bond.name}</h3>
+                            <p className={`text-sm font-semibold mt-1 ${pos ? "text-emerald-600" : "text-red-600"}`}>
                               {pos ? "+" : ""}{bond.change.toFixed(3)}%
                             </p>
                           </div>
                           <div className="text-right">
-                            <div className="text-3xl font-black text-white">
+                            <div className="text-3xl font-black text-slate-900">
                               {bond.yield.toFixed(3)}%
                             </div>
-                            <div className={`flex items-center gap-1 mt-1 justify-end ${pos ? "text-emerald-400" : "text-red-400"}`}>
+                            <div className={`flex items-center gap-1 mt-1 justify-end ${pos ? "text-emerald-600" : "text-red-600"}`}>
                               {pos ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
                             </div>
                           </div>
@@ -327,7 +327,7 @@ export default function GlobalView() {
                     })}
                   </div>
                 ) : (
-                  <p className="p-12 text-center text-gray-500">Bond data unavailable</p>
+                  <p className="p-12 text-center text-slate-400">Bond data unavailable</p>
                 )}
               </div>
             </div>
@@ -336,13 +336,13 @@ export default function GlobalView() {
             <div>
               <SectionTitle icon={Percent}>Volatility Index (VIX)</SectionTitle>
               {isLoading ? (
-                <div className="h-64 bg-gray-900/50 rounded-2xl animate-pulse border border-gray-800" />
+                <div className="h-64 bg-slate-50 rounded-2xl animate-pulse border border-slate-200" />
               ) : data?.vix ? (
-                <div className={`rounded-2xl border p-10 flex flex-col items-center justify-center gap-4 bg-gray-900 ${VIX_STYLE[data.vix.sentiment]}`}>
-                  <div className="text-7xl font-black text-white">
+                <div className={`rounded-2xl border p-10 flex flex-col items-center justify-center gap-4 shadow-sm ${VIX_STYLE[data.vix.sentiment]}`}>
+                  <div className="text-7xl font-black text-slate-900">
                     {data.vix.value.toFixed(2)}
                   </div>
-                  <p className="text-lg font-bold text-gray-300">
+                  <p className="text-lg font-bold text-slate-700">
                     {data.vix.change >= 0 ? "+" : ""}{data.vix.change.toFixed(2)} ({data.vix.changePercent.toFixed(2)}%)
                   </p>
                   <span className={`px-6 py-2 rounded-full text-sm font-bold border uppercase ${VIX_STYLE[data.vix.sentiment]}`}>
@@ -350,8 +350,8 @@ export default function GlobalView() {
                   </span>
                 </div>
               ) : (
-                <div className="h-64 rounded-2xl border border-gray-800 bg-gray-900/50 flex items-center justify-center">
-                  <p className="text-gray-500">VIX data unavailable</p>
+                <div className="h-64 rounded-2xl border border-slate-200 bg-slate-50 flex items-center justify-center">
+                  <p className="text-slate-400">VIX data unavailable</p>
                 </div>
               )}
             </div>
@@ -363,37 +363,37 @@ export default function GlobalView() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
               {isLoading
                 ? Array.from({ length: 3 }).map((_, i) => (
-                    <div key={i} className="h-56 bg-gray-900/50 rounded-2xl animate-pulse border border-gray-800" />
+                    <div key={i} className="h-56 bg-slate-50 rounded-2xl animate-pulse border border-slate-200" />
                   ))
                 : regionsData.map((r: RegionSummary) => {
                     const pos = r.avgChange >= 0;
                     return (
-                      <div key={r.name} className="bg-gray-900 rounded-2xl border border-gray-800 hover:border-gray-700 transition-all p-5">
+                      <div key={r.name} className="bg-white rounded-2xl border border-slate-200 hover:border-slate-300 hover:shadow-md transition-all p-5">
                         <div className="flex justify-between mb-4">
                           <div className="flex items-center gap-3">
                             <span className="text-3xl">{r.flag}</span>
                             <div>
-                              <h3 className="font-bold text-white">{r.name}</h3>
-                              <p className="text-xs text-gray-500">{r.countries.join(", ")}</p>
+                              <h3 className="font-bold text-slate-900">{r.name}</h3>
+                              <p className="text-xs text-slate-500">{r.countries.join(", ")}</p>
                             </div>
                           </div>
-                          <div className={`text-2xl font-black ${pos ? "text-emerald-400" : "text-red-400"}`}>
+                          <div className={`text-2xl font-black ${pos ? "text-emerald-600" : "text-red-600"}`}>
                             {pos ? "+" : ""}{r.avgChange.toFixed(2)}%
                           </div>
                         </div>
 
                         <div className="space-y-2 text-sm">
-                          <div className="flex items-center justify-between p-2.5 rounded-lg bg-emerald-900/20 border border-emerald-800/30">
-                            <span className="text-gray-400">Best</span>
-                            <span className="text-emerald-400 font-bold">{r.best.name} ({r.best.change.toFixed(2)}%)</span>
+                          <div className="flex items-center justify-between p-2.5 rounded-lg bg-emerald-50 border border-emerald-200">
+                            <span className="text-slate-600">Best</span>
+                            <span className="text-emerald-700 font-bold">{r.best.name} ({r.best.change.toFixed(2)}%)</span>
                           </div>
-                          <div className="flex items-center justify-between p-2.5 rounded-lg bg-red-900/20 border border-red-800/30">
-                            <span className="text-gray-400">Worst</span>
-                            <span className="text-red-400 font-bold">{r.worst.name} ({r.worst.change.toFixed(2)}%)</span>
+                          <div className="flex items-center justify-between p-2.5 rounded-lg bg-red-50 border border-red-200">
+                            <span className="text-slate-600">Worst</span>
+                            <span className="text-red-700 font-bold">{r.worst.name} ({r.worst.change.toFixed(2)}%)</span>
                           </div>
                         </div>
 
-                        <div className="flex justify-between text-xs text-gray-500 mt-4 pt-4 border-t border-gray-800">
+                        <div className="flex justify-between text-xs text-slate-500 mt-4 pt-4 border-t border-slate-200">
                           <div className="flex items-center gap-1">
                             <MapPin className="w-3.5 h-3.5" />
                             {r.countries.length} markets
@@ -415,25 +415,25 @@ export default function GlobalView() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {eventsData.map((ev, i) => {
                 const IC: Record<string, string> = {
-                  High:   "bg-red-900/20 text-red-400 border-red-800/30",
-                  Medium: "bg-amber-900/20 text-amber-400 border-amber-800/30",
-                  Low:    "bg-emerald-900/20 text-emerald-400 border-emerald-800/30",
+                  High:   "bg-red-50 text-red-700 border-red-200",
+                  Medium: "bg-amber-50 text-amber-700 border-amber-200",
+                  Low:    "bg-emerald-50 text-emerald-700 border-emerald-200",
                 };
                 const d = new Date(ev.date);
                 const dateStr = isNaN(d.getTime()) ? ev.date : d.toLocaleDateString("en-IN", { day: "2-digit", month: "short" });
 
                 return (
-                  <div key={i} className="bg-gray-900 rounded-xl border border-gray-800 p-4 hover:border-gray-700 transition-all">
+                  <div key={i} className="bg-white rounded-xl border border-slate-200 p-4 hover:border-slate-300 hover:shadow-sm transition-all">
                     <div className="flex gap-2 flex-wrap mb-2">
                       <span className={`px-2.5 py-1 text-xs font-bold rounded-full border ${IC[ev.impact]}`}>
                         {ev.impact}
                       </span>
-                      <span className="px-2.5 py-1 bg-gray-800 text-gray-400 text-xs font-semibold rounded-full border border-gray-700">
+                      <span className="px-2.5 py-1 bg-slate-100 text-slate-700 text-xs font-semibold rounded-full border border-slate-200">
                         {ev.region}
                       </span>
-                      <span className="ml-auto text-xs text-gray-500 font-medium">{dateStr}</span>
+                      <span className="ml-auto text-xs text-slate-500 font-medium">{dateStr}</span>
                     </div>
-                    <h3 className="font-semibold text-sm text-gray-200">{ev.title}</h3>
+                    <h3 className="font-semibold text-sm text-slate-800">{ev.title}</h3>
                   </div>
                 );
               })}
@@ -441,9 +441,9 @@ export default function GlobalView() {
           </section>
 
           {/* STATUS BAR */}
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
+          <div className="bg-gradient-to-br from-slate-50 to-slate-100 border border-slate-200 rounded-2xl p-5 shadow-sm">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-sm">
-              <div className="flex items-center gap-3 text-gray-400">
+              <div className="flex items-center gap-3 text-slate-600">
                 <Activity className="w-5 h-5" />
                 <span className="font-medium">
                   Last updated:{" "}
@@ -457,18 +457,18 @@ export default function GlobalView() {
                 {data && (["us", "europe", "asia"] as const).map((region) => (
                   <div key={region} className="flex items-center gap-2">
                     {data.marketStatus[region] === "open" ? (
-                      <Wifi className="w-4 h-4 text-emerald-400" />
+                      <Wifi className="w-4 h-4 text-emerald-600" />
                     ) : (
-                      <WifiOff className="w-4 h-4 text-gray-600" />
+                      <WifiOff className="w-4 h-4 text-slate-400" />
                     )}
-                    <span className={`uppercase font-bold text-xs ${data.marketStatus[region] === "open" ? "text-emerald-400" : "text-gray-600"}`}>
+                    <span className={`uppercase font-bold text-xs ${data.marketStatus[region] === "open" ? "text-emerald-600" : "text-slate-400"}`}>
                       {region} {data.marketStatus[region]}
                     </span>
                   </div>
                 ))}
                 <div className="flex items-center gap-2">
-                  <div className={`w-2.5 h-2.5 rounded-full ${loading === "loading" || refreshing ? "bg-amber-400 animate-pulse" : "bg-emerald-400"}`} />
-                  <span className="font-bold text-xs text-emerald-400">
+                  <div className={`w-2.5 h-2.5 rounded-full ${loading === "loading" || refreshing ? "bg-amber-500 animate-pulse" : "bg-emerald-500"}`} />
+                  <span className="font-bold text-xs text-emerald-600">
                     {loading === "loading" || refreshing ? "UPDATING" : "LIVE"}
                   </span>
                 </div>
