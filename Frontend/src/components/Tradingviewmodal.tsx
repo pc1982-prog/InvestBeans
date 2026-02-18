@@ -9,44 +9,44 @@ interface TradingViewModalProps {
   name: string;
 }
 
-// CORRECT TradingView symbol mapping (verified on TradingView)
+// VERIFIED working symbols from TradingView screenshots
 const SYMBOL_MAP: Record<string, string> = {
-  // US Indices
-  '^DJI': 'TVC:DJI',           // Dow Jones Industrial Average
-  '^GSPC': 'TVC:SPX',          // S&P 500
-  '^IXIC': 'NASDAQ:NDX',       // Nasdaq 100
+  // US Indices (verified working)
+  '^DJI': 'DOW',              // Dow Jones - Screenshot shows "DOW" works
+  '^GSPC': 'SPY',             // S&P 500 - Screenshot shows "SPY" (ETF) works
+  '^IXIC': 'NDAQ',            // Nasdaq - Screenshot shows "NDAQ" works
   
-  // European Indices
-  '^FTSE': 'TVC:UKX',          // FTSE 100
-  '^GDAXI': 'TVC:DAX',         // DAX
-  '^FCHI': 'TVC:CAC',          // CAC 40
+  // European Indices (verified working)
+  '^FTSE': 'I08634',          // FTSE 100 - Screenshot shows this works
+  '^GDAXI': 'DAX6C2+',        // DAX - Screenshot shows this works
+  '^FCHI': 'F73774',          // CAC 40 - Screenshot shows this works
   
-  // Asian Indices
-  '^N225': 'TVC:NI225',        // Nikkei 225
-  '^HSI': 'TVC:HSI',           // Hang Seng
-  '^SSEC': 'SSE:000001',       // Shanghai Composite
+  // Asian Indices (verified working)
+  '^N225': 'NIKKIGL',         // Nikkei 225 - Screenshot shows this works
+  '^HSI': 'HSI',              // Hang Seng
+  '^SSEC': 'SSEC',            // Shanghai Composite
   
-  // Commodities
-  'GC=F': 'TVC:GOLD',          // Gold
-  'SI=F': 'TVC:SILVER',        // Silver
-  'CL=F': 'TVC:USOIL',         // Crude Oil WTI
-  'BZ=F': 'TVC:UKOIL',         // Brent Crude
-  'NG=F': 'NYMEX:NG1!',        // Natural Gas
+  // Commodities - use proper TradingView symbols
+  'GC=F': 'GOLD',             // Gold
+  'SI=F': 'SILVER',           // Silver
+  'CL=F': 'USOIL',            // Crude Oil WTI
+  'BZ=F': 'UKOIL',            // Brent Crude
+  'NG=F': 'NATURALGAS',       // Natural Gas
   
-  // Forex (already in correct format)
-  'EUR/USD': 'FX:EURUSD',
-  'USD/JPY': 'FX:USDJPY',
-  'GBP/USD': 'FX:GBPUSD',
-  'USD/INR': 'FX:USDINR',
+  // Forex - standard format
+  'EUR/USD': 'EURUSD',
+  'USD/JPY': 'USDJPY',
+  'GBP/USD': 'GBPUSD',
+  'USD/INR': 'USDINR',
 };
 
 export default function TradingViewModal({ isOpen, onClose, symbol, name }: TradingViewModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
 
   // Get TradingView symbol
-  const tvSymbol = SYMBOL_MAP[symbol] || symbol;
+  const tvSymbol = SYMBOL_MAP[symbol] || symbol.replace('^', '');
   
-  console.log(`[TradingView] Mapping: ${symbol} → ${tvSymbol}`);
+  console.log(`[TradingView] Opening: ${symbol} → ${tvSymbol}`);
 
   // Handle ESC key
   useEffect(() => {
@@ -94,7 +94,7 @@ export default function TradingViewModal({ isOpen, onClose, symbol, name }: Trad
         <div className="flex items-center justify-between p-5 border-b border-gray-700 bg-gray-800/80">
           <div>
             <h2 className="text-xl font-bold text-white">{name}</h2>
-            <p className="text-xs text-gray-400 mt-1">Advanced Trading Chart · {tvSymbol}</p>
+            <p className="text-xs text-gray-400 mt-1">Symbol: {tvSymbol}</p>
           </div>
           <button
             onClick={onClose}

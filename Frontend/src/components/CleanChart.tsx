@@ -25,8 +25,8 @@ type Period = '1D' | '1W' | '1M' | '3M' | '1Y';
 const PERIODS: Period[] = ['1D', '1W', '1M', '3M', '1Y'];
 
 const PERIOD_LABEL: Record<Period, string> = {
-  '1D': '1D · 15min',
-  '1W': '1W · 1hr',
+  '1D': '1D · 5min',
+  '1W': '1W · 30min',
   '1M': '1M · Daily',
   '3M': '3M · Daily',
   '1Y': '1Y · Weekly',
@@ -187,7 +187,7 @@ const CleanChart = ({
       },
       plotOptions: {
         candlestick: {
-          colors:  { upward: '#10b981', downward: '#ef4444' },
+          colors:  { upward: '#059669', downward: '#dc2626' },
           wick:    { useFillColor: true },
         },
       },
@@ -208,14 +208,14 @@ const CleanChart = ({
       },
       grid: {
         show:            true,
-        borderColor:     'rgba(55,65,81,0.3)',
+        borderColor:     'rgba(226, 232, 240, 0.5)',
         strokeDashArray: 4,
         xaxis: { lines: { show: false } },
         yaxis: { lines: { show: true  } },
         padding: { top: 4, right: 8, bottom: 0, left: 8 },
       },
       tooltip: {
-        theme: 'dark',
+        theme: 'light',
         x:     { format: period === '1D' || period === '1W' ? 'dd MMM HH:mm' : 'dd MMM yyyy' },
         y:     {
           formatter: (v: number) =>
@@ -239,24 +239,21 @@ const CleanChart = ({
   const isPeriodPositive = periodChangePercent >= 0;
 
   return (
-    <div className="relative group bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl border border-gray-700/50 hover:border-gray-600 hover:shadow-2xl transition-all duration-300 p-6 sm:p-8 overflow-hidden">
+    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all p-6 sm:p-8 overflow-hidden">
       
-      {/* Glow effect on hover */}
-      <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none rounded-2xl" />
-
       {/* Name */}
-      <h3 className="relative z-10 text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">
+      <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">
         {name}
       </h3>
 
       {/* Price + High/Low */}
-      <div className="relative z-10 flex items-start justify-between mb-4">
+      <div className="flex items-start justify-between mb-4">
         <div>
-          <div className="text-4xl sm:text-5xl font-black text-white tracking-tight leading-none mb-2">
+          <div className="text-4xl sm:text-5xl font-black text-slate-900 tracking-tight leading-none mb-2">
             {price.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
           <div className={`flex items-center gap-2 text-base font-bold ${
-            isPeriodPositive ? 'text-emerald-400' : 'text-red-400'
+            isPeriodPositive ? 'text-emerald-600' : 'text-red-600'
           }`}>
             {isPeriodPositive
               ? <TrendingUp  className="w-5 h-5" />
@@ -267,18 +264,18 @@ const CleanChart = ({
             </span>
           </div>
         </div>
-        <div className="text-right text-xs text-gray-500 leading-relaxed space-y-1">
-          <div className="px-2 py-1 rounded bg-gray-800/50 border border-gray-700/30">
-            H: <span className="text-gray-300 font-semibold">{periodHigh.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</span>
+        <div className="text-right text-xs text-slate-500 leading-relaxed space-y-1">
+          <div className="px-2 py-1 rounded bg-slate-50 border border-slate-200">
+            H: <span className="text-slate-700 font-semibold">{periodHigh.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</span>
           </div>
-          <div className="px-2 py-1 rounded bg-gray-800/50 border border-gray-700/30">
-            L: <span className="text-gray-300 font-semibold">{periodLow.toLocaleString('en-IN',  { maximumFractionDigits: 2 })}</span>
+          <div className="px-2 py-1 rounded bg-slate-50 border border-slate-200">
+            L: <span className="text-slate-700 font-semibold">{periodLow.toLocaleString('en-IN',  { maximumFractionDigits: 2 })}</span>
           </div>
         </div>
       </div>
 
       {/* Period Buttons */}
-      <div className="relative z-10 flex items-center gap-1.5 mt-4 mb-3 flex-wrap">
+      <div className="flex items-center gap-1.5 mt-4 mb-3 flex-wrap">
         {PERIODS.map(p => (
           <button
             key={p}
@@ -286,23 +283,23 @@ const CleanChart = ({
             disabled={loading}
             className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
               period === p
-                ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg shadow-blue-500/30'
-                : 'bg-gray-800/50 text-gray-400 border border-gray-700/30 hover:bg-gray-800 hover:text-gray-300'
+                ? 'bg-slate-900 text-white shadow-md'
+                : 'bg-slate-100 text-slate-600 border border-slate-200 hover:bg-slate-200'
             }`}
           >
             {p}
           </button>
         ))}
-        {loading && <Loader2 className="w-4 h-4 ml-2 animate-spin text-blue-400" />}
+        {loading && <Loader2 className="w-4 h-4 ml-2 animate-spin text-slate-400" />}
       </div>
 
       {/* Candlestick Chart */}
-      <div className={`relative z-10 -mx-2 transition-opacity duration-200 ${loading ? 'opacity-40' : 'opacity-100'}`}>
+      <div className={`-mx-2 transition-opacity duration-200 ${loading ? 'opacity-40' : 'opacity-100'}`}>
         <div ref={chartRef} />
       </div>
 
       {/* Footer note */}
-      <p className="relative z-10 text-[10px] text-gray-600 text-right mt-2">
+      <p className="text-[10px] text-slate-400 text-right mt-2">
         {isFallback
           ? '🔒 Market closed · estimated shape'
           : `📊 Real data · ${PERIOD_LABEL[period]}`}
