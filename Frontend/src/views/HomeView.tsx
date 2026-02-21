@@ -21,6 +21,7 @@ import StockHeatmapWidget from "@/components/Stockheatmapwidget";
 import DecodeMarket from "./DecodeMarket";
 import BeansOfWisdomView from "./BeansOfWisdom";
 import IPOSection from "./Iposection";
+import TestimonialsPage from "@/components/Testimonials";
 
 type ActiveTab = "domestic" | "global";
 
@@ -34,13 +35,13 @@ const HomeView = ({ activeTab, onChangeTab }: HomeViewProps) => {
 
 
   const checkoutHandler = async (amount) => {
-     const API_URL = import.meta.env.VITE_API_URL;
-     const {data:keyData}=await axios.get(`${API_URL}/getKey`);
-     const {key}=keyData
-    const {data:orderData}=await axios.post(`${API_URL}/payment/process`,{
+    const API_URL = import.meta.env.VITE_API_URL;
+    const { data: keyData } = await axios.get(`${API_URL}/getKey`);
+    const { key } = keyData
+    const { data: orderData } = await axios.post(`${API_URL}/payment/process`, {
       amount
-    }) 
-    const{order}=orderData;
+    })
+    const { order } = orderData;
     console.log(order)
     const options = {
       key,
@@ -63,8 +64,8 @@ const HomeView = ({ activeTab, onChangeTab }: HomeViewProps) => {
     const rzp = new Razorpay(options);
     rzp.open();
 
-  
-   
+
+
   };
 
   return (
@@ -137,11 +138,11 @@ const HomeView = ({ activeTab, onChangeTab }: HomeViewProps) => {
 
             {activeTab === "domestic" ? (
               <div className="w-full mb-8">
-                <TradingViewWidget  theme="dark" height="600px" />
+                <TradingViewWidget mode="domestic" theme="dark" height="600px" />
               </div>
             ) : (
               <div className="w-full mb-8">
-                <TradingViewWidget symbol="NASDAQ:AAPL" theme="dark" height="600px" />
+                <TradingViewWidget mode="global"  theme="dark" height="600px" />
               </div>
             )}
 
@@ -170,8 +171,8 @@ const HomeView = ({ activeTab, onChangeTab }: HomeViewProps) => {
             </div>
           </div>
         </section>
-        <IPOSection/>
-        
+        <IPOSection />
+
         {/* Decode the Market - Now imported from separate component */}
         <DecodeMarket activeTab={activeTab} />
 
@@ -179,7 +180,7 @@ const HomeView = ({ activeTab, onChangeTab }: HomeViewProps) => {
         <BeansOfWisdomView />
 
         {/* Deep Dives Section */}
-        <section className="mb-20 relative overflow-hidden">
+        {/* <section className="mb-20 relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-accent/5 via-transparent to-accent/10 rounded-3xl"></div>
           <div className="absolute top-0 left-0 w-60 h-60 md:w-80 md:h-80 bg-gradient-to-br from-accent/8 to-transparent rounded-full blur-3xl"></div>
           <div className="absolute bottom-0 right-0 w-72 h-72 md:w-96 md:h-96 bg-gradient-to-tl from-accent/5 to-transparent rounded-full blur-2xl"></div>
@@ -231,43 +232,13 @@ const HomeView = ({ activeTab, onChangeTab }: HomeViewProps) => {
               </div>
             </div>
           </div>
-        </section>
+        </section> */}
 
 
-
-        {/* Newsletter Subscription */}
-        <section className="relative overflow-hidden">
-          <div className="gradient-accent rounded-2xl p-10 md:p-12 relative animate-scale-in">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
-            <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
-            <div className="relative z-10 max-w-3xl mx-auto text-center">
-              <Mail className="w-12 h-12 mx-auto mb-4 text-white" />
-              <h3 className="text-3xl md:text-4xl font-bold text-white mb-4">
-                Stay Ahead in the Market
-              </h3>
-              <p className="text-white/90 text-lg mb-8">
-                Subscribe for daily insights, market trends, and expert analysis
-                delivered to your inbox
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
-                <Input
-                  type="email"
-                  placeholder="Enter your email"
-                  className="bg-white/90 border-0 text-navy placeholder:text-navy/60 h-12 text-base"
-                />
-                <Button className="bg-navy hover:bg-navy-light text-white font-semibold h-12 px-8 shadow-lg hover:shadow-xl transition-all">
-                  Subscribe
-                </Button>
-              </div>
-              <p className="text-white/70 text-sm mt-4">
-                Join 50,000+ investors getting daily market insights
-              </p>
-            </div>
-          </div>
-        </section>
+        < TestimonialsPage />
 
 
-        <section  className="relative overflow-hidden py-16">
+        <section className="relative overflow-hidden py-16 bottom-10">
           <div className="gradient-accent rounded-2xl p-10 md:p-12 relative">
 
             <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
@@ -338,7 +309,7 @@ const HomeView = ({ activeTab, onChangeTab }: HomeViewProps) => {
 
                   <div className="p-6 text-center">
                     <h3 className="text-xl font-semibold text-navy mb-2">
-                     Indian Petrolium
+                      Indian Petrolium
                     </h3>
 
                     <p className="text-2xl font-bold text-emerald-600 mb-4">
@@ -358,6 +329,38 @@ const HomeView = ({ activeTab, onChangeTab }: HomeViewProps) => {
             </div>
           </div>
         </section>
+
+        {/* Newsletter Subscription */}
+        <section className="relative overflow-hidden">
+          <div className="gradient-accent rounded-2xl p-10 md:p-12 relative animate-scale-in">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
+            <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
+            <div className="relative z-10 max-w-3xl mx-auto text-center">
+              <Mail className="w-12 h-12 mx-auto mb-4 text-white" />
+              <h3 className="text-3xl md:text-4xl font-bold text-white mb-4">
+                Stay Ahead in the Market
+              </h3>
+              <p className="text-white/90 text-lg mb-8">
+                Subscribe for daily insights, market trends, and expert analysis
+                delivered to your inbox
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
+                <Input
+                  type="email"
+                  placeholder="Enter your email"
+                  className="bg-white/90 border-0 text-navy placeholder:text-navy/60 h-12 text-base"
+                />
+                <Button className="bg-navy hover:bg-navy-light text-white font-semibold h-12 px-8 shadow-lg hover:shadow-xl transition-all">
+                  Subscribe
+                </Button>
+              </div>
+              <p className="text-white/70 text-sm mt-4">
+                Join 50,000+ investors getting daily market insights
+              </p>
+            </div>
+          </div>
+        </section>
+
 
       </div>
     </Layout>

@@ -1,4 +1,4 @@
-import { TrendingUp, Globe, BarChart3, ArrowRight, Clock, Eye, BookOpen } from "lucide-react";
+import { TrendingUp, Globe, BarChart3, ArrowRight, Clock, Eye, BookOpen, Calendar } from "lucide-react";
 
 interface DeepDiveCardProps {
   title: string;
@@ -8,6 +8,7 @@ interface DeepDiveCardProps {
   views?: number;
   category?: string;
   excerpt?: string;
+  publishedAt?: string; // ISO timestamp string
 }
 
 const DeepDiveCard = ({ 
@@ -17,7 +18,8 @@ const DeepDiveCard = ({
   readTime = "8 min read",
   views = 3456,
   category = "Market Analysis",
-  excerpt = "In-depth analysis of market trends and their implications for investors."
+  excerpt = "In-depth analysis of market trends and their implications for investors.",
+  publishedAt,
 }: DeepDiveCardProps) => {
   const Icon = icon === "chart" ? BarChart3 : Globe;
   
@@ -31,6 +33,20 @@ const DeepDiveCard = ({
     return icon === "chart"
       ? "from-blue-500/10 to-indigo-500/5 border-blue-200/50"
       : "from-emerald-500/10 to-teal-500/5 border-emerald-200/50";
+  };
+
+  // Format timestamp: prefer publishedAt ISO string, fallback to date prop
+  const formatTimestamp = () => {
+    const source = publishedAt || date;
+    const parsed = new Date(source);
+    if (isNaN(parsed.getTime())) return date; // fallback if unparseable
+    return parsed.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
   };
   
   return (
@@ -69,12 +85,15 @@ const DeepDiveCard = ({
           </p>
         </div>
 
+        {/* Timestamp row — satisfies Point 13 */}
+        <div className="flex items-center gap-1.5 text-[10px] md:text-xs text-muted-foreground mb-3 md:mb-4">
+          <Calendar className="w-3 h-3 flex-shrink-0" />
+          <span>{formatTimestamp()}</span>
+        </div>
+
         {/* Footer with stats and CTA */}
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div className="flex items-center gap-3 md:gap-4 text-xs md:text-sm text-muted-foreground">
-            <div className="flex items-center gap-1">
-              <span className="text-[10px] md:text-xs">{date}</span>
-            </div>
             <div className="flex items-center gap-1">
               <Eye className="w-3 h-3" />
               <span className="text-[10px] md:text-xs">{views.toLocaleString()}</span>

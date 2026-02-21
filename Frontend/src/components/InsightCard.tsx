@@ -1,4 +1,4 @@
-import { TrendingUp, TrendingDown, Eye, Edit, Trash2, ThumbsUp } from "lucide-react";
+import { TrendingUp, TrendingDown, Eye, Edit, Trash2, ThumbsUp, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 
@@ -12,6 +12,8 @@ interface InsightCardProps {
     likes?: number;
     isLiked?: boolean;
     category?: string;
+    publishedAt?: string; // ← NEW: ISO timestamp
+    readTime?: string;    // ← NEW: optional read time
   };
   isAdmin?: boolean;
   onReadMore: (id: string) => void;
@@ -37,13 +39,14 @@ const InsightCard = ({
     likes = 0,
     isLiked = false,
     category = "Market Analysis",
+    publishedAt,
+    readTime,
   } = insight;
 
   const [liked, setLiked] = useState(isLiked);
   const [likeCount, setLikeCount] = useState(likes);
   const [isLiking, setIsLiking] = useState(false);
 
-  // Update local state when prop changes
   useEffect(() => {
     setLiked(isLiked);
     setLikeCount(likes);
@@ -71,6 +74,23 @@ const InsightCard = ({
     }
   };
 
+  // Format timestamp: "Jan 15, 2025 · 10:30 AM"
+  const formatTimestamp = (iso: string) => {
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return iso;
+    const datePart = d.toLocaleDateString("en-IN", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+    const timePart = d.toLocaleTimeString("en-IN", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    });
+    return `${datePart} · ${timePart}`;
+  };
+
   const handleLike = async (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!onLike || isLiking) return;
@@ -79,14 +99,12 @@ const InsightCard = ({
     const previousLiked = liked;
     const previousCount = likeCount;
 
-    // Optimistic update
     setLiked(!liked);
     setLikeCount(liked ? likeCount - 1 : likeCount + 1);
 
     try {
       await onLike(_id);
     } catch (error) {
-      // Rollback on error
       setLiked(previousLiked);
       setLikeCount(previousCount);
       console.error("Failed to like insight:", error);
@@ -124,9 +142,25 @@ const InsightCard = ({
         </h3>
 
         {/* Description */}
-        <p className="text-muted-foreground mb-6 leading-relaxed line-clamp-2 text-sm md:text-base">
+        <p className="text-muted-foreground mb-4 leading-relaxed line-clamp-2 text-sm md:text-base">
           {description}
         </p>
+
+        {/* ── TIMESTAMP ROW ── shown on every card */}
+        <div className="flex items-center gap-3 text-[11px] text-muted-foreground mb-5">
+          <div className="flex items-center gap-1">
+            <Clock className="w-3 h-3 flex-shrink-0" />
+            <span>
+              {publishedAt ? formatTimestamp(publishedAt) : "Date not available"}
+            </span>
+          </div>
+          {readTime && (
+            <>
+              <span className="opacity-40">·</span>
+              <span>{readTime}</span>
+            </>
+          )}
+        </div>
 
         {/* Footer with stats and CTA */}
         <div className="flex flex-col gap-4">
@@ -174,11 +208,7 @@ const InsightCard = ({
                 <Button
                   onClick={(e) => {
                     e.stopPropagation();
-                    if (
-                      window.confirm(
-                        "Are you sure you want to delete this insight?"
-                      )
-                    ) {
+                    if (window.confirm("Are you sure you want to delete this insight?")) {
                       onDelete(_id);
                     }
                   }}
