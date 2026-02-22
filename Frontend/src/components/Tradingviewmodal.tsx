@@ -9,31 +9,32 @@ interface TradingViewModalProps {
   name: string;
 }
 
-// VERIFIED working symbols from TradingView screenshots
+// VERIFIED working symbols from TradingView
 const SYMBOL_MAP: Record<string, string> = {
-  // US Indices (verified working)
-  '^DJI': 'DOW',              // Dow Jones - Screenshot shows "DOW" works
-  '^GSPC': 'SPY',             // S&P 500 - Screenshot shows "SPY" (ETF) works
-  '^IXIC': 'NDAQ',            // Nasdaq - Screenshot shows "NDAQ" works
-  
-  // European Indices (verified working)
-  '^FTSE': 'I08634',          // FTSE 100 - Screenshot shows this works
-  '^GDAXI': 'DAX6C2+',        // DAX - Screenshot shows this works
-  '^FCHI': 'F73774',          // CAC 40 - Screenshot shows this works
-  
-  // Asian Indices (verified working)
-  '^N225': 'NIKKIGL',         // Nikkei 225 - Screenshot shows this works
+  // US Indices
+  '^DJI': 'DJI',              // Dow Jones - uses DJI directly (DOW routes to Wall St CFD)
+  '^GSPC': 'SPY',             // S&P 500
+  '^IXIC': 'IG:NASDAQ',            // Nasdaq
+
+  // European Indices
+  '^FTSE': 'I08634',          // FTSE 100
+  '^GDAXI': 'XETR:DAX',       // DAX - XETR:DAX works (was DAX6C2+ futures, now spot index)
+  '^FCHI': 'F73774',          // CAC 40
+
+  // Asian Indices
+  '^N225': 'OSE:NK2251!',     // Nikkei 225 Futures on OSE (N225 cash doesn't exist on TV)
+  '^NK2251!': 'OSE:NK2251!',  // alternate key
   '^HSI': 'HSI',              // Hang Seng
   '^SSEC': 'SSEC',            // Shanghai Composite
-  
-  // Commodities - use proper TradingView symbols
-  'GC=F': 'GOLD',             // Gold
-  'SI=F': 'SILVER',           // Silver
-  'CL=F': 'USOIL',            // Crude Oil WTI
-  'BZ=F': 'UKOIL',            // Brent Crude
-  'NG=F': 'NATURALGAS',       // Natural Gas
-  
-  // Forex - standard format
+
+  // Commodities
+  'GC=F': 'GOLD',
+  'SI=F': 'SILVER',
+  'CL=F': 'USOIL',
+  'BZ=F': 'UKOIL',
+  'NG=F': 'NATURALGAS',
+
+  // Forex
   'EUR/USD': 'EURUSD',
   'USD/JPY': 'USDJPY',
   'GBP/USD': 'GBPUSD',
@@ -43,12 +44,10 @@ const SYMBOL_MAP: Record<string, string> = {
 export default function TradingViewModal({ isOpen, onClose, symbol, name }: TradingViewModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
 
-  // Get TradingView symbol
   const tvSymbol = SYMBOL_MAP[symbol] || symbol.replace('^', '');
-  
+
   console.log(`[TradingView] Opening: ${symbol} → ${tvSymbol}`);
 
-  // Handle ESC key
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -63,7 +62,6 @@ export default function TradingViewModal({ isOpen, onClose, symbol, name }: Trad
     };
   }, [isOpen, onClose]);
 
-  // Handle outside click
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
       if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
@@ -106,7 +104,7 @@ export default function TradingViewModal({ isOpen, onClose, symbol, name }: Trad
 
         {/* Content */}
         <div className="p-4 overflow-auto max-h-[calc(90vh-80px)] bg-gray-900">
-          <TradingViewWidget 
+          <TradingViewWidget
             symbol={tvSymbol}
             theme="dark"
             height="600px"
