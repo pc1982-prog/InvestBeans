@@ -1,17 +1,7 @@
 "use client";
 
-import { useState, useRef } from "react";
-import {
-  ArrowRight,
-  MessageSquareQuote,
-  Star,
-  X,
-  ChevronDown,
-  ChevronUp,
-  Eye,
-} from "lucide-react";
-
-// ─── Types ────────────────────────────────────────────────────────────────────
+import { useState, useEffect, useCallback } from "react";
+import { Star, X, ChevronLeft, ChevronRight, Quote } from "lucide-react";
 
 interface Testimonial {
   id: number;
@@ -23,11 +13,9 @@ interface Testimonial {
   preview: string;
   fullText: string;
   date: string;
-  category: string;
-  views: number;
+  source: string;
+  tag: string;
 }
-
-// ─── Data ─────────────────────────────────────────────────────────────────────
 
 const TESTIMONIALS: Testimonial[] = [
   {
@@ -37,9 +25,9 @@ const TESTIMONIALS: Testimonial[] = [
     company: "Axis Capital",
     avatar: "AM",
     rating: 5,
-    category: "Wealth Management",
+    source: "Google Reviews",
     date: "March 14, 2024",
-    views: 4231,
+    tag: "Equity Research",
     preview:
       "The research quality here is unmatched. Their Sensex forecast for Q1 2024 was spot-on, and the actionable insights helped us reallocate our mid-cap exposure at exactly the right time.",
     fullText:
@@ -52,13 +40,13 @@ const TESTIMONIALS: Testimonial[] = [
     company: "Self-Managed",
     avatar: "PN",
     rating: 5,
-    category: "Retail Investor",
+    source: "Trustpilot",
     date: "April 2, 2024",
-    views: 3892,
+    tag: "Portfolio Growth",
     preview:
-      "As someone managing my own portfolio, I was always overwhelmed by the sheer amount of conflicting information online. This platform cuts through the noise beautifully.",
+      "This platform cuts through the noise beautifully. The deep dives are both accessible and rigorous. My portfolio returns have improved by nearly 18% year-on-year since subscribing.",
     fullText:
-      "As someone managing my own portfolio, I was always overwhelmed by the sheer amount of conflicting information online. This platform cuts through the noise beautifully.\n\nThe deep dives are written in a way that's both accessible and rigorous — I never feel talked down to, and I always walk away having learned something concrete. The global economics section especially helped me understand why my US ETF holdings were underperforming and what to do about it.\n\nSince subscribing, my portfolio returns have improved by nearly 18% year-on-year. I tell every investor friend about this.",
+      "As someone managing my own portfolio, I was always overwhelmed by the sheer amount of conflicting information online. This platform cuts through the noise beautifully.\n\nThe deep dives are written in a way that's both accessible and rigorous — I never feel talked down to, and I always walk away having learned something concrete.\n\nSince subscribing, my portfolio returns have improved by nearly 18% year-on-year. I tell every investor friend about this.",
   },
   {
     id: 3,
@@ -67,13 +55,13 @@ const TESTIMONIALS: Testimonial[] = [
     company: "FinRoute Ventures",
     avatar: "RD",
     rating: 5,
-    category: "Startup Ecosystem",
+    source: "Google Reviews",
     date: "April 10, 2024",
-    views: 2765,
+    tag: "Fintech",
     preview:
-      "We integrated these market insights into our fintech product's advisory engine. The structured data and forecast accuracy gave us a real competitive edge in our B2B pitch.",
+      "We integrated these market insights into our fintech advisory engine. The India-specific global macro analysis bridges international developments with precise domestic implications perfectly.",
     fullText:
-      "We integrated these market insights into our fintech product's advisory engine. The structured data and forecast accuracy gave us a real competitive edge in our B2B pitch.\n\nOur enterprise clients were particularly impressed by the India-specific global macro analysis — it's rare to find research that bridges international developments with their precise domestic implications.\n\nThe team's turnaround on topical reports is also exceptional; when the RBI made its surprise rate decision in February, there was a comprehensive breakdown available within 24 hours. That kind of responsiveness is invaluable when you're building a real-time advisory product.",
+      "We integrated these market insights into our fintech product's advisory engine. The structured data and forecast accuracy gave us a real competitive edge in our B2B pitch.\n\nOur enterprise clients were particularly impressed by the India-specific global macro analysis — it's rare to find research that bridges international developments with their precise domestic implications.\n\nWhen the RBI made its surprise rate decision in February, there was a comprehensive breakdown available within 24 hours. That kind of responsiveness is invaluable.",
   },
   {
     id: 4,
@@ -82,90 +70,208 @@ const TESTIMONIALS: Testimonial[] = [
     company: "Meridian Industries",
     avatar: "SK",
     rating: 4,
-    category: "Corporate Finance",
+    source: "Trustpilot",
     date: "April 18, 2024",
-    views: 2104,
+    tag: "FX Hedging",
     preview:
-      "Our treasury team uses the global economics reports to inform FX hedging decisions. The correlation analysis between US Fed policy and INR movement has been particularly valuable.",
+      "Our treasury team uses these reports for FX hedging decisions. Before subscribing we were reactive — now we take informed forward positions on INR-USD with real confidence.",
     fullText:
-      "Our treasury team uses the global economics reports to inform FX hedging decisions. The correlation analysis between US Fed policy and INR movement has been particularly valuable for our import-heavy operations.\n\nBefore subscribing, we were largely reactive in our hedging strategy. Now we're able to take more informed forward positions. The monthly macro digest is something our finance team reviews every week.\n\nI'd love to see even more coverage of commodity price trajectories — that's the one area where we still feel we need additional external sources. Overall though, this has become an indispensable part of our financial planning toolkit.",
+      "Our treasury team uses the global economics reports to inform FX hedging decisions. The correlation analysis between US Fed policy and INR movement has been particularly valuable for our import-heavy operations.\n\nBefore subscribing, we were largely reactive in our hedging strategy. Now we're able to take more informed forward positions.\n\nOverall this has become an indispensable part of our financial planning toolkit.",
+  },
+  {
+    id: 5,
+    name: "Vikram Singhania",
+    role: "Senior Analyst",
+    company: "HDFC Securities",
+    avatar: "VS",
+    rating: 5,
+    source: "Google Reviews",
+    date: "May 5, 2024",
+    tag: "Institutional",
+    preview:
+      "The sectoral breakdowns and earnings forecast models are genuinely best-in-class. I've compared this against Bloomberg and Reuters — the India-centric lens here is unique and deeply valuable.",
+    fullText:
+      "The sectoral breakdowns and earnings forecast models are genuinely best-in-class. I've compared this against Bloomberg and Reuters analysis on multiple occasions — the India-centric lens this platform brings is unique and deeply valuable for domestic institutional work.\n\nThe platform has become my first stop every morning before markets open. The pre-market brief alone is worth the subscription price several times over.",
+  },
+  {
+    id: 6,
+    name: "Meera Joshi",
+    role: "Financial Planner",
+    company: "Wealth Tree Advisory",
+    avatar: "MJ",
+    rating: 5,
+    source: "Trustpilot",
+    date: "May 20, 2024",
+    tag: "Financial Planning",
+    preview:
+      "The monthly macro digest is the single most valuable 20 minutes of reading in my professional calendar. It helps me have far more informed conversations with high-net-worth clients.",
+    fullText:
+      "I recommend this platform to every client who wants to understand their investments. The monthly macro digest is the single most valuable 20 minutes of reading in my professional calendar.\n\nIt has helped me have much more informed conversations with high-net-worth clients about their equity allocations. The visual charts and summaries are especially helpful when presenting complex macro ideas to non-technical investors.",
   },
 ];
 
-// ─── StarRating ───────────────────────────────────────────────────────────────
-
-function StarRating({ rating }: { rating: number }) {
+// ─── Stars ────────────────────────────────────────────────────────────────────
+function Stars({ rating, size = 16 }: { rating: number; size?: number }) {
   return (
-    <div className="flex items-center gap-0.5">
+    <div style={{ display: "flex", gap: "3px" }}>
       {Array.from({ length: 5 }).map((_, i) => (
         <Star
           key={i}
-          className={`w-3 h-3 md:w-3.5 md:h-3.5 ${
-            i < rating
-              ? "text-accent fill-accent"
-              : "text-muted-foreground/30 fill-muted-foreground/10"
-          }`}
+          size={size}
+          style={{
+            fill: i < rating ? "#F59E0B" : "#E5E7EB",
+            color: i < rating ? "#F59E0B" : "#E5E7EB",
+          }}
         />
       ))}
     </div>
   );
 }
 
-// ─── TestimonialCard ──────────────────────────────────────────────────────────
-
+// ─── Card ─────────────────────────────────────────────────────────────────────
 function TestimonialCard({
-  testimonial,
+  t,
   onClick,
+  isMobile,
 }: {
-  testimonial: Testimonial;
+  t: Testimonial;
   onClick: () => void;
+  isMobile: boolean;
 }) {
+  const [hovered, setHovered] = useState(false);
+
   return (
     <div
       onClick={onClick}
-      className="group relative rounded-2xl border border-border/50 bg-card/60 backdrop-blur-sm p-5 md:p-7 hover:border-accent/30 hover:shadow-xl hover:shadow-accent/5 transition-all duration-300 cursor-pointer overflow-hidden"
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        background: "#fff",
+        borderRadius: "20px",
+        border: `1.5px solid ${hovered && !isMobile ? "#C4941E" : "#E4EAF4"}`,
+        boxShadow:
+          hovered && !isMobile
+            ? "0 16px 48px rgba(180,130,10,0.12)"
+            : "0 2px 16px rgba(0,0,0,0.05)",
+        padding: isMobile ? "24px 20px 22px" : "32px 30px 28px",
+        cursor: "pointer",
+        transition: "all 0.22s ease",
+        transform: hovered && !isMobile ? "translateY(-4px)" : "translateY(0)",
+        display: "flex",
+        flexDirection: "column" as const,
+        gap: "16px",
+        width: "100%",
+        boxSizing: "border-box" as const,
+        position: "relative" as const,
+        overflow: "hidden",
+      }}
     >
-      <div className="absolute inset-0 bg-gradient-to-br from-accent/3 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl pointer-events-none" />
+      {/* Watermark */}
+      <div
+        style={{
+          position: "absolute",
+          bottom: "-8px",
+          right: "-4px",
+          opacity: 0.04,
+          pointerEvents: "none",
+        }}
+      >
+        <Quote size={isMobile ? 80 : 120} style={{ color: "#C4941E" }} />
+      </div>
 
-      <div className="relative z-10">
-        {/* Category badge + stars */}
-        <div className="flex items-center justify-between mb-4">
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-accent/10 border border-accent/20">
-            <div className="w-5 h-5 md:w-6 md:h-6 rounded-lg bg-gradient-to-br from-accent/80 to-accent flex items-center justify-center">
-              <MessageSquareQuote className="w-2.5 h-2.5 md:w-3 md:h-3 text-white" />
-            </div>
-            <span className="text-xs font-medium text-accent">{testimonial.category}</span>
-          </div>
-          <StarRating rating={testimonial.rating} />
+      {/* Tag + Stars */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "8px" }}>
+        <span
+          style={{
+            fontSize: "11px",
+            fontWeight: 600,
+            letterSpacing: "0.05em",
+            textTransform: "uppercase" as const,
+            color: "#C4941E",
+            background: "#FDF8EC",
+            borderRadius: "20px",
+            padding: "3px 11px",
+            whiteSpace: "nowrap" as const,
+          }}
+        >
+          {t.tag}
+        </span>
+        <Stars rating={t.rating} size={isMobile ? 14 : 16} />
+      </div>
+
+      {/* Quote icon */}
+      <Quote
+        size={isMobile ? 20 : 24}
+        style={{ color: "#E8C45A", fill: "#E8C45A", marginBottom: "-4px" }}
+      />
+
+      {/* Review text */}
+      <p
+        style={{
+          margin: 0,
+          fontSize: isMobile ? "14px" : "15px",
+          lineHeight: "1.78",
+          color: "#374151",
+          flexGrow: 1,
+          display: "-webkit-box",
+          WebkitLineClamp: isMobile ? 5 : 4,
+          WebkitBoxOrient: "vertical" as const,
+          overflow: "hidden",
+        }}
+      >
+        {t.preview}
+      </p>
+
+      {/* Divider */}
+      <div style={{ height: "1px", background: "#F1F5F9" }} />
+
+      {/* Author */}
+      <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+        <div
+          style={{
+            width: isMobile ? "40px" : "46px",
+            height: isMobile ? "40px" : "46px",
+            borderRadius: "50%",
+            background: "#F5F3FF",
+            border: "2px solid #DDD6FE",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: isMobile ? "12px" : "13px",
+            fontWeight: 700,
+            color: "#C4941E",
+            flexShrink: 0,
+          }}
+        >
+          {t.avatar}
         </div>
-
-        {/* Name + role */}
-        <h3 className="text-base md:text-lg font-bold text-foreground mb-2 leading-snug group-hover:text-accent transition-colors duration-200">
-          {testimonial.name}
-          <span className="text-muted-foreground font-normal text-sm ml-1.5">
-            · {testimonial.role}
-          </span>
-        </h3>
-
-        {/* Preview */}
-        <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2 mb-5">
-          "{testimonial.preview}"
-        </p>
-
-        {/* Date + views + CTA */}
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2 text-xs text-muted-foreground min-w-0">
-            <span className="whitespace-nowrap">{testimonial.date}</span>
-            <span className="flex items-center gap-1 whitespace-nowrap flex-shrink-0">
-              <Eye className="w-3 h-3" />
-              {testimonial.views.toLocaleString()}
-            </span>
-          </div>
-          <div className="flex-shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-accent to-accent/85 text-white text-xs font-semibold shadow-sm group-hover:shadow-accent/30 transition-shadow whitespace-nowrap">
-            <MessageSquareQuote className="w-3 h-3 flex-shrink-0" />
-            <span className="md:hidden">Read</span>
-            <span className="hidden md:inline">Read Testimonial</span>
-          </div>
+        <div style={{ minWidth: 0 }}>
+          <p
+            style={{
+              margin: 0,
+              fontSize: isMobile ? "13px" : "14px",
+              fontWeight: 700,
+              color: "#111827",
+              whiteSpace: "nowrap" as const,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+            }}
+          >
+            {t.name}
+          </p>
+          <p
+            style={{
+              margin: 0,
+              fontSize: "12px",
+              color: "#94A3B8",
+              marginTop: "2px",
+              whiteSpace: "nowrap" as const,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+            }}
+          >
+            {t.source}&nbsp;·&nbsp;{t.date}
+          </p>
         </div>
       </div>
     </div>
@@ -173,216 +279,402 @@ function TestimonialCard({
 }
 
 // ─── Modal ────────────────────────────────────────────────────────────────────
+function Modal({ t, onClose }: { t: Testimonial; onClose: () => void }) {
+  useEffect(() => {
+    const fn = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", fn);
+    return () => window.removeEventListener("keydown", fn);
+  }, [onClose]);
 
-function TestimonialModal({
-  testimonial,
-  onClose,
-}: {
-  testimonial: Testimonial;
-  onClose: () => void;
-}) {
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8"
       onClick={onClose}
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 100,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "16px",
+        background: "rgba(15,20,40,0.5)",
+        backdropFilter: "blur(8px)",
+      }}
     >
-      <div className="absolute inset-0 bg-background/75 backdrop-blur-md" />
-
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative z-10 w-full max-w-lg max-h-[88vh] flex flex-col bg-card border border-border/60 rounded-3xl shadow-2xl shadow-accent/10 overflow-hidden"
-        style={{ animation: "modalIn 0.2s ease-out" }}
+        style={{
+          background: "#fff",
+          borderRadius: "24px",
+          width: "100%",
+          maxWidth: "540px",
+          maxHeight: "88vh",
+          overflowY: "auto",
+          boxShadow: "0 32px 80px rgba(0,0,0,0.2)",
+          animation: "popIn 0.22s cubic-bezier(0.34,1.56,0.64,1)",
+          position: "relative",
+        }}
       >
-        <div className="h-1 w-full bg-gradient-to-r from-accent/50 via-accent to-accent/50 flex-shrink-0" />
-        <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-bl from-accent/8 to-transparent rounded-full blur-2xl pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-accent/5 to-transparent rounded-full blur-xl pointer-events-none" />
-
-        <div className="relative z-10 p-6 md:p-8 overflow-y-auto">
+        <div
+          style={{
+            height: "4px",
+            background: "linear-gradient(90deg,#D4A843,#B8860B)",
+            borderRadius: "24px 24px 0 0",
+          }}
+        />
+        <div style={{ padding: "28px 24px 32px" }}>
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 md:top-5 md:right-5 w-8 h-8 rounded-full bg-muted/60 hover:bg-muted flex items-center justify-center transition-colors z-20"
+            style={{
+              position: "absolute",
+              top: "18px",
+              right: "18px",
+              width: "34px",
+              height: "34px",
+              borderRadius: "50%",
+              border: "1.5px solid #E5E7EB",
+              background: "#F9FAFB",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "#6B7280",
+              padding: 0,
+            }}
           >
-            <X className="w-4 h-4 text-muted-foreground" />
+            <X size={15} />
           </button>
 
-          {/* Avatar + name */}
-          <div className="flex items-center gap-3 md:gap-4 mb-5 pr-10">
-            <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-gradient-to-br from-accent/80 to-accent flex items-center justify-center text-white font-bold text-base md:text-lg flex-shrink-0 shadow-lg shadow-accent/20">
-              {testimonial.avatar}
+          <div
+            style={{
+              display: "flex",
+              gap: "14px",
+              alignItems: "center",
+              marginBottom: "10px",
+              paddingRight: "44px",
+            }}
+          >
+            <div
+              style={{
+                width: "52px",
+                height: "52px",
+                borderRadius: "50%",
+                background: "#FDF8EC",
+                border: "2px solid #C7D2FE",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: "15px",
+                fontWeight: 700,
+                color: "#C4941E",
+                flexShrink: 0,
+              }}
+            >
+              {t.avatar}
             </div>
             <div>
-              <p className="font-bold text-foreground text-base md:text-lg leading-tight">
-                {testimonial.name}
+              <p style={{ margin: 0, fontWeight: 800, fontSize: "17px", color: "#111827" }}>
+                {t.name}
               </p>
-              <p className="text-xs md:text-sm text-muted-foreground">
-                {testimonial.role} · {testimonial.company}
+              <p style={{ margin: 0, fontSize: "13px", color: "#64748B", marginTop: "2px" }}>
+                {t.role}&nbsp;·&nbsp;{t.company}
               </p>
-              <div className="mt-1.5">
-                <StarRating rating={testimonial.rating} />
+              <div style={{ marginTop: "6px" }}>
+                <Stars rating={t.rating} size={14} />
               </div>
             </div>
           </div>
 
-          {/* Meta */}
-          <div className="flex items-center gap-2 flex-wrap mb-5">
-            <div className="inline-flex items-center px-2.5 py-1 rounded-full bg-accent/10 border border-accent/20">
-              <span className="text-[10px] md:text-xs font-medium text-accent">
-                {testimonial.category}
-              </span>
-            </div>
-            <span className="text-xs text-muted-foreground">{testimonial.date}</span>
-            <span className="flex items-center gap-1 text-xs text-muted-foreground">
-              <Eye className="w-3 h-3" />
-              {testimonial.views.toLocaleString()}
-            </span>
-          </div>
+          <p style={{ margin: "10px 0 18px", fontSize: "12px", color: "#94A3B8" }}>
+            {t.source}&nbsp;·&nbsp;{t.date}
+          </p>
+          <div style={{ height: "1px", background: "#F1F5F9", marginBottom: "20px" }} />
+          <Quote
+            size={28}
+            style={{ color: "#E8C45A", fill: "#E8C45A", marginBottom: "12px" }}
+          />
 
-          <MessageSquareQuote className="w-7 h-7 text-accent/20 mb-3" />
-
-          <div className="space-y-3 md:space-y-4">
-            {testimonial.fullText.split("\n\n").map((para, i, arr) => (
-              <p key={i} className="text-sm md:text-base text-muted-foreground leading-relaxed">
-                {i === 0 ? `"${para}` : para}
-                {i === arr.length - 1 ? `"` : ""}
-              </p>
-            ))}
-          </div>
+          {t.fullText.split("\n\n").map((para, i) => (
+            <p
+              key={i}
+              style={{
+                margin: "0 0 14px",
+                fontSize: "15px",
+                lineHeight: "1.8",
+                color: "#374151",
+              }}
+            >
+              {para}
+            </p>
+          ))}
         </div>
       </div>
 
       <style>{`
-        @keyframes modalIn {
-          from { opacity: 0; transform: scale(0.95) translateY(10px); }
-          to   { opacity: 1; transform: scale(1) translateY(0); }
+        @keyframes popIn {
+          from { opacity:0; transform:scale(0.90) translateY(16px); }
+          to   { opacity:1; transform:scale(1) translateY(0); }
         }
       `}</style>
     </div>
   );
 }
 
-// ─── Page ─────────────────────────────────────────────────────────────────────
+// ─── Main ─────────────────────────────────────────────────────────────────────
+export default function TestimonialsSection() {
+  const [index, setIndex] = useState(0);
+  const [modal, setModal] = useState<Testimonial | null>(null);
+  const [paused, setPaused] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
-export default function TestimonialsPage() {
-  const [selectedModal, setSelectedModal] = useState<Testimonial | null>(null);
-  const [expanded, setExpanded] = useState(false);
+  useEffect(() => {
+    const update = () => setIsMobile(window.innerWidth < 700);
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, []);
 
-  // Ref to the extra cards row — scroll to it when Show More is clicked
-  const extraCardsRef = useRef<HTMLDivElement>(null);
-  // Ref to top of section — scroll back on Show Less
-  const sectionRef = useRef<HTMLElement>(null);
+  // On mobile: 1 card. On desktop: 2 cards
+  const cardsPerView = isMobile ? 1 : 2;
+  const maxIndex = Math.max(0, TESTIMONIALS.length - cardsPerView);
 
-  const handleShowMore = () => {
-    setExpanded(true);
-    setTimeout(() => {
-      extraCardsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 80);
-  };
+  const next = useCallback(
+    () => setIndex((i) => (i >= maxIndex ? 0 : i + 1)),
+    [maxIndex]
+  );
+  const prev = useCallback(
+    () => setIndex((i) => (i <= 0 ? maxIndex : i - 1)),
+    [maxIndex]
+  );
 
-  const handleShowLess = () => {
-    setExpanded(false);
-    setTimeout(() => {
-      sectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 80);
-  };
+  // Auto-slide — always runs, no pause on mobile (no hover)
+  useEffect(() => {
+    if (modal) return;
+    if (!isMobile && paused) return;
+    const id = setInterval(next, 3500);
+    return () => clearInterval(id);
+  }, [next, paused, modal, isMobile]);
+
+  useEffect(() => {
+    setIndex(0);
+  }, [isMobile]);
+
+  const visible = TESTIMONIALS.slice(index, index + cardsPerView);
+  const totalDots = maxIndex + 1;
 
   return (
-    <main className="min-h-screen bg-background">
-      <div className="max-w-6xl mx-auto px-4 md:px-8 py-16 md:py-24">
+    <section
+      style={{
+        background: "#F5F7FA",
+        padding: isMobile ? "52px 0 48px" : "80px 0 72px",
+        fontFamily: "'Inter','Segoe UI',sans-serif",
+        width: "100%",
+        boxSizing: "border-box",
+      }}
+      onMouseEnter={() => !isMobile && setPaused(true)}
+      onMouseLeave={() => !isMobile && setPaused(false)}
+    >
+      {/* Heading */}
+      <div
+        style={{
+          textAlign: "center",
+          marginBottom: isMobile ? "36px" : "52px",
+          padding: "0 20px",
+        }}
+      >
+        <div
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "7px",
+            background: "#FDF8EC",
+            border: "1px solid #C7D2FE",
+            borderRadius: "100px",
+            padding: "5px 14px",
+            marginBottom: "14px",
+          }}
+        >
+          <div
+            style={{
+              width: "6px",
+              height: "6px",
+              borderRadius: "50%",
+              background: "#C4941E",
+            }}
+          />
+          <span
+            style={{
+              fontSize: "11px",
+              fontWeight: 600,
+              color: "#C4941E",
+              letterSpacing: "0.06em",
+              textTransform: "uppercase",
+            }}
+          >
+            User Reviews
+          </span>
+        </div>
 
-        <section ref={sectionRef} className="mb-20 relative overflow-hidden">
-          {/* Background gradients — identical to Deep Dives */}
-          <div className="absolute inset-0 bg-gradient-to-br from-accent/5 via-transparent to-accent/10 rounded-3xl" />
-          <div className="absolute top-0 left-0 w-60 h-60 md:w-80 md:h-80 bg-gradient-to-br from-accent/8 to-transparent rounded-full blur-3xl" />
-          <div className="absolute bottom-0 right-0 w-72 h-72 md:w-96 md:h-96 bg-gradient-to-tl from-accent/5 to-transparent rounded-full blur-2xl" />
-
-          <div className="relative z-10">
-            {/* Header */}
-            <div className="text-center mb-8 md:mb-16 px-4">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-full bg-gradient-to-r from-accent/10 to-accent/5 border border-accent/20 mb-4 md:mb-6">
-                <MessageSquareQuote className="w-3 h-3 md:w-4 md:h-4 text-accent" />
-                <span className="text-xs md:text-sm font-medium text-accent">
-                  What Our Readers Say
-                </span>
-              </div>
-              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent mb-3 md:mb-4">
-                Testimonials
-              </h2>
-              <p className="text-base md:text-lg lg:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed px-2">
-                Trusted by investors, analysts, and financial professionals across India
-              </p>
-            </div>
-
-            {/* First 2 featured cards — always visible */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 lg:gap-8 px-2 md:px-0">
-              {TESTIMONIALS.slice(0, 2).map((t) => (
-                <TestimonialCard
-                  key={t.id}
-                  testimonial={t}
-                  onClick={() => setSelectedModal(t)}
-                />
-              ))}
-            </div>
-
-            {/* Extra cards — appear below when expanded */}
-            {expanded && (
-              <div
-                ref={extraCardsRef}
-                className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 lg:gap-8 px-2 md:px-0 mt-4 md:mt-6"
-                style={{ animation: "fadeSlideIn 0.3s ease-out" }}
-              >
-                {TESTIMONIALS.slice(2).map((t) => (
-                  <TestimonialCard
-                    key={t.id}
-                    testimonial={t}
-                    onClick={() => setSelectedModal(t)}
-                  />
-                ))}
-              </div>
-            )}
-
-            {/* CTA button — toggles between Show More / Show Less */}
-            <div className="mt-8 md:mt-12 text-center px-4">
-              {!expanded ? (
-                <button
-                  onClick={handleShowMore}
-                  className="inline-flex items-center gap-2 px-4 py-2.5 md:px-6 md:py-3 rounded-full bg-gradient-to-r from-accent/10 to-accent/5 border border-accent/20 hover:border-accent/30 transition-all duration-300 cursor-pointer group touch-manipulation active:scale-95"
-                >
-                  <span className="text-accent font-semibold text-sm md:text-base">
-                    Show More
-                  </span>
-                  <ChevronDown className="w-3 h-3 md:w-4 md:h-4 text-accent group-hover:translate-y-0.5 transition-transform" />
-                </button>
-              ) : (
-                <button
-                  onClick={handleShowLess}
-                  className="inline-flex items-center gap-2 px-4 py-2.5 md:px-6 md:py-3 rounded-full bg-gradient-to-r from-accent/10 to-accent/5 border border-accent/20 hover:border-accent/30 transition-all duration-300 cursor-pointer group touch-manipulation active:scale-95"
-                >
-                  <span className="text-accent font-semibold text-sm md:text-base">
-                    Show Less
-                  </span>
-                  <ChevronUp className="w-3 h-3 md:w-4 md:h-4 text-accent group-hover:-translate-y-0.5 transition-transform" />
-                </button>
-              )}
-            </div>
-          </div>
-        </section>
-
+        <h2
+          style={{
+            margin: "0 0 10px",
+            fontSize: isMobile ? "26px" : "clamp(28px, 4.5vw, 42px)",
+            fontWeight: 800,
+            color: "#0F172A",
+            letterSpacing: "-0.025em",
+            lineHeight: 1.15,
+          }}
+        >
+          What Our Users are Saying
+        </h2>
+        <p
+          style={{
+            margin: "0 auto",
+            fontSize: isMobile ? "14px" : "clamp(14px,2vw,17px)",
+            color: "#64748B",
+            maxWidth: "460px",
+            lineHeight: 1.6,
+          }}
+        >
+          Trusted by thousands of investors and professionals across India
+        </p>
       </div>
 
-      {/* Popup modal */}
-      {selectedModal && (
-        <TestimonialModal
-          testimonial={selectedModal}
-          onClose={() => setSelectedModal(null)}
-        />
-      )}
+      {/* Carousel */}
+      <div
+        style={{
+          width: "100%",
+          maxWidth: "1400px",
+          margin: "0 auto",
+          padding: isMobile ? "0 16px" : "0 20px",
+          boxSizing: "border-box",
+          display: "flex",
+          flexDirection: "column",
+          gap: "24px",
+        }}
+      >
+        {/* Cards row — arrows only on desktop */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: isMobile ? "0" : "20px",
+          }}
+        >
+          {/* LEFT ARROW — desktop only */}
+          {!isMobile && (
+            <button
+              onClick={prev}
+              style={{
+                width: "48px",
+                height: "48px",
+                minWidth: "48px",
+                borderRadius: "50%",
+                border: "none",
+                background: "#C4941E",
+                color: "#fff",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                boxShadow: "0 4px 16px rgba(196,148,30,0.30)",
+                transition: "all 0.18s ease",
+                flexShrink: 0,
+              }}
+              onMouseEnter={(e) => {
+                const b = e.currentTarget as HTMLButtonElement;
+                b.style.background = "#B8860B";
+                b.style.transform = "scale(1.1)";
+              }}
+              onMouseLeave={(e) => {
+                const b = e.currentTarget as HTMLButtonElement;
+                b.style.background = "#C4941E";
+                b.style.transform = "scale(1)";
+              }}
+            >
+              <ChevronLeft size={22} />
+            </button>
+          )}
 
-      <style>{`
-        @keyframes fadeSlideIn {
-          from { opacity: 0; transform: translateY(16px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
-      `}</style>
-    </main>
+          {/* CARDS */}
+          <div
+            style={{
+              flex: 1,
+              display: "grid",
+              gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
+              gap: isMobile ? "0" : "24px",
+              minWidth: 0,
+              width: "100%",
+            }}
+          >
+            {visible.map((t) => (
+              <TestimonialCard
+                key={t.id}
+                t={t}
+                isMobile={isMobile}
+                onClick={() => setModal(t)}
+              />
+            ))}
+          </div>
+
+          {/* RIGHT ARROW — desktop only */}
+          {!isMobile && (
+            <button
+              onClick={next}
+              style={{
+                width: "48px",
+                height: "48px",
+                minWidth: "48px",
+                borderRadius: "50%",
+                border: "none",
+                background: "#C4941E",
+                color: "#fff",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                boxShadow: "0 4px 16px rgba(196,148,30,0.30)",
+                transition: "all 0.18s ease",
+                flexShrink: 0,
+              }}
+              onMouseEnter={(e) => {
+                const b = e.currentTarget as HTMLButtonElement;
+                b.style.background = "#B8860B";
+                b.style.transform = "scale(1.1)";
+              }}
+              onMouseLeave={(e) => {
+                const b = e.currentTarget as HTMLButtonElement;
+                b.style.background = "#C4941E";
+                b.style.transform = "scale(1)";
+              }}
+            >
+              <ChevronRight size={22} />
+            </button>
+          )}
+        </div>
+
+        {/* Slim dots */}
+        <div style={{ display: "flex", justifyContent: "center", gap: "6px" }}>
+          {Array.from({ length: totalDots }).map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setIndex(i)}
+              style={{
+                width: i === index ? "24px" : "8px",
+                height: "8px",
+                borderRadius: "100px",
+                border: "none",
+                background: i === index ? "#C4941E" : "#D5DCEA",
+                cursor: "pointer",
+                padding: 0,
+                transition: "all 0.3s ease",
+              }}
+            />
+          ))}
+        </div>
+      </div>
+
+      {modal && <Modal t={modal} onClose={() => setModal(null)} />}
+    </section>
   );
 }

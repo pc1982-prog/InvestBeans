@@ -6,45 +6,55 @@ import TradingViewModal from "@/components/Tradingviewmodal";
 import { useGlobalMarkets } from "@/hooks/useGlobalMarkets";
 import { IndexQuote, ForexPair, BondYield, Commodity, RegionSummary } from "@/services/globalMarkets/types";
 import {
-  TrendingUp, TrendingDown, Activity, Globe, 
+  TrendingUp, TrendingDown, Activity, Globe,
   Clock, MapPin, RefreshCw, AlertCircle, Wifi, WifiOff,
   Landmark, DollarSign, BarChart3, LineChart, Percent, Briefcase,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useMemo } from "react";
 
-// ── Helpers ────────────────────────────────────────────────
+// ── Website brand colors ──────────────────────────────────────
+const G = "#2D4A35";   // brand green
+const O = "#C07A3A";   // brand orange
+
+// ── Helpers ──────────────────────────────────────────────────
 
 function ErrorBanner({ error }: { error: string | null }) {
   if (!error) return null;
   return (
-    <div className="flex items-start gap-3 p-4 mb-8 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm">
-      <AlertCircle className="w-5 h-5 mt-0.5 shrink-0" />
+    <div className="flex items-start gap-3 p-4 mb-8 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-sm">
+      <AlertCircle className="w-5 h-5 mt-0.5 shrink-0 text-red-500" />
       <div>
-        <strong className="block mb-1 text-red-800">Error loading data</strong>
-        <span>{error}</span>
+        <strong className="block mb-0.5 font-bold text-red-800">Error loading data</strong>
+        <span className="text-red-600">{error}</span>
       </div>
     </div>
   );
 }
 
-function SectionTitle({ icon: Icon, children }: { icon?: any; children: React.ReactNode }) {
+function SectionLabel({ icon: Icon, children }: { icon?: any; children: React.ReactNode }) {
   return (
-    <div className="flex items-center gap-3 mb-5">
-      {Icon && <Icon className="w-5 h-5 text-slate-600" />}
-      <h2 className="text-2xl font-bold text-slate-900">{children}</h2>
+    <div className="flex items-center gap-3 mb-6">
+      {Icon && (
+        <div className="w-9 h-9 rounded-xl flex items-center justify-center"
+          style={{ background: `${G}12`, border: `1px solid ${G}25` }}>
+          <Icon className="w-4.5 h-4.5" style={{ color: G }} />
+        </div>
+      )}
+      <h2 className="text-xl font-extrabold text-gray-900 tracking-tight">{children}</h2>
+      <div className="flex-1 h-px bg-gray-100 ml-2" />
     </div>
   );
 }
 
-const VIX_STYLE: Record<string, string> = {
-  low:      "bg-emerald-50 border-emerald-200 text-emerald-700",
-  moderate: "bg-amber-50 border-amber-200 text-amber-700",
-  high:     "bg-orange-50 border-orange-200 text-orange-700",
-  extreme:  "bg-red-50 border-red-200 text-red-700",
+const VIX_STYLE: Record<string, { wrap: string; badge: string; label: string }> = {
+  low:      { wrap: "bg-emerald-50 border-emerald-200", badge: "bg-emerald-100 text-emerald-800 border-emerald-200", label: "LOW VOLATILITY" },
+  moderate: { wrap: "bg-amber-50 border-amber-200",    badge: "bg-amber-100 text-amber-800 border-amber-200",    label: "MODERATE VOLATILITY" },
+  high:     { wrap: "bg-orange-50 border-orange-200",  badge: "bg-orange-100 text-orange-800 border-orange-200",  label: "HIGH VOLATILITY" },
+  extreme:  { wrap: "bg-red-50 border-red-200",        badge: "bg-red-100 text-red-800 border-red-200",           label: "EXTREME VOLATILITY" },
 };
 
-// ── Market Selector Component ──
+// ── Market Selector ───────────────────────────────────────────
 interface MarketSelectorProps {
   title: string;
   markets: IndexQuote[];
@@ -57,37 +67,40 @@ function MarketSelector({ title, markets, icon, onChartClick }: MarketSelectorPr
 
   if (markets.length === 0) {
     return (
-      <div className="text-center py-16 text-slate-400">
-        <Activity className="w-12 h-12 mx-auto mb-3 opacity-30" />
-        <p>No market data available</p>
+      <div className="text-center py-16 text-gray-300">
+        <Activity className="w-10 h-10 mx-auto mb-3 opacity-30" />
+        <p className="text-sm text-gray-400">No market data available</p>
       </div>
     );
   }
 
-  const selectedMarket = markets[selectedIndex];
+  const sel = markets[selectedIndex];
 
   return (
-    <section className="mb-10">
-      <SectionTitle icon={icon}>{title}</SectionTitle>
+    <section className="mb-12">
+      <SectionLabel icon={icon}>{title}</SectionLabel>
 
-      {/* Market Selection Pills */}
-      <div className="flex items-center gap-2 mb-5 flex-wrap">
-        {markets.map((market, idx) => {
-          const isPositive = market.changePercent >= 0;
+      {/* Pills */}
+      <div className="flex items-center gap-2.5 mb-5 flex-wrap">
+        {markets.map((m, idx) => {
+          const pos = m.changePercent >= 0;
+          const active = selectedIndex === idx;
           return (
             <button
-              key={market.symbol}
+              key={m.symbol}
               onClick={() => setSelectedIndex(idx)}
-              className={`px-4 py-2.5 rounded-lg font-semibold text-sm transition-all border ${
-                selectedIndex === idx
-                  ? 'bg-slate-900 text-white border-slate-900 shadow-md'
-                  : 'bg-white text-slate-700 border-slate-300 hover:border-slate-400 hover:bg-slate-50'
-              }`}
+              className="px-4 py-2 rounded-xl text-sm font-bold transition-all duration-150 border"
+              style={
+                active
+                  ? { background: G, color: "#fff", borderColor: G, boxShadow: `0 4px 12px ${G}30` }
+                  : { background: "#fff", color: "#374151", borderColor: "#e5e7eb" }
+              }
             >
               <span className="flex items-center gap-2">
-                {market.name}
-                <span className={`text-xs font-bold ${isPositive ? 'text-emerald-600' : 'text-red-600'}`}>
-                  {isPositive ? '+' : ''}{market.changePercent.toFixed(2)}%
+                {m.name}
+                <span style={{ color: active ? "rgba(255,255,255,0.85)" : pos ? "#16a34a" : "#dc2626" }}
+                  className="text-xs font-bold">
+                  {pos ? "+" : ""}{m.changePercent.toFixed(2)}%
                 </span>
               </span>
             </button>
@@ -95,21 +108,21 @@ function MarketSelector({ title, markets, icon, onChartClick }: MarketSelectorPr
         })}
       </div>
 
-      {/* Single Large Card - Clickable */}
-      <div 
-        onClick={() => onChartClick(selectedMarket.symbol, selectedMarket.name)}
-        className="cursor-pointer hover:opacity-90 transition-opacity"
+      {/* Chart card */}
+      <div
+        onClick={() => onChartClick(sel.symbol, sel.name)}
+        className="cursor-pointer rounded-2xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200"
       >
         <CleanChart
-          symbol={selectedMarket.symbol}
-          name={selectedMarket.name}
-          price={selectedMarket.price}
-          change={selectedMarket.change}
-          changePercent={selectedMarket.changePercent}
-          high={selectedMarket.high}
-          low={selectedMarket.low}
-          isPositive={selectedMarket.changePercent >= 0}
-          candles={selectedMarket.candles ?? []}
+          symbol={sel.symbol}
+          name={sel.name}
+          price={sel.price}
+          change={sel.change}
+          changePercent={sel.changePercent}
+          high={sel.high}
+          low={sel.low}
+          isPositive={sel.changePercent >= 0}
+          candles={sel.candles ?? []}
         />
       </div>
     </section>
@@ -121,286 +134,276 @@ export default function GlobalView() {
   const { data, loading, error, lastUpdated, refresh } = useGlobalMarkets();
   const [refreshing, setRefreshing] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
-  const [modalSymbol, setModalSymbol] = useState('');
-  const [modalName, setModalName] = useState('');
+  const [modalSymbol, setModalSymbol] = useState("");
+  const [modalName, setModalName] = useState("");
 
   const isLoading = loading === "idle" || loading === "loading";
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    try {
-      await refresh();
-    } catch (err) {
-      console.error("Refresh error:", err);
-    } finally {
-      setRefreshing(false);
-    }
+    try { await refresh(); } catch (e) { console.error(e); } finally { setRefreshing(false); }
   };
 
   const handleChartClick = (symbol: string, name: string) => {
-    setModalSymbol(symbol);
-    setModalName(name);
-    setModalOpen(true);
+    setModalSymbol(symbol); setModalName(name); setModalOpen(true);
   };
 
-  // Memoize data
-  const usMarkets = useMemo(() => data?.indices?.us || [], [data?.indices?.us]);
-  const europeMarkets = useMemo(() => data?.indices?.europe || [], [data?.indices?.europe]);
-  const asiaMarkets = useMemo(() => data?.indices?.asia || [], [data?.indices?.asia]);
-  const forexData = useMemo(() => data?.forex || [], [data?.forex]);
-  const commoditiesData = useMemo(() => data?.commodities || [], [data?.commodities]);
-  const bondsData = useMemo(() => data?.bonds || [], [data?.bonds]);
-  const regionsData = useMemo(() => data?.regions || [], [data?.regions]);
-  const eventsData = useMemo(() => data?.events || [], [data?.events]);
+  const usMarkets       = useMemo(() => data?.indices?.us       || [], [data?.indices?.us]);
+  const europeMarkets   = useMemo(() => data?.indices?.europe   || [], [data?.indices?.europe]);
+  const asiaMarkets     = useMemo(() => data?.indices?.asia     || [], [data?.indices?.asia]);
+  const forexData       = useMemo(() => data?.forex             || [], [data?.forex]);
+  const commoditiesData = useMemo(() => data?.commodities       || [], [data?.commodities]);
+  const bondsData       = useMemo(() => data?.bonds             || [], [data?.bonds]);
+  const regionsData     = useMemo(() => data?.regions           || [], [data?.regions]);
+  const eventsData      = useMemo(() => data?.events            || [], [data?.events]);
+
+  const SkeletonBlock = ({ h = "h-80" }: { h?: string }) => (
+    <div className={`${h} rounded-2xl bg-gray-50 animate-pulse border border-gray-100 mb-12`} />
+  );
 
   return (
     <Layout>
-      {/* Clean white background */}
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-[#F8F7F4]">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 max-w-7xl">
 
-          {/* ── Premium Header ── */}
-          <div className="mb-10">
-            <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl border border-slate-200 p-8 shadow-sm">
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-                <div>
-                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-900 text-white text-xs font-semibold mb-3">
-                    <Activity className="w-3.5 h-3.5" />
-                    LIVE MARKETS
-                  </div>
-                  <h1 className="text-4xl sm:text-5xl font-black text-slate-900 mb-2">
-                    Global Financial Markets
-                  </h1>
-                  <p className="text-slate-600">
-                    Real-time data · Click any chart for detailed analysis
-                  </p>
+          {/* ════════════════════════════════════
+              HERO HEADER
+          ════════════════════════════════════ */}
+          <div className="mb-12 rounded-2xl overflow-hidden border border-gray-200 shadow-sm">
+            {/* Top accent line */}
+            <div className="h-1" style={{ background: `linear-gradient(to right, ${G}, ${O})` }} />
+
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 px-8 py-9 bg-white">
+              <div>
+                {/* Eyebrow */}
+                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold mb-4"
+                  style={{ background: `${G}12`, color: G, border: `1px solid ${G}25` }}>
+                  <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: G }} />
+                  LIVE MARKETS
                 </div>
 
-                <Button
-                  onClick={handleRefresh}
-                  disabled={refreshing || isLoading}
-                  className="bg-slate-900 hover:bg-slate-800 text-white border-0 px-6 py-6 shadow-md"
-                >
-                  <RefreshCw className={`w-5 h-5 mr-2 ${refreshing ? "animate-spin" : ""}`} />
-                  <span className="font-semibold">Refresh</span>
-                </Button>
+                <h1 className="text-4xl sm:text-5xl font-black text-gray-900 tracking-tight leading-none mb-3">
+                  Global Financial
+                  <span className="block" style={{ color: G }}>Markets</span>
+                </h1>
+                <p className="text-gray-400 text-sm font-normal">
+                  Real-time data · Click any chart for detailed analysis
+                </p>
               </div>
+
+              <button
+                onClick={handleRefresh}
+                disabled={refreshing || isLoading}
+                className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-xl text-sm font-bold text-white transition-all disabled:opacity-50 shadow-lg"
+                style={{ background: G, boxShadow: `0 8px 24px ${G}35` }}
+              >
+                <RefreshCw className={`w-4 h-4 ${refreshing ? "animate-spin" : ""}`} />
+                Refresh Data
+              </button>
             </div>
           </div>
 
           <ErrorBanner error={error} />
 
-          {/* US MARKETS */}
-          {isLoading ? (
-            <div className="mb-10">
-              <div className="h-96 bg-slate-50 rounded-2xl animate-pulse border border-slate-200" />
-            </div>
-          ) : (
-            <MarketSelector
-              title="United States Markets"
-              markets={usMarkets}
-              icon={BarChart3}
-              onChartClick={handleChartClick}
-            />
+          {/* ── US Markets ── */}
+          {isLoading ? <SkeletonBlock /> : (
+            <MarketSelector title="United States Markets" markets={usMarkets} icon={BarChart3} onChartClick={handleChartClick} />
           )}
 
-          {/* EUROPE MARKETS */}
-          {isLoading ? (
-            <div className="mb-10">
-              <div className="h-96 bg-slate-50 rounded-2xl animate-pulse border border-slate-200" />
-            </div>
-          ) : (
-            <MarketSelector
-              title="European Markets"
-              markets={europeMarkets}
-              icon={LineChart}
-              onChartClick={handleChartClick}
-            />
+          {/* ── Europe ── */}
+          {isLoading ? <SkeletonBlock /> : (
+            <MarketSelector title="European Markets" markets={europeMarkets} icon={LineChart} onChartClick={handleChartClick} />
           )}
 
-          {/* ASIA MARKETS */}
-          {isLoading ? (
-            <div className="mb-10">
-              <div className="h-96 bg-slate-50 rounded-2xl animate-pulse border border-slate-200" />
-            </div>
-          ) : (
-            <MarketSelector
-              title="Asia Pacific Markets"
-              markets={asiaMarkets}
-              icon={Globe}
-              onChartClick={handleChartClick}
-            />
+          {/* ── Asia ── */}
+          {isLoading ? <SkeletonBlock /> : (
+            <MarketSelector title="Asia Pacific Markets" markets={asiaMarkets} icon={Globe} onChartClick={handleChartClick} />
           )}
 
-          {/* FOREX - Small Cards */}
-          <section className="mb-10">
-            <SectionTitle icon={DollarSign}>Foreign Exchange</SectionTitle>
+          {/* ════════════════════════════════════
+              FOREX
+          ════════════════════════════════════ */}
+          <section className="mb-12">
+            <SectionLabel icon={DollarSign}>Foreign Exchange</SectionLabel>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
               {isLoading
                 ? Array.from({ length: 4 }).map((_, i) => (
-                    <div key={i} className="h-40 bg-slate-50 rounded-xl animate-pulse border border-slate-200" />
+                    <div key={i} className="h-44 bg-gray-50 rounded-2xl animate-pulse border border-gray-100" />
                   ))
-                : forexData.map((fx: ForexPair) => {
-                    const pos = fx.changePercent >= 0;
-                    return (
-                      <div 
-                        key={fx.pair}
-                        onClick={() => handleChartClick(fx.pair, fx.pair)}
-                        className="cursor-pointer transform hover:scale-[1.02] transition-transform"
-                      >
-                        <ForexCard
-                          pair={fx.pair}
-                          rate={fx.rate}
-                          change={fx.change}
-                          changePercent={fx.changePercent}
-                          isPositive={pos}
-                        />
-                      </div>
-                    );
-                  })}
+                : forexData.map((fx: ForexPair) => (
+                    <div
+                      key={fx.pair}
+                      onClick={() => handleChartClick(fx.pair, fx.pair)}
+                      className="cursor-pointer rounded-2xl overflow-hidden hover:shadow-md transition-all duration-200 hover:-translate-y-0.5"
+                    >
+                      <ForexCard
+                        pair={fx.pair} rate={fx.rate} change={fx.change}
+                        changePercent={fx.changePercent} isPositive={fx.changePercent >= 0}
+                      />
+                    </div>
+                  ))}
             </div>
           </section>
 
-          {/* COMMODITIES - Small Cards */}
-          <section className="mb-10">
-            <SectionTitle icon={Briefcase}>Key Commodities</SectionTitle>
+          {/* ════════════════════════════════════
+              COMMODITIES
+          ════════════════════════════════════ */}
+          <section className="mb-12">
+            <SectionLabel icon={Briefcase}>Key Commodities</SectionLabel>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
               {isLoading
                 ? Array.from({ length: 5 }).map((_, i) => (
-                    <div key={i} className="h-40 bg-slate-50 rounded-xl animate-pulse border border-slate-200" />
+                    <div key={i} className="h-44 bg-gray-50 rounded-2xl animate-pulse border border-gray-100" />
                   ))
-                : commoditiesData.map((c: Commodity) => {
-                    const pos = c.changePercent >= 0;
-                    return (
-                      <div 
-                        key={c.symbol}
-                        onClick={() => handleChartClick(c.symbol, c.name)}
-                        className="cursor-pointer transform hover:scale-[1.02] transition-transform"
-                      >
-                        <CommodityCard
-                          name={c.name}
-                          price={c.price}
-                          change={c.change}
-                          changePercent={c.changePercent}
-                          unit={c.unit}
-                          isPositive={pos}
-                          candles={c.candles}
-                        />
-                      </div>
-                    );
-                  })}
+                : commoditiesData.map((c: Commodity) => (
+                    <div
+                      key={c.symbol}
+                      onClick={() => handleChartClick(c.symbol, c.name)}
+                      className="cursor-pointer rounded-2xl overflow-hidden hover:shadow-md transition-all duration-200 hover:-translate-y-0.5"
+                    >
+                      <CommodityCard
+                        name={c.name} price={c.price} change={c.change}
+                        changePercent={c.changePercent} unit={c.unit}
+                        isPositive={c.changePercent >= 0} candles={c.candles}
+                      />
+                    </div>
+                  ))}
             </div>
           </section>
 
-          {/* BONDS & VIX */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
+          {/* ════════════════════════════════════
+              BONDS + VIX
+          ════════════════════════════════════ */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-12">
+
             {/* Treasury Yields */}
             <div>
-              <SectionTitle icon={Landmark}>Treasury Yields</SectionTitle>
-              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+              <SectionLabel icon={Landmark}>Treasury Yields</SectionLabel>
+              <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
                 {isLoading ? (
-                  <div className="h-64 flex items-center justify-center">
-                    <div className="animate-pulse text-slate-400">Loading...</div>
-                  </div>
+                  <div className="h-64 animate-pulse bg-gray-50" />
                 ) : bondsData.length > 0 ? (
-                  <div className="divide-y divide-slate-100">
+                  <div className="divide-y divide-gray-50">
                     {bondsData.map((bond: BondYield, i: number) => {
                       const pos = bond.change >= 0;
                       return (
-                        <div key={i} className="p-5 flex items-center justify-between hover:bg-slate-50 transition-colors">
+                        <div key={i} className="flex items-center justify-between px-6 py-4 hover:bg-gray-50/60 transition-colors group">
                           <div>
-                            <h3 className="font-bold text-slate-900">{bond.name}</h3>
-                            <p className={`text-sm font-semibold mt-1 ${pos ? "text-emerald-600" : "text-red-600"}`}>
+                            <p className="font-bold text-gray-900 text-sm">{bond.name}</p>
+                            <p className="text-xs font-semibold mt-0.5"
+                              style={{ color: pos ? "#16a34a" : "#dc2626" }}>
                               {pos ? "+" : ""}{bond.change.toFixed(3)}%
                             </p>
                           </div>
-                          <div className="text-right">
-                            <div className="text-3xl font-black text-slate-900">
+                          <div className="text-right flex items-center gap-3">
+                            <span className="text-2xl font-black text-gray-900">
                               {bond.yield.toFixed(3)}%
-                            </div>
-                            <div className={`flex items-center gap-1 mt-1 justify-end ${pos ? "text-emerald-600" : "text-red-600"}`}>
-                              {pos ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
-                            </div>
+                            </span>
+                            {pos
+                              ? <TrendingUp className="w-4 h-4 text-emerald-500" />
+                              : <TrendingDown className="w-4 h-4 text-red-500" />
+                            }
                           </div>
                         </div>
                       );
                     })}
                   </div>
                 ) : (
-                  <p className="p-12 text-center text-slate-400">Bond data unavailable</p>
+                  <p className="p-10 text-center text-gray-300 text-sm">Bond data unavailable</p>
                 )}
               </div>
             </div>
 
             {/* VIX */}
             <div>
-              <SectionTitle icon={Percent}>Volatility Index (VIX)</SectionTitle>
+              <SectionLabel icon={Percent}>Volatility Index (VIX)</SectionLabel>
               {isLoading ? (
-                <div className="h-64 bg-slate-50 rounded-2xl animate-pulse border border-slate-200" />
-              ) : data?.vix ? (
-                <div className={`rounded-2xl border p-10 flex flex-col items-center justify-center gap-4 shadow-sm ${VIX_STYLE[data.vix.sentiment]}`}>
-                  <div className="text-7xl font-black text-slate-900">
-                    {data.vix.value.toFixed(2)}
+                <div className="h-64 bg-gray-50 rounded-2xl animate-pulse border border-gray-100" />
+              ) : data?.vix ? (() => {
+                const vs = VIX_STYLE[data.vix.sentiment];
+                const pos = data.vix.change >= 0;
+                return (
+                  <div className={`rounded-2xl border ${vs.wrap} p-10 flex flex-col items-center justify-center gap-3 shadow-sm`}>
+                    <p className="text-xs font-bold tracking-[0.18em] uppercase text-gray-400">VIX Index</p>
+                    <div className="text-7xl font-black text-gray-900 leading-none">
+                      {data.vix.value.toFixed(2)}
+                    </div>
+                    <p className="font-bold text-gray-500 text-sm">
+                      {pos ? "+" : ""}{data.vix.change.toFixed(2)}{" "}
+                      <span>({data.vix.changePercent.toFixed(2)}%)</span>
+                    </p>
+                    <span className={`mt-1 px-5 py-1.5 rounded-full text-xs font-extrabold tracking-widest border ${vs.badge}`}>
+                      {vs.label}
+                    </span>
                   </div>
-                  <p className="text-lg font-bold text-slate-700">
-                    {data.vix.change >= 0 ? "+" : ""}{data.vix.change.toFixed(2)} ({data.vix.changePercent.toFixed(2)}%)
-                  </p>
-                  <span className={`px-6 py-2 rounded-full text-sm font-bold border uppercase ${VIX_STYLE[data.vix.sentiment]}`}>
-                    {data.vix.sentiment} volatility
-                  </span>
-                </div>
-              ) : (
-                <div className="h-64 rounded-2xl border border-slate-200 bg-slate-50 flex items-center justify-center">
-                  <p className="text-slate-400">VIX data unavailable</p>
+                );
+              })() : (
+                <div className="h-64 rounded-2xl border border-gray-100 bg-gray-50 flex items-center justify-center">
+                  <p className="text-gray-300 text-sm">VIX data unavailable</p>
                 </div>
               )}
             </div>
           </div>
 
-          {/* REGIONAL PERFORMANCE */}
-          <section className="mb-10">
-            <SectionTitle icon={Globe}>Regional Performance</SectionTitle>
+          {/* ════════════════════════════════════
+              REGIONAL PERFORMANCE
+          ════════════════════════════════════ */}
+          <section className="mb-12">
+            <SectionLabel icon={Globe}>Regional Performance</SectionLabel>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
               {isLoading
                 ? Array.from({ length: 3 }).map((_, i) => (
-                    <div key={i} className="h-56 bg-slate-50 rounded-2xl animate-pulse border border-slate-200" />
+                    <div key={i} className="h-56 bg-gray-50 rounded-2xl animate-pulse border border-gray-100" />
                   ))
                 : regionsData.map((r: RegionSummary) => {
                     const pos = r.avgChange >= 0;
                     return (
-                      <div key={r.name} className="bg-white rounded-2xl border border-slate-200 hover:border-slate-300 hover:shadow-md transition-all p-5">
-                        <div className="flex justify-between mb-4">
-                          <div className="flex items-center gap-3">
-                            <span className="text-3xl">{r.flag}</span>
-                            <div>
-                              <h3 className="font-bold text-slate-900">{r.name}</h3>
-                              <p className="text-xs text-slate-500">{r.countries.join(", ")}</p>
+                      <div key={r.name}
+                        className="bg-white rounded-2xl border border-gray-100 hover:border-gray-200 hover:shadow-md transition-all duration-200 overflow-hidden">
+                        {/* Card top accent */}
+                        <div className="h-0.5" style={{
+                          background: pos
+                            ? "linear-gradient(to right, #16a34a, transparent)"
+                            : "linear-gradient(to right, #dc2626, transparent)"
+                        }} />
+
+                        <div className="p-5">
+                          <div className="flex items-start justify-between mb-4">
+                            <div className="flex items-center gap-3">
+                              <span className="text-3xl">{r.flag}</span>
+                              <div>
+                                <p className="font-extrabold text-gray-900 text-base">{r.name}</p>
+                                <p className="text-xs text-gray-400 mt-0.5">{r.countries.join(", ")}</p>
+                              </div>
+                            </div>
+                            <span className="text-xl font-black"
+                              style={{ color: pos ? "#16a34a" : "#dc2626" }}>
+                              {pos ? "+" : ""}{r.avgChange.toFixed(2)}%
+                            </span>
+                          </div>
+
+                          <div className="space-y-2 text-sm">
+                            <div className="flex justify-between items-center px-3 py-2.5 rounded-xl bg-emerald-50 border border-emerald-100">
+                              <span className="text-gray-500 font-medium">Best</span>
+                              <span className="text-emerald-700 font-bold text-xs">
+                                {r.best.name} ({r.best.change.toFixed(2)}%)
+                              </span>
+                            </div>
+                            <div className="flex justify-between items-center px-3 py-2.5 rounded-xl bg-red-50 border border-red-100">
+                              <span className="text-gray-500 font-medium">Worst</span>
+                              <span className="text-red-600 font-bold text-xs">
+                                {r.worst.name} ({r.worst.change.toFixed(2)}%)
+                              </span>
                             </div>
                           </div>
-                          <div className={`text-2xl font-black ${pos ? "text-emerald-600" : "text-red-600"}`}>
-                            {pos ? "+" : ""}{r.avgChange.toFixed(2)}%
-                          </div>
-                        </div>
 
-                        <div className="space-y-2 text-sm">
-                          <div className="flex items-center justify-between p-2.5 rounded-lg bg-emerald-50 border border-emerald-200">
-                            <span className="text-slate-600">Best</span>
-                            <span className="text-emerald-700 font-bold">{r.best.name} ({r.best.change.toFixed(2)}%)</span>
-                          </div>
-                          <div className="flex items-center justify-between p-2.5 rounded-lg bg-red-50 border border-red-200">
-                            <span className="text-slate-600">Worst</span>
-                            <span className="text-red-700 font-bold">{r.worst.name} ({r.worst.change.toFixed(2)}%)</span>
-                          </div>
-                        </div>
-
-                        <div className="flex justify-between text-xs text-slate-500 mt-4 pt-4 border-t border-slate-200">
-                          <div className="flex items-center gap-1">
-                            <MapPin className="w-3.5 h-3.5" />
-                            {r.countries.length} markets
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Clock className="w-3.5 h-3.5" />
-                            Live
+                          <div className="flex justify-between text-xs text-gray-300 mt-4 pt-4 border-t border-gray-50">
+                            <div className="flex items-center gap-1">
+                              <MapPin className="w-3 h-3" /> {r.countries.length} markets
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Clock className="w-3 h-3" /> Live
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -409,66 +412,86 @@ export default function GlobalView() {
             </div>
           </section>
 
-          {/* GLOBAL EVENTS */}
-          <section className="mb-10">
-            <SectionTitle>Global Events Calendar</SectionTitle>
+          {/* ════════════════════════════════════
+              EVENTS CALENDAR
+          ════════════════════════════════════ */}
+          <section className="mb-12">
+            <SectionLabel>Global Events Calendar</SectionLabel>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {eventsData.map((ev, i) => {
-                const IC: Record<string, string> = {
-                  High:   "bg-red-50 text-red-700 border-red-200",
-                  Medium: "bg-amber-50 text-amber-700 border-amber-200",
-                  Low:    "bg-emerald-50 text-emerald-700 border-emerald-200",
+                const IC: Record<string, { bg: string; text: string; border: string }> = {
+                  High:   { bg: "bg-red-50",     text: "text-red-700",     border: "border-red-200" },
+                  Medium: { bg: "bg-amber-50",   text: "text-amber-700",   border: "border-amber-200" },
+                  Low:    { bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-200" },
                 };
+                const s = IC[ev.impact] || IC.Low;
                 const d = new Date(ev.date);
-                const dateStr = isNaN(d.getTime()) ? ev.date : d.toLocaleDateString("en-IN", { day: "2-digit", month: "short" });
+                const dateStr = isNaN(d.getTime())
+                  ? ev.date
+                  : d.toLocaleDateString("en-IN", { day: "2-digit", month: "short" });
 
                 return (
-                  <div key={i} className="bg-white rounded-xl border border-slate-200 p-4 hover:border-slate-300 hover:shadow-sm transition-all">
-                    <div className="flex gap-2 flex-wrap mb-2">
-                      <span className={`px-2.5 py-1 text-xs font-bold rounded-full border ${IC[ev.impact]}`}>
+                  <div key={i}
+                    className="bg-white rounded-xl border border-gray-100 p-4 hover:border-gray-200 hover:shadow-sm transition-all duration-150">
+                    <div className="flex items-center gap-2 flex-wrap mb-3">
+                      <span className={`px-2.5 py-0.5 text-[11px] font-extrabold rounded-full border ${s.bg} ${s.text} ${s.border}`}>
                         {ev.impact}
                       </span>
-                      <span className="px-2.5 py-1 bg-slate-100 text-slate-700 text-xs font-semibold rounded-full border border-slate-200">
+                      <span className="px-2.5 py-0.5 bg-gray-50 text-gray-600 text-[11px] font-semibold rounded-full border border-gray-100">
                         {ev.region}
                       </span>
-                      <span className="ml-auto text-xs text-slate-500 font-medium">{dateStr}</span>
+                      <span className="ml-auto text-xs text-gray-300 font-medium">{dateStr}</span>
                     </div>
-                    <h3 className="font-semibold text-sm text-slate-800">{ev.title}</h3>
+                    <p className="font-semibold text-sm text-gray-800 leading-snug">{ev.title}</p>
                   </div>
                 );
               })}
             </div>
           </section>
 
-          {/* STATUS BAR */}
-          <div className="bg-gradient-to-br from-slate-50 to-slate-100 border border-slate-200 rounded-2xl p-5 shadow-sm">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-sm">
-              <div className="flex items-center gap-3 text-slate-600">
-                <Activity className="w-5 h-5" />
+          {/* ════════════════════════════════════
+              STATUS BAR
+          ════════════════════════════════════ */}
+          <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+            <div className="h-0.5" style={{ background: `linear-gradient(to right, ${G}, ${O}, transparent)` }} />
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-6 py-5 text-sm">
+              <div className="flex items-center gap-2.5 text-gray-400">
+                <Activity className="w-4 h-4" style={{ color: G }} />
                 <span className="font-medium">
                   Last updated:{" "}
-                  {lastUpdated
-                    ? lastUpdated.toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })
-                    : "Fetching..."}
+                  <span className="text-gray-600 font-semibold">
+                    {lastUpdated
+                      ? lastUpdated.toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })
+                      : "Fetching…"}
+                  </span>
                 </span>
               </div>
 
               <div className="flex flex-wrap items-center gap-5">
-                {data && (["us", "europe", "asia"] as const).map((region) => (
-                  <div key={region} className="flex items-center gap-2">
-                    {data.marketStatus[region] === "open" ? (
-                      <Wifi className="w-4 h-4 text-emerald-600" />
-                    ) : (
-                      <WifiOff className="w-4 h-4 text-slate-400" />
-                    )}
-                    <span className={`uppercase font-bold text-xs ${data.marketStatus[region] === "open" ? "text-emerald-600" : "text-slate-400"}`}>
-                      {region} {data.marketStatus[region]}
-                    </span>
-                  </div>
-                ))}
-                <div className="flex items-center gap-2">
-                  <div className={`w-2.5 h-2.5 rounded-full ${loading === "loading" || refreshing ? "bg-amber-500 animate-pulse" : "bg-emerald-500"}`} />
-                  <span className="font-bold text-xs text-emerald-600">
+                {data && (["us", "europe", "asia"] as const).map((region) => {
+                  const open = data.marketStatus[region] === "open";
+                  return (
+                    <div key={region} className="flex items-center gap-1.5">
+                      {open
+                        ? <Wifi className="w-3.5 h-3.5 text-emerald-500" />
+                        : <WifiOff className="w-3.5 h-3.5 text-gray-300" />
+                      }
+                      <span className={`uppercase font-bold text-xs ${open ? "text-emerald-600" : "text-gray-300"}`}>
+                        {region} {data.marketStatus[region]}
+                      </span>
+                    </div>
+                  );
+                })}
+
+                <div className="flex items-center gap-1.5">
+                  <div className={`w-2 h-2 rounded-full ${
+                    loading === "loading" || refreshing
+                      ? "bg-amber-400 animate-pulse"
+                      : "bg-emerald-500"
+                  }`} />
+                  <span className={`font-extrabold text-xs tracking-widest ${
+                    loading === "loading" || refreshing ? "text-amber-500" : "text-emerald-600"
+                  }`}>
                     {loading === "loading" || refreshing ? "UPDATING" : "LIVE"}
                   </span>
                 </div>
@@ -479,7 +502,6 @@ export default function GlobalView() {
         </div>
       </div>
 
-      {/* TradingView Modal */}
       <TradingViewModal
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}

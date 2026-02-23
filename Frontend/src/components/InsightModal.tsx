@@ -62,19 +62,19 @@ const InsightModal = ({ isOpen, onClose, insight, loading = false }: InsightModa
         {showLoading ? (
           /* Loading State */
           <>
-            <div className="sticky top-0 z-10 bg-gradient-to-r from-accent to-accent/80 text-white p-6">
+            <div className="sticky top-0 z-10 p-6" style={{background: "linear-gradient(135deg, #FEF0C2 0%, #E8C45A 45%, #C4941E 100%)"}}>
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 space-y-4">
                   <div className="flex items-center gap-3">
-                    <div className="h-6 w-24 bg-white/20 rounded-full animate-pulse"></div>
-                    <div className="h-6 w-32 bg-white/20 rounded-full animate-pulse"></div>
+                    <div className="h-6 w-24 bg-black/10 rounded-full animate-pulse"></div>
+                    <div className="h-6 w-32 bg-black/10 rounded-full animate-pulse"></div>
                   </div>
-                  <div className="h-8 w-3/4 bg-white/20 rounded animate-pulse"></div>
-                  <div className="h-6 w-1/2 bg-white/20 rounded animate-pulse"></div>
+                  <div className="h-8 w-3/4 bg-black/10 rounded animate-pulse"></div>
+                  <div className="h-6 w-1/2 bg-black/10 rounded animate-pulse"></div>
                 </div>
                 <button
                   onClick={onClose}
-                  className="flex-shrink-0 p-2 rounded-full hover:bg-white/20 transition-colors"
+                  className="flex-shrink-0 p-2 rounded-full hover:bg-black/10 transition-colors text-amber-950"
                   aria-label="Close"
                 >
                   <X className="w-6 h-6" />
@@ -102,8 +102,7 @@ const InsightModal = ({ isOpen, onClose, insight, loading = false }: InsightModa
           </>
         ) : insight ? (
           <>
-            {/* Header */}
-            <div className="sticky top-0 z-10 bg-gradient-to-r from-accent to-accent/80 text-white p-6 flex-shrink-0">
+            <div className="sticky top-0 z-10 p-6 flex-shrink-0" style={{background: "linear-gradient(135deg, #FEF0C2 0%, #E8C45A 45%, #C4941E 100%)"}}>
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-3">
@@ -111,16 +110,16 @@ const InsightModal = ({ isOpen, onClose, insight, loading = false }: InsightModa
                       {getSentimentIcon()}
                       {insight.sentiment}
                     </span>
-                    <span className="px-3 py-1 rounded-full bg-white/20 text-sm font-medium">
+                    <span className="px-3 py-1 rounded-full bg-black/10 text-sm font-medium text-amber-950">
                       {insight.category}
                     </span>
                   </div>
-                  <h2 className="text-2xl md:text-3xl font-bold leading-tight mb-4">
+                  <h2 className="text-2xl md:text-3xl font-bold leading-tight mb-4 text-amber-950">
                     {insight.title}
                   </h2>
 
                   {/* Metadata */}
-                  <div className="flex flex-wrap items-center gap-4 text-sm text-white/90">
+                  <div className="flex flex-wrap items-center gap-4 text-sm text-amber-900/75">
                     <div className="flex items-center gap-1">
                       <Clock className="w-4 h-4" />
                       <span>{insight.readTime}</span>
@@ -137,7 +136,7 @@ const InsightModal = ({ isOpen, onClose, insight, loading = false }: InsightModa
                 </div>
                 <button
                   onClick={onClose}
-                  className="flex-shrink-0 p-2 rounded-full hover:bg-white/20 transition-colors"
+                  className="flex-shrink-0 p-2 rounded-full hover:bg-black/10 transition-colors text-amber-950"
                   aria-label="Close"
                 >
                   <X className="w-6 h-6" />
@@ -173,7 +172,7 @@ const InsightModal = ({ isOpen, onClose, insight, loading = false }: InsightModa
               </div>
 
               {/* Credits */}
-              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200/50">
+              <div className="bg-gradient-to-br from-amber-50 to-yellow-50 rounded-xl p-6 border border-amber-200/50">
                 <h3 className="text-lg font-semibold text-foreground mb-4">
                   Source & Credits
                 </h3>
@@ -217,10 +216,11 @@ const InsightModal = ({ isOpen, onClose, insight, loading = false }: InsightModa
             </div>
 
             {/* Footer */}
-            <div className="sticky bottom-0 bg-white border-t border-gray-200 p-4 flex-shrink-0">
+            <div className="sticky bottom-0 bg-white border-t border-gray-100 p-4 flex-shrink-0">
               <Button
                 onClick={onClose}
-                className="w-full bg-gradient-to-r from-accent to-accent/80 hover:from-accent/90 hover:to-accent/70 text-white font-semibold"
+                className="w-full font-semibold text-amber-950"
+                style={{background: "linear-gradient(135deg, #E8C45A 0%, #C4941E 100%)"}}
               >
                 Close
               </Button>

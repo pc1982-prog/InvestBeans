@@ -155,14 +155,14 @@ const AdminInsightForm = ({
       <div className="min-h-screen flex items-center justify-center p-4 sm:p-6 lg:p-8">
         <div className="relative w-full max-w-4xl bg-white rounded-2xl shadow-2xl animate-scale-in my-8">
         {/* Header */}
-        <div className="sticky top-0 z-10 bg-gradient-to-r from-accent to-accent/80 text-white p-6 rounded-t-2xl">
+        <div className="sticky top-0 z-10 p-6 rounded-t-2xl" style={{background: "linear-gradient(135deg, #F5DC8A 0%, #D4A843 50%, #B8860B 100%)"}}>
           <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold">
+            <h2 className="text-2xl font-bold text-amber-950">
               {editingInsight ? "Edit Insight" : "Create New Insight"}
             </h2>
             <button
               onClick={onClose}
-              className="p-2 rounded-full hover:bg-white/20 transition-colors"
+              className="p-2 rounded-full hover:bg-black/10 transition-colors text-amber-950"
               aria-label="Close"
             >
               <X className="w-6 h-6" />
@@ -241,7 +241,7 @@ const AdminInsightForm = ({
           </div>
 
           {/* Credits Section */}
-          <div className="space-y-4 p-6 bg-blue-50 rounded-xl border border-blue-200">
+          <div className="space-y-4 p-6 bg-amber-50 rounded-xl border border-amber-200">
             <h3 className="text-lg font-semibold text-foreground">Credits & Source</h3>
             
             <div>
@@ -367,7 +367,8 @@ const AdminInsightForm = ({
             <Button
               type="submit"
               disabled={loading}
-              className="flex-1 h-12 text-base bg-gradient-to-r from-accent to-accent/80 hover:from-accent/90 hover:to-accent/70 text-white font-semibold"
+              className="flex-1 h-12 text-base font-semibold text-amber-950"
+              style={{background: "linear-gradient(135deg, #E8C45A 0%, #C4941E 100%)"}}
             >
               {loading
                 ? "Saving..."

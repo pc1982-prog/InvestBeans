@@ -239,13 +239,13 @@ const HomeView = ({ activeTab, onChangeTab }: HomeViewProps) => {
 
 
         <section className="relative overflow-hidden py-16 bottom-10">
-          <div className="gradient-accent rounded-2xl p-10 md:p-12 relative">
+          <div className="rounded-2xl p-10 md:p-12 relative" style={{background: "linear-gradient(135deg, #FDF8EC 0%, #F0D9A0 28%, #D4A843 58%, #B8860B 82%, #9A6F09 100%)"}}>
 
             <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
             <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
 
             <div className="relative z-10 max-w-6xl mx-auto">
-              <h2 className="text-3xl md:text-4xl font-bold text-white text-center mb-10">
+              <h2 className="text-3xl md:text-4xl font-bold text-amber-950 text-center mb-10">
                 Stock Market Plans
               </h2>
 
@@ -270,7 +270,7 @@ const HomeView = ({ activeTab, onChangeTab }: HomeViewProps) => {
 
                     <button
                       onClick={() => checkoutHandler(999)}
-                      className="w-full bg-navy text-white py-2 rounded-lg font-semibold hover:bg-navy-light transition"
+                      className="w-full py-2 rounded-lg font-semibold transition bg-navy text-[#F0D080] hover:bg-navy-light"
                     >
                       Buy Now
                     </button>
@@ -294,7 +294,7 @@ const HomeView = ({ activeTab, onChangeTab }: HomeViewProps) => {
 
                     <button
                       onClick={() => checkoutHandler(1499)}
-                      className="w-full bg-navy text-white py-2 rounded-lg font-semibold hover:bg-navy-light transition"
+                      className="w-full py-2 rounded-lg font-semibold transition bg-navy text-[#F0D080] hover:bg-navy-light"
                     >
                       Buy Now
                     </button>
@@ -318,7 +318,7 @@ const HomeView = ({ activeTab, onChangeTab }: HomeViewProps) => {
 
                     <button
                       onClick={() => checkoutHandler(1499)}
-                      className="w-full bg-navy text-white py-2 rounded-lg font-semibold hover:bg-navy-light transition"
+                      className="w-full py-2 rounded-lg font-semibold transition bg-navy text-[#F0D080] hover:bg-navy-light"
                     >
                       Buy Now
                     </button>
@@ -332,15 +332,15 @@ const HomeView = ({ activeTab, onChangeTab }: HomeViewProps) => {
 
         {/* Newsletter Subscription */}
         <section className="relative overflow-hidden">
-          <div className="gradient-accent rounded-2xl p-10 md:p-12 relative animate-scale-in">
+          <div className="rounded-2xl p-10 md:p-12 relative animate-scale-in" style={{background: "linear-gradient(135deg, #FDF8EC 0%, #F0D9A0 28%, #D4A843 58%, #B8860B 82%, #9A6F09 100%)"}}>
             <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
             <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
             <div className="relative z-10 max-w-3xl mx-auto text-center">
-              <Mail className="w-12 h-12 mx-auto mb-4 text-white" />
-              <h3 className="text-3xl md:text-4xl font-bold text-white mb-4">
+              <Mail className="w-12 h-12 mx-auto mb-4 text-amber-950" />
+              <h3 className="text-3xl md:text-4xl font-bold text-amber-950 mb-4">
                 Stay Ahead in the Market
               </h3>
-              <p className="text-white/90 text-lg mb-8">
+              <p className="text-amber-900/80 text-lg mb-8">
                 Subscribe for daily insights, market trends, and expert analysis
                 delivered to your inbox
               </p>
@@ -350,11 +350,11 @@ const HomeView = ({ activeTab, onChangeTab }: HomeViewProps) => {
                   placeholder="Enter your email"
                   className="bg-white/90 border-0 text-navy placeholder:text-navy/60 h-12 text-base"
                 />
-                <Button className="bg-navy hover:bg-navy-light text-white font-semibold h-12 px-8 shadow-lg hover:shadow-xl transition-all">
+                <Button className="bg-navy hover:bg-navy-light text-[#F0D080] font-semibold h-12 px-8 shadow-lg hover:shadow-xl transition-all">
                   Subscribe
                 </Button>
               </div>
-              <p className="text-white/70 text-sm mt-4">
+              <p className="text-amber-900/60 text-sm mt-4">
                 Join 50,000+ investors getting daily market insights
               </p>
             </div>

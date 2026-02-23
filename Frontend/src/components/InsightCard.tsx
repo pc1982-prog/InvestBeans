@@ -55,11 +55,11 @@ const InsightCard = ({
   const getSentimentColor = () => {
     switch (sentiment) {
       case "positive":
-        return "from-green-500/10 to-emerald-500/5 border-green-200/50";
+        return "from-emerald-50 to-green-50/80 border-emerald-200/60";
       case "negative":
-        return "from-red-500/10 to-rose-500/5 border-red-200/50";
+        return "from-rose-50 to-red-50/80 border-rose-200/60";
       default:
-        return "from-blue-500/10 to-indigo-500/5 border-blue-200/50";
+        return "from-slate-50 to-blue-50/60 border-slate-200/60";
     }
   };
 
@@ -172,7 +172,7 @@ const InsightCard = ({
             <button
               onClick={handleLike}
               className={`flex items-center gap-1 transition-colors ${
-                liked ? "text-blue-600" : "hover:text-blue-600"
+                liked ? "text-amber-600" : "hover:text-amber-600"
               }`}
             >
               <ThumbsUp
