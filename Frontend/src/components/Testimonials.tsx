@@ -426,6 +426,8 @@ export default function TestimonialsSection() {
   const [modal, setModal] = useState<Testimonial | null>(null);
   const [paused, setPaused] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  // ← NEW: track whether cursor is over the cards+arrows row
+  const [cardsHovered, setCardsHovered] = useState(false);
 
   useEffect(() => {
     const update = () => setIsMobile(window.innerWidth < 700);
@@ -434,7 +436,6 @@ export default function TestimonialsSection() {
     return () => window.removeEventListener("resize", update);
   }, []);
 
-  // On mobile: 1 card. On desktop: 2 cards
   const cardsPerView = isMobile ? 1 : 2;
   const maxIndex = Math.max(0, TESTIMONIALS.length - cardsPerView);
 
@@ -447,11 +448,10 @@ export default function TestimonialsSection() {
     [maxIndex]
   );
 
-  // Auto-slide — always runs, no pause on mobile (no hover)
   useEffect(() => {
     if (modal) return;
     if (!isMobile && paused) return;
-    const id = setInterval(next, 3500);
+    const id = setInterval(next, 3000);
     return () => clearInterval(id);
   }, [next, paused, modal, isMobile]);
 
@@ -553,15 +553,22 @@ export default function TestimonialsSection() {
           gap: "24px",
         }}
       >
-        {/* Cards row — arrows only on desktop */}
+        {/*
+          Cards row — arrows are always rendered on desktop so layout stays
+          stable, but opacity + pointer-events control visibility based on
+          whether the cursor is anywhere inside this row.
+        */}
         <div
           style={{
             display: "flex",
             alignItems: "center",
             gap: isMobile ? "0" : "20px",
           }}
+          // ← Detect hover over the entire row (cards + arrows area)
+          onMouseEnter={() => !isMobile && setCardsHovered(true)}
+          onMouseLeave={() => !isMobile && setCardsHovered(false)}
         >
-          {/* LEFT ARROW — desktop only */}
+          {/* LEFT ARROW — desktop only, hidden until row is hovered */}
           {!isMobile && (
             <button
               onClick={prev}
@@ -578,8 +585,11 @@ export default function TestimonialsSection() {
                 alignItems: "center",
                 justifyContent: "center",
                 boxShadow: "0 4px 16px rgba(196,148,30,0.30)",
-                transition: "all 0.18s ease",
                 flexShrink: 0,
+                // ← Show / hide via opacity + pointer-events
+                opacity: cardsHovered ? 1 : 0,
+                pointerEvents: cardsHovered ? "auto" : "none",
+                transition: "opacity 0.22s ease, transform 0.18s ease, background 0.18s ease",
               }}
               onMouseEnter={(e) => {
                 const b = e.currentTarget as HTMLButtonElement;
@@ -617,7 +627,7 @@ export default function TestimonialsSection() {
             ))}
           </div>
 
-          {/* RIGHT ARROW — desktop only */}
+          {/* RIGHT ARROW — desktop only, hidden until row is hovered */}
           {!isMobile && (
             <button
               onClick={next}
@@ -634,8 +644,11 @@ export default function TestimonialsSection() {
                 alignItems: "center",
                 justifyContent: "center",
                 boxShadow: "0 4px 16px rgba(196,148,30,0.30)",
-                transition: "all 0.18s ease",
                 flexShrink: 0,
+                // ← Show / hide via opacity + pointer-events
+                opacity: cardsHovered ? 1 : 0,
+                pointerEvents: cardsHovered ? "auto" : "none",
+                transition: "opacity 0.22s ease, transform 0.18s ease, background 0.18s ease",
               }}
               onMouseEnter={(e) => {
                 const b = e.currentTarget as HTMLButtonElement;

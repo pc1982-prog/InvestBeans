@@ -26,6 +26,8 @@ import TermsOfService from "./views/Termsofservice";
 import HelpCenter from "./views/Helpcenter";
 import PrivacyPolicy from "./views/Privacypolicy";
 import ChartPage from "./components/Chartpage";
+import IPOSection from "./views/Iposection";
+import IPOPage from "./views/Ipopage";
 
 
 const queryClient = new QueryClient();
@@ -54,6 +56,9 @@ const App = () => (
             <Route path="/help-center" element={<HelpCenter />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy/>} />
             
+            <Route path="/ipo-section" element={<IPOSection/>} />
+            <Route path="/ipos" element={<IPOPage/>} />
+
             {/* ✅ NEW: Password Reset Routes */}
             <Route path="/forgot-password" element={<ForgotPasswordController />} />
             <Route path="/reset-password" element={<ResetPasswordController />} />

@@ -55,12 +55,14 @@ const MarketTickerInline = () => {
   const [isPaused, setIsPaused] = useState(false);
   const tickerRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<number>();
+  const navigate = useNavigate(); // ← added
 
   const allMarkets = [
     ...(data?.indices.us || []),
     ...(data?.indices.europe || []),
     ...(data?.indices.asia || []),
   ].map((market) => ({
+    symbol: market.symbol, // ← added
     name: market.name,
     value: market.price.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
     change: `${market.changePercent > 0 ? "+" : ""}${market.changePercent.toFixed(2)}%`,
@@ -94,7 +96,11 @@ const MarketTickerInline = () => {
       <div className="flex-1 overflow-hidden mx-10">
         <div ref={tickerRef} className="flex items-center gap-8 overflow-x-auto" onMouseEnter={() => setIsPaused(true)} onMouseLeave={() => setIsPaused(false)} style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
           {[...allMarkets, ...allMarkets].map((market, index) => (
-            <div key={`${market.name}-${index}`} className="flex items-center gap-4 whitespace-nowrap group hover:scale-105 transition-transform">
+            <div
+              key={`${market.name}-${index}`}
+              onClick={() => navigate('/global', { state: { symbol: market.symbol, name: market.name } })} // ← added
+              className="flex items-center gap-4 whitespace-nowrap group hover:scale-110 transition-transform cursor-pointer" // ← scale-105→110, cursor-pointer added
+            >
               <div className="flex items-center gap-2">
                 <span className="text-sm font-medium text-white/80 group-hover:text-white transition-colors">{market.name}</span>
                 <span className="font-bold text-base text-white">{market.value}</span>
@@ -132,7 +138,6 @@ const DropBtn = ({ onClick, children }: { onClick: () => void; children: React.R
 );
 
 // ─── Desktop nav item wrapper — handles hover without blink ───────────────────
-// Key fix: onMouseEnter/Leave on the WRAPPER div (covers both trigger + content)
 const NavItem = ({
   label,
   dd,
@@ -321,7 +326,7 @@ const Header = () => {
 
               {/* 6. IPO */}
               <li>
-                <Link to="/markets" className="font-medium hover:text-accent transition-colors px-2 py-1 rounded-md whitespace-nowrap">
+                <Link to="/ipos" className="font-medium hover:text-accent transition-colors px-2 py-1 rounded-md whitespace-nowrap">
                   IPO
                 </Link>
               </li>
@@ -477,7 +482,7 @@ const Header = () => {
                 </MobileAccordion>
 
                 <li>
-                  <Link to="/markets" className="block text-white hover:text-accent transition-colors font-medium py-3 px-3 rounded-md" onClick={closeMobile}>IPO</Link>
+                  <Link to="/ipos" className="block text-white hover:text-accent transition-colors font-medium py-3 px-3 rounded-md" onClick={closeMobile}>IPO</Link>
                 </li>
 
                 <li>
