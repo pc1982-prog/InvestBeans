@@ -179,60 +179,7 @@ const HomeView = ({ activeTab, onChangeTab }: HomeViewProps) => {
         {/* Beans of Wisdom */}
         <BeansOfWisdomView />
 
-        {/* Deep Dives Section */}
-        {/* <section className="mb-20 relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-accent/5 via-transparent to-accent/10 rounded-3xl"></div>
-          <div className="absolute top-0 left-0 w-60 h-60 md:w-80 md:h-80 bg-gradient-to-br from-accent/8 to-transparent rounded-full blur-3xl"></div>
-          <div className="absolute bottom-0 right-0 w-72 h-72 md:w-96 md:h-96 bg-gradient-to-tl from-accent/5 to-transparent rounded-full blur-2xl"></div>
-
-          <div className="relative z-10">
-            <div className="text-center mb-8 md:mb-16 px-4">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-full bg-gradient-to-r from-accent/10 to-accent/5 border border-accent/20 mb-4 md:mb-6">
-                <BookOpen className="w-3 h-3 md:w-4 md:h-4 text-accent" />
-                <span className="text-xs md:text-sm font-medium text-accent">
-                  Research & Analysis
-                </span>
-              </div>
-              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent mb-3 md:mb-4">
-                Deep Dives
-              </h2>
-              <p className="text-base md:text-lg lg:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed px-2">
-                Comprehensive analysis and market forecasts from our expert
-                research team
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 lg:gap-8 px-2 md:px-0">
-              <DeepDiveCard
-                title="Sensex 2025 Forecast: What Analysts Predict"
-                date="April 22, 2024"
-                icon="chart"
-                readTime="12 min read"
-                views={4567}
-                category="Market Forecast"
-                excerpt="Comprehensive analysis of Sensex performance predictions for 2025, including key factors driving market movements and investment opportunities."
-              />
-              <DeepDiveCard
-                title="US Inflation & Its Impact on Indian Markets"
-                date="April 18, 2024"
-                icon="globe"
-                readTime="15 min read"
-                views={3892}
-                category="Global Economics"
-                excerpt="Deep dive into how US Federal Reserve policies and inflation trends are reshaping investment strategies in emerging markets like India."
-              />
-            </div>
-
-            <div className="mt-8 md:mt-12 text-center px-4">
-              <div className="inline-flex items-center gap-2 px-4 py-2.5 md:px-6 md:py-3 rounded-full bg-gradient-to-r from-accent/10 to-accent/5 border border-accent/20 hover:border-accent/30 transition-all duration-300 cursor-pointer group touch-manipulation active:scale-95">
-                <span className="text-accent font-semibold text-sm md:text-base">
-                  Explore All Research
-                </span>
-                <ArrowRight className="w-3 h-3 md:w-4 md:h-4 text-accent group-hover:translate-x-1 transition-transform" />
-              </div>
-            </div>
-          </div>
-        </section> */}
+     
 
 
         < TestimonialsPage />
