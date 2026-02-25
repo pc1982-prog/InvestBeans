@@ -1,191 +1,503 @@
 import Layout from "@/components/Layout";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import MarketCard from "@/components/MarketCard";
-import DummyChart from "@/components/DummyChart";
-import { TrendingUp, TrendingDown, Activity, BarChart3, Globe, ArrowRight, Clock, Eye } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import {
+  TrendingUp, TrendingDown, Activity, Globe,
+  Clock, RefreshCw, BarChart3, LineChart, Percent,
+  Layers, ArrowUpDown, DollarSign, Briefcase, Building2,
+  CalendarDays, Info,
+} from "lucide-react";
+import { useState } from "react";
 
-const DomesticView = () => {
+// ── Brand colours (same as GlobalView) ──────────────────────────
+const G = "#2D4A35";
+const O = "#C07A3A";
+
+// ── Placeholder helpers ──────────────────────────────────────────
+function SectionLabel({ icon: Icon, children }: { icon?: any; children: React.ReactNode }) {
   return (
-    <Layout>
-      <div className="container mx-auto px-6 py-10">
-        {/* Enhanced Header */}
-        <div className="relative overflow-hidden mb-12">
-          {/* Background decorative elements */}
-          <div className="absolute inset-0 bg-gradient-to-br from-accent/5 via-transparent to-accent/10 rounded-3xl"></div>
-          <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-accent/10 to-transparent rounded-full blur-3xl"></div>
-          <div className="absolute bottom-0 left-0 w-80 h-80 bg-gradient-to-tr from-accent/5 to-transparent rounded-full blur-2xl"></div>
-          
-          <div className="relative z-10">
-            <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8">
-              <div className="mb-6 md:mb-0">
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-accent/10 to-accent/5 border border-accent/20 mb-4">
-                  <Globe className="w-4 h-4 text-accent" />
-                  <span className="text-sm font-medium text-accent">Domestic Markets</span>
-                </div>
-                <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent mb-3">
-                  Indian Stock Markets
-                </h1>
-                <p className="text-lg text-muted-foreground">
-                  Real-time data and analysis for Indian equity markets
-                </p>
+    <div className="flex items-center gap-3 mb-6">
+      {Icon && (
+        <div
+          className="w-9 h-9 rounded-xl flex items-center justify-center"
+          style={{ background: `${G}12`, border: `1px solid ${G}25` }}
+        >
+          <Icon className="w-4 h-4" style={{ color: G }} />
+        </div>
+      )}
+      <h2 className="text-xl font-extrabold text-gray-900 tracking-tight">{children}</h2>
+      <div className="flex-1 h-px bg-gray-100 ml-2" />
+    </div>
+  );
+}
+
+// Shimmering skeleton block
+function Skeleton({ h = "h-80", className = "" }: { h?: string; className?: string }) {
+  return (
+    <div
+      className={`${h} rounded-2xl bg-gray-50 border border-gray-100 ${className}`}
+      style={{ background: "linear-gradient(90deg,#f3f4f6 25%,#e5e7eb 50%,#f3f4f6 75%)", backgroundSize: "400% 100%", animation: "shimmer 1.6s infinite" }}
+    />
+  );
+}
+
+// ── Static placeholder data (replace with API later) ─────────────
+
+const INDICES = [
+  { name: "Nifty 50",     symbol: "NIFTY",     price: "22,142.30", change: "−72.10",  pct: "−0.33%", pos: false },
+  { name: "Sensex",       symbol: "SENSEX",    price: "73,276.64", change: "+394.25", pct: "+0.54%", pos: true  },
+  { name: "Bank Nifty",   symbol: "BANKNIFTY", price: "47,852.15", change: "+215.40", pct: "+0.45%", pos: true  },
+  { name: "Nifty IT",     symbol: "CNXIT",     price: "34,128.90", change: "−189.70", pct: "−0.55%", pos: false },
+  { name: "Nifty Auto",   symbol: "CNXAUTO",   price: "21,340.60", change: "+98.50",  pct: "+0.46%", pos: true  },
+  { name: "Nifty Pharma", symbol: "CNXPHARMA", price: "18,965.40", change: "−55.30",  pct: "−0.29%", pos: false },
+];
+
+const TOP_STOCKS = [
+  { name: "RELIANCE",  price: "2,847.50", open: "2,810.00", high: "2,860.20", low: "2,798.50", vol: "4.2M", chg: "+1.61%", pos: true  },
+  { name: "TCS",       price: "3,456.80", open: "3,480.00", high: "3,495.00", low: "3,440.00", vol: "2.1M", chg: "−0.67%", pos: false },
+  { name: "HDFCBANK",  price: "1,234.60", open: "1,222.00", high: "1,240.00", low: "1,218.00", vol: "5.8M", chg: "+1.05%", pos: true  },
+  { name: "INFY",      price: "1,567.90", open: "1,560.00", high: "1,575.00", low: "1,552.00", vol: "3.3M", chg: "+0.55%", pos: true  },
+  { name: "ICICIBANK", price: "1,102.40", open: "1,095.00", high: "1,110.00", low: "1,090.00", vol: "6.1M", chg: "+0.68%", pos: true  },
+  { name: "WIPRO",     price: "487.30",   open: "492.00",   high: "493.50",   low: "483.00",   vol: "2.7M", chg: "−0.96%", pos: false },
+  { name: "HINDUNILVR",price: "2,345.20", open: "2,361.00", high: "2,365.00", low: "2,330.00", vol: "1.2M", chg: "−0.65%", pos: false },
+  { name: "ITC",       price: "456.70",   open: "453.00",   high: "459.00",   low: "451.00",   vol: "8.4M", chg: "+0.71%", pos: true  },
+];
+
+const SECTORS = [
+  { name: "Banking & Finance", chg: "+0.82%", pos: true,  top: "HDFCBANK +1.05%", bot: "KOTAKBANK −0.38%" },
+  { name: "Information Tech",  chg: "−0.55%", pos: false, top: "INFY +0.55%",     bot: "TCS −0.67%"      },
+  { name: "FMCG",              chg: "−0.12%", pos: false, top: "ITC +0.71%",      bot: "HUL −0.65%"      },
+  { name: "Auto",              chg: "+0.46%", pos: true,  top: "MARUTI +0.90%",   bot: "TATAMOTORS −0.20%" },
+  { name: "Pharma",            chg: "−0.29%", pos: false, top: "SUNPHARMA +0.15%",bot: "DRREDDY −0.72%"  },
+  { name: "Energy & Oil",      chg: "+0.44%", pos: true,  top: "RELIANCE +1.61%", bot: "BPCL −0.33%"     },
+];
+
+const FNO_OI = [
+  { name: "Nifty 50 Futures",   expiry: "25 Apr 2024", oi: "1,24,56,500",  chgOI: "+4.2%",  ltp: "22,160.00", pos: true  },
+  { name: "Bank Nifty Futures", expiry: "25 Apr 2024", oi: "48,23,750",    chgOI: "+2.8%",  ltp: "47,880.00", pos: true  },
+  { name: "Nifty 22000 CE",     expiry: "25 Apr 2024", oi: "2,10,45,000",  chgOI: "−6.1%",  ltp: "245.50",    pos: false },
+  { name: "Nifty 22200 PE",     expiry: "25 Apr 2024", oi: "1,85,60,000",  chgOI: "+9.3%",  ltp: "182.00",    pos: true  },
+  { name: "BankNifty 48000 CE", expiry: "25 Apr 2024", oi: "98,40,000",    chgOI: "+3.5%",  ltp: "112.75",    pos: true  },
+  { name: "BankNifty 47500 PE", expiry: "25 Apr 2024", oi: "1,02,15,000",  chgOI: "−2.4%",  ltp: "135.20",    pos: false },
+];
+
+const MARKET_DEPTH = [
+  { stock: "RELIANCE", bids: [{ p: "2,846.00", q: "342" }, { p: "2,845.50", q: "218" }, { p: "2,845.00", q: "615" }, { p: "2,844.50", q: "430" }, { p: "2,844.00", q: "124" }], asks: [{ p: "2,847.50", q: "285" }, { p: "2,848.00", q: "190" }, { p: "2,848.50", q: "520" }, { p: "2,849.00", q: "375" }, { p: "2,849.50", q: "210" }] },
+  { stock: "TCS",      bids: [{ p: "3,455.00", q: "115" }, { p: "3,454.50", q: "88"  }, { p: "3,454.00", q: "320" }, { p: "3,453.50", q: "240" }, { p: "3,453.00", q: "160" }], asks: [{ p: "3,456.80", q: "200" }, { p: "3,457.00", q: "145" }, { p: "3,457.50", q: "310" }, { p: "3,458.00", q: "175" }, { p: "3,458.50", q: "95"  }] },
+];
+
+const CORP_ACTIONS = [
+  { name: "TCS",         action: "Dividend", detail: "₹28 per share",     exDate: "19 Apr 2024", status: "Upcoming" },
+  { name: "HDFCBANK",    action: "Dividend", detail: "₹19.50 per share",   exDate: "22 Apr 2024", status: "Upcoming" },
+  { name: "INFY",        action: "Buyback",  detail: "₹1,750 buyback price",exDate: "26 Apr 2024", status: "Upcoming" },
+  { name: "HINDUNILVR",  action: "Bonus",    detail: "1:1 Bonus Issue",    exDate: "30 Apr 2024", status: "Upcoming" },
+  { name: "ITC",         action: "Dividend", detail: "₹6.75 per share",    exDate: "05 May 2024", status: "Upcoming" },
+  { name: "WIPRO",       action: "Split",    detail: "1:1 Stock Split",    exDate: "10 May 2024", status: "Upcoming" },
+];
+
+const FOREX_PAIRS = [
+  { pair: "USD/INR", rate: "83.47", chg: "+0.12", pct: "+0.14%", pos: true  },
+  { pair: "EUR/INR", rate: "89.62", chg: "−0.22", pct: "−0.25%", pos: false },
+  { pair: "GBP/INR", rate: "104.85", chg: "+0.38", pct: "+0.36%", pos: true  },
+  { pair: "JPY/INR", rate: "0.5521", chg: "+0.002", pct: "+0.36%", pos: true  },
+];
+
+// ── Mini sparkline (pure CSS bars, no lib needed) ────────────────
+const SPARKLINE_DATA: Record<string, number[]> = {
+  NIFTY:     [65, 70, 68, 72, 69, 67, 65, 64, 66, 65],
+  SENSEX:    [60, 62, 65, 64, 67, 70, 72, 71, 74, 73],
+  BANKNIFTY: [50, 54, 52, 56, 58, 55, 59, 61, 60, 62],
+  CNXIT:     [70, 68, 66, 65, 64, 63, 62, 61, 61, 60],
+  CNXAUTO:   [55, 57, 56, 58, 60, 59, 61, 62, 62, 63],
+  CNXPHARMA: [62, 60, 61, 59, 58, 57, 58, 57, 56, 57],
+};
+
+function MiniSparkline({ symbol, pos }: { symbol: string; pos: boolean }) {
+  const pts = SPARKLINE_DATA[symbol] || [50, 50, 50, 50, 50, 50, 50, 50, 50, 50];
+  const max = Math.max(...pts), min = Math.min(...pts), range = max - min || 1;
+  const W = 96, H = 36;
+  const xs = pts.map((_, i) => (i / (pts.length - 1)) * W);
+  const ys = pts.map(v => H - ((v - min) / range) * (H - 4) - 2);
+  const d = xs.map((x, i) => `${i === 0 ? "M" : "L"}${x.toFixed(1)},${ys[i].toFixed(1)}`).join(" ");
+  const fill = `${d} L${W},${H} L0,${H} Z`;
+  const stroke = pos ? "#16a34a" : "#dc2626";
+  const bg = pos ? "#16a34a18" : "#dc262618";
+  return (
+    <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} className="overflow-visible">
+      <path d={fill} fill={bg} />
+      <path d={d} fill="none" stroke={stroke} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+// ── Index selector card (mirrors GlobalView MarketSelector) ───────
+function IndexSelector() {
+  const [sel, setSel] = useState(0);
+  const idx = INDICES[sel];
+  return (
+    <section className="mb-12">
+      <SectionLabel icon={BarChart3}>Major Indices</SectionLabel>
+
+      {/* Tab pills */}
+      <div className="flex items-center gap-2.5 mb-5 flex-wrap">
+        {INDICES.map((m, i) => (
+          <button
+            key={m.symbol}
+            onClick={() => setSel(i)}
+            className="px-4 py-2 rounded-xl text-sm font-bold transition-all duration-150 border"
+            style={
+              sel === i
+                ? { background: G, color: "#fff", borderColor: G, boxShadow: `0 4px 12px ${G}30` }
+                : { background: "#fff", color: "#374151", borderColor: "#e5e7eb" }
+            }
+          >
+            <span className="flex items-center gap-2">
+              {m.name}
+              <span style={{ color: sel === i ? "rgba(255,255,255,0.85)" : m.pos ? "#16a34a" : "#dc2626" }}
+                className="text-xs font-bold">{m.pct}</span>
+            </span>
+          </button>
+        ))}
+      </div>
+
+      {/* Chart placeholder panel */}
+      <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+        <div className="h-0.5" style={{ background: idx.pos ? "linear-gradient(to right,#16a34a,transparent)" : "linear-gradient(to right,#dc2626,transparent)" }} />
+        <div className="p-6">
+          <div className="flex items-start justify-between mb-4">
+            <div>
+              <p className="text-xs font-bold tracking-widest uppercase text-gray-400">{idx.symbol} · NSE</p>
+              <p className="text-4xl font-black text-gray-900 leading-none mt-1">{idx.price}</p>
+              <div className="flex items-center gap-2 mt-2">
+                <span className="text-sm font-bold" style={{ color: idx.pos ? "#16a34a" : "#dc2626" }}>
+                  {idx.change}&nbsp;({idx.pct})
+                </span>
+                {idx.pos ? <TrendingUp className="w-4 h-4 text-emerald-500" /> : <TrendingDown className="w-4 h-4 text-red-500" />}
               </div>
-              <Select defaultValue="dashboard">
-                <SelectTrigger className="w-80 bg-card/50 backdrop-blur-sm border border-border/50">
-                  <SelectValue placeholder="InvestBeans Equity / US Stocks Live Dashboard" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="dashboard">InvestBeans Equity / US Stocks Live Dashboard</SelectItem>
-                </SelectContent>
-              </Select>
+            </div>
+            <div className="text-right text-xs text-gray-300 flex flex-col items-end gap-1">
+              <span>Intraday data available via API</span>
+              <span>1 min / 3 min / 5 min / 15 min</span>
             </div>
           </div>
-        </div>
 
-        {/* Market Overview Cards */}
-        <div className="mb-12">
-          <h2 className="text-2xl font-bold text-foreground mb-6">Market Overview</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <MarketCard name="Nifty 50" value="22,142.30" change="−72.10" percentage="−0.33%" isPositive={false} />
-            <MarketCard name="Sensex" value="73,276.64" change="+394.25" percentage="+0.54%" isPositive={true} />
-            <MarketCard name="Nifty 100" value="21,102.45" change="+112.20" percentage="+0.53%" isPositive={true} />
-            <MarketCard name="Nifty 200" value="12,345.67" change="−25.10" percentage="−0.20%" isPositive={false} />
+          {/* Big chart placeholder with shimmer + label */}
+          <div className="relative h-64 rounded-2xl overflow-hidden border border-dashed border-gray-200 bg-gray-50 flex flex-col items-center justify-center gap-3">
+            <div className="absolute inset-0 opacity-20"
+              style={{ background: `repeating-linear-gradient(0deg,transparent,transparent 39px,${idx.pos ? "#16a34a" : "#dc2626"}22 39px,${idx.pos ? "#16a34a" : "#dc2626"}22 40px),repeating-linear-gradient(90deg,transparent,transparent 79px,#e5e7eb 79px,#e5e7eb 80px)` }}
+            />
+            <LineChart className="w-10 h-10 text-gray-300" />
+            <p className="text-sm font-bold text-gray-400">Intraday Candle Chart</p>
+            <p className="text-xs text-gray-300 text-center px-8">Live OHLCV data available after Zerodha Kite Connect API integration</p>
+            <span className="px-3 py-1 rounded-full text-xs font-extrabold tracking-widest border"
+              style={{ background: `${G}10`, color: G, borderColor: `${G}25` }}>
+              API READY · ₹500/month
+            </span>
           </div>
-        </div>
 
-        {/* Interactive Charts Section */}
-        <div className="mb-12">
-          <h2 className="text-2xl font-bold text-foreground mb-6">Market Performance Analysis</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <DummyChart
-              title="Nifty 50 Trend"
-              value="22,142.30"
-              change="−0.33%"
-              isPositive={false}
-              chartType="line"
-              data={[65, 70, 68, 75, 80, 78, 85, 82, 88, 90, 87, 85]}
-            />
-            <DummyChart
-              title="Sector Performance"
-              value="+2.4%"
-              change="+2.4%"
-              isPositive={true}
-              chartType="bar"
-              data={[45, 52, 48, 61, 55, 67, 58, 72]}
-            />
-            <DummyChart
-              title="Volume Analysis"
-              value="1.2B"
-              change="+15.2%"
-              isPositive={true}
-              chartType="area"
-              data={[30, 35, 32, 40, 38, 45, 42, 48, 46, 50, 47, 52]}
-            />
-          </div>
-        </div>
-
-        {/* Trending Stocks Section */}
-        <div className="mb-12">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-foreground">Trending Stocks</h2>
-            <Button variant="outline" className="border-accent/30 text-accent hover:bg-accent/5">
-              View All
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </Button>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* Quick stats row */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
             {[
-              { name: "RELIANCE", value: "2,847.50", change: "+45.20", percentage: "+1.61%", isPositive: true },
-              { name: "TCS", value: "3,456.80", change: "-23.40", percentage: "-0.67%", isPositive: false },
-              { name: "HDFC Bank", value: "1,234.60", change: "+12.80", percentage: "+1.05%", isPositive: true },
-              { name: "Infosys", value: "1,567.90", change: "+8.50", percentage: "+0.55%", isPositive: true },
-              { name: "HUL", value: "2,345.20", change: "-15.30", percentage: "-0.65%", isPositive: false },
-              { name: "ITC", value: "456.70", change: "+3.20", percentage: "+0.71%", isPositive: true }
-            ].map((stock, index) => (
-              <div key={index} className="bg-gradient-to-br from-card to-card/50 rounded-xl border border-border/50 hover:border-accent/30 hover:shadow-xl transition-all duration-300 p-6 hover:-translate-y-1">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${stock.isPositive ? 'bg-green-500/10' : 'bg-red-500/10'}`}>
-                      {stock.isPositive ? <TrendingUp className="w-5 h-5 text-green-600" /> : <TrendingDown className="w-5 h-5 text-red-600" />}
+              { label: "Open",   val: "—" },
+              { label: "High",   val: "—" },
+              { label: "Low",    val: "—" },
+              { label: "Volume", val: "—" },
+            ].map(s => (
+              <div key={s.label} className="rounded-xl bg-gray-50 border border-gray-100 px-4 py-3 text-center">
+                <p className="text-xs text-gray-400 font-semibold">{s.label}</p>
+                <p className="text-base font-black text-gray-300 mt-0.5">{s.val}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ════════════════════════════════════════════════════════════════
+export default function DomesticView() {
+  return (
+    <Layout>
+      <style>{`@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}`}</style>
+      <div className="min-h-screen bg-[#F8F7F4]">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 max-w-7xl">
+
+          {/* ── HERO ───────────────────────────────────────────── */}
+          <div className="mb-12 rounded-2xl overflow-hidden border border-gray-200 shadow-sm">
+            <div className="h-1" style={{ background: `linear-gradient(to right, ${G}, ${O})` }} />
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 px-8 py-9 bg-white">
+              <div>
+                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold mb-4"
+                  style={{ background: `${G}12`, color: G, border: `1px solid ${G}25` }}>
+                  <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: G }} />
+                  PLACEHOLDER · LIVE DATA COMING SOON
+                </div>
+                <h1 className="text-4xl sm:text-5xl font-black text-gray-900 tracking-tight leading-none mb-3">
+                  Indian Stock
+                  <span className="block" style={{ color: G }}>Markets</span>
+                </h1>
+                <p className="text-gray-400 text-sm font-normal">
+                  NSE · BSE · F&amp;O · Sector data via Zerodha Kite Connect v3
+                </p>
+              </div>
+              <div className="flex flex-col items-end gap-3">
+                <div className="flex items-center gap-2 text-xs text-gray-400 bg-amber-50 border border-amber-200 px-4 py-2.5 rounded-xl">
+                  <Info className="w-4 h-4 text-amber-500 shrink-0" />
+                  <span className="font-medium text-amber-700">Static placeholder data — Zerodha API integration pending</span>
+                </div>
+                <button
+                  disabled
+                  className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-xl text-sm font-bold text-white opacity-40 cursor-not-allowed shadow-lg"
+                  style={{ background: G }}
+                >
+                  <RefreshCw className="w-4 h-4" />
+                  Refresh Data
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* ── INDEX SELECTOR (with inline sparklines on summary) ─ */}
+          <IndexSelector />
+
+          {/* ── SECTOR PERFORMANCE ─────────────────────────────── */}
+          <section className="mb-12">
+            <SectionLabel icon={Layers}>Sector Performance</SectionLabel>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              {SECTORS.map((s) => (
+                <div key={s.name} className="bg-white rounded-2xl border border-gray-100 hover:border-gray-200 hover:shadow-md transition-all duration-200 overflow-hidden">
+                  <div className="h-0.5" style={{ background: s.pos ? "linear-gradient(to right,#16a34a,transparent)" : "linear-gradient(to right,#dc2626,transparent)" }} />
+                  <div className="p-5">
+                    <div className="flex items-start justify-between mb-4">
+                      <p className="font-extrabold text-gray-900 text-base">{s.name}</p>
+                      <span className="text-xl font-black" style={{ color: s.pos ? "#16a34a" : "#dc2626" }}>{s.chg}</span>
+                    </div>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between items-center px-3 py-2.5 rounded-xl bg-emerald-50 border border-emerald-100">
+                        <span className="text-gray-500 font-medium">Best</span>
+                        <span className="text-emerald-700 font-bold text-xs">{s.top}</span>
+                      </div>
+                      <div className="flex justify-between items-center px-3 py-2.5 rounded-xl bg-red-50 border border-red-100">
+                        <span className="text-gray-500 font-medium">Worst</span>
+                        <span className="text-red-600 font-bold text-xs">{s.bot}</span>
+                      </div>
+                    </div>
+                    <div className="flex justify-between text-xs text-gray-300 mt-4 pt-4 border-t border-gray-50">
+                      <div className="flex items-center gap-1"><Activity className="w-3 h-3" /> Sector Index</div>
+                      <div className="flex items-center gap-1"><Clock className="w-3 h-3" /> Placeholder</div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* ── TOP STOCKS (OHLCV) ──────────────────────────────── */}
+          <section className="mb-12">
+            <SectionLabel icon={LineChart}>Top Stocks — OHLCV</SectionLabel>
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+              {/* Table header */}
+              <div className="grid grid-cols-8 gap-4 px-5 py-3 bg-gray-50 border-b border-gray-100 text-xs font-bold uppercase tracking-widest text-gray-400">
+                <div className="col-span-2">Symbol</div>
+                <div className="text-right">LTP</div>
+                <div className="text-right">Open</div>
+                <div className="text-right">High</div>
+                <div className="text-right">Low</div>
+                <div className="text-right">Volume</div>
+                <div className="text-right">Change</div>
+              </div>
+              {TOP_STOCKS.map((s, i) => (
+                <div
+                  key={s.name}
+                  className={`grid grid-cols-8 gap-4 px-5 py-3.5 items-center hover:bg-gray-50/60 transition-colors text-sm ${i < TOP_STOCKS.length - 1 ? "border-b border-gray-50" : ""}`}
+                >
+                  <div className="col-span-2 flex items-center gap-3">
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-black ${s.pos ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-600"}`}>
+                      {s.name.slice(0, 2)}
                     </div>
                     <div>
-                      <h3 className="font-bold text-foreground">{stock.name}</h3>
-                      <p className="text-sm text-muted-foreground">NSE</p>
+                      <p className="font-bold text-gray-900">{s.name}</p>
+                      <p className="text-xs text-gray-400">NSE</p>
                     </div>
                   </div>
+                  <div className="text-right font-black text-gray-900">{s.price}</div>
+                  <div className="text-right text-gray-500 font-medium">{s.open}</div>
+                  <div className="text-right text-emerald-600 font-medium">{s.high}</div>
+                  <div className="text-right text-red-500 font-medium">{s.low}</div>
+                  <div className="text-right text-gray-500 font-medium">{s.vol}</div>
                   <div className="text-right">
-                    <div className="text-lg font-bold text-foreground">{stock.value}</div>
-                    <div className={`text-sm font-medium ${stock.isPositive ? 'text-green-600' : 'text-red-600'}`}>
-                      {stock.change} ({stock.percentage})
+                    <span className={`inline-flex items-center gap-1 text-xs font-extrabold px-2 py-1 rounded-lg ${s.pos ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-600"}`}>
+                      {s.pos ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                      {s.chg}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* ── FOREX (INR pairs) ───────────────────────────────── */}
+          <section className="mb-12">
+            <SectionLabel icon={DollarSign}>INR Forex Pairs</SectionLabel>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              {FOREX_PAIRS.map((fx) => (
+                <div key={fx.pair} className="bg-white rounded-2xl border border-gray-100 hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 overflow-hidden">
+                  <div className="h-0.5" style={{ background: fx.pos ? "linear-gradient(to right,#16a34a,transparent)" : "linear-gradient(to right,#dc2626,transparent)" }} />
+                  <div className="p-4">
+                    <p className="text-xs font-bold tracking-widest uppercase text-gray-400 mb-2">{fx.pair}</p>
+                    <p className="text-2xl font-black text-gray-900">{fx.rate}</p>
+                    <div className="flex items-center gap-1.5 mt-1.5">
+                      <span className="text-xs font-bold" style={{ color: fx.pos ? "#16a34a" : "#dc2626" }}>{fx.chg}</span>
+                      <span className="text-xs text-gray-300">·</span>
+                      <span className="text-xs font-bold" style={{ color: fx.pos ? "#16a34a" : "#dc2626" }}>{fx.pct}</span>
+                    </div>
+                    <p className="text-xs text-gray-300 mt-3">Placeholder · API ready</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* ── F&O OPEN INTEREST ───────────────────────────────── */}
+          <section className="mb-12">
+            <SectionLabel icon={Percent}>F&amp;O Open Interest</SectionLabel>
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+              <div className="grid grid-cols-5 gap-4 px-5 py-3 bg-gray-50 border-b border-gray-100 text-xs font-bold uppercase tracking-widest text-gray-400">
+                <div className="col-span-2">Instrument</div>
+                <div className="text-right">OI</div>
+                <div className="text-right">OI Change</div>
+                <div className="text-right">LTP</div>
+              </div>
+              {FNO_OI.map((f, i) => (
+                <div key={f.name}
+                  className={`grid grid-cols-5 gap-4 px-5 py-3.5 items-center hover:bg-gray-50/60 transition-colors text-sm ${i < FNO_OI.length - 1 ? "border-b border-gray-50" : ""}`}>
+                  <div className="col-span-2">
+                    <p className="font-bold text-gray-900">{f.name}</p>
+                    <p className="text-xs text-gray-400">Exp: {f.expiry}</p>
+                  </div>
+                  <div className="text-right font-mono text-gray-600 font-semibold">{f.oi}</div>
+                  <div className="text-right">
+                    <span className={`text-xs font-extrabold ${f.pos ? "text-emerald-600" : "text-red-500"}`}>{f.chgOI}</span>
+                  </div>
+                  <div className="text-right font-black text-gray-900">{f.ltp}</div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* ── MARKET DEPTH ────────────────────────────────────── */}
+          <section className="mb-12">
+            <SectionLabel icon={ArrowUpDown}>Market Depth (Level 2)</SectionLabel>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {MARKET_DEPTH.map((md) => (
+                <div key={md.stock} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                  <div className="flex items-center justify-between px-5 py-3 border-b border-gray-50">
+                    <p className="font-extrabold text-gray-900">{md.stock}</p>
+                    <span className="text-xs font-bold px-2.5 py-1 rounded-full" style={{ background: `${G}12`, color: G }}>5 Level Bid/Ask</span>
+                  </div>
+                  <div className="grid grid-cols-2 divide-x divide-gray-50">
+                    <div>
+                      <div className="grid grid-cols-2 px-4 py-2 bg-emerald-50 border-b border-emerald-100 text-xs font-bold uppercase text-emerald-700">
+                        <span>Bid Qty</span><span className="text-right">Price</span>
+                      </div>
+                      {md.bids.map((b, i) => (
+                        <div key={i} className="grid grid-cols-2 px-4 py-2 text-sm border-b border-gray-50 last:border-0 hover:bg-emerald-50/40 transition-colors">
+                          <span className="font-bold text-emerald-600">{b.q}</span>
+                          <span className="text-right font-mono text-gray-700">{b.p}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <div>
+                      <div className="grid grid-cols-2 px-4 py-2 bg-red-50 border-b border-red-100 text-xs font-bold uppercase text-red-600">
+                        <span>Price</span><span className="text-right">Ask Qty</span>
+                      </div>
+                      {md.asks.map((a, i) => (
+                        <div key={i} className="grid grid-cols-2 px-4 py-2 text-sm border-b border-gray-50 last:border-0 hover:bg-red-50/40 transition-colors">
+                          <span className="font-mono text-gray-700">{a.p}</span>
+                          <span className="text-right font-bold text-red-500">{a.q}</span>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center justify-between text-sm text-muted-foreground">
-                  <div className="flex items-center gap-1">
-                    <Clock className="w-3 h-3" />
-                    <span>Live</span>
+              ))}
+            </div>
+          </section>
+
+          {/* ── CORPORATE ACTIONS ───────────────────────────────── */}
+          <section className="mb-12">
+            <SectionLabel icon={CalendarDays}>Corporate Actions</SectionLabel>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {CORP_ACTIONS.map((ca, i) => {
+                const COLOR: Record<string, string> = { Dividend: "bg-blue-50 text-blue-700 border-blue-200", Buyback: "bg-purple-50 text-purple-700 border-purple-200", Bonus: "bg-amber-50 text-amber-700 border-amber-200", Split: "bg-teal-50 text-teal-700 border-teal-200" };
+                const c = COLOR[ca.action] || "bg-gray-50 text-gray-600 border-gray-100";
+                return (
+                  <div key={i} className="bg-white rounded-xl border border-gray-100 p-4 hover:border-gray-200 hover:shadow-sm transition-all duration-150">
+                    <div className="flex items-center gap-2 flex-wrap mb-3">
+                      <span className={`px-2.5 py-0.5 text-[11px] font-extrabold rounded-full border ${c}`}>{ca.action}</span>
+                      <span className="ml-auto text-xs text-gray-300 font-medium">Ex: {ca.exDate}</span>
+                    </div>
+                    <p className="font-extrabold text-gray-900 mb-1">{ca.name}</p>
+                    <p className="text-sm text-gray-500">{ca.detail}</p>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <Eye className="w-3 h-3" />
-                    <span>1.2K views</span>
+                );
+              })}
+            </div>
+          </section>
+
+          {/* ── NOT-YET-AVAILABLE DATA ──────────────────────────── */}
+          <section className="mb-12">
+            <SectionLabel icon={Info}>Data Pending External Sources</SectionLabel>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {[
+                { label: "India VIX",            src: "nseindia.com",            desc: "Fear gauge — not in Zerodha API" },
+                { label: "FII / DII Activity",   src: "nseindia.com/market-data",desc: "Institutional flow data" },
+                { label: "Market Breadth (A/D)", src: "nseindia.com/market-data",desc: "Advance–Decline ratio" },
+                { label: "Macro Data (CPI/GDP)", src: "rbi.org.in",              desc: "Fundamental economic indicators" },
+              ].map((item) => (
+                <div key={item.label} className="rounded-xl border border-dashed border-gray-200 bg-gray-50 p-4 flex flex-col gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-amber-50 border border-amber-100 flex items-center justify-center">
+                    <Info className="w-4 h-4 text-amber-500" />
                   </div>
+                  <p className="font-bold text-gray-700 text-sm">{item.label}</p>
+                  <p className="text-xs text-gray-400 leading-relaxed">{item.desc}</p>
+                  <span className="text-[10px] font-bold text-amber-600 bg-amber-50 border border-amber-100 rounded px-1.5 py-0.5 w-fit">{item.src}</span>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* ── STATUS BAR ──────────────────────────────────────── */}
+          <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+            <div className="h-0.5" style={{ background: `linear-gradient(to right, ${G}, ${O}, transparent)` }} />
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-6 py-5 text-sm">
+              <div className="flex items-center gap-2.5 text-gray-400">
+                <Activity className="w-4 h-4" style={{ color: G }} />
+                <span className="font-medium">
+                  Status:{" "}
+                  <span className="text-gray-600 font-semibold">Static placeholder · Zerodha API integration pending</span>
+                </span>
+              </div>
+              <div className="flex flex-wrap items-center gap-5">
+                {[
+                  { label: "NSE", status: "pending" },
+                  { label: "BSE", status: "pending" },
+                  { label: "F&O", status: "pending" },
+                ].map((m) => (
+                  <div key={m.label} className="flex items-center gap-1.5">
+                    <div className="w-2 h-2 rounded-full bg-amber-400" />
+                    <span className="uppercase font-bold text-xs text-amber-500">{m.label} {m.status}</span>
+                  </div>
+                ))}
+                <div className="flex items-center gap-1.5">
+                  <Briefcase className="w-3.5 h-3.5 text-gray-300" />
+                  <span className="font-extrabold text-xs tracking-widest text-gray-300">PLACEHOLDER</span>
                 </div>
               </div>
-            ))}
+            </div>
           </div>
-        </div>
 
-        {/* Market News Section */}
-        <div className="mb-12">
-          <h2 className="text-2xl font-bold text-foreground mb-6">Latest Market News</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[
-              {
-                title: "Nifty 50 faces resistance at 22,200 level",
-                description: "Market analysts suggest cautious approach as key resistance levels approach",
-                time: "2 hours ago",
-                category: "Market Analysis"
-              },
-              {
-                title: "Banking sector shows strong momentum",
-                description: "Private banks lead the rally with HDFC Bank and ICICI Bank gaining",
-                time: "4 hours ago",
-                category: "Sector News"
-              },
-              {
-                title: "FIIs continue buying in Indian markets",
-                description: "Foreign institutional investors remain bullish on Indian equities",
-                time: "6 hours ago",
-                category: "FII Activity"
-              }
-            ].map((news, index) => (
-              <div key={index} className="bg-gradient-to-br from-card to-card/50 rounded-xl border border-border/50 hover:border-accent/30 hover:shadow-xl transition-all duration-300 p-6 hover:-translate-y-1">
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="px-2 py-1 bg-accent/10 text-accent text-xs font-medium rounded-full">{news.category}</span>
-                  <span className="text-xs text-muted-foreground">{news.time}</span>
-                </div>
-                <h3 className="font-bold text-foreground mb-2">{news.title}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">{news.description}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Status Bar */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-card/50 backdrop-blur-sm rounded-xl p-4 border border-border/50 shadow-lg">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Activity className="w-4 h-4 text-accent" />
-            <span>Last Updated: 24/04/2024 - 10:45 AM</span>
-          </div>
-          <div className="flex items-center gap-2 text-sm">
-            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-            <span className="text-green-600 font-medium">Live</span>
-          </div>
         </div>
       </div>
     </Layout>
   );
-};
-
-export default DomesticView;
-
+}

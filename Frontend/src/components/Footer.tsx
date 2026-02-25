@@ -9,8 +9,8 @@ const Footer = () => {
       {/* Disclaimer Section */}
       <div className="container mx-auto px-6 mb-6 relative z-15">
         <p className="text-sm md:text-base text-left leading-relaxed opacity-100">
-          <span className="font-bold text-accent">Disclaimer:</span> InvestBeans provides educational content only and does not offer personalized investment advice. 
-          All trading and investing decisions are the sole responsibility of the individual. 
+          <span className="font-bold text-accent">Disclaimer:</span> InvestBeans provides educational content only and does not offer personalized investment advice.
+          All trading and investing decisions are the sole responsibility of the individual.
           Investments in financial markets are subject to risk, and past performance does not indicate future results.
         </p>
         <hr className="border-white/20 mt-4" />
@@ -19,11 +19,15 @@ const Footer = () => {
       <div className="container mx-auto px-6 relative z-15">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-10">
           <div className="md:col-span-2">
-            <h3 className="text-2xl font-bold mb-4">
-              Invest<span className="text-accent">Beans</span>
-            </h3>
+            <div className="mb-4">
+              <img
+                src="/images/logo2.svg"
+                alt="InvestBeans Logo"
+                className="h-10 w-auto object-contain"
+              />
+            </div>
             <p className="text-sm opacity-100 leading-relaxed mb-6 max-w-md">
-              Your trusted source for market insights, analysis, and investment wisdom. 
+              Your trusted source for market insights, analysis, and investment wisdom.
               Empowering investors with data-driven decisions since 2024.
             </p>
             <div className="flex gap-4">

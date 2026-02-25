@@ -187,21 +187,21 @@ const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Desktop dropdowns — each has its own smooth hover state
-  const about      = useHoverDropdown();
-  const segments   = useHoverDropdown();
+  const about = useHoverDropdown();
+  const segments = useHoverDropdown();
   const dashboards = useHoverDropdown();
-  const learn      = useHoverDropdown();
-  const events     = useHoverDropdown();
-  const help       = useHoverDropdown();
-  const userMenu   = useHoverDropdown();
+  const learn = useHoverDropdown();
+  const events = useHoverDropdown();
+  const help = useHoverDropdown();
+  const userMenu = useHoverDropdown();
 
   // Mobile accordions
-  const [mobileAboutOpen,      setMobileAboutOpen]      = useState(false);
-  const [mobileSegmentsOpen,   setMobileSegmentsOpen]   = useState(false);
+  const [mobileAboutOpen, setMobileAboutOpen] = useState(false);
+  const [mobileSegmentsOpen, setMobileSegmentsOpen] = useState(false);
   const [mobileDashboardsOpen, setMobileDashboardsOpen] = useState(false);
-  const [mobileLearnOpen,      setMobileLearnOpen]      = useState(false);
-  const [mobileEventsOpen,     setMobileEventsOpen]     = useState(false);
-  const [mobileHelpOpen,       setMobileHelpOpen]       = useState(false);
+  const [mobileLearnOpen, setMobileLearnOpen] = useState(false);
+  const [mobileEventsOpen, setMobileEventsOpen] = useState(false);
+  const [mobileHelpOpen, setMobileHelpOpen] = useState(false);
 
   const closeMobile = () => setIsMobileMenuOpen(false);
 
@@ -255,20 +255,30 @@ const Header = () => {
       </div>
 
       <header className="bg-navy/95 text-white shadow-lg backdrop-blur-sm">
-        <nav className="container mx-auto px-6 py-4 flex items-center justify-between">
+        <nav className="container mx-auto px-6 py-3 flex items-center justify-between min-h-[64px]">
 
           {/* ── Left: logo + nav ──────────────────────────────────────────────── */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 md:gap-5">
             <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="md:hidden text-white hover:text-accent transition-colors p-2 rounded-md" aria-label="Toggle menu">
               {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
 
-            <Link to="/" className="text-2xl font-bold shrink-0">
+            {/* <Link to="/" className="text-2xl font-bold shrink-0">
               Invest<span className="font-normal text-accent">Beans</span>
+            </Link> */}
+            <Link
+              to="/"
+              className="flex items-center shrink-0"
+            >
+              <img
+                src="/images/Untitled-6-04.png"
+                alt="InvestBeans Logo"
+                className="h-7 w-auto object-contain relative -top-1"
+              />
             </Link>
 
             {/* Desktop nav list */}
-            <ul className="hidden md:flex items-center space-x-1">
+            <ul className="hidden md:flex items-center gap-0.5">
 
               {/* 1. ABOUT */}
               <NavItem label="About" dd={about}>
