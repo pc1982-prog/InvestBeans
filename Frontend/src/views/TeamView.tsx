@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Layout from '@/components/Layout';
+import WhatWeDo from './Whatwedo';
 
 
 const TeamView = () => {
@@ -779,6 +780,10 @@ const TeamView = () => {
               </div>
             </div>
           </Reveal>
+           <Reveal id='what-we do'>
+            <WhatWeDo/>
+           </Reveal>
+
 
           {/* Certifications Section */}
           <Reveal id="certifications" className="scroll-mt-24 mb-12">

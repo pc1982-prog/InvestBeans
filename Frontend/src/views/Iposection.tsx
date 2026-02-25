@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/controllers/AuthContext';
 import {
   TrendingUp, TrendingDown, Calendar, Users, Building2,
   CheckCircle, Clock, AlertCircle, ArrowRight, Star, Target,
@@ -8,40 +9,20 @@ import {
   Save, Trash2, Loader2, RefreshCw,
 } from 'lucide-react';
 
-// ─── CONFIG ───────────────────────────────────────────────────────────────────
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
 const IPO_ENDPOINT = `${API_BASE}/ipo`;
 
-// ─── TYPES ────────────────────────────────────────────────────────────────────
 type IPOStatus = 'upcoming' | 'open' | 'closed' | 'listed';
-
 interface IPO {
-  _id: string;
-  companyName: string;
-  logo: string;
-  industry: string;
-  status: IPOStatus;
-  openDate: string;
-  closeDate: string;
-  listingDate?: string;
-  priceRange: string;
-  lotSize: number;
-  issueSize: string;
-  minInvestment: string;
-  subscriptionStatus?: string;
-  listingGain?: number | null;
-  gmp?: number | null;
-  allotmentDate?: string;
-  refundDate?: string;
-  exchange: string;
-  rating: number;
-  rhpLink?: string;
-  category?: string;
+  _id: string; companyName: string; logo: string; industry: string;
+  status: IPOStatus; openDate: string; closeDate: string;
+  listingDate?: string; priceRange: string; lotSize: number;
+  issueSize: string; minInvestment: string; subscriptionStatus?: string;
+  listingGain?: number | null; gmp?: number | null; allotmentDate?: string;
+  refundDate?: string; exchange: string; rating: number; rhpLink?: string; category?: string;
 }
-
 interface Counts { open: number; upcoming: number; closed: number; listed: number; total: number; }
 
-// ─── CONSTANTS ────────────────────────────────────────────────────────────────
 const STATUS_CFG = {
   upcoming: { bg: 'bg-blue-500/10',   text: 'text-blue-500',   label: 'Upcoming' },
   open:     { bg: 'bg-green-500/10',  text: 'text-green-500',  label: 'Open Now' },
@@ -65,9 +46,50 @@ const BLANK: Omit<IPO, '_id'> = {
   subscriptionStatus: '', listingGain: null, gmp: null, rating: 3, rhpLink: '',
 };
 
-// ─── HELPERS ──────────────────────────────────────────────────────────────────
 function autoLogo(name: string) {
   return name.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase().slice(0, 2);
+}
+
+// ─── ₹ prefix for single value fields ─────────────────────────────────────────
+function RupeeInput({ value, onChange, placeholder, className }: {
+  value: string; onChange: (v: string) => void; placeholder?: string; className?: string;
+}) {
+  return (
+    <input
+      className={className}
+      placeholder={placeholder}
+      value={value}
+      onChange={e => {
+        const raw = e.target.value.replace(/^₹\s*/, '');
+        onChange(raw ? `₹${raw}` : '');
+      }}
+    />
+  );
+}
+
+// ─── ₹ prefix on BOTH numbers in a price band (e.g. ₹140 – ₹170) ─────────────
+function PriceBandInput({ value, onChange, placeholder, className }: {
+  value: string; onChange: (v: string) => void; placeholder?: string; className?: string;
+}) {
+  return (
+    <input
+      className={className}
+      placeholder={placeholder}
+      value={value}
+      onChange={e => {
+        // Strip all ₹ and normalise separator to '-'
+        const raw = e.target.value.replace(/₹/g, '').replace(/\s*–\s*/g, '-').trim();
+        const parts = raw.split('-');
+        if (parts.length >= 2) {
+          const p1 = parts[0].trim();
+          const p2 = parts.slice(1).join('-').trim();
+          onChange(p2 ? `₹${p1} – ₹${p2}` : `₹${p1} –`);
+        } else {
+          onChange(raw ? `₹${raw}` : '');
+        }
+      }}
+    />
+  );
 }
 
 async function callAPI(url: string, opts?: RequestInit) {
@@ -81,7 +103,6 @@ async function callAPI(url: string, opts?: RequestInit) {
   return json.data;
 }
 
-// ─── STATUS BADGE ─────────────────────────────────────────────────────────────
 function StatusBadge({ status }: { status: IPOStatus }) {
   const c = STATUS_CFG[status];
   const Icon = { upcoming: Clock, open: CheckCircle, closed: AlertCircle, listed: TrendingUp }[status];
@@ -92,7 +113,6 @@ function StatusBadge({ status }: { status: IPOStatus }) {
   );
 }
 
-// ─── STAR RATING ──────────────────────────────────────────────────────────────
 function Stars({ rating, onClick }: { rating: number; onClick?: (n: number) => void }) {
   return (
     <div className="flex items-center gap-0.5">
@@ -107,7 +127,7 @@ function Stars({ rating, onClick }: { rating: number; onClick?: (n: number) => v
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// ADD / EDIT FORM MODAL
+// FORM MODAL
 // ═══════════════════════════════════════════════════════════════════════════════
 function FormModal({
   initial, onSave, onClose, saving,
@@ -124,7 +144,6 @@ function FormModal({
     setForm(f => ({
       ...f,
       [key]: val,
-      // Auto-fill logo when typing company name (only for new IPOs)
       ...(key === 'companyName' && !initial ? { logo: autoLogo(val) } : {}),
     }));
 
@@ -146,7 +165,6 @@ function FormModal({
     await onSave({ ...form, logo: form.logo || autoLogo(form.companyName) });
   };
 
-  // Shared input/label styles matching your original theme
   const inp = 'w-full bg-background border border-border rounded-lg px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-accent/60 transition-colors';
   const lbl = 'block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5';
   const err = 'text-red-500 text-xs mt-1';
@@ -154,8 +172,6 @@ function FormModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
       <div className="bg-card rounded-2xl border border-border w-full max-w-2xl max-h-[92vh] overflow-y-auto shadow-2xl" onClick={e => e.stopPropagation()}>
-
-        {/* ── Header ── */}
         <div className="sticky top-0 bg-gradient-to-r from-navy to-accent p-5 flex items-center justify-between z-10 rounded-t-2xl">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center">
@@ -172,7 +188,6 @@ function FormModal({
         </div>
 
         <div className="p-5 space-y-5">
-
           {/* Company Info */}
           <div className="p-4 rounded-xl bg-accent/5 border border-accent/10 space-y-4">
             <p className="text-xs font-bold text-accent uppercase tracking-wider">Company Info</p>
@@ -234,8 +249,9 @@ function FormModal({
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
                 <label className={lbl}>Price Band *</label>
-                <input className={inp} placeholder="₹475 – ₹500" value={form.priceRange}
-                  onChange={e => set('priceRange', e.target.value)} />
+                {/* ← PriceBandInput: adds ₹ before both numbers */}
+                <PriceBandInput className={inp} placeholder="₹475 – ₹500" value={form.priceRange}
+                  onChange={v => set('priceRange', v)} />
                 {errors.priceRange && <p className={err}>{errors.priceRange}</p>}
               </div>
               <div>
@@ -247,14 +263,14 @@ function FormModal({
               </div>
               <div>
                 <label className={lbl}>Min Investment *</label>
-                <input className={inp} placeholder="₹15,000" value={form.minInvestment}
-                  onChange={e => set('minInvestment', e.target.value)} />
+                <RupeeInput className={inp} placeholder="15,000" value={form.minInvestment}
+                  onChange={v => set('minInvestment', v)} />
                 {errors.minInvestment && <p className={err}>{errors.minInvestment}</p>}
               </div>
               <div className="sm:col-span-2">
                 <label className={lbl}>Issue Size *</label>
-                <input className={inp} placeholder="₹3,042 Cr" value={form.issueSize}
-                  onChange={e => set('issueSize', e.target.value)} />
+                <RupeeInput className={inp} placeholder="3,042 Cr" value={form.issueSize}
+                  onChange={v => set('issueSize', v)} />
                 {errors.issueSize && <p className={err}>{errors.issueSize}</p>}
               </div>
               <div>
@@ -286,7 +302,7 @@ function FormModal({
             </div>
           </div>
 
-          {/* Performance — optional */}
+          {/* Performance */}
           <div className="p-4 rounded-xl bg-accent/5 border border-accent/10 space-y-3">
             <div>
               <p className="text-xs font-bold text-accent uppercase tracking-wider">Performance Data</p>
@@ -300,8 +316,12 @@ function FormModal({
               </div>
               <div>
                 <label className="block text-xs text-muted-foreground mb-1">GMP (₹)</label>
-                <input type="number" className={inp} placeholder="e.g. 650" value={form.gmp ?? ''}
-                  onChange={e => set('gmp', e.target.value !== '' ? Number(e.target.value) : null)} />
+                <RupeeInput className={inp} placeholder="650"
+                  value={form.gmp != null ? `₹${form.gmp}` : ''}
+                  onChange={v => {
+                    const num = v.replace(/^₹/, '');
+                    set('gmp', num !== '' ? Number(num) : null);
+                  }} />
               </div>
               <div>
                 <label className="block text-xs text-muted-foreground mb-1">Listing Gain (%)</label>
@@ -318,7 +338,6 @@ function FormModal({
           </div>
         </div>
 
-        {/* ── Footer ── */}
         <div className="sticky bottom-0 bg-card border-t border-border p-4 flex gap-3 rounded-b-2xl">
           <button onClick={onClose}
             className="flex-1 py-3 rounded-xl border border-border text-muted-foreground hover:text-foreground text-sm font-semibold transition-all">
@@ -338,18 +357,16 @@ function FormModal({
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// DETAIL MODAL (original style)
+// DETAIL MODAL
 // ═══════════════════════════════════════════════════════════════════════════════
 function DetailModal({
-  ipo, onClose, onEdit, onDelete, deleting,
+  ipo, onClose, onEdit, onDelete, deleting, isAdmin,
 }: {
-  ipo: IPO; onClose: () => void; onEdit: () => void; onDelete: () => void; deleting: boolean;
+  ipo: IPO; onClose: () => void; onEdit: () => void; onDelete: () => void; deleting: boolean; isAdmin: boolean;
 }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
       <div className="bg-card rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-border" onClick={e => e.stopPropagation()}>
-
-        {/* Header */}
         <div className="sticky top-0 bg-gradient-to-r from-navy to-accent p-5 md:p-6 z-10">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-4">
@@ -369,14 +386,16 @@ function DetailModal({
               </div>
             </div>
             <div className="flex items-center gap-1.5 flex-shrink-0">
-              <button onClick={onEdit}
-                className="text-white hover:bg-white/20 rounded-lg p-2 transition-colors" title="Edit">
-                <Edit3 className="w-4 h-4" />
-              </button>
-              <button onClick={onDelete} disabled={deleting}
-                className="text-white hover:bg-red-500/30 rounded-lg p-2 transition-colors" title="Delete">
-                {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
-              </button>
+              {isAdmin && (
+                <>
+                  <button onClick={onEdit} className="text-white hover:bg-white/20 rounded-lg p-2 transition-colors" title="Edit">
+                    <Edit3 className="w-4 h-4" />
+                  </button>
+                  <button onClick={onDelete} disabled={deleting} className="text-white hover:bg-red-500/30 rounded-lg p-2 transition-colors" title="Delete">
+                    {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                  </button>
+                </>
+              )}
               <button onClick={onClose} className="text-white hover:bg-white/20 rounded-full p-2 transition-colors">
                 <X className="w-5 h-5" />
               </button>
@@ -385,8 +404,6 @@ function DetailModal({
         </div>
 
         <div className="p-5 md:p-6 space-y-6">
-
-          {/* Issue Details */}
           <div>
             <h3 className="text-base font-bold text-foreground mb-3 flex items-center gap-2">
               <Zap className="w-4 h-4 text-accent" />Issue Details
@@ -407,7 +424,6 @@ function DetailModal({
             </div>
           </div>
 
-          {/* Dates */}
           <div>
             <h3 className="text-base font-bold text-foreground mb-3 flex items-center gap-2">
               <Calendar className="w-4 h-4 text-accent" />Important Dates
@@ -428,7 +444,6 @@ function DetailModal({
             </div>
           </div>
 
-          {/* Performance */}
           {(ipo.subscriptionStatus || ipo.gmp || ipo.listingGain != null) && (
             <div>
               <h3 className="text-base font-bold text-foreground mb-3 flex items-center gap-2">
@@ -462,7 +477,6 @@ function DetailModal({
             </div>
           )}
 
-          {/* Min Investment */}
           <div className="bg-accent/5 border border-accent/20 rounded-xl p-4">
             <h3 className="text-sm font-bold text-foreground mb-3 flex items-center gap-2">
               <IndianRupee className="w-4 h-4 text-accent" />Minimum Investment Required
@@ -479,7 +493,6 @@ function DetailModal({
             </div>
           </div>
 
-          {/* Actions */}
           <div className="flex gap-3">
             <button
               onClick={() => ipo.rhpLink ? window.open(ipo.rhpLink, '_blank') : null}
@@ -497,42 +510,40 @@ function DetailModal({
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// IPO CARD
+// IPO CARD  ← taller: min-h-[360px] + increased body padding
 // ═══════════════════════════════════════════════════════════════════════════════
 function IPOCard({
-  ipo, onViewDetail, onEdit, onDelete,
+  ipo, onViewDetail, onEdit, onDelete, isAdmin,
 }: {
-  ipo: IPO;
-  onViewDetail: () => void;
-  onEdit: () => void;
-  onDelete: () => void;
+  ipo: IPO; onViewDetail: () => void; onEdit: () => void; onDelete: () => void; isAdmin: boolean;
 }) {
   return (
-    <div className="bg-card rounded-2xl border border-border shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group hover:-translate-y-1 flex flex-col">
+    <div className="bg-card rounded-xl border border-border shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden group hover:-translate-y-0.5 flex flex-col min-h-[360px]">
 
       {/* Header */}
-      <div className="p-5 border-b border-border">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-11 h-11 rounded-full bg-gradient-to-br from-accent to-accent/60 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+      <div className="px-4 pt-4 pb-3 border-b border-border">
+        <div className="flex items-center justify-between mb-2.5">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-accent to-accent/60 flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
               {ipo.logo}
             </div>
             <div className="min-w-0">
-              <h3 className="font-bold text-foreground text-[15px] leading-tight truncate">{ipo.companyName}</h3>
-              <p className="text-xs text-muted-foreground mt-0.5">{ipo.industry || '—'}</p>
+              <h3 className="font-bold text-foreground text-[13px] leading-tight truncate">{ipo.companyName}</h3>
+              <p className="text-[11px] text-muted-foreground mt-0.5 truncate">{ipo.industry || '—'}</p>
             </div>
           </div>
-          {/* Edit/Delete — visible on hover */}
-          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 ml-2">
-            <button onClick={e => { e.stopPropagation(); onEdit(); }}
-              className="w-7 h-7 rounded-lg bg-accent/10 hover:bg-accent/20 flex items-center justify-center text-accent transition-all" title="Edit">
-              <Edit3 className="w-3.5 h-3.5" />
-            </button>
-            <button onClick={e => { e.stopPropagation(); onDelete(); }}
-              className="w-7 h-7 rounded-lg bg-red-500/10 hover:bg-red-500/20 flex items-center justify-center text-red-500 transition-all" title="Delete">
-              <Trash2 className="w-3.5 h-3.5" />
-            </button>
-          </div>
+          {isAdmin && (
+            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 ml-1">
+              <button onClick={e => { e.stopPropagation(); onEdit(); }}
+                className="w-6 h-6 rounded-md bg-accent/10 hover:bg-accent/20 flex items-center justify-center text-accent transition-all">
+                <Edit3 className="w-3 h-3" />
+              </button>
+              <button onClick={e => { e.stopPropagation(); onDelete(); }}
+                className="w-6 h-6 rounded-md bg-red-500/10 hover:bg-red-500/20 flex items-center justify-center text-red-500 transition-all">
+                <Trash2 className="w-3 h-3" />
+              </button>
+            </div>
+          )}
         </div>
         <div className="flex items-center justify-between">
           <StatusBadge status={ipo.status} />
@@ -540,87 +551,64 @@ function IPOCard({
         </div>
       </div>
 
-      {/* Body */}
-      <div className="p-5 space-y-3 flex-1">
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-muted-foreground">Price Band</span>
-          <span className="font-bold text-foreground">{ipo.priceRange}</span>
-        </div>
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-muted-foreground">Lot Size</span>
-          <span className="font-semibold text-foreground">{ipo.lotSize} shares</span>
-        </div>
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-muted-foreground">Min. Investment</span>
-          <span className="font-bold text-accent">{ipo.minInvestment}</span>
-        </div>
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-muted-foreground">Issue Size</span>
-          <span className="font-semibold text-foreground">{ipo.issueSize}</span>
+      {/* Body — increased padding for more height */}
+      <div className="px-4 py-4 flex-1 space-y-3">
+        <div className="grid grid-cols-2 gap-x-3 gap-y-3">
+          <div>
+            <p className="text-[9px] text-muted-foreground uppercase tracking-wider">Price Band</p>
+            <p className="text-xs font-bold text-foreground leading-tight mt-0.5">{ipo.priceRange}</p>
+          </div>
+          <div>
+            <p className="text-[9px] text-muted-foreground uppercase tracking-wider">Lot Size</p>
+            <p className="text-xs font-semibold text-foreground leading-tight mt-0.5">{ipo.lotSize} shares</p>
+          </div>
+          <div>
+            <p className="text-[9px] text-muted-foreground uppercase tracking-wider">Min. Investment</p>
+            <p className="text-xs font-bold text-accent leading-tight mt-0.5">{ipo.minInvestment}</p>
+          </div>
+          <div>
+            <p className="text-[9px] text-muted-foreground uppercase tracking-wider">Issue Size</p>
+            <p className="text-xs font-semibold text-foreground leading-tight mt-0.5">{ipo.issueSize}</p>
+          </div>
         </div>
 
-        <div className="border-t border-border/50 pt-3 space-y-2">
-          <div className="flex items-center justify-between text-xs">
-            <span className="text-muted-foreground flex items-center gap-1"><Calendar className="w-3.5 h-3.5" />Open Date</span>
-            <span className="font-medium text-foreground">{ipo.openDate}</span>
-          </div>
-          <div className="flex items-center justify-between text-xs">
-            <span className="text-muted-foreground flex items-center gap-1"><Calendar className="w-3.5 h-3.5" />Close Date</span>
-            <span className="font-medium text-foreground">{ipo.closeDate}</span>
-          </div>
-          {ipo.allotmentDate && (
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-muted-foreground flex items-center gap-1"><CheckCircle className="w-3.5 h-3.5" />Allotment</span>
-              <span className="font-medium text-foreground">{ipo.allotmentDate}</span>
-            </div>
-          )}
-          {ipo.listingDate && (
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-muted-foreground flex items-center gap-1"><TrendingUp className="w-3.5 h-3.5" />Listing Date</span>
-              <span className="font-medium text-foreground">{ipo.listingDate}</span>
-            </div>
-          )}
+        <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground border-t border-border/40 pt-3">
+          <Calendar className="w-3 h-3 flex-shrink-0" />
+          <span>{ipo.openDate}</span>
+          <span>→</span>
+          <span>{ipo.closeDate}</span>
+          {ipo.listingDate && <span className="ml-auto text-purple-500 font-medium text-[10px]">{ipo.listingDate}</span>}
         </div>
 
-        {ipo.subscriptionStatus && (
-          <div className="flex items-center justify-between p-2.5 bg-green-500/10 border border-green-500/20 rounded-lg">
-            <span className="text-xs text-green-700 dark:text-green-400 font-medium flex items-center gap-1">
-              <Users className="w-3.5 h-3.5" />Subscription
-            </span>
-            <span className="text-xs font-bold text-green-700 dark:text-green-400">{ipo.subscriptionStatus}</span>
+        {(ipo.subscriptionStatus || (ipo.gmp != null && ipo.gmp > 0) || ipo.listingGain != null) && (
+          <div className="flex flex-wrap gap-1 pt-0.5">
+            {ipo.subscriptionStatus && (
+              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-green-500/10 border border-green-500/20 rounded-full text-[10px] font-bold text-green-700 dark:text-green-400">
+                <Users className="w-2.5 h-2.5" />{ipo.subscriptionStatus}
+              </span>
+            )}
+            {ipo.gmp != null && ipo.gmp > 0 && (
+              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-blue-500/10 border border-blue-500/20 rounded-full text-[10px] font-bold text-blue-700 dark:text-blue-400">
+                <Target className="w-2.5 h-2.5" />₹{ipo.gmp}
+              </span>
+            )}
+            {ipo.listingGain != null && (
+              <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-bold border ${ipo.listingGain >= 0 ? 'bg-green-500/10 border-green-500/20 text-green-700 dark:text-green-400' : 'bg-red-500/10 border-red-500/20 text-red-700 dark:text-red-400'}`}>
+                {ipo.listingGain >= 0 ? <TrendingUp className="w-2.5 h-2.5" /> : <TrendingDown className="w-2.5 h-2.5" />}
+                {ipo.listingGain >= 0 ? '+' : ''}{ipo.listingGain}%
+              </span>
+            )}
+            <span className="inline-flex items-center px-1.5 py-0.5 bg-muted/40 rounded-full text-[10px] text-muted-foreground ml-auto">{ipo.exchange}</span>
           </div>
         )}
-        {ipo.gmp != null && ipo.gmp > 0 && (
-          <div className="flex items-center justify-between p-2.5 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-            <span className="text-xs text-blue-700 dark:text-blue-400 font-medium flex items-center gap-1">
-              <Target className="w-3.5 h-3.5" />GMP
-            </span>
-            <span className="text-xs font-bold text-blue-700 dark:text-blue-400">+₹{ipo.gmp}</span>
-          </div>
-        )}
-        {ipo.listingGain != null && (
-          <div className={`flex items-center justify-between p-2.5 rounded-lg border ${ipo.listingGain >= 0 ? 'bg-green-500/10 border-green-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
-            <span className={`text-xs font-medium flex items-center gap-1 ${ipo.listingGain >= 0 ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'}`}>
-              {ipo.listingGain >= 0 ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}
-              Listing Gain
-            </span>
-            <span className={`text-xs font-bold ${ipo.listingGain >= 0 ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'}`}>
-              {ipo.listingGain >= 0 ? '+' : ''}{ipo.listingGain}%
-            </span>
-          </div>
-        )}
-        <div className="flex items-center justify-between text-xs text-muted-foreground pt-1">
-          <span>Exchange</span>
-          <span className="font-semibold text-foreground">{ipo.exchange}</span>
-        </div>
       </div>
 
       {/* Footer */}
-      <div className="px-5 pb-5">
+      <div className="px-4 pb-4 pt-2">
         <button onClick={onViewDetail}
-          className="w-full py-2.5 px-4 bg-gradient-to-r from-accent to-accent/80 text-white rounded-lg font-semibold text-sm hover:shadow-lg transition-all flex items-center justify-center gap-2 group/btn">
+          className="w-full py-2 px-3 bg-gradient-to-r from-accent to-accent/80 text-white rounded-lg font-semibold text-xs hover:shadow-md transition-all flex items-center justify-center gap-1.5 group/btn">
           View Details
-          <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
+          <ArrowRight className="w-3.5 h-3.5 group-hover/btn:translate-x-0.5 transition-transform" />
         </button>
       </div>
     </div>
@@ -632,8 +620,8 @@ function IPOCard({
 // ═══════════════════════════════════════════════════════════════════════════════
 const IPOSection = () => {
   const navigate = useNavigate();
+  const { isAdmin } = useAuth();
 
-  // ── State ──────────────────────────────────────────────────────────────────
   const [ipos,     setIpos]     = useState<IPO[]>([]);
   const [counts,   setCounts]   = useState<Counts>({ open:0, upcoming:0, closed:0, listed:0, total:0 });
   const [activeTab, setActiveTab] = useState<IPOStatus>('open');
@@ -650,114 +638,66 @@ const IPOSection = () => {
 
   const displayed = showAll ? ipos : ipos.slice(0, 3);
 
-  // ── Fetch IPOs from backend ─────────────────────────────────────────────────
   const fetchIPOs = useCallback(async (tab: IPOStatus) => {
-    setLoading(true);
-    setError(null);
+    setLoading(true); setError(null);
     try {
       const data = await callAPI(`${IPO_ENDPOINT}?status=${tab}`);
       setIpos(data.ipos ?? []);
       setCounts(data.counts ?? { open:0, upcoming:0, closed:0, listed:0, total:0 });
-    } catch (e: any) {
-      setError(e.message);
-    } finally {
-      setLoading(false);
-    }
+    } catch (e: any) { setError(e.message); }
+    finally { setLoading(false); }
   }, []);
 
-  useEffect(() => {
-    setShowAll(false);
-    fetchIPOs(activeTab);
-  }, [activeTab, fetchIPOs]);
+  useEffect(() => { setShowAll(false); fetchIPOs(activeTab); }, [activeTab, fetchIPOs]);
 
-  // ── Tab switch helper ───────────────────────────────────────────────────────
   const switchTab = (tab: IPOStatus) => {
-    setActiveTab(tab);
-    setShowAll(false);
+    setActiveTab(tab); setShowAll(false);
     setTimeout(() => document.getElementById('ipo-list-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
   };
 
-  // ── Add ─────────────────────────────────────────────────────────────────────
   const handleAdd = async (data: Omit<IPO, '_id'>) => {
     setSaving(true);
-    try {
-      await callAPI(IPO_ENDPOINT, { method: 'POST', body: JSON.stringify(data) });
-      setFormOpen(false);
-      setEditIPO(null);
-      await fetchIPOs(activeTab);  // ← This is the key: re-fetch after add
-    } catch (e: any) {
-      alert('❌ ' + e.message);
-    } finally {
-      setSaving(false);
-    }
+    try { await callAPI(IPO_ENDPOINT, { method: 'POST', body: JSON.stringify(data) }); setFormOpen(false); setEditIPO(null); await fetchIPOs(activeTab); }
+    catch (e: any) { alert('❌ ' + e.message); } finally { setSaving(false); }
   };
 
-  // ── Edit ────────────────────────────────────────────────────────────────────
   const handleEdit = async (data: Omit<IPO, '_id'>) => {
-    if (!editIPO) return;
-    setSaving(true);
-    try {
-      await callAPI(`${IPO_ENDPOINT}/${editIPO._id}`, { method: 'PUT', body: JSON.stringify(data) });
-      setFormOpen(false);
-      setEditIPO(null);
-      setDetailOpen(false);
-      setSelectedIPO(null);
-      await fetchIPOs(activeTab);  // ← Re-fetch after edit
-    } catch (e: any) {
-      alert('❌ ' + e.message);
-    } finally {
-      setSaving(false);
-    }
+    if (!editIPO) return; setSaving(true);
+    try { await callAPI(`${IPO_ENDPOINT}/${editIPO._id}`, { method: 'PUT', body: JSON.stringify(data) }); setFormOpen(false); setEditIPO(null); setDetailOpen(false); setSelectedIPO(null); await fetchIPOs(activeTab); }
+    catch (e: any) { alert('❌ ' + e.message); } finally { setSaving(false); }
   };
 
-  // ── Delete ──────────────────────────────────────────────────────────────────
   const handleDelete = async (ipo: IPO) => {
-    if (!confirm(`Are you sure you want to delete "${ipo.companyName}"?`)) return;
-    setDeleting(true);
-    try {
-      await callAPI(`${IPO_ENDPOINT}/${ipo._id}`, { method: 'DELETE' });
-      setDetailOpen(false);
-      setSelectedIPO(null);
-      await fetchIPOs(activeTab);  // ← Re-fetch after delete
-    } catch (e: any) {
-      alert('❌ ' + e.message);
-    } finally {
-      setDeleting(false);
-    }
+    if (!confirm(`Are you sure you want to delete "${ipo.companyName}"?`)) return; setDeleting(true);
+    try { await callAPI(`${IPO_ENDPOINT}/${ipo._id}`, { method: 'DELETE' }); setDetailOpen(false); setSelectedIPO(null); await fetchIPOs(activeTab); }
+    catch (e: any) { alert('❌ ' + e.message); } finally { setDeleting(false); }
   };
 
-  // ── Render ──────────────────────────────────────────────────────────────────
   return (
     <>
       <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/5">
 
-        {/* ── Hero Section ─────────────────────────────────────────────── */}
+        {/* Hero */}
         <section className="relative overflow-hidden bg-gradient-to-r from-navy via-navy-light to-accent py-16 md:py-24">
           <div className="absolute inset-0 bg-grid-white/[0.05] bg-[size:20px_20px]" />
           <div className="absolute top-0 right-0 w-96 h-96 bg-accent/20 rounded-full blur-3xl" />
           <div className="absolute bottom-0 left-0 w-80 h-80 bg-blue-500/20 rounded-full blur-3xl" />
-
           <div className="container mx-auto px-4 md:px-6 relative z-10">
             <div className="max-w-4xl mx-auto text-center">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/20 backdrop-blur-sm mb-6">
                 <Zap className="w-4 h-4 text-yellow-400" />
                 <span className="text-sm font-medium text-white">Live IPO Updates</span>
               </div>
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6">
-                Initial Public Offerings
-              </h1>
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6">Initial Public Offerings</h1>
               <p className="text-lg md:text-xl text-white/90 mb-8 leading-relaxed">
-                Stay updated with latest IPOs, track subscription status in real-time,
-                and make informed investment decisions with comprehensive IPO analysis.
+                Stay updated with latest IPOs, track subscription status in real-time, and make informed investment decisions with comprehensive IPO analysis.
               </p>
-
-              {/* Stat Tiles — clickable, switch tabs */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto">
                 {([
-                  { s: 'open'     as IPOStatus, icon: <Building2 className="w-8 h-8 text-yellow-400 mx-auto mb-2" /> },
-                  { s: 'upcoming' as IPOStatus, icon: <Clock     className="w-8 h-8 text-blue-400   mx-auto mb-2" /> },
+                  { s: 'open'     as IPOStatus, icon: <Building2  className="w-8 h-8 text-yellow-400 mx-auto mb-2" /> },
+                  { s: 'upcoming' as IPOStatus, icon: <Clock      className="w-8 h-8 text-blue-400   mx-auto mb-2" /> },
                   { s: 'listed'   as IPOStatus, icon: <TrendingUp className="w-8 h-8 text-green-400 mx-auto mb-2" /> },
-                  { s: 'closed'   as IPOStatus, icon: <Award     className="w-8 h-8 text-purple-400 mx-auto mb-2" /> },
+                  { s: 'closed'   as IPOStatus, icon: <Award      className="w-8 h-8 text-purple-400 mx-auto mb-2" /> },
                 ]).map(({ s, icon }) => (
                   <button key={s} onClick={() => switchTab(s)}
                     className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20 hover:bg-white/20 hover:scale-105 transition-all duration-200 cursor-pointer text-center group">
@@ -771,41 +711,48 @@ const IPOSection = () => {
           </div>
         </section>
 
-        {/* ── List Section ─────────────────────────────────────────────── */}
+        {/* List */}
         <section className="container mx-auto px-4 md:px-6 py-10" id="ipo-list-section">
-
-          {/* Controls */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-6">
-            {/* Tab Filters */}
-            <div className="flex flex-wrap gap-2">
-              {(['open','upcoming','closed','listed'] as IPOStatus[]).map(tab => (
-                <button key={tab} onClick={() => { setActiveTab(tab); setShowAll(false); }}
-                  className={`px-6 py-3 rounded-lg font-semibold text-sm transition-all ${
-                    activeTab === tab
-                      ? 'bg-gradient-to-r from-accent to-accent/80 text-white shadow-lg'
-                      : 'bg-card text-muted-foreground hover:bg-card/80 border border-border'
-                  }`}>
-                  {STATUS_CFG[tab].label}
-                  <span className="ml-1.5 opacity-60">({counts[tab]})</span>
-                </button>
-              ))}
-            </div>
-
+          {/* ── Controls: mobile-first, desktop single row ── */}
+          <div className="mb-6">
             <div className="flex items-center gap-2">
-              {/* Refresh */}
+              {/* Tabs — scrollable on mobile, wrap-free */}
+              <div className="flex gap-1.5 overflow-x-auto flex-1 pb-0.5" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                {(['open','upcoming','closed','listed'] as IPOStatus[]).map(tab => (
+                  <button key={tab} onClick={() => { setActiveTab(tab); setShowAll(false); }}
+                    className={`flex-shrink-0 px-3.5 py-2 rounded-lg font-semibold text-xs sm:text-sm transition-all ${
+                      activeTab === tab
+                        ? 'bg-gradient-to-r from-accent to-accent/80 text-white shadow-lg'
+                        : 'bg-card text-muted-foreground hover:bg-card/80 border border-border'
+                    }`}>
+                    {STATUS_CFG[tab].label}
+                    <span className="ml-1 opacity-60">({counts[tab]})</span>
+                  </button>
+                ))}
+              </div>
+
+              {/* Right side: Add IPO (desktop only inline) + Refresh */}
+              {isAdmin && (
+                <button onClick={() => { setEditIPO(null); setFormOpen(true); }}
+                  className="hidden sm:flex flex-shrink-0 items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-accent to-accent/80 text-white rounded-xl font-bold text-sm hover:shadow-lg hover:shadow-accent/20 transition-all whitespace-nowrap">
+                  <Plus className="w-4 h-4" />Add IPO
+                </button>
+              )}
               <button onClick={() => fetchIPOs(activeTab)} disabled={loading}
-                className="flex items-center gap-2 px-4 py-3 bg-card border border-border rounded-xl text-sm text-muted-foreground hover:text-foreground transition-all">
+                className="flex-shrink-0 flex items-center justify-center w-9 h-9 bg-card border border-border rounded-xl text-muted-foreground hover:text-foreground transition-all">
                 <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
               </button>
-              {/* Add */}
+            </div>
+
+            {/* Add IPO — full width below tabs on mobile only */}
+            {isAdmin && (
               <button onClick={() => { setEditIPO(null); setFormOpen(true); }}
-                className="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-accent to-accent/80 text-white rounded-xl font-bold text-sm hover:shadow-lg hover:shadow-accent/20 transition-all whitespace-nowrap">
+                className="sm:hidden mt-2 w-full flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-accent to-accent/80 text-white rounded-xl font-bold text-sm hover:shadow-lg hover:shadow-accent/20 transition-all">
                 <Plus className="w-4 h-4" />Add IPO
               </button>
-            </div>
+            )}
           </div>
 
-          {/* Loading */}
           {loading && (
             <div className="flex flex-col items-center justify-center py-20 gap-3">
               <Loader2 className="w-10 h-10 text-accent animate-spin" />
@@ -813,7 +760,6 @@ const IPOSection = () => {
             </div>
           )}
 
-          {/* Error */}
           {error && !loading && (
             <div className="text-center py-16">
               <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
@@ -827,31 +773,27 @@ const IPOSection = () => {
             </div>
           )}
 
-          {/* Empty */}
           {!loading && !error && ipos.length === 0 && (
             <div className="text-center py-16">
               <div className="w-20 h-20 rounded-2xl bg-accent/10 flex items-center justify-center mx-auto mb-4">
                 <Building2 className="w-10 h-10 text-accent/40" />
               </div>
-              <h3 className="text-xl font-semibold text-foreground mb-2">
-                No {STATUS_CFG[activeTab].label} IPOs found
-              </h3>
-              <p className="text-muted-foreground mb-5">Add your first IPO to get started!</p>
-              <button onClick={() => { setEditIPO(null); setFormOpen(true); }}
-                className="inline-flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-accent to-accent/80 text-white rounded-xl font-bold text-sm hover:shadow-lg transition-all">
-                <Plus className="w-4 h-4" />Add First IPO
-              </button>
+              <h3 className="text-xl font-semibold text-foreground mb-2">No {STATUS_CFG[activeTab].label} IPOs found</h3>
+              <p className="text-muted-foreground mb-5">{isAdmin ? 'Add your first IPO to get started!' : 'Check back soon for new IPOs.'}</p>
+              {isAdmin && (
+                <button onClick={() => { setEditIPO(null); setFormOpen(true); }}
+                  className="inline-flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-accent to-accent/80 text-white rounded-xl font-bold text-sm hover:shadow-lg transition-all">
+                  <Plus className="w-4 h-4" />Add First IPO
+                </button>
+              )}
             </div>
           )}
 
-          {/* Cards */}
           {!loading && !error && ipos.length > 0 && (
             <>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {displayed.map(ipo => (
-                  <IPOCard
-                    key={ipo._id}
-                    ipo={ipo}
+                  <IPOCard key={ipo._id} ipo={ipo} isAdmin={isAdmin}
                     onViewDetail={() => { setSelectedIPO(ipo); setDetailOpen(true); }}
                     onEdit={() => { setEditIPO(ipo); setFormOpen(true); }}
                     onDelete={() => handleDelete(ipo)}
@@ -859,7 +801,6 @@ const IPOSection = () => {
                 ))}
               </div>
 
-              {/* View All / Show Less + Navigate to IPO Page */}
               {ipos.length > 3 && (
                 <div className="mt-8 text-center flex items-center justify-center gap-3">
                   <button onClick={() => setShowAll(p => !p)}
@@ -872,7 +813,6 @@ const IPOSection = () => {
                 </div>
               )}
 
-              {/* Go to full IPO page */}
               <div className="mt-4 text-center">
                 <button onClick={() => navigate('/ipos')}
                   className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-gradient-to-r from-accent to-accent/80 text-white font-bold text-sm hover:shadow-lg hover:shadow-accent/20 transition-all group">
@@ -904,21 +844,17 @@ const IPOSection = () => {
         </section>
       </div>
 
-      {/* ── Detail Modal ── */}
       {detailOpen && selectedIPO && !formOpen && (
-        <DetailModal
-          ipo={selectedIPO}
+        <DetailModal ipo={selectedIPO}
           onClose={() => { setDetailOpen(false); setSelectedIPO(null); }}
           onEdit={() => { setEditIPO(selectedIPO); setFormOpen(true); }}
           onDelete={() => handleDelete(selectedIPO)}
-          deleting={deleting}
+          deleting={deleting} isAdmin={isAdmin}
         />
       )}
 
-      {/* ── Form Modal ── */}
-      {formOpen && (
-        <FormModal
-          initial={editIPO ?? undefined}
+      {formOpen && isAdmin && (
+        <FormModal initial={editIPO ?? undefined}
           onSave={editIPO ? handleEdit : handleAdd}
           onClose={() => { setFormOpen(false); setEditIPO(null); }}
           saving={saving}

@@ -278,7 +278,7 @@ const Header = () => {
                   <DropBtn onClick={() => { scrollToSection("team-members"); about.close(); }}>Team</DropBtn>
                   <DropBtn onClick={() => { scrollToSection("why-us"); about.close(); }}>Why Us</DropBtn>
                   <DropBtn onClick={() => { scrollToSection("what-we-do"); about.close(); }}>What We Do</DropBtn>
-                  <DropBtn onClick={() => { scrollToSection("trust-compliance"); about.close(); }}>Trust and Compliance</DropBtn>
+                  <DropBtn onClick={() => { scrollToSection("certifications"); about.close(); }}>Trust and Compliance</DropBtn>
                 </div>
               </NavItem>
 
@@ -449,7 +449,7 @@ const Header = () => {
                   <MobileScrollBtn id="team-members">Team</MobileScrollBtn>
                   <MobileScrollBtn id="why-us">Why Us</MobileScrollBtn>
                   <MobileScrollBtn id="what-we-do">What We Do</MobileScrollBtn>
-                  <MobileScrollBtn id="trust-compliance">Trust and Compliance</MobileScrollBtn>
+                  <MobileScrollBtn id="certifications">Trust and Compliance</MobileScrollBtn>
                 </MobileAccordion>
 
                 <MobileAccordion label="Segments" isOpen={mobileSegmentsOpen} toggle={() => setMobileSegmentsOpen(s => !s)}>
