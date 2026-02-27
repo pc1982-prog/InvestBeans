@@ -65,66 +65,66 @@ const HomeView = ({ activeTab, onChangeTab }: HomeViewProps) => {
           )}
 
           {/* Live Dashboard */}
-          <section className="mb-20 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full blur-[130px] pointer-events-none"
-              style={{ background: "radial-gradient(circle,rgba(212,168,67,0.06) 0%,transparent 70%)" }} />
-            <div className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full blur-[100px] pointer-events-none"
-              style={{ background: "radial-gradient(circle,rgba(56,189,248,0.04) 0%,transparent 70%)" }} />
-            <div className="relative z-10">
-              <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-10">
-                <div className="mb-6 md:mb-0">
-                  <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-4" style={GOLD_BADGE}>
-                    <Activity className="w-4 h-4 text-[#D4A843]" />
-                    <span className="text-xs font-semibold text-[#D4A843] uppercase tracking-wide">
-                      {activeTab === "domestic" ? "Market Live" : "Live Data"}
-                    </span>
+            <section className="mb-20 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full blur-[130px] pointer-events-none"
+                style={{ background: "radial-gradient(circle,rgba(212,168,67,0.06) 0%,transparent 70%)" }} />
+              <div className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full blur-[100px] pointer-events-none"
+                style={{ background: "radial-gradient(circle,rgba(56,189,248,0.04) 0%,transparent 70%)" }} />
+              <div className="relative z-10">
+                <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-10">
+                  <div className="mb-6 md:mb-0">
+                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-4" style={GOLD_BADGE}>
+                      <Activity className="w-4 h-4 text-[#D4A843]" />
+                      <span className="text-xs font-semibold text-[#D4A843] uppercase tracking-wide">
+                        {activeTab === "domestic" ? "Market Live" : "Live Data"}
+                      </span>
+                    </div>
+                    <h2 className="text-4xl md:text-5xl font-bold text-white mb-2">
+                      {activeTab === "domestic" ? "BharatPulse" : "Live Dashboard"}
+                    </h2>
+                    <p className="text-slate-400">
+                      {activeTab === "domestic"
+                        ? "Navigate Bharat's markets with live data, sharp analytics, and smart insights."
+                        : "Real-time market data and interactive charts at your fingertips."}
+                    </p>
                   </div>
-                  <h2 className="text-4xl md:text-5xl font-bold text-white mb-2">
-                    {activeTab === "domestic" ? "BharatPulse" : "Live Dashboard"}
-                  </h2>
-                  <p className="text-slate-400">
-                    {activeTab === "domestic"
-                      ? "Navigate Bharat's markets with live data, sharp analytics, and smart insights."
-                      : "Real-time market data and interactive charts at your fingertips."}
-                  </p>
+
+                  <div className="flex gap-1 p-1 rounded-xl"
+                    style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.09)" }}>
+                    {(["domestic", "global"] as const).map((tab) => (
+                      <button key={tab} onClick={() => onChangeTab(tab)}
+                        className="px-5 py-2 rounded-lg text-sm font-semibold transition-all capitalize"
+                        style={activeTab === tab ? { background: GOLD, color: "#0c1a2e" } : { color: "#94a3b8" }}>
+                        {tab}
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
-                <div className="flex gap-1 p-1 rounded-xl"
-                  style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.09)" }}>
-                  {(["domestic", "global"] as const).map((tab) => (
-                    <button key={tab} onClick={() => onChangeTab(tab)}
-                      className="px-5 py-2 rounded-lg text-sm font-semibold transition-all capitalize"
-                      style={activeTab === tab ? { background: GOLD, color: "#0c1a2e" } : { color: "#94a3b8" }}>
-                      {tab}
-                    </button>
-                  ))}
+                <div className="w-full mb-8 rounded-2xl overflow-hidden" style={{ border: "1px solid rgba(255,255,255,0.07)" }}>
+                  <TradingViewWidget mode={activeTab} theme="dark" height="600px" />
                 </div>
-              </div>
 
-              <div className="w-full mb-8 rounded-2xl overflow-hidden" style={{ border: "1px solid rgba(255,255,255,0.07)" }}>
-                <TradingViewWidget mode={activeTab} theme="dark" height="600px" />
-              </div>
+                <div className="mb-8">
+                  <h3 className="text-2xl font-bold text-white mb-6 text-center">Market Heatmap</h3>
+                  <div className="w-full h-[600px] rounded-2xl overflow-hidden" style={{ border: "1px solid rgba(255,255,255,0.07)" }}>
+                    <StockHeatmapWidget dataSource={activeTab === "domestic" ? "SENSEX" : "World"} />
+                  </div>
+                </div>
 
-              <div className="mb-8">
-                <h3 className="text-2xl font-bold text-white mb-6 text-center">Market Heatmap</h3>
-                <div className="w-full h-[600px] rounded-2xl overflow-hidden" style={{ border: "1px solid rgba(255,255,255,0.07)" }}>
-                  <StockHeatmapWidget dataSource={activeTab === "domestic" ? "SENSEX" : "World"} />
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 rounded-xl px-5 py-3"
+                  style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
+                  <div className="flex items-center gap-2 text-sm text-slate-400">
+                    <Sparkles className="w-4 h-4 text-[#D4A843]" />
+                    <span>Last Updated: 24/04/2024 - 10:45 AM</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
+                    <span className="text-slate-400">Market Status: <span className="text-emerald-400 font-semibold">Open</span></span>
+                  </div>
                 </div>
               </div>
-
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 rounded-xl px-5 py-3"
-                style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
-                <div className="flex items-center gap-2 text-sm text-slate-400">
-                  <Sparkles className="w-4 h-4 text-[#D4A843]" />
-                  <span>Last Updated: 24/04/2024 - 10:45 AM</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
-                  <span className="text-slate-400">Market Status: <span className="text-emerald-400 font-semibold">Open</span></span>
-                </div>
-              </div>
-            </div>
-          </section>
+            </section>
 
           <IPOSection />
 

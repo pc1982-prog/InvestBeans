@@ -487,13 +487,14 @@ export default function TestimonialsSection() {
         width: "100%",
         boxSizing: "border-box",
         position: "relative",
+        overflow: "hidden",   /* ← fixes horizontal bleed from glow divs */
       }}
       onMouseEnter={() => !isMobile && setPaused(true)}
       onMouseLeave={() => !isMobile && setPaused(false)}
     >
-      {/* Ambient glows matching DecodeMarket */}
-      <div style={{ position: "absolute", top: 0, right: 0, width: "450px", height: "450px", borderRadius: "50%", filter: "blur(120px)", pointerEvents: "none", background: "radial-gradient(circle,rgba(212,168,67,0.06) 0%,transparent 70%)" }} />
-      <div style={{ position: "absolute", bottom: 0, left: 0, width: "350px", height: "350px", borderRadius: "50%", filter: "blur(100px)", pointerEvents: "none", background: "radial-gradient(circle,rgba(56,189,248,0.04) 0%,transparent 70%)" }} />
+      {/* Ambient glows — clamped so they never exceed viewport width */}
+      <div style={{ position: "absolute", top: 0, right: 0, width: "min(450px,80vw)", height: "min(450px,80vw)", borderRadius: "50%", filter: "blur(120px)", pointerEvents: "none", background: "radial-gradient(circle,rgba(212,168,67,0.06) 0%,transparent 70%)" }} />
+      <div style={{ position: "absolute", bottom: 0, left: 0, width: "min(350px,70vw)", height: "min(350px,70vw)", borderRadius: "50%", filter: "blur(100px)", pointerEvents: "none", background: "radial-gradient(circle,rgba(56,189,248,0.04) 0%,transparent 70%)" }} />
 
       {/* Heading */}
       <div

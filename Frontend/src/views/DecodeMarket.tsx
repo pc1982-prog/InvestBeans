@@ -93,31 +93,21 @@ const DecodeMarket = ({ activeTab }: DecodeMarketProps) => {
   };
 
   return (
-    <section id="decode-markets" className="mb-20 relative">
-      {/* Soft ambient glows */}
-      <div className="absolute top-0 right-0 w-[450px] h-[450px] rounded-full blur-[120px] pointer-events-none"
+    <section id="decode-markets" className="mb-20 relative overflow-hidden">
+      {/* Soft ambient glows — clamped to avoid horizontal overflow on mobile */}
+      <div className="absolute top-0 right-0 w-[min(450px,80vw)] h-[min(450px,80vw)] rounded-full blur-[120px] pointer-events-none"
         style={{ background: "radial-gradient(circle,rgba(212,168,67,0.05) 0%,transparent 70%)" }} />
-      <div className="absolute bottom-0 left-0 w-[350px] h-[350px] rounded-full blur-[100px] pointer-events-none"
+      <div className="absolute bottom-0 left-0 w-[min(350px,70vw)] h-[min(350px,70vw)] rounded-full blur-[100px] pointer-events-none"
         style={{ background: "radial-gradient(circle,rgba(56,189,248,0.04) 0%,transparent 70%)" }} />
 
       <div className="relative z-10">
         {/* Section header */}
-        <div className="text-center mb-10 relative">
+        <div className="text-center mb-10">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-5"
             style={{ background: "rgba(212,168,67,0.1)", border: "1px solid rgba(212,168,67,0.2)" }}>
             <Sparkles className="w-3.5 h-3.5 text-[#D4A843]" />
             <span className="text-xs font-semibold text-[#D4A843] uppercase tracking-wide">Market Intelligence</span>
           </div>
-
-          {isAdmin && (
-            <div className="absolute top-0 right-0 hidden sm:block">
-              <button onClick={() => { setEditingInsight(null); setShowAdminForm(true); }}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90"
-                style={{ background: "linear-gradient(135deg,#22c55e,#16a34a)" }}>
-                <Plus className="w-4 h-4" /> Create Insight
-              </button>
-            </div>
-          )}
 
           <h2 className="text-3xl md:text-5xl font-bold text-white mb-4 px-4">
             Decode the <span style={{ background: "linear-gradient(135deg,#D4A843,#F0C84A)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Market</span>
@@ -125,6 +115,17 @@ const DecodeMarket = ({ activeTab }: DecodeMarketProps) => {
           <p className="text-slate-400 text-base md:text-lg max-w-3xl mx-auto leading-relaxed px-4">
             Expert insights and analysis to help you understand market movements and make informed investment decisions
           </p>
+
+          {/* Admin button — placed BELOW heading, never overlaps on any screen */}
+          {isAdmin && (
+            <div className="mt-4 flex justify-center">
+              <button onClick={() => { setEditingInsight(null); setShowAdminForm(true); }}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90"
+                style={{ background: "linear-gradient(135deg,#22c55e,#16a34a)" }}>
+                <Plus className="w-4 h-4" /> Create Insight
+              </button>
+            </div>
+          )}
         </div>
 
         <div className="px-4">
@@ -143,7 +144,7 @@ const DecodeMarket = ({ activeTab }: DecodeMarketProps) => {
             </div>
             {isAdmin && (
               <button onClick={() => { setEditingInsight(null); setShowAdminForm(true); }}
-                className="lg:hidden inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white"
+                className="sm:hidden inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white"
                 style={{ background: "linear-gradient(135deg,#22c55e,#16a34a)" }}>
                 <Plus className="w-4 h-4" /> Create Insight
               </button>
