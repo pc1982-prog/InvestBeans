@@ -40,7 +40,7 @@ const HomeView = ({ activeTab, onChangeTab }: HomeViewProps) => {
     <Layout >
       {/* Soft dark blue page background — no harsh grid */}
       <div style={{ background: "linear-gradient(160deg,#0c1a2e 0%,#0e2038 45%,#0b1825 100%)", minHeight: "100vh" }}>
-        {/* <Hero /> */}
+        <Hero />
 
         <div className="container mx-auto px-6 py-16">
 
@@ -131,7 +131,9 @@ const HomeView = ({ activeTab, onChangeTab }: HomeViewProps) => {
           <section className="mt-10">
           <DecodeMarket activeTab={activeTab} />
           </section>
+          <section >
           <BeansOfWisdomView />
+          </section>
           <TestimonialsPage />
 
           {/* Plans */}
