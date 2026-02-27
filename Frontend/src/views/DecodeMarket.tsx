@@ -93,90 +93,130 @@ const DecodeMarket = ({ activeTab }: DecodeMarketProps) => {
   };
 
   return (
-    <section id="decode-markets" className="mb-20 relative overflow-hidden">
-      {/* Soft ambient glows — clamped to avoid horizontal overflow on mobile */}
-      <div className="absolute top-0 right-0 w-[min(450px,80vw)] h-[min(450px,80vw)] rounded-full blur-[120px] pointer-events-none"
-        style={{ background: "radial-gradient(circle,rgba(212,168,67,0.05) 0%,transparent 70%)" }} />
-      <div className="absolute bottom-0 left-0 w-[min(350px,70vw)] h-[min(350px,70vw)] rounded-full blur-[100px] pointer-events-none"
-        style={{ background: "radial-gradient(circle,rgba(56,189,248,0.04) 0%,transparent 70%)" }} />
+    <section id="decode-markets" className="mb-12 sm:mb-16 md:mb-20 relative overflow-hidden">
+
+      {/* Ambient glows — clamped so never cause horizontal scroll on mobile */}
+      <div
+        className="absolute top-0 right-0 w-[min(450px,80vw)] h-[min(450px,80vw)] rounded-full blur-[80px] sm:blur-[120px] pointer-events-none"
+        style={{ background: "radial-gradient(circle,rgba(212,168,67,0.05) 0%,transparent 70%)" }}
+      />
+      <div
+        className="absolute bottom-0 left-0 w-[min(350px,70vw)] h-[min(350px,70vw)] rounded-full blur-[60px] sm:blur-[100px] pointer-events-none"
+        style={{ background: "radial-gradient(circle,rgba(56,189,248,0.04) 0%,transparent 70%)" }}
+      />
 
       <div className="relative z-10">
-        {/* Section header */}
-        <div className="text-center mb-10">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-5"
-            style={{ background: "rgba(212,168,67,0.1)", border: "1px solid rgba(212,168,67,0.2)" }}>
-            <Sparkles className="w-3.5 h-3.5 text-[#D4A843]" />
-            <span className="text-xs font-semibold text-[#D4A843] uppercase tracking-wide">Market Intelligence</span>
+
+        {/* ── Section header ─────────────────────────────────────────────── */}
+        <div className="text-center mb-8 sm:mb-10 relative px-4 sm:px-6 lg:px-8">
+
+          {/* Desktop only — button floats right, vertically centered */}
+          {isAdmin && (
+            <div className="hidden sm:flex absolute top-1/2 right-4 sm:right-6 lg:right-8 -translate-y-1/2">
+              <button
+                onClick={() => { setEditingInsight(null); setShowAdminForm(true); }}
+                className="inline-flex items-center gap-2 px-3 py-2 sm:px-4 sm:py-2 rounded-xl text-xs sm:text-sm font-semibold text-white transition-all hover:opacity-90 whitespace-nowrap shadow-lg"
+                style={{ background: "linear-gradient(135deg,#22c55e,#16a34a)" }}
+              >
+                <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Create Insight
+              </button>
+            </div>
+          )}
+
+          {/* Badge */}
+          <div
+            className="inline-flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full mb-4 sm:mb-5"
+            style={{ background: "rgba(212,168,67,0.1)", border: "1px solid rgba(212,168,67,0.2)" }}
+          >
+            <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#D4A843]" />
+            <span className="text-[11px] sm:text-xs font-semibold text-[#D4A843] uppercase tracking-wide">Market Intelligence</span>
           </div>
 
-          <h2 className="text-3xl md:text-5xl font-bold text-white mb-4 px-4">
-            Decode the <span style={{ background: "linear-gradient(135deg,#D4A843,#F0C84A)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Market</span>
+          {/* Heading */}
+          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-3 sm:mb-4 leading-tight">
+            Decode the{" "}
+            <span style={{ background: "linear-gradient(135deg,#D4A843,#F0C84A)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+              Market
+            </span>
           </h2>
-          <p className="text-slate-400 text-base md:text-lg max-w-3xl mx-auto leading-relaxed px-4">
+
+          {/* Subtitle */}
+          <p className="text-slate-400 text-sm sm:text-base md:text-lg max-w-xl sm:max-w-2xl lg:max-w-3xl mx-auto leading-relaxed px-2 sm:px-0">
             Expert insights and analysis to help you understand market movements and make informed investment decisions
           </p>
+        </div>
 
-          {/* Admin button — placed BELOW heading, never overlaps on any screen */}
+        <div className="px-4 sm:px-6 lg:px-8">
+
+          {/* Mobile only — button between heading and sub-header */}
           {isAdmin && (
-            <div className="mt-4 flex justify-center">
-              <button onClick={() => { setEditingInsight(null); setShowAdminForm(true); }}
+            <div className="flex justify-center mb-4 sm:hidden">
+              <button
+                onClick={() => { setEditingInsight(null); setShowAdminForm(true); }}
                 className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90"
-                style={{ background: "linear-gradient(135deg,#22c55e,#16a34a)" }}>
+                style={{ background: "linear-gradient(135deg,#22c55e,#16a34a)" }}
+              >
                 <Plus className="w-4 h-4" /> Create Insight
               </button>
             </div>
           )}
-        </div>
 
-        <div className="px-4">
-          {/* Sub-header */}
-          <div className="flex flex-col items-center gap-4 mb-8">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium"
+          {/* ── Sub-header ────────────────────────────────────────────────── */}
+          <div className="flex flex-col items-center gap-2 sm:gap-3 mb-6 sm:mb-8">
+            <div
+              className="inline-flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-medium"
               style={activeTab === "domestic"
                 ? { color: "#34d399", background: "rgba(52,211,153,0.07)", border: "1px solid rgba(52,211,153,0.18)" }
-                : { color: "#60a5fa", background: "rgba(96,165,250,0.07)", border: "1px solid rgba(96,165,250,0.18)" }}>
-              <TrendingUp className="w-4 h-4" />
+                : { color: "#60a5fa", background: "rgba(96,165,250,0.07)", border: "1px solid rgba(96,165,250,0.18)" }}
+            >
+              <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               {activeTab === "domestic" ? "Domestic Market Insights" : "Global Market Insights"}
             </div>
             <div className="text-center">
-              <h3 className="text-2xl font-bold text-white mb-1">{activeTab === "domestic" ? "Indian Markets" : "International Markets"}</h3>
-              <p className="text-slate-400 text-sm">{activeTab === "domestic" ? "Analysis of NSE, BSE, and sectoral performance" : "Global economic trends and their impact on investments"}</p>
+              <h3 className="text-xl sm:text-2xl font-bold text-white mb-1">
+                {activeTab === "domestic" ? "Indian Markets" : "International Markets"}
+              </h3>
+              <p className="text-slate-400 text-xs sm:text-sm">
+                {activeTab === "domestic"
+                  ? "Analysis of NSE, BSE, and sectoral performance"
+                  : "Global economic trends and their impact on investments"}
+              </p>
             </div>
-            {isAdmin && (
-              <button onClick={() => { setEditingInsight(null); setShowAdminForm(true); }}
-                className="sm:hidden inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white"
-                style={{ background: "linear-gradient(135deg,#22c55e,#16a34a)" }}>
-                <Plus className="w-4 h-4" /> Create Insight
-              </button>
-            )}
           </div>
 
+          {/* ── Cards / Empty / Loading states ───────────────────────────── */}
           {loading ? (
-            <div className="text-center py-16">
-              <div className="inline-block animate-spin rounded-full h-12 w-12"
-                style={{ border: "2px solid rgba(212,168,67,0.15)", borderTopColor: "#D4A843" }} />
+            <div className="text-center py-12 sm:py-16">
+              <div
+                className="inline-block animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12"
+                style={{ border: "2px solid rgba(212,168,67,0.15)", borderTopColor: "#D4A843" }}
+              />
               <p className="mt-4 text-slate-400 text-sm">Loading insights...</p>
             </div>
           ) : insights.length === 0 ? (
-            <div className="text-center py-16">
-              <p className="text-slate-400 mb-4">No insights available at the moment.</p>
+            <div className="text-center py-12 sm:py-16">
+              <p className="text-slate-400 mb-4 text-sm sm:text-base">No insights available at the moment.</p>
               {isAdmin && (
-                <button onClick={() => { setEditingInsight(null); setShowAdminForm(true); }}
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold text-[#0c1a2e]"
-                  style={{ background: "linear-gradient(135deg,#D4A843,#C4941E)" }}>
+                <button
+                  onClick={() => { setEditingInsight(null); setShowAdminForm(true); }}
+                  className="inline-flex items-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 rounded-xl text-sm font-semibold text-[#0c1a2e]"
+                  style={{ background: "linear-gradient(135deg,#D4A843,#C4941E)" }}
+                >
                   <Plus className="w-4 h-4" /> Create First Insight
                 </button>
               )}
             </div>
           ) : (
             <>
+              {/* Desktop 2-col grid */}
               <div className="hidden lg:grid lg:grid-cols-2 gap-6 xl:gap-8">
                 {visibleInsights.map(insight => (
                   <InsightCard key={insight._id} insight={insight} isAdmin={isAdmin}
                     onReadMore={handleReadMore} onLike={handleLike} onEdit={handleEdit} onDelete={handleDelete} />
                 ))}
               </div>
-              <div className="block lg:hidden space-y-5">
+              {/* Mobile / tablet stack */}
+              <div className="block lg:hidden space-y-4 sm:space-y-5">
                 {visibleInsights.map(insight => (
                   <InsightCard key={insight._id} insight={insight} isAdmin={isAdmin}
                     onReadMore={handleReadMore} onLike={handleLike} onEdit={handleEdit} onDelete={handleDelete} />
@@ -186,19 +226,24 @@ const DecodeMarket = ({ activeTab }: DecodeMarketProps) => {
           )}
         </div>
 
+        {/* ── Show More / Show Less ─────────────────────────────────────── */}
         {hasMoreThanInitial && insights.length > 0 && (
-          <div className="mt-12 text-center px-4 flex gap-4 justify-center">
+          <div className="mt-8 sm:mt-12 text-center px-4 flex flex-wrap gap-3 sm:gap-4 justify-center">
             {canShowMore && (
-              <button onClick={showMore}
-                className="px-6 py-3 rounded-full text-sm font-semibold transition-all active:scale-95 text-[#D4A843]"
-                style={{ background: "rgba(212,168,67,0.07)", border: "1px solid rgba(212,168,67,0.22)" }}>
+              <button
+                onClick={showMore}
+                className="px-5 sm:px-6 py-2.5 sm:py-3 rounded-full text-sm font-semibold transition-all active:scale-95 text-[#D4A843]"
+                style={{ background: "rgba(212,168,67,0.07)", border: "1px solid rgba(212,168,67,0.22)" }}
+              >
                 Show More
               </button>
             )}
             {visibleCount > INITIAL_VISIBLE && (
-              <button onClick={showLess}
-                className="px-6 py-3 rounded-full text-sm font-semibold transition-all active:scale-95 text-slate-400"
-                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)" }}>
+              <button
+                onClick={showLess}
+                className="px-5 sm:px-6 py-2.5 sm:py-3 rounded-full text-sm font-semibold transition-all active:scale-95 text-slate-400"
+                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)" }}
+              >
                 Show Less
               </button>
             )}
@@ -206,12 +251,18 @@ const DecodeMarket = ({ activeTab }: DecodeMarketProps) => {
         )}
       </div>
 
-      <InsightModal isOpen={showInsightModal}
+      <InsightModal
+        isOpen={showInsightModal}
         onClose={() => { setShowInsightModal(false); setSelectedInsight(null); setLoadingInsight(false); }}
-        insight={selectedInsight} loading={loadingInsight} />
-      <AdminInsightForm isOpen={showAdminForm}
+        insight={selectedInsight}
+        loading={loadingInsight}
+      />
+      <AdminInsightForm
+        isOpen={showAdminForm}
         onClose={() => { setShowAdminForm(false); setEditingInsight(null); }}
-        onSuccess={handleFormSuccess} editingInsight={editingInsight} />
+        onSuccess={handleFormSuccess}
+        editingInsight={editingInsight}
+      />
     </section>
   );
 };

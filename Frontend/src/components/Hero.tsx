@@ -191,7 +191,7 @@ const Hero = () => {
           </h1>
 
           {/* ── Subheading ──────────────────────────────────────── */}
-          <p className="text-lg md:text-xl text-white/88 mb-10 leading-relaxed max-w-2xl mx-auto">
+          <p className="text-lg md:text-xl text-white/95 mb-10 leading-relaxed max-w-2xl mx-auto">
             Daily research-backed stock insights — where every pick is powered
             by analysis, not assumptions.
           </p>
@@ -239,7 +239,7 @@ const Hero = () => {
             {current.stats.map((stat) => (
               <div
                 key={stat.sub}
-                className="group text-center p-5 rounded-2xl border border-white/18 bg-white/8 backdrop-blur-sm hover:bg-white/14 hover:border-accent/45 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-accent/10 cursor-default"
+                className="group text-center p-5 rounded-2xl border border-white/25 bg-white/10 backdrop-blur-sm hover:bg-white/16 hover:border-accent/55 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-accent/10 cursor-default"
               >
                 <div
                   className="text-2xl md:text-3xl font-bold mb-1.5"
@@ -254,7 +254,7 @@ const Hero = () => {
                 >
                   {stat.value}
                 </div>
-                <div className="text-xs md:text-sm text-white/75 group-hover:text-white/95 transition-colors duration-300 font-medium">
+                <div className="text-xs md:text-sm text-white/90 group-hover:text-white transition-colors duration-300 font-medium">
                   {stat.sub}
                 </div>
               </div>
