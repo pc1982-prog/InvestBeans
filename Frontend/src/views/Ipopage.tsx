@@ -6,9 +6,9 @@ import Footer from '../components/Footer';
 import {
   TrendingUp, TrendingDown, Calendar, Users, Building2,
   CheckCircle, Clock, AlertCircle, ArrowRight, Star, Target,
-  Award, Shield, Zap, BarChart3, FileText, ExternalLink,
-  Search, IndianRupee, ChevronRight, Plus, X, Edit3,
-  Save, Trash2, Loader2, RefreshCw, ArrowLeft, ChevronDown,
+  Zap, BarChart3, FileText, ExternalLink,
+  Search, IndianRupee, Plus, X, Edit3,
+  Save, Trash2, Loader2, RefreshCw, ChevronDown,
 } from 'lucide-react';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
@@ -52,7 +52,6 @@ function autoLogo(name: string) {
   return name.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase().slice(0,2);
 }
 
-// ─── ₹ for single value fields ────────────────────────────────────────────────
 function RupeeInput({ value, onChange, placeholder, className }: {
   value: string; onChange: (v: string) => void; placeholder?: string; className?: string;
 }) {
@@ -66,7 +65,6 @@ function RupeeInput({ value, onChange, placeholder, className }: {
   );
 }
 
-// ─── ₹ on BOTH numbers in price band (e.g. ₹140 – ₹170) ─────────────────────
 function PriceBandInput({ value, onChange, placeholder, className }: {
   value: string; onChange: (v: string) => void; placeholder?: string; className?: string;
 }) {
@@ -140,29 +138,37 @@ function FormModal({ initial, onSave, onClose, saving }: {
 
   const submit = async () => { if (!validate()) return; await onSave({...form, logo:form.logo||autoLogo(form.companyName)}); };
 
-  const inp = 'w-full bg-background border border-border rounded-lg px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-accent/60 transition-colors';
-  const lbl = 'block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5';
-  const err = 'text-red-500 text-xs mt-1';
+  const inp = 'w-full rounded-lg px-3 py-2.5 text-sm text-white placeholder:text-slate-500 focus:outline-none transition-colors bg-white/[0.06] border border-white/10 focus:border-[rgba(212,168,67,0.5)]';
+  const lbl = 'block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5';
+  const err = 'text-red-400 text-xs mt-1';
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
-      <div className="bg-card rounded-2xl border border-border w-full max-w-2xl max-h-[92vh] overflow-y-auto shadow-2xl" onClick={e=>e.stopPropagation()}>
-        <div className="sticky top-0 bg-gradient-to-r from-navy to-accent p-5 flex items-center justify-between z-10 rounded-t-2xl">
+      <div className="rounded-2xl w-full max-w-2xl max-h-[92vh] overflow-y-auto shadow-2xl"
+        style={{ background: "linear-gradient(135deg,#0e2038 0%,#0c1a2e 100%)", border: "1px solid rgba(255,255,255,0.10)" }}
+        onClick={e=>e.stopPropagation()}>
+
+        <div className="sticky top-0 p-5 flex items-center justify-between z-10 rounded-t-2xl"
+          style={{ background: "linear-gradient(135deg,#0a1628,#142640)", borderBottom: "1px solid rgba(212,168,67,0.20)" }}>
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center">
-              {initial ? <Edit3 className="w-4 h-4 text-white" /> : <Plus className="w-4 h-4 text-white" />}
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center"
+              style={{ background: "rgba(212,168,67,0.15)", border: "1px solid rgba(212,168,67,0.25)" }}>
+              {initial ? <Edit3 className="w-4 h-4 text-[#D4A843]" /> : <Plus className="w-4 h-4 text-[#D4A843]" />}
             </div>
             <div>
               <h2 className="text-lg font-bold text-white">{initial ? 'Edit IPO' : 'Add New IPO'}</h2>
               <p className="text-white/60 text-xs">* fields are required</p>
             </div>
           </div>
-          <button onClick={onClose} className="text-white/70 hover:text-white hover:bg-white/20 rounded-full p-2 transition-all"><X className="w-5 h-5" /></button>
+          <button onClick={onClose} className="text-slate-400 hover:text-white hover:bg-white/10 rounded-full p-2 transition-all">
+            <X className="w-5 h-5" />
+          </button>
         </div>
 
         <div className="p-5 space-y-5">
-          <div className="p-4 rounded-xl bg-accent/5 border border-accent/10 space-y-4">
-            <p className="text-xs font-bold text-accent uppercase tracking-wider">Company Info</p>
+          {/* Company Info */}
+          <div className="p-4 rounded-xl space-y-4" style={{ background: "rgba(212,168,67,0.05)", border: "1px solid rgba(212,168,67,0.12)" }}>
+            <p className="text-xs font-bold text-[#D4A843] uppercase tracking-wider">Company Info</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="sm:col-span-2">
                 <label className={lbl}>Company Name *</label>
@@ -172,7 +178,7 @@ function FormModal({ initial, onSave, onClose, saving }: {
               <div>
                 <label className={lbl}>Logo (2 chars)</label>
                 <input className={inp} placeholder="e.g. TT" maxLength={2} value={form.logo} onChange={e=>set('logo',e.target.value.toUpperCase())} />
-                <p className="text-xs text-muted-foreground mt-1">Auto-generated from company name</p>
+                <p className="text-xs text-slate-400 mt-1">Auto-generated from company name</p>
               </div>
               <div>
                 <label className={lbl}>Industry</label>
@@ -184,14 +190,17 @@ function FormModal({ initial, onSave, onClose, saving }: {
             </div>
           </div>
 
-          <div className="p-4 rounded-xl bg-accent/5 border border-accent/10 space-y-3">
-            <p className="text-xs font-bold text-accent uppercase tracking-wider">Classification</p>
+          {/* Classification */}
+          <div className="p-4 rounded-xl space-y-3" style={{ background: "rgba(212,168,67,0.05)", border: "1px solid rgba(212,168,67,0.12)" }}>
+            <p className="text-xs font-bold text-[#D4A843] uppercase tracking-wider">Classification</p>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <div className="sm:col-span-2">
                 <label className={lbl}>Status *</label>
                 <select className={inp} value={form.status} onChange={e=>set('status',e.target.value as IPOStatus)}>
-                  <option value="upcoming">Upcoming</option><option value="open">Open Now</option>
-                  <option value="closed">Closed</option><option value="listed">Listed</option>
+                  <option value="upcoming">Upcoming</option>
+                  <option value="open">Open Now</option>
+                  <option value="closed">Closed</option>
+                  <option value="listed">Listed</option>
                 </select>
               </div>
               <div>
@@ -210,12 +219,12 @@ function FormModal({ initial, onSave, onClose, saving }: {
             </div>
           </div>
 
-          <div className="p-4 rounded-xl bg-accent/5 border border-accent/10 space-y-3">
-            <p className="text-xs font-bold text-accent uppercase tracking-wider">Pricing & Size</p>
+          {/* Pricing */}
+          <div className="p-4 rounded-xl space-y-3" style={{ background: "rgba(212,168,67,0.05)", border: "1px solid rgba(212,168,67,0.12)" }}>
+            <p className="text-xs font-bold text-[#D4A843] uppercase tracking-wider">Pricing & Size</p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
                 <label className={lbl}>Price Band *</label>
-                {/* ← PriceBandInput: ₹ on both numbers */}
                 <PriceBandInput className={inp} placeholder="₹475 – ₹500" value={form.priceRange} onChange={v=>set('priceRange',v)} />
                 {errors.priceRange&&<p className={err}>{errors.priceRange}</p>}
               </div>
@@ -241,8 +250,9 @@ function FormModal({ initial, onSave, onClose, saving }: {
             </div>
           </div>
 
-          <div className="p-4 rounded-xl bg-accent/5 border border-accent/10 space-y-3">
-            <p className="text-xs font-bold text-accent uppercase tracking-wider">Important Dates</p>
+          {/* Dates */}
+          <div className="p-4 rounded-xl space-y-3" style={{ background: "rgba(212,168,67,0.05)", border: "1px solid rgba(212,168,67,0.12)" }}>
+            <p className="text-xs font-bold text-[#D4A843] uppercase tracking-wider">Important Dates</p>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {[
                 {k:'openDate',l:'Open Date *',p:'Jan 29, 2026'},
@@ -252,7 +262,7 @@ function FormModal({ initial, onSave, onClose, saving }: {
                 {k:'listingDate',l:'Listing',p:'Feb 07, 2026'},
               ].map(({k,l,p}) => (
                 <div key={k}>
-                  <label className="block text-xs text-muted-foreground mb-1">{l}</label>
+                  <label className="block text-xs text-slate-400 mb-1">{l}</label>
                   <input className={inp} placeholder={p} value={(form as any)[k]||''} onChange={e=>set(k as any,e.target.value)} />
                   {errors[k]&&<p className={err}>{errors[k]}</p>}
                 </div>
@@ -260,21 +270,24 @@ function FormModal({ initial, onSave, onClose, saving }: {
             </div>
           </div>
 
-          <div className="p-4 rounded-xl bg-accent/5 border border-accent/10 space-y-3">
-            <p className="text-xs font-bold text-accent uppercase tracking-wider">Performance <span className="text-muted-foreground/50 normal-case font-normal">(optional)</span></p>
+          {/* Performance */}
+          <div className="p-4 rounded-xl space-y-3" style={{ background: "rgba(212,168,67,0.05)", border: "1px solid rgba(212,168,67,0.12)" }}>
+            <p className="text-xs font-bold text-[#D4A843] uppercase tracking-wider">
+              Performance <span className="text-slate-400/50 normal-case font-normal">(optional)</span>
+            </p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
-                <label className="block text-xs text-muted-foreground mb-1">Subscription</label>
+                <label className="block text-xs text-slate-400 mb-1">Subscription</label>
                 <input className={inp} placeholder="69.43×" value={form.subscriptionStatus||''} onChange={e=>set('subscriptionStatus',e.target.value)} />
               </div>
               <div>
-                <label className="block text-xs text-muted-foreground mb-1">GMP (₹)</label>
+                <label className="block text-xs text-slate-400 mb-1">GMP (₹)</label>
                 <RupeeInput className={inp} placeholder="650"
                   value={form.gmp != null ? `₹${form.gmp}` : ''}
                   onChange={v => { const n = v.replace(/^₹/,''); set('gmp', n!==''?Number(n):null); }} />
               </div>
               <div>
-                <label className="block text-xs text-muted-foreground mb-1">Listing Gain (%)</label>
+                <label className="block text-xs text-slate-400 mb-1">Listing Gain (%)</label>
                 <input type="number" className={inp} placeholder="140 or -12" value={form.listingGain??''} onChange={e=>set('listingGain',e.target.value!==''?Number(e.target.value):null)} />
               </div>
             </div>
@@ -286,10 +299,13 @@ function FormModal({ initial, onSave, onClose, saving }: {
           </div>
         </div>
 
-        <div className="sticky bottom-0 bg-card border-t border-border p-4 flex gap-3 rounded-b-2xl">
-          <button onClick={onClose} className="flex-1 py-3 rounded-xl border border-border text-muted-foreground hover:text-foreground text-sm font-semibold transition-all">Cancel</button>
+        <div className="sticky bottom-0 p-4 flex gap-3 rounded-b-2xl"
+          style={{ background: "linear-gradient(135deg,#0a1628,#0c1a2e)", borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+          <button onClick={onClose} className="flex-1 py-3 rounded-xl text-slate-400 hover:text-white text-sm font-semibold transition-all"
+            style={{ border: "1px solid rgba(255,255,255,0.12)" }}>Cancel</button>
           <button onClick={submit} disabled={saving}
-            className="flex-1 py-3 rounded-xl bg-gradient-to-r from-accent to-accent/80 text-white text-sm font-bold flex items-center justify-center gap-2 hover:shadow-lg transition-all disabled:opacity-60">
+            className="flex-1 py-3 rounded-xl text-white text-sm font-bold flex items-center justify-center gap-2 hover:shadow-lg transition-all disabled:opacity-60"
+            style={{ background: "linear-gradient(135deg,#D4A843,#C4941E)" }}>
             {saving ? <><Loader2 className="w-4 h-4 animate-spin" />Saving...</> : <><Save className="w-4 h-4" />{initial?'Save Changes':'Add IPO'}</>}
           </button>
         </div>
@@ -303,18 +319,26 @@ function DetailModal({ ipo, onClose, onEdit, onDelete, deleting, isAdmin }: {
   ipo: IPO; onClose:()=>void; onEdit:()=>void; onDelete:()=>void; deleting:boolean; isAdmin: boolean;
 }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
-      <div className="bg-card rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-border" onClick={e=>e.stopPropagation()}>
-        <div className="sticky top-0 bg-gradient-to-r from-navy to-accent p-5 md:p-6 z-10">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" onClick={onClose}>
+      <div className="rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+        style={{ background: "linear-gradient(135deg,#0e2038 0%,#0c1a2e 100%)", border: "1px solid rgba(255,255,255,0.10)" }}
+        onClick={e=>e.stopPropagation()}>
+
+        <div className="sticky top-0 p-5 md:p-6 z-10 rounded-t-2xl"
+          style={{ background: "linear-gradient(135deg,#0a1628,#142640)", borderBottom: "1px solid rgba(212,168,67,0.20)" }}>
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-full bg-white/20 flex items-center justify-center text-white font-bold text-xl border-2 border-white/30">{ipo.logo}</div>
+              <div className="w-14 h-14 rounded-full flex items-center justify-center text-[#D4A843] font-bold text-xl"
+                style={{ background: "rgba(212,168,67,0.15)", border: "2px solid rgba(212,168,67,0.30)" }}>{ipo.logo}</div>
               <div>
                 <h2 className="text-xl font-bold text-white leading-tight">{ipo.companyName}</h2>
-                <p className="text-white/70 text-sm">{ipo.industry} · {ipo.exchange}</p>
+                <p className="text-slate-400 text-sm">{ipo.industry} · {ipo.exchange}</p>
                 <div className="flex items-center gap-2 mt-2">
                   <StatusBadge status={ipo.status} />
-                  {ipo.category && <span className="text-xs text-white/60 border border-white/20 px-2 py-0.5 rounded-full">{ipo.category}</span>}
+                  {ipo.category && (
+                    <span className="text-xs text-slate-400 px-2 py-0.5 rounded-full"
+                      style={{ border: "1px solid rgba(255,255,255,0.15)" }}>{ipo.category}</span>
+                  )}
                   <Stars rating={ipo.rating} />
                 </div>
               </div>
@@ -322,86 +346,113 @@ function DetailModal({ ipo, onClose, onEdit, onDelete, deleting, isAdmin }: {
             <div className="flex items-center gap-1.5 flex-shrink-0">
               {isAdmin && (
                 <>
-                  <button onClick={onEdit} className="text-white hover:bg-white/20 rounded-lg p-2 transition-colors"><Edit3 className="w-4 h-4" /></button>
-                  <button onClick={onDelete} disabled={deleting} className="text-white hover:bg-red-500/30 rounded-lg p-2 transition-colors">
+                  <button onClick={onEdit} className="text-slate-400 hover:text-white hover:bg-white/10 rounded-lg p-2 transition-colors">
+                    <Edit3 className="w-4 h-4" />
+                  </button>
+                  <button onClick={onDelete} disabled={deleting} className="text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg p-2 transition-colors">
                     {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
                   </button>
                 </>
               )}
-              <button onClick={onClose} className="text-white hover:bg-white/20 rounded-full p-2 transition-colors"><X className="w-5 h-5" /></button>
+              <button onClick={onClose} className="text-slate-400 hover:text-white hover:bg-white/10 rounded-full p-2 transition-colors">
+                <X className="w-5 h-5" />
+              </button>
             </div>
           </div>
         </div>
+
         <div className="p-5 md:p-6 space-y-6">
           <div>
-            <h3 className="text-base font-bold text-foreground mb-3 flex items-center gap-2"><Zap className="w-4 h-4 text-accent" />Issue Details</h3>
-            <div className="rounded-xl border border-border overflow-hidden">
-              {[['Price Band',ipo.priceRange],['Issue Size',ipo.issueSize],['Lot Size',`${ipo.lotSize} shares`],['Min. Investment',ipo.minInvestment],['Exchange',ipo.exchange]].map(([l,v],i) => (
-                <div key={i} className={`flex items-center justify-between px-4 py-3 text-sm ${i%2===0?'bg-background':'bg-card'}`}>
-                  <span className="text-muted-foreground">{l}</span><span className="font-semibold text-foreground">{v}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-          <div>
-            <h3 className="text-base font-bold text-foreground mb-3 flex items-center gap-2"><Calendar className="w-4 h-4 text-accent" />Important Dates</h3>
-            <div className="rounded-xl border border-border overflow-hidden">
+            <h3 className="text-base font-bold text-white mb-3 flex items-center gap-2">
+              <Zap className="w-4 h-4 text-[#D4A843]" />Issue Details
+            </h3>
+            <div className="rounded-xl overflow-hidden" style={{ border: "1px solid rgba(255,255,255,0.08)" }}>
               {[
-                ['Open Date',ipo.openDate,'text-green-600 dark:text-green-400'],
-                ['Close Date',ipo.closeDate,'text-orange-600 dark:text-orange-400'],
-                ...(ipo.allotmentDate?[['Allotment Date',ipo.allotmentDate,'text-blue-600 dark:text-blue-400']]:[]),
-                ...(ipo.refundDate?[['Refund / UPI',ipo.refundDate,'text-muted-foreground']]:[]),
-                ...(ipo.listingDate?[['Listing Date',ipo.listingDate,'text-purple-600 dark:text-purple-400']]:[]),
-              ].map(([l,v,cls],i) => (
-                <div key={i} className={`flex items-center justify-between px-4 py-3 text-sm ${i%2===0?'bg-background':'bg-card'}`}>
-                  <span className="text-muted-foreground">{l}</span><span className={`font-semibold ${cls}`}>{v}</span>
+                ['Price Band', ipo.priceRange], ['Issue Size', ipo.issueSize],
+                ['Lot Size', `${ipo.lotSize} shares`], ['Min. Investment', ipo.minInvestment],
+                ['Exchange', ipo.exchange],
+              ].map(([l,v],i) => (
+                <div key={i} className="flex items-center justify-between px-4 py-3 text-sm"
+                  style={{ background: i%2===0 ? "rgba(255,255,255,0.02)" : "rgba(255,255,255,0.04)" }}>
+                  <span className="text-slate-400">{l}</span>
+                  <span className="font-semibold text-white">{v}</span>
                 </div>
               ))}
             </div>
           </div>
+
+          <div>
+            <h3 className="text-base font-bold text-white mb-3 flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-[#D4A843]" />Important Dates
+            </h3>
+            <div className="rounded-xl overflow-hidden" style={{ border: "1px solid rgba(255,255,255,0.08)" }}>
+              {[
+                ['Open Date', ipo.openDate, 'text-emerald-400'],
+                ['Close Date', ipo.closeDate, 'text-orange-400'],
+                ...(ipo.allotmentDate ? [['Allotment Date', ipo.allotmentDate, 'text-blue-400']] : []),
+                ...(ipo.refundDate    ? [['Refund / UPI',   ipo.refundDate,    'text-slate-400']] : []),
+                ...(ipo.listingDate   ? [['Listing Date',   ipo.listingDate,   'text-purple-400']] : []),
+              ].map(([l,v,cls],i) => (
+                <div key={i} className="flex items-center justify-between px-4 py-3 text-sm"
+                  style={{ background: i%2===0 ? "rgba(255,255,255,0.02)" : "rgba(255,255,255,0.04)" }}>
+                  <span className="text-slate-400">{l}</span>
+                  <span className={`font-semibold ${cls}`}>{v}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
           {(ipo.subscriptionStatus||ipo.gmp||ipo.listingGain!=null) && (
             <div>
-              <h3 className="text-base font-bold text-foreground mb-3 flex items-center gap-2"><BarChart3 className="w-4 h-4 text-accent" />Performance</h3>
+              <h3 className="text-base font-bold text-white mb-3 flex items-center gap-2">
+                <BarChart3 className="w-4 h-4 text-[#D4A843]" />Performance
+              </h3>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 {ipo.subscriptionStatus && (
                   <div className="bg-green-500/10 border border-green-500/20 rounded-xl p-4 text-center">
-                    <p className="text-xs text-muted-foreground mb-1">Subscription</p>
-                    <p className="text-2xl font-bold text-green-700 dark:text-green-400">{ipo.subscriptionStatus}</p>
-                    <p className="text-xs text-muted-foreground">times</p>
+                    <p className="text-xs text-slate-400 mb-1">Subscription</p>
+                    <p className="text-2xl font-bold text-emerald-400">{ipo.subscriptionStatus}</p>
+                    <p className="text-xs text-slate-400">times</p>
                   </div>
                 )}
                 {ipo.gmp!=null&&ipo.gmp>0 && (
                   <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4 text-center">
-                    <p className="text-xs text-muted-foreground mb-1">GMP</p>
-                    <p className="text-2xl font-bold text-blue-700 dark:text-blue-400">+₹{ipo.gmp}</p>
-                    <p className="text-xs text-muted-foreground">grey market</p>
+                    <p className="text-xs text-slate-400 mb-1">GMP</p>
+                    <p className="text-2xl font-bold text-blue-400">+₹{ipo.gmp}</p>
+                    <p className="text-xs text-slate-400">grey market</p>
                   </div>
                 )}
                 {ipo.listingGain!=null && (
                   <div className={`rounded-xl p-4 text-center border ${ipo.listingGain>=0?'bg-green-500/10 border-green-500/20':'bg-red-500/10 border-red-500/20'}`}>
-                    <p className="text-xs text-muted-foreground mb-1">Listing Gain</p>
-                    <p className={`text-2xl font-bold ${ipo.listingGain>=0?'text-green-700 dark:text-green-400':'text-red-700 dark:text-red-400'}`}>
+                    <p className="text-xs text-slate-400 mb-1">Listing Gain</p>
+                    <p className={`text-2xl font-bold ${ipo.listingGain>=0?'text-emerald-400':'text-red-400'}`}>
                       {ipo.listingGain>=0?'+':''}{ipo.listingGain}%
                     </p>
-                    <p className="text-xs text-muted-foreground">on listing day</p>
+                    <p className="text-xs text-slate-400">on listing day</p>
                   </div>
                 )}
               </div>
             </div>
           )}
-          <div className="bg-accent/5 border border-accent/20 rounded-xl p-4">
-            <h3 className="text-sm font-bold text-foreground mb-3 flex items-center gap-2"><IndianRupee className="w-4 h-4 text-accent" />Minimum Investment</h3>
+
+          <div className="rounded-xl p-4" style={{ background: "rgba(212,168,67,0.05)", border: "1px solid rgba(212,168,67,0.15)" }}>
+            <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
+              <IndianRupee className="w-4 h-4 text-[#D4A843]" />Minimum Investment
+            </h3>
             <div className="flex items-center justify-between">
-              <div><p className="text-xs text-muted-foreground">Lot Size</p><p className="text-lg font-bold text-foreground">{ipo.lotSize} shares</p></div>
-              <div className="text-right"><p className="text-xs text-muted-foreground">Amount</p><p className="text-lg font-bold text-accent">{ipo.minInvestment}</p></div>
+              <div><p className="text-xs text-slate-400">Lot Size</p><p className="text-lg font-bold text-white">{ipo.lotSize} shares</p></div>
+              <div className="text-right"><p className="text-xs text-slate-400">Amount</p><p className="text-lg font-bold text-[#D4A843]">{ipo.minInvestment}</p></div>
             </div>
           </div>
+
           <div className="flex gap-3">
-            <button onClick={()=>ipo.rhpLink?window.open(ipo.rhpLink,'_blank'):null}
-              className="flex-1 py-3 px-4 bg-gradient-to-r from-accent to-accent/80 text-white rounded-lg font-semibold text-sm hover:shadow-lg transition-all flex items-center justify-center gap-2">
+            <button
+              onClick={()=>ipo.rhpLink?window.open(ipo.rhpLink,'_blank'):null}
+              className="flex-1 py-3 px-4 text-[#0c1a2e] rounded-lg font-semibold text-sm hover:shadow-lg transition-all flex items-center justify-center gap-2"
+              style={{ background: "linear-gradient(135deg,#D4A843,#C4941E)" }}>
               <FileText className="w-4 h-4" />View RHP / DRHP
             </button>
-            <button className="flex-1 py-3 px-4 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg font-semibold text-sm hover:shadow-lg transition-all flex items-center justify-center gap-2">
+            <button className="flex-1 py-3 px-4 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white rounded-lg font-semibold text-sm hover:shadow-lg transition-all flex items-center justify-center gap-2">
               <ExternalLink className="w-4 h-4" />Apply via ASBA
             </button>
           </div>
@@ -411,88 +462,110 @@ function DetailModal({ ipo, onClose, onEdit, onDelete, deleting, isAdmin }: {
   );
 }
 
-// ─── IPO CARD  ← taller: min-h-[360px] + increased body padding ──────────────
+// ─── IPO CARD ─────────────────────────────────────────────────────────────────
 function IPOCard({ ipo, onViewDetail, onEdit, onDelete, isAdmin }: {
   ipo: IPO; onViewDetail:()=>void; onEdit:()=>void; onDelete:()=>void; isAdmin: boolean;
 }) {
   return (
-    <div className="bg-card rounded-xl border border-border shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden group hover:-translate-y-0.5 flex flex-col min-h-[360px]">
+    <div
+      className="rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden group hover:-translate-y-0.5 flex flex-col min-h-[360px]"
+      style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
+      onMouseEnter={e => (e.currentTarget.style.borderColor = "rgba(212,168,67,0.25)")}
+      onMouseLeave={e => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)")}>
 
       {/* Header */}
-      <div className="px-4 pt-4 pb-3 border-b border-border">
+      <div className="px-4 pt-4 pb-3" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
         <div className="flex items-center justify-between mb-2.5">
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-accent to-accent/60 flex items-center justify-center text-white font-bold text-xs flex-shrink-0">{ipo.logo}</div>
+            <div className="w-10 h-10 rounded-full flex items-center justify-center text-[#D4A843] font-bold text-xs flex-shrink-0"
+              style={{ background: "linear-gradient(135deg,rgba(212,168,67,0.2),rgba(196,148,30,0.1))", border: "1px solid rgba(212,168,67,0.25)" }}>
+              {ipo.logo}
+            </div>
             <div className="min-w-0">
-              <h3 className="font-bold text-foreground text-[13px] leading-tight truncate">{ipo.companyName}</h3>
-              <p className="text-[11px] text-muted-foreground mt-0.5 truncate">{ipo.industry||'—'}</p>
+              <h3 className="font-bold text-white text-[13px] leading-tight truncate">{ipo.companyName}</h3>
+              <p className="text-[11px] text-slate-400 mt-0.5 truncate">{ipo.industry||'—'}</p>
             </div>
           </div>
           {isAdmin && (
             <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 ml-1">
-              <button onClick={e=>{e.stopPropagation();onEdit();}} className="w-6 h-6 rounded-md bg-accent/10 hover:bg-accent/20 flex items-center justify-center text-accent transition-all"><Edit3 className="w-3 h-3" /></button>
-              <button onClick={e=>{e.stopPropagation();onDelete();}} className="w-6 h-6 rounded-md bg-red-500/10 hover:bg-red-500/20 flex items-center justify-center text-red-500 transition-all"><Trash2 className="w-3 h-3" /></button>
+              <button onClick={e=>{e.stopPropagation();onEdit();}}
+                className="w-6 h-6 rounded-md flex items-center justify-center text-[#D4A843] transition-all"
+                style={{ background: "rgba(212,168,67,0.10)" }}>
+                <Edit3 className="w-3 h-3" />
+              </button>
+              <button onClick={e=>{e.stopPropagation();onDelete();}}
+                className="w-6 h-6 rounded-md flex items-center justify-center text-red-400 transition-all"
+                style={{ background: "rgba(239,68,68,0.10)" }}>
+                <Trash2 className="w-3 h-3" />
+              </button>
             </div>
           )}
         </div>
-        <div className="flex items-center justify-between"><StatusBadge status={ipo.status} /><Stars rating={ipo.rating} /></div>
+        <div className="flex items-center justify-between">
+          <StatusBadge status={ipo.status} />
+          <Stars rating={ipo.rating} />
+        </div>
       </div>
 
-      {/* Body — increased padding */}
+      {/* Body */}
       <div className="px-4 py-4 flex-1 space-y-3">
         <div className="grid grid-cols-2 gap-x-3 gap-y-3">
           <div>
-            <p className="text-[9px] text-muted-foreground uppercase tracking-wider">Price Band</p>
-            <p className="text-xs font-bold text-foreground leading-tight mt-0.5">{ipo.priceRange}</p>
+            <p className="text-[9px] text-slate-500 uppercase tracking-wider">Price Band</p>
+            <p className="text-xs font-bold text-white leading-tight mt-0.5">{ipo.priceRange}</p>
           </div>
           <div>
-            <p className="text-[9px] text-muted-foreground uppercase tracking-wider">Lot Size</p>
-            <p className="text-xs font-semibold text-foreground leading-tight mt-0.5">{ipo.lotSize} shares</p>
+            <p className="text-[9px] text-slate-500 uppercase tracking-wider">Lot Size</p>
+            <p className="text-xs font-semibold text-white leading-tight mt-0.5">{ipo.lotSize} shares</p>
           </div>
           <div>
-            <p className="text-[9px] text-muted-foreground uppercase tracking-wider">Min. Investment</p>
-            <p className="text-xs font-bold text-accent leading-tight mt-0.5">{ipo.minInvestment}</p>
+            <p className="text-[9px] text-slate-500 uppercase tracking-wider">Min. Investment</p>
+            <p className="text-xs font-bold text-[#D4A843] leading-tight mt-0.5">{ipo.minInvestment}</p>
           </div>
           <div>
-            <p className="text-[9px] text-muted-foreground uppercase tracking-wider">Issue Size</p>
-            <p className="text-xs font-semibold text-foreground leading-tight mt-0.5">{ipo.issueSize}</p>
+            <p className="text-[9px] text-slate-500 uppercase tracking-wider">Issue Size</p>
+            <p className="text-xs font-semibold text-white leading-tight mt-0.5">{ipo.issueSize}</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground border-t border-border/40 pt-3">
+        <div className="flex items-center gap-1.5 text-[11px] text-slate-400 pt-3"
+          style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
           <Calendar className="w-3 h-3 flex-shrink-0" />
           <span>{ipo.openDate}</span>
           <span>→</span>
           <span>{ipo.closeDate}</span>
-          {ipo.listingDate && <span className="ml-auto text-purple-500 font-medium text-[10px]">{ipo.listingDate}</span>}
+          {ipo.listingDate && <span className="ml-auto text-purple-400 font-medium text-[10px]">{ipo.listingDate}</span>}
         </div>
 
         {(ipo.subscriptionStatus || (ipo.gmp!=null&&ipo.gmp>0) || ipo.listingGain!=null) && (
           <div className="flex flex-wrap gap-1 pt-0.5">
             {ipo.subscriptionStatus && (
-              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-green-500/10 border border-green-500/20 rounded-full text-[10px] font-bold text-green-700 dark:text-green-400">
+              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-green-500/10 border border-green-500/20 rounded-full text-[10px] font-bold text-emerald-400">
                 <Users className="w-2.5 h-2.5" />{ipo.subscriptionStatus}
               </span>
             )}
             {ipo.gmp!=null&&ipo.gmp>0 && (
-              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-blue-500/10 border border-blue-500/20 rounded-full text-[10px] font-bold text-blue-700 dark:text-blue-400">
+              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-blue-500/10 border border-blue-500/20 rounded-full text-[10px] font-bold text-blue-400">
                 <Target className="w-2.5 h-2.5" />₹{ipo.gmp}
               </span>
             )}
             {ipo.listingGain!=null && (
-              <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-bold border ${ipo.listingGain>=0?'bg-green-500/10 border-green-500/20 text-green-700 dark:text-green-400':'bg-red-500/10 border-red-500/20 text-red-700 dark:text-red-400'}`}>
+              <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-bold border ${ipo.listingGain>=0?'bg-green-500/10 border-green-500/20 text-emerald-400':'bg-red-500/10 border-red-500/20 text-red-400'}`}>
                 {ipo.listingGain>=0?<TrendingUp className="w-2.5 h-2.5"/>:<TrendingDown className="w-2.5 h-2.5"/>}
                 {ipo.listingGain>=0?'+':''}{ipo.listingGain}%
               </span>
             )}
-            <span className="inline-flex items-center px-1.5 py-0.5 bg-muted/40 rounded-full text-[10px] text-muted-foreground ml-auto">{ipo.exchange}</span>
+            <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] text-slate-400 ml-auto"
+              style={{ background: "rgba(255,255,255,0.05)" }}>{ipo.exchange}</span>
           </div>
         )}
       </div>
 
       {/* Footer */}
       <div className="px-4 pb-4 pt-2">
-        <button onClick={onViewDetail} className="w-full py-2 px-3 bg-gradient-to-r from-accent to-accent/80 text-white rounded-lg font-semibold text-xs hover:shadow-md transition-all flex items-center justify-center gap-1.5 group/btn">
+        <button onClick={onViewDetail}
+          className="w-full py-2 px-3 text-[#0c1a2e] rounded-lg font-semibold text-xs hover:shadow-md transition-all flex items-center justify-center gap-1.5 group/btn"
+          style={{ background: "linear-gradient(135deg,#D4A843,#C4941E)" }}>
           View Details<ArrowRight className="w-3.5 h-3.5 group-hover/btn:translate-x-0.5 transition-transform" />
         </button>
       </div>
@@ -507,14 +580,14 @@ export default function IPOPage() {
   const navigate = useNavigate();
   const { isAdmin } = useAuth();
 
-  const [ipos,     setIpos]     = useState<IPO[]>([]);
-  const [counts,   setCounts]   = useState<Counts>({ open:0, upcoming:0, closed:0, listed:0, total:0 });
+  const [ipos,      setIpos]      = useState<IPO[]>([]);
+  const [counts,    setCounts]    = useState<Counts>({ open:0, upcoming:0, closed:0, listed:0, total:0 });
   const [activeTab, setActiveTab] = useState<IPOStatus>('open');
-  const [search,   setSearch]   = useState('');
-  const [sortBy,   setSortBy]   = useState<'default'|'gmp'|'rating'>('default');
+  const [search,    setSearch]    = useState('');
+  const [sortBy,    setSortBy]    = useState<'default'|'gmp'|'rating'>('default');
   const [catFilter, setCatFilter] = useState<''|'Mainboard'|'SME'>('');
-  const [loading,  setLoading]  = useState(true);
-  const [error,    setError]    = useState<string|null>(null);
+  const [loading,   setLoading]   = useState(true);
+  const [error,     setError]     = useState<string|null>(null);
 
   const [selectedIPO, setSelectedIPO] = useState<IPO|null>(null);
   const [detailOpen,  setDetailOpen]  = useState(false);
@@ -568,130 +641,224 @@ export default function IPOPage() {
   return (
     <>
       <Header />
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/5">
+      <div className="min-h-screen" style={{ background: "linear-gradient(160deg,#0c1a2e 0%,#0e2038 45%,#0b1825 100%)" }}>
 
-        {/* Header Banner */}
-        <section className="relative overflow-hidden bg-gradient-to-r from-navy via-navy-light to-accent py-12 md:py-16">
-          <div className="absolute inset-0 bg-grid-white/[0.05] bg-[size:20px_20px]" />
-          <div className="absolute top-0 right-0 w-80 h-80 bg-accent/20 rounded-full blur-3xl pointer-events-none" />
-          <div className="container mx-auto px-4 md:px-6 relative z-10">
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        {/* ── HERO BANNER ─────────────────────────────────────────────────── */}
+        <section className="relative overflow-hidden pt-10 pb-6 md:pt-14 md:pb-8"
+          style={{ background: "linear-gradient(135deg,#0a1628 0%,#0e2038 50%,#0c1a2e 100%)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+          {/* Decorative glows */}
+          <div className="absolute top-0 right-0 w-80 h-80 rounded-full blur-[100px] pointer-events-none"
+            style={{ background: "radial-gradient(circle,rgba(212,168,67,0.10) 0%,transparent 70%)" }} />
+          <div className="absolute bottom-0 left-0 w-64 h-64 rounded-full blur-[80px] pointer-events-none"
+            style={{ background: "radial-gradient(circle,rgba(56,189,248,0.06) 0%,transparent 70%)" }} />
+
+          <div className="container mx-auto px-4 md:px-6 relative z-10 space-y-5">
+
+            {/* Title row */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div>
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 border border-white/20 mb-3">
-                  <Zap className="w-3.5 h-3.5 text-yellow-400" />
-                  <span className="text-xs font-medium text-white">Live IPO Tracker</span>
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-2"
+                  style={{ background: "rgba(212,168,67,0.1)", border: "1px solid rgba(212,168,67,0.2)" }}>
+                  <Zap className="w-3.5 h-3.5 text-[#D4A843]" />
+                  <span className="text-xs font-medium text-[#D4A843]">Live IPO Tracker</span>
                 </div>
-                <h1 className="text-3xl md:text-4xl font-bold text-white">All IPOs</h1>
-                <p className="text-white/70 mt-1">
+                <h1 className="text-3xl md:text-4xl font-bold text-white">
+                  All{' '}
+                  <span style={{ background: "linear-gradient(135deg,#D4A843,#F0C84A)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+                    IPOs
+                  </span>
+                </h1>
+                <p className="text-slate-400 mt-1 text-sm">
                   Total <span className="text-white font-bold">{counts.total}</span> IPOs — NSE / BSE / SME
                 </p>
               </div>
-              <div className="flex flex-wrap gap-2">
-                {(['open','upcoming','closed','listed'] as IPOStatus[]).map(s => (
-                  <button key={s} onClick={() => { setActiveTab(s); setSearch(''); }}
-                    className={`px-4 py-2 rounded-xl text-sm font-semibold border transition-all ${
-                      activeTab===s && !isSearching
-                        ? 'bg-white/20 border-white/40 text-white'
-                        : 'bg-white/5 border-white/15 text-white/60 hover:bg-white/10'
-                    }`}>
-                    {STATUS_CFG[s].label} ({counts[s]})
+            </div>
+
+            {/* ══ CONTROL BAR: [tabs] | [search] | [filters + actions] ════════ */}
+            <div className="flex flex-col gap-3">
+
+              {/* Row 1 on desktop: tabs + search + actions all in one line */}
+              <div className="flex flex-col lg:flex-row gap-3 items-stretch lg:items-center">
+
+                {/* Status tabs */}
+                <div className="flex flex-wrap gap-2 flex-shrink-0">
+                  {(['open','upcoming','closed','listed'] as IPOStatus[]).map(s => (
+                    <button
+                      key={s}
+                      onClick={() => { setActiveTab(s); setSearch(''); }}
+                      className="px-3 py-2 rounded-xl text-sm font-semibold transition-all whitespace-nowrap"
+                      style={activeTab===s && !isSearching
+                        ? { background: "linear-gradient(135deg,#D4A843,#C4941E)", color: "#0c1a2e" }
+                        : { background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.60)" }}>
+                      {STATUS_CFG[s].label}
+                      <span className="ml-1.5 text-[11px] opacity-80">({counts[s]})</span>
+                    </button>
+                  ))}
+                </div>
+
+                {/* ── SEARCH BAR (centre) ── */}
+                <div className="relative flex-1 min-w-0">
+                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                  <input
+                    type="text"
+                    placeholder="Search company name or industry… (all statuses)"
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
+                    className="w-full rounded-xl pl-10 pr-10 py-2.5 text-sm text-white placeholder:text-slate-500 focus:outline-none transition-all"
+                    style={{ background: "rgba(255,255,255,0.06)", border: `1px solid ${isSearching ? 'rgba(212,168,67,0.50)' : 'rgba(255,255,255,0.12)'}` }}
+                  />
+                  {search && (
+                    <button
+                      onClick={() => setSearch('')}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors">
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+
+                {/* Right-side actions */}
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  {/* Sort */}
+                  <div className="relative">
+                    <select
+                      value={sortBy}
+                      onChange={e => setSortBy(e.target.value as any)}
+                      className="appearance-none rounded-xl pl-3 pr-8 py-2.5 text-sm text-white focus:outline-none cursor-pointer h-full"
+                      style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.10)" }}>
+                      <option value="default" className='text-black'>Sort</option>
+                      <option value="gmp"  className='text-black'>GMP ↓</option>
+                      <option value="rating"  className='text-black'>Rating ↓</option>
+                    </select>
+                    <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
+                  </div>
+
+                  {/* Category */}
+                  <div className="relative">
+                    <select
+                      value={catFilter}
+                      onChange={e => setCatFilter(e.target.value as any)}
+                      className="appearance-none rounded-xl pl-3 pr-8 py-2.5 text-sm text-white focus:outline-none cursor-pointer h-full"
+                      style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.10)" }}>
+                      <option value="" className='text-black'>All</option>
+                      <option value="Mainboard" className='text-black'>Mainboard</option>
+                      <option value="SME" className='text-black'>SME</option>
+                    </select>
+                    <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
+                  </div>
+
+                  {/* Refresh */}
+                  <button
+                    onClick={fetchIPOs}
+                    disabled={loading}
+                    title="Refresh"
+                    className="p-2.5 rounded-xl text-slate-400 hover:text-white transition-all flex-shrink-0"
+                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
+                    <RefreshCw className={`w-4 h-4 ${loading?'animate-spin':''}`} />
                   </button>
-                ))}
+
+                  {/* Add IPO (admin only) */}
+                  {isAdmin && (
+                    <button
+                      onClick={() => { setEditIPO(null); setFormOpen(true); }}
+                      className="flex items-center gap-2 px-4 py-2.5 text-[#0c1a2e] rounded-xl font-bold text-sm hover:shadow-lg transition-all whitespace-nowrap flex-shrink-0"
+                      style={{ background: "linear-gradient(135deg,#D4A843,#C4941E)" }}>
+                      <Plus className="w-4 h-4" />
+                      <span className="hidden sm:inline">Add IPO</span>
+                    </button>
+                  )}
+                </div>
               </div>
+
+              {/* Search result hint */}
+              {isSearching && !loading && (
+                <div className="flex items-center gap-2 text-sm text-slate-400">
+                  <Search className="w-3.5 h-3.5 text-[#D4A843]" />
+                  <span>
+                    Found{' '}
+                    <strong className="text-white">{ipos.length}</strong>{' '}
+                    IPO{ipos.length !== 1 ? 's' : ''} for{' '}
+                    <span className="text-[#D4A843]">"{search}"</span>
+                    {' '}— searching across all statuses
+                  </span>
+                  <button
+                    onClick={() => setSearch('')}
+                    className="ml-auto text-xs text-[#D4A843] hover:underline">
+                    Clear search
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </section>
 
-        {/* Main Content */}
+        {/* ── MAIN CONTENT ────────────────────────────────────────────────── */}
         <div className="container mx-auto px-4 md:px-6 py-8">
-          {/* Controls */}
-          <div className="flex flex-col md:flex-row gap-3 mb-6">
-            <div className="relative flex-1">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <input type="text" placeholder="Search by company name or industry…" value={search}
-                onChange={e => setSearch(e.target.value)}
-                className="w-full bg-card border border-border rounded-xl pl-10 pr-10 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-accent/40 transition-all" />
-              {search && <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"><X className="w-4 h-4" /></button>}
-            </div>
-            <div className="relative">
-              <select value={sortBy} onChange={e => setSortBy(e.target.value as any)}
-                className="appearance-none bg-card border border-border rounded-xl pl-4 pr-9 py-3 text-sm text-foreground focus:outline-none focus:border-accent/40 cursor-pointer">
-                <option value="default">Default</option>
-                <option value="gmp">Sort: GMP ↓</option>
-                <option value="rating">Sort: Rating ↓</option>
-              </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-            </div>
-            <div className="relative">
-              <select value={catFilter} onChange={e => setCatFilter(e.target.value as any)}
-                className="appearance-none bg-card border border-border rounded-xl pl-4 pr-9 py-3 text-sm text-foreground focus:outline-none focus:border-accent/40 cursor-pointer">
-                <option value="">All Categories</option>
-                <option value="Mainboard">Mainboard</option>
-                <option value="SME">SME</option>
-              </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-            </div>
-            <button onClick={fetchIPOs} disabled={loading}
-              className="flex items-center gap-2 px-4 py-3 bg-card border border-border rounded-xl text-sm text-muted-foreground hover:text-foreground transition-all">
-              <RefreshCw className={`w-4 h-4 ${loading?'animate-spin':''}`} />
-            </button>
-            {isAdmin && (
-              <button onClick={() => { setEditIPO(null); setFormOpen(true); }}
-                className="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-accent to-accent/80 text-white rounded-xl font-bold text-sm hover:shadow-lg hover:shadow-accent/20 transition-all whitespace-nowrap">
-                <Plus className="w-4 h-4" />Add New IPO
-              </button>
-            )}
-          </div>
 
-          {isSearching && !loading && (
-            <div className="flex items-center gap-2 mb-5 text-sm text-muted-foreground">
-              <Search className="w-4 h-4" />
-              <span>Found <strong className="text-foreground">{ipos.length}</strong> IPO{ipos.length !== 1 ? 's' : ''} for "{search}"</span>
-              <button onClick={() => setSearch('')} className="ml-2 text-accent hover:underline text-xs">Clear</button>
-            </div>
-          )}
-
+          {/* Loading */}
           {loading && (
             <div className="flex flex-col items-center justify-center py-24 gap-3">
-              <Loader2 className="w-10 h-10 text-accent animate-spin" />
-              <p className="text-muted-foreground text-sm">Loading IPOs...</p>
+              <Loader2 className="w-10 h-10 text-[#D4A843] animate-spin" />
+              <p className="text-slate-400 text-sm">Loading IPOs...</p>
             </div>
           )}
 
+          {/* Error */}
           {error && !loading && (
             <div className="text-center py-16">
               <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-foreground mb-2">Something went wrong</h3>
-              <p className="text-sm text-muted-foreground font-mono bg-card px-4 py-2 rounded-lg inline-block">{error}</p>
+              <h3 className="text-xl font-semibold text-white mb-2">Something went wrong</h3>
+              <p className="text-sm text-slate-400 font-mono bg-white/5 px-4 py-2 rounded-lg inline-block">{error}</p>
               <br />
-              <button onClick={fetchIPOs} className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 bg-accent/10 text-accent border border-accent/20 rounded-xl text-sm font-semibold hover:bg-accent/20 transition-all">
+              <button onClick={fetchIPOs}
+                className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all"
+                style={{ background: "rgba(212,168,67,0.1)", border: "1px solid rgba(212,168,67,0.2)", color: "#D4A843" }}>
                 <RefreshCw className="w-4 h-4" />Try Again
               </button>
             </div>
           )}
 
+          {/* Empty state */}
           {!loading && !error && ipos.length === 0 && (
             <div className="text-center py-20">
-              <div className="w-20 h-20 rounded-2xl bg-accent/10 flex items-center justify-center mx-auto mb-4">
-                <Building2 className="w-10 h-10 text-accent/40" />
+              <div className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-4"
+                style={{ background: "rgba(212,168,67,0.08)", border: "1px solid rgba(212,168,67,0.15)" }}>
+                <Building2 className="w-10 h-10 text-[#D4A843]/40" />
               </div>
-              <h3 className="text-xl font-semibold text-foreground mb-2">
-                {isSearching ? `No results found for "${search}"` : `No ${STATUS_CFG[activeTab].label} IPOs found`}
+              <h3 className="text-xl font-semibold text-white mb-2">
+                {isSearching
+                  ? `No results for "${search}"`
+                  : `No ${STATUS_CFG[activeTab].label} IPOs yet`}
               </h3>
-              <p className="text-muted-foreground mb-5">{isAdmin ? 'Add a new IPO to get started!' : 'Check back soon for new IPOs.'}</p>
+              <p className="text-slate-400 mb-5">
+                {isSearching ? 'Try a different company name or industry.' : isAdmin ? 'Add a new IPO to get started!' : 'Check back soon for new IPOs.'}
+              </p>
+              {isSearching && (
+                <button onClick={() => setSearch('')}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold mr-3 transition-all"
+                  style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", color: "#fff" }}>
+                  <X className="w-4 h-4" />Clear Search
+                </button>
+              )}
               {isAdmin && (
                 <button onClick={() => { setEditIPO(null); setFormOpen(true); }}
-                  className="inline-flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-accent to-accent/80 text-white rounded-xl font-bold text-sm hover:shadow-lg transition-all">
+                  className="inline-flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-sm hover:shadow-lg transition-all"
+                  style={{ background: "linear-gradient(135deg,#D4A843,#C4941E)", color: "#0c1a2e" }}>
                   <Plus className="w-4 h-4" />Add New IPO
                 </button>
               )}
             </div>
           )}
 
+          {/* IPO Grid */}
           {!loading && !error && ipos.length > 0 && (
             <>
-              <p className="text-sm text-muted-foreground mb-4">
-                <span className="text-foreground font-semibold">{ipos.length}</span> IPO{ipos.length !== 1 ? 's' : ''} showing
+              <p className="text-sm text-slate-400 mb-4">
+                <span className="text-white font-semibold">{ipos.length}</span> IPO{ipos.length !== 1 ? 's' : ''} showing
+                {!isSearching && (
+                  <span className="ml-1 text-slate-500">
+                    — {STATUS_CFG[activeTab].label}
+                  </span>
+                )}
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {ipos.map(ipo => (
@@ -709,6 +876,7 @@ export default function IPOPage() {
 
       <Footer />
 
+      {/* Detail Modal */}
       {detailOpen && selectedIPO && !formOpen && (
         <DetailModal ipo={selectedIPO}
           onClose={() => { setDetailOpen(false); setSelectedIPO(null); }}
@@ -718,8 +886,10 @@ export default function IPOPage() {
         />
       )}
 
+      {/* Form Modal */}
       {formOpen && isAdmin && (
-        <FormModal initial={editIPO ?? undefined}
+        <FormModal
+          initial={editIPO ?? undefined}
           onSave={editIPO ? handleEdit : handleAdd}
           onClose={() => { setFormOpen(false); setEditIPO(null); }}
           saving={saving}

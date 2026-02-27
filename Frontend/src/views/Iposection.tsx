@@ -165,32 +165,32 @@ function FormModal({
     await onSave({ ...form, logo: form.logo || autoLogo(form.companyName) });
   };
 
-  const inp = 'w-full bg-background border border-border rounded-lg px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-accent/60 transition-colors';
-  const lbl = 'block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5';
-  const err = 'text-red-500 text-xs mt-1';
+  const inp = 'w-full rounded-lg px-3 py-2.5 text-sm text-white placeholder:text-slate-500 focus:outline-none transition-colors bg-white/[0.06] border border-white/10 focus:border-[rgba(212,168,67,0.5)]';
+  const lbl = 'block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5';
+  const err = 'text-red-400 text-xs mt-1';
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
-      <div className="bg-card rounded-2xl border border-border w-full max-w-2xl max-h-[92vh] overflow-y-auto shadow-2xl" onClick={e => e.stopPropagation()}>
-        <div className="sticky top-0 bg-gradient-to-r from-navy to-accent p-5 flex items-center justify-between z-10 rounded-t-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" onClick={onClose}>
+      <div className="rounded-2xl w-full max-w-2xl max-h-[92vh] overflow-y-auto shadow-2xl" style={{ background: "linear-gradient(135deg,#0e2038 0%,#0c1a2e 100%)", border: "1px solid rgba(255,255,255,0.10)" }} onClick={e => e.stopPropagation()}>
+        <div className="sticky top-0 p-5 flex items-center justify-between z-10 rounded-t-2xl" style={{ background: "linear-gradient(135deg,#0a1628,#142640)", borderBottom: "1px solid rgba(212,168,67,0.20)" }}>
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center">
-              {initial ? <Edit3 className="w-4 h-4 text-white" /> : <Plus className="w-4 h-4 text-white" />}
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "rgba(212,168,67,0.15)", border: "1px solid rgba(212,168,67,0.25)" }}>
+              {initial ? <Edit3 className="w-4 h-4 text-[#D4A843]" /> : <Plus className="w-4 h-4 text-[#D4A843]" />}
             </div>
             <div>
               <h2 className="text-lg font-bold text-white">{initial ? 'Edit IPO' : 'Add New IPO'}</h2>
-              <p className="text-white/60 text-xs">* fields are required</p>
+              <p className="text-slate-400 text-xs">* fields are required</p>
             </div>
           </div>
-          <button onClick={onClose} className="text-white/70 hover:text-white hover:bg-white/20 rounded-full p-2 transition-all">
+          <button onClick={onClose} className="text-slate-400 hover:text-white hover:bg-white/10 rounded-full p-2 transition-all">
             <X className="w-5 h-5" />
           </button>
         </div>
 
         <div className="p-5 space-y-5">
           {/* Company Info */}
-          <div className="p-4 rounded-xl bg-accent/5 border border-accent/10 space-y-4">
-            <p className="text-xs font-bold text-accent uppercase tracking-wider">Company Info</p>
+          <div className="p-4 rounded-xl space-y-4" style={{ background: "rgba(212,168,67,0.05)", border: "1px solid rgba(212,168,67,0.12)" }}>
+            <p className="text-xs font-bold text-[#D4A843] uppercase tracking-wider">Company Info</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="sm:col-span-2">
                 <label className={lbl}>Company Name *</label>
@@ -215,8 +215,8 @@ function FormModal({
           </div>
 
           {/* Classification */}
-          <div className="p-4 rounded-xl bg-accent/5 border border-accent/10 space-y-3">
-            <p className="text-xs font-bold text-accent uppercase tracking-wider">Classification</p>
+          <div className="p-4 rounded-xl space-y-3" style={{ background: "rgba(212,168,67,0.05)", border: "1px solid rgba(212,168,67,0.12)" }}>
+            <p className="text-xs font-bold text-[#D4A843] uppercase tracking-wider">Classification</p>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <div className="sm:col-span-2">
                 <label className={lbl}>Status *</label>
@@ -244,8 +244,8 @@ function FormModal({
           </div>
 
           {/* Pricing */}
-          <div className="p-4 rounded-xl bg-accent/5 border border-accent/10 space-y-3">
-            <p className="text-xs font-bold text-accent uppercase tracking-wider">Pricing & Size</p>
+          <div className="p-4 rounded-xl space-y-3" style={{ background: "rgba(212,168,67,0.05)", border: "1px solid rgba(212,168,67,0.12)" }}>
+            <p className="text-xs font-bold text-[#D4A843] uppercase tracking-wider">Pricing & Size</p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
                 <label className={lbl}>Price Band *</label>
@@ -281,8 +281,8 @@ function FormModal({
           </div>
 
           {/* Dates */}
-          <div className="p-4 rounded-xl bg-accent/5 border border-accent/10 space-y-3">
-            <p className="text-xs font-bold text-accent uppercase tracking-wider">Important Dates</p>
+          <div className="p-4 rounded-xl space-y-3" style={{ background: "rgba(212,168,67,0.05)", border: "1px solid rgba(212,168,67,0.12)" }}>
+            <p className="text-xs font-bold text-[#D4A843] uppercase tracking-wider">Important Dates</p>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {[
                 { k: 'openDate',      l: 'Open Date *',       p: 'Jan 29, 2026' },
@@ -292,7 +292,7 @@ function FormModal({
                 { k: 'listingDate',   l: 'Listing Date',      p: 'Feb 07, 2026' },
               ].map(({ k, l, p }) => (
                 <div key={k}>
-                  <label className="block text-xs text-muted-foreground mb-1">{l}</label>
+                  <label className="block text-xs text-slate-400 mb-1">{l}</label>
                   <input className={inp} placeholder={p}
                     value={(form as any)[k] || ''}
                     onChange={e => set(k as any, e.target.value)} />
@@ -303,19 +303,19 @@ function FormModal({
           </div>
 
           {/* Performance */}
-          <div className="p-4 rounded-xl bg-accent/5 border border-accent/10 space-y-3">
+          <div className="p-4 rounded-xl space-y-3" style={{ background: "rgba(212,168,67,0.05)", border: "1px solid rgba(212,168,67,0.12)" }}>
             <div>
-              <p className="text-xs font-bold text-accent uppercase tracking-wider">Performance Data</p>
+              <p className="text-xs font-bold text-[#D4A843] uppercase tracking-wider">Performance Data</p>
               <p className="text-xs text-muted-foreground mt-0.5">Optional — can be updated later</p>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
-                <label className="block text-xs text-muted-foreground mb-1">Subscription</label>
+                <label className="block text-xs text-slate-400 mb-1">Subscription</label>
                 <input className={inp} placeholder="e.g. 69.43×" value={form.subscriptionStatus || ''}
                   onChange={e => set('subscriptionStatus', e.target.value)} />
               </div>
               <div>
-                <label className="block text-xs text-muted-foreground mb-1">GMP (₹)</label>
+                <label className="block text-xs text-slate-400 mb-1">GMP (₹)</label>
                 <RupeeInput className={inp} placeholder="650"
                   value={form.gmp != null ? `₹${form.gmp}` : ''}
                   onChange={v => {
@@ -324,7 +324,7 @@ function FormModal({
                   }} />
               </div>
               <div>
-                <label className="block text-xs text-muted-foreground mb-1">Listing Gain (%)</label>
+                <label className="block text-xs text-slate-400 mb-1">Listing Gain (%)</label>
                 <input type="number" className={inp} placeholder="e.g. 140 or -12" value={form.listingGain ?? ''}
                   onChange={e => set('listingGain', e.target.value !== '' ? Number(e.target.value) : null)} />
               </div>
@@ -338,15 +338,16 @@ function FormModal({
           </div>
         </div>
 
-        <div className="sticky bottom-0 bg-card border-t border-border p-4 flex gap-3 rounded-b-2xl">
+        <div className="sticky bottom-0 p-4 flex gap-3 rounded-b-2xl" style={{ background: "linear-gradient(135deg,#0a1628,#0c1a2e)", borderTop: "1px solid rgba(255,255,255,0.08)" }}>
           <button onClick={onClose}
-            className="flex-1 py-3 rounded-xl border border-border text-muted-foreground hover:text-foreground text-sm font-semibold transition-all">
+            className="flex-1 py-3 rounded-xl text-slate-400 hover:text-white text-sm font-semibold transition-all" style={{ border: "1px solid rgba(255,255,255,0.12)" }}>
             Cancel
           </button>
           <button onClick={submit} disabled={saving}
-            className="flex-1 py-3 rounded-xl bg-gradient-to-r from-accent to-accent/80 text-white text-sm font-bold flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-accent/20 transition-all disabled:opacity-60 disabled:cursor-not-allowed">
+            className="flex-1 py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all disabled:opacity-60 disabled:cursor-not-allowed text-[#0c1a2e] hover:shadow-lg"
+            style={{ background: "linear-gradient(135deg,#D4A843,#C4941E)" }}>
             {saving
-              ? <><Loader2 className="w-4 h-4 animate-spin" />Saving...</>
+              ? <><Loader2 className="w-4 h-4 animate-spin text-white" /><span className="text-white">Saving...</span></>
               : <><Save className="w-4 h-4" />{initial ? 'Save Changes' : 'Add IPO'}</>
             }
           </button>
@@ -365,21 +366,21 @@ function DetailModal({
   ipo: IPO; onClose: () => void; onEdit: () => void; onDelete: () => void; deleting: boolean; isAdmin: boolean;
 }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
-      <div className="bg-card rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-border" onClick={e => e.stopPropagation()}>
-        <div className="sticky top-0 bg-gradient-to-r from-navy to-accent p-5 md:p-6 z-10">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" onClick={onClose}>
+      <div className="rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto" style={{ background: "linear-gradient(135deg,#0e2038 0%,#0c1a2e 100%)", border: "1px solid rgba(255,255,255,0.10)" }} onClick={e => e.stopPropagation()}>
+        <div className="sticky top-0 p-5 md:p-6 z-10 rounded-t-2xl" style={{ background: "linear-gradient(135deg,#0a1628,#142640)", borderBottom: "1px solid rgba(212,168,67,0.20)" }}>
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-full bg-white/20 flex items-center justify-center text-white font-bold text-xl border-2 border-white/30">
+              <div className="w-14 h-14 rounded-full flex items-center justify-center text-[#D4A843] font-bold text-xl" style={{ background: "rgba(212,168,67,0.15)", border: "2px solid rgba(212,168,67,0.30)" }}>
                 {ipo.logo}
               </div>
               <div>
                 <h2 className="text-xl font-bold text-white leading-tight">{ipo.companyName}</h2>
-                <p className="text-white/70 text-sm">{ipo.industry} · {ipo.exchange}</p>
+                <p className="text-slate-400 text-sm">{ipo.industry} · {ipo.exchange}</p>
                 <div className="flex items-center gap-2 mt-2">
                   <StatusBadge status={ipo.status} />
                   {ipo.category && (
-                    <span className="text-xs text-white/60 border border-white/20 px-2 py-0.5 rounded-full">{ipo.category}</span>
+                    <span className="text-xs text-slate-400 px-2 py-0.5 rounded-full" style={{ border: "1px solid rgba(255,255,255,0.15)" }}>{ipo.category}</span>
                   )}
                   <Stars rating={ipo.rating} />
                 </div>
@@ -388,15 +389,15 @@ function DetailModal({
             <div className="flex items-center gap-1.5 flex-shrink-0">
               {isAdmin && (
                 <>
-                  <button onClick={onEdit} className="text-white hover:bg-white/20 rounded-lg p-2 transition-colors" title="Edit">
+                  <button onClick={onEdit} className="text-slate-400 hover:text-white hover:bg-white/10 rounded-lg p-2 transition-colors" title="Edit">
                     <Edit3 className="w-4 h-4" />
                   </button>
-                  <button onClick={onDelete} disabled={deleting} className="text-white hover:bg-red-500/30 rounded-lg p-2 transition-colors" title="Delete">
+                  <button onClick={onDelete} disabled={deleting} className="text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg p-2 transition-colors" title="Delete">
                     {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
                   </button>
                 </>
               )}
-              <button onClick={onClose} className="text-white hover:bg-white/20 rounded-full p-2 transition-colors">
+              <button onClick={onClose} className="text-slate-400 hover:text-white hover:bg-white/10 rounded-full p-2 transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -405,10 +406,10 @@ function DetailModal({
 
         <div className="p-5 md:p-6 space-y-6">
           <div>
-            <h3 className="text-base font-bold text-foreground mb-3 flex items-center gap-2">
-              <Zap className="w-4 h-4 text-accent" />Issue Details
+            <h3 className="text-base font-bold text-white mb-3 flex items-center gap-2">
+              <Zap className="w-4 h-4 text-[#D4A843]" />Issue Details
             </h3>
-            <div className="rounded-xl border border-border overflow-hidden">
+            <div className="rounded-xl overflow-hidden" style={{ border: "1px solid rgba(255,255,255,0.08)" }}>
               {[
                 ['Price Band',      ipo.priceRange],
                 ['Issue Size',      ipo.issueSize],
@@ -416,27 +417,27 @@ function DetailModal({
                 ['Min. Investment', ipo.minInvestment],
                 ['Exchange',        ipo.exchange],
               ].map(([l, v], i) => (
-                <div key={i} className={`flex items-center justify-between px-4 py-3 text-sm ${i % 2 === 0 ? 'bg-background' : 'bg-card'}`}>
-                  <span className="text-muted-foreground">{l}</span>
-                  <span className="font-semibold text-foreground">{v}</span>
+                <div key={i} className="flex items-center justify-between px-4 py-3 text-sm" style={{ background: i % 2 === 0 ? "rgba(255,255,255,0.02)" : "rgba(255,255,255,0.04)" }}>
+                  <span className="text-slate-400">{l}</span>
+                  <span className="font-semibold text-white">{v}</span>
                 </div>
               ))}
             </div>
           </div>
 
           <div>
-            <h3 className="text-base font-bold text-foreground mb-3 flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-accent" />Important Dates
+            <h3 className="text-base font-bold text-white mb-3 flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-[#D4A843]" />Important Dates
             </h3>
-            <div className="rounded-xl border border-border overflow-hidden">
+            <div className="rounded-xl overflow-hidden" style={{ border: "1px solid rgba(255,255,255,0.08)" }}>
               {[
-                ['Open Date',           ipo.openDate,        'text-green-600 dark:text-green-400'],
-                ['Close Date',          ipo.closeDate,       'text-orange-600 dark:text-orange-400'],
-                ...(ipo.allotmentDate ? [['Allotment Date',       ipo.allotmentDate,   'text-blue-600 dark:text-blue-400']] : []),
-                ...(ipo.refundDate    ? [['Refund / UPI Mandate', ipo.refundDate,      'text-muted-foreground']] : []),
-                ...(ipo.listingDate   ? [['Listing Date',         ipo.listingDate,     'text-purple-600 dark:text-purple-400']] : []),
+                ['Open Date',           ipo.openDate,        'text-emerald-400'],
+                ['Close Date',          ipo.closeDate,       'text-orange-400'],
+                ...(ipo.allotmentDate ? [['Allotment Date',       ipo.allotmentDate,   'text-blue-400']] : []),
+                ...(ipo.refundDate    ? [['Refund / UPI Mandate', ipo.refundDate,      'text-slate-400']] : []),
+                ...(ipo.listingDate   ? [['Listing Date',         ipo.listingDate,     'text-purple-400']] : []),
               ].map(([l, v, cls], i) => (
-                <div key={i} className={`flex items-center justify-between px-4 py-3 text-sm ${i % 2 === 0 ? 'bg-background' : 'bg-card'}`}>
+                <div key={i} className="flex items-center justify-between px-4 py-3 text-sm" style={{ background: i % 2 === 0 ? "rgba(255,255,255,0.02)" : "rgba(255,255,255,0.04)" }}>
                   <span className="text-muted-foreground">{l}</span>
                   <span className={`font-semibold ${cls}`}>{v}</span>
                 </div>
@@ -466,29 +467,29 @@ function DetailModal({
                 )}
                 {ipo.listingGain != null && (
                   <div className={`rounded-xl p-4 text-center border ${ipo.listingGain >= 0 ? 'bg-green-500/10 border-green-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
-                    <p className="text-xs text-muted-foreground mb-1">Listing Gain</p>
-                    <p className={`text-2xl font-bold ${ipo.listingGain >= 0 ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'}`}>
+                    <p className="text-xs text-slate-400 mb-1">Listing Gain</p>
+                    <p className={`text-2xl font-bold ${ipo.listingGain >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                       {ipo.listingGain >= 0 ? '+' : ''}{ipo.listingGain}%
                     </p>
-                    <p className="text-xs text-muted-foreground">on listing day</p>
+                    <p className="text-xs text-slate-400">on listing day</p>
                   </div>
                 )}
               </div>
             </div>
           )}
 
-          <div className="bg-accent/5 border border-accent/20 rounded-xl p-4">
-            <h3 className="text-sm font-bold text-foreground mb-3 flex items-center gap-2">
-              <IndianRupee className="w-4 h-4 text-accent" />Minimum Investment Required
+          <div className="rounded-xl p-4" style={{ background: "rgba(212,168,67,0.05)", border: "1px solid rgba(212,168,67,0.15)" }}>
+            <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
+              <IndianRupee className="w-4 h-4 text-[#D4A843]" />Minimum Investment Required
             </h3>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-muted-foreground">Lot Size</p>
-                <p className="text-lg font-bold text-foreground">{ipo.lotSize} shares</p>
+                <p className="text-xs text-slate-400">Lot Size</p>
+                <p className="text-lg font-bold text-white">{ipo.lotSize} shares</p>
               </div>
               <div className="text-right">
-                <p className="text-xs text-muted-foreground">Amount</p>
-                <p className="text-lg font-bold text-accent">{ipo.minInvestment}</p>
+                <p className="text-xs text-slate-400">Amount</p>
+                <p className="text-lg font-bold text-[#D4A843]">{ipo.minInvestment}</p>
               </div>
             </div>
           </div>
@@ -496,10 +497,11 @@ function DetailModal({
           <div className="flex gap-3">
             <button
               onClick={() => ipo.rhpLink ? window.open(ipo.rhpLink, '_blank') : null}
-              className="flex-1 py-3 px-4 bg-gradient-to-r from-accent to-accent/80 text-white rounded-lg font-semibold text-sm hover:shadow-lg transition-all flex items-center justify-center gap-2">
+              className="flex-1 py-3 px-4 text-[#0c1a2e] rounded-lg font-semibold text-sm hover:shadow-lg transition-all flex items-center justify-center gap-2"
+              style={{ background: "linear-gradient(135deg,#D4A843,#C4941E)" }}>
               <FileText className="w-4 h-4" />View RHP / DRHP
             </button>
-            <button className="flex-1 py-3 px-4 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg font-semibold text-sm hover:shadow-lg transition-all flex items-center justify-center gap-2">
+            <button className="flex-1 py-3 px-4 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white rounded-lg font-semibold text-sm hover:shadow-lg transition-all flex items-center justify-center gap-2">
               <ExternalLink className="w-4 h-4" />Apply via ASBA
             </button>
           </div>
@@ -518,28 +520,30 @@ function IPOCard({
   ipo: IPO; onViewDetail: () => void; onEdit: () => void; onDelete: () => void; isAdmin: boolean;
 }) {
   return (
-    <div className="bg-card rounded-xl border border-border shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden group hover:-translate-y-0.5 flex flex-col min-h-[360px]">
+    <div className="rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden group hover:-translate-y-0.5 flex flex-col min-h-[360px]" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
+      onMouseEnter={e => (e.currentTarget.style.borderColor = "rgba(212,168,67,0.25)")}
+      onMouseLeave={e => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)")}>
 
       {/* Header */}
-      <div className="px-4 pt-4 pb-3 border-b border-border">
+      <div className="px-4 pt-4 pb-3" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
         <div className="flex items-center justify-between mb-2.5">
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-accent to-accent/60 flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
+            <div className="w-10 h-10 rounded-full flex items-center justify-center text-[#D4A843] font-bold text-xs flex-shrink-0" style={{ background: "linear-gradient(135deg,rgba(212,168,67,0.2),rgba(196,148,30,0.1))", border: "1px solid rgba(212,168,67,0.25)" }}>
               {ipo.logo}
             </div>
             <div className="min-w-0">
-              <h3 className="font-bold text-foreground text-[13px] leading-tight truncate">{ipo.companyName}</h3>
-              <p className="text-[11px] text-muted-foreground mt-0.5 truncate">{ipo.industry || '—'}</p>
+              <h3 className="font-bold text-white text-[13px] leading-tight truncate">{ipo.companyName}</h3>
+              <p className="text-[11px] text-slate-400 mt-0.5 truncate">{ipo.industry || '—'}</p>
             </div>
           </div>
           {isAdmin && (
             <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 ml-1">
               <button onClick={e => { e.stopPropagation(); onEdit(); }}
-                className="w-6 h-6 rounded-md bg-accent/10 hover:bg-accent/20 flex items-center justify-center text-accent transition-all">
+                className="w-6 h-6 rounded-md flex items-center justify-center text-[#D4A843] transition-all" style={{ background: "rgba(212,168,67,0.10)" }}>
                 <Edit3 className="w-3 h-3" />
               </button>
               <button onClick={e => { e.stopPropagation(); onDelete(); }}
-                className="w-6 h-6 rounded-md bg-red-500/10 hover:bg-red-500/20 flex items-center justify-center text-red-500 transition-all">
+                className="w-6 h-6 rounded-md flex items-center justify-center text-red-400 transition-all" style={{ background: "rgba(239,68,68,0.10)" }}>
                 <Trash2 className="w-3 h-3" />
               </button>
             </div>
@@ -551,54 +555,54 @@ function IPOCard({
         </div>
       </div>
 
-      {/* Body — increased padding for more height */}
+      {/* Body */}
       <div className="px-4 py-4 flex-1 space-y-3">
         <div className="grid grid-cols-2 gap-x-3 gap-y-3">
           <div>
-            <p className="text-[9px] text-muted-foreground uppercase tracking-wider">Price Band</p>
-            <p className="text-xs font-bold text-foreground leading-tight mt-0.5">{ipo.priceRange}</p>
+            <p className="text-[9px] text-slate-500 uppercase tracking-wider">Price Band</p>
+            <p className="text-xs font-bold text-white leading-tight mt-0.5">{ipo.priceRange}</p>
           </div>
           <div>
-            <p className="text-[9px] text-muted-foreground uppercase tracking-wider">Lot Size</p>
-            <p className="text-xs font-semibold text-foreground leading-tight mt-0.5">{ipo.lotSize} shares</p>
+            <p className="text-[9px] text-slate-500 uppercase tracking-wider">Lot Size</p>
+            <p className="text-xs font-semibold text-white leading-tight mt-0.5">{ipo.lotSize} shares</p>
           </div>
           <div>
-            <p className="text-[9px] text-muted-foreground uppercase tracking-wider">Min. Investment</p>
-            <p className="text-xs font-bold text-accent leading-tight mt-0.5">{ipo.minInvestment}</p>
+            <p className="text-[9px] text-slate-500 uppercase tracking-wider">Min. Investment</p>
+            <p className="text-xs font-bold text-[#D4A843] leading-tight mt-0.5">{ipo.minInvestment}</p>
           </div>
           <div>
-            <p className="text-[9px] text-muted-foreground uppercase tracking-wider">Issue Size</p>
-            <p className="text-xs font-semibold text-foreground leading-tight mt-0.5">{ipo.issueSize}</p>
+            <p className="text-[9px] text-slate-500 uppercase tracking-wider">Issue Size</p>
+            <p className="text-xs font-semibold text-white leading-tight mt-0.5">{ipo.issueSize}</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground border-t border-border/40 pt-3">
+        <div className="flex items-center gap-1.5 text-[11px] text-slate-400 pt-3" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
           <Calendar className="w-3 h-3 flex-shrink-0" />
           <span>{ipo.openDate}</span>
           <span>→</span>
           <span>{ipo.closeDate}</span>
-          {ipo.listingDate && <span className="ml-auto text-purple-500 font-medium text-[10px]">{ipo.listingDate}</span>}
+          {ipo.listingDate && <span className="ml-auto text-purple-400 font-medium text-[10px]">{ipo.listingDate}</span>}
         </div>
 
         {(ipo.subscriptionStatus || (ipo.gmp != null && ipo.gmp > 0) || ipo.listingGain != null) && (
           <div className="flex flex-wrap gap-1 pt-0.5">
             {ipo.subscriptionStatus && (
-              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-green-500/10 border border-green-500/20 rounded-full text-[10px] font-bold text-green-700 dark:text-green-400">
+              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-green-500/10 border border-green-500/20 rounded-full text-[10px] font-bold text-emerald-400">
                 <Users className="w-2.5 h-2.5" />{ipo.subscriptionStatus}
               </span>
             )}
             {ipo.gmp != null && ipo.gmp > 0 && (
-              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-blue-500/10 border border-blue-500/20 rounded-full text-[10px] font-bold text-blue-700 dark:text-blue-400">
+              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-blue-500/10 border border-blue-500/20 rounded-full text-[10px] font-bold text-blue-400">
                 <Target className="w-2.5 h-2.5" />₹{ipo.gmp}
               </span>
             )}
             {ipo.listingGain != null && (
-              <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-bold border ${ipo.listingGain >= 0 ? 'bg-green-500/10 border-green-500/20 text-green-700 dark:text-green-400' : 'bg-red-500/10 border-red-500/20 text-red-700 dark:text-red-400'}`}>
+              <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-bold border ${ipo.listingGain >= 0 ? 'bg-green-500/10 border-green-500/20 text-emerald-400' : 'bg-red-500/10 border-red-500/20 text-red-400'}`}>
                 {ipo.listingGain >= 0 ? <TrendingUp className="w-2.5 h-2.5" /> : <TrendingDown className="w-2.5 h-2.5" />}
                 {ipo.listingGain >= 0 ? '+' : ''}{ipo.listingGain}%
               </span>
             )}
-            <span className="inline-flex items-center px-1.5 py-0.5 bg-muted/40 rounded-full text-[10px] text-muted-foreground ml-auto">{ipo.exchange}</span>
+            <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] text-slate-400 ml-auto" style={{ background: "rgba(255,255,255,0.05)" }}>{ipo.exchange}</span>
           </div>
         )}
       </div>
@@ -606,7 +610,8 @@ function IPOCard({
       {/* Footer */}
       <div className="px-4 pb-4 pt-2">
         <button onClick={onViewDetail}
-          className="w-full py-2 px-3 bg-gradient-to-r from-accent to-accent/80 text-white rounded-lg font-semibold text-xs hover:shadow-md transition-all flex items-center justify-center gap-1.5 group/btn">
+          className="w-full py-2 px-3 text-[#0c1a2e] rounded-lg font-semibold text-xs hover:shadow-md transition-all flex items-center justify-center gap-1.5 group/btn"
+          style={{ background: "linear-gradient(135deg,#D4A843,#C4941E)" }}>
           View Details
           <ArrowRight className="w-3.5 h-3.5 group-hover/btn:translate-x-0.5 transition-transform" />
         </button>
@@ -675,35 +680,40 @@ const IPOSection = () => {
 
   return (
     <>
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/5">
+      <div className="min-h-screen" style={{ background: "linear-gradient(160deg,#0c1a2e 0%,#0e2038 45%,#0b1825 100%)" }}>
 
         {/* Hero */}
-        <section className="relative overflow-hidden bg-gradient-to-r from-navy via-navy-light to-accent py-16 md:py-24">
-          <div className="absolute inset-0 bg-grid-white/[0.05] bg-[size:20px_20px]" />
-          <div className="absolute top-0 right-0 w-96 h-96 bg-accent/20 rounded-full blur-3xl" />
-          <div className="absolute bottom-0 left-0 w-80 h-80 bg-blue-500/20 rounded-full blur-3xl" />
+        <section className="relative overflow-hidden py-16 md:py-24" style={{ background: "linear-gradient(135deg,#0a1628 0%,#0e2038 50%,#0c1a2e 100%)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+          {/* Ambient glows matching DecodeMarket */}
+          <div className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full blur-[130px] pointer-events-none" style={{ background: "radial-gradient(circle,rgba(212,168,67,0.10) 0%,transparent 70%)" }} />
+          <div className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full blur-[100px] pointer-events-none" style={{ background: "radial-gradient(circle,rgba(56,189,248,0.07) 0%,transparent 70%)" }} />
           <div className="container mx-auto px-4 md:px-6 relative z-10">
             <div className="max-w-4xl mx-auto text-center">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/20 backdrop-blur-sm mb-6">
-                <Zap className="w-4 h-4 text-yellow-400" />
-                <span className="text-sm font-medium text-white">Live IPO Updates</span>
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-6" style={{ background: "rgba(212,168,67,0.1)", border: "1px solid rgba(212,168,67,0.2)" }}>
+                <Zap className="w-4 h-4 text-[#D4A843]" />
+                <span className="text-sm font-medium text-[#D4A843]">Live IPO Updates</span>
               </div>
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6">Initial Public Offerings</h1>
-              <p className="text-lg md:text-xl text-white/90 mb-8 leading-relaxed">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6">
+                Initial Public <span style={{ background: "linear-gradient(135deg,#D4A843,#F0C84A)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Offerings</span>
+              </h1>
+              <p className="text-lg md:text-xl mb-8 leading-relaxed" style={{ color: "rgba(255,255,255,0.70)" }}>
                 Stay updated with latest IPOs, track subscription status in real-time, and make informed investment decisions with comprehensive IPO analysis.
               </p>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto">
                 {([
-                  { s: 'open'     as IPOStatus, icon: <Building2  className="w-8 h-8 text-yellow-400 mx-auto mb-2" /> },
+                  { s: 'open'     as IPOStatus, icon: <Building2  className="w-8 h-8 text-[#D4A843] mx-auto mb-2" /> },
                   { s: 'upcoming' as IPOStatus, icon: <Clock      className="w-8 h-8 text-blue-400   mx-auto mb-2" /> },
-                  { s: 'listed'   as IPOStatus, icon: <TrendingUp className="w-8 h-8 text-green-400 mx-auto mb-2" /> },
+                  { s: 'listed'   as IPOStatus, icon: <TrendingUp className="w-8 h-8 text-emerald-400 mx-auto mb-2" /> },
                   { s: 'closed'   as IPOStatus, icon: <Award      className="w-8 h-8 text-purple-400 mx-auto mb-2" /> },
                 ]).map(({ s, icon }) => (
                   <button key={s} onClick={() => switchTab(s)}
-                    className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20 hover:bg-white/20 hover:scale-105 transition-all duration-200 cursor-pointer text-center group">
+                    className="rounded-xl p-4 hover:scale-105 transition-all duration-200 cursor-pointer text-center group"
+                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
+                    onMouseEnter={e => (e.currentTarget.style.borderColor = "rgba(212,168,67,0.30)")}
+                    onMouseLeave={e => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)")}>
                     {icon}
                     <div className="text-2xl font-bold text-white">{counts[s]}</div>
-                    <div className="text-sm text-white/80 group-hover:text-white transition-colors">{STATUS_CFG[s].label}</div>
+                    <div className="text-sm text-slate-400 group-hover:text-white transition-colors">{STATUS_CFG[s].label}</div>
                   </button>
                 ))}
               </div>
@@ -825,20 +835,20 @@ const IPOSection = () => {
 
           {/* Info Cards */}
           <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-gradient-to-br from-blue-500/10 to-blue-600/10 p-6 rounded-2xl border border-blue-500/20">
-              <Shield className="w-10 h-10 text-blue-500 mb-4" />
-              <h3 className="text-lg font-bold text-foreground mb-2">SEBI Regulated</h3>
-              <p className="text-sm text-muted-foreground">All IPOs listed are SEBI-regulated with complete RHP transparency for informed decisions.</p>
+            <div className="p-6 rounded-2xl" style={{ background: "rgba(56,189,248,0.05)", border: "1px solid rgba(56,189,248,0.15)" }}>
+              <Shield className="w-10 h-10 text-blue-400 mb-4" />
+              <h3 className="text-lg font-bold text-white mb-2">SEBI Regulated</h3>
+              <p className="text-sm text-slate-400">All IPOs listed are SEBI-regulated with complete RHP transparency for informed decisions.</p>
             </div>
-            <div className="bg-gradient-to-br from-green-500/10 to-green-600/10 p-6 rounded-2xl border border-green-500/20">
-              <BarChart3 className="w-10 h-10 text-green-500 mb-4" />
-              <h3 className="text-lg font-bold text-foreground mb-2">Live GMP & Subscription</h3>
-              <p className="text-sm text-muted-foreground">Real-time grey market premium, subscription data, and day-wise allotment tracking.</p>
+            <div className="p-6 rounded-2xl" style={{ background: "rgba(52,211,153,0.05)", border: "1px solid rgba(52,211,153,0.15)" }}>
+              <BarChart3 className="w-10 h-10 text-emerald-400 mb-4" />
+              <h3 className="text-lg font-bold text-white mb-2">Live GMP & Subscription</h3>
+              <p className="text-sm text-slate-400">Real-time grey market premium, subscription data, and day-wise allotment tracking.</p>
             </div>
-            <div className="bg-gradient-to-br from-purple-500/10 to-purple-600/10 p-6 rounded-2xl border border-purple-500/20">
-              <FileText className="w-10 h-10 text-purple-500 mb-4" />
-              <h3 className="text-lg font-bold text-foreground mb-2">Expert Analysis</h3>
-              <p className="text-sm text-muted-foreground">Detailed IPO reviews, DRHP financials, and apply/avoid recommendations from experts.</p>
+            <div className="p-6 rounded-2xl" style={{ background: "rgba(212,168,67,0.05)", border: "1px solid rgba(212,168,67,0.15)" }}>
+              <FileText className="w-10 h-10 text-[#D4A843] mb-4" />
+              <h3 className="text-lg font-bold text-white mb-2">Expert Analysis</h3>
+              <p className="text-sm text-slate-400">Detailed IPO reviews, DRHP financials, and apply/avoid recommendations from experts.</p>
             </div>
           </div>
         </section>

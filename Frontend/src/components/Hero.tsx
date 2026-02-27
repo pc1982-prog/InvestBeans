@@ -145,10 +145,10 @@ const Hero = () => {
   return (
     <section className="gradient-hero text-white py-20 relative overflow-hidden">
       {/* Background decorations */}
-      <div className="absolute top-0 right-0 w-96 h-96 bg-accent/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-96 h-96 bg-accent/5 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-0 right-0 w-96 h-96 bg-accent/18 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-96 h-96 bg-accent/12 rounded-full blur-3xl pointer-events-none" />
       <div
-        className="absolute inset-0 pointer-events-none opacity-[0.03]"
+        className="absolute inset-0 pointer-events-none opacity-[0.06]"
         style={{
           backgroundImage:
             "linear-gradient(white 1px, transparent 1px), linear-gradient(90deg, white 1px, transparent 1px)",
@@ -191,7 +191,7 @@ const Hero = () => {
           </h1>
 
           {/* ── Subheading ──────────────────────────────────────── */}
-          <p className="text-lg md:text-xl text-white/70 mb-10 leading-relaxed max-w-2xl mx-auto">
+          <p className="text-lg md:text-xl text-white/88 mb-10 leading-relaxed max-w-2xl mx-auto">
             Daily research-backed stock insights — where every pick is powered
             by analysis, not assumptions.
           </p>
@@ -239,7 +239,7 @@ const Hero = () => {
             {current.stats.map((stat) => (
               <div
                 key={stat.sub}
-                className="group text-center p-5 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm hover:bg-white/10 hover:border-accent/30 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-accent/10 cursor-default"
+                className="group text-center p-5 rounded-2xl border border-white/18 bg-white/8 backdrop-blur-sm hover:bg-white/14 hover:border-accent/45 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-accent/10 cursor-default"
               >
                 <div
                   className="text-2xl md:text-3xl font-bold mb-1.5"
@@ -254,7 +254,7 @@ const Hero = () => {
                 >
                   {stat.value}
                 </div>
-                <div className="text-xs md:text-sm text-white/55 group-hover:text-white/80 transition-colors duration-300 font-medium">
+                <div className="text-xs md:text-sm text-white/75 group-hover:text-white/95 transition-colors duration-300 font-medium">
                   {stat.sub}
                 </div>
               </div>

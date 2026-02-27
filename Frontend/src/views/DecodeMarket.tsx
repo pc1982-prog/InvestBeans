@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from "react";
 import { Sparkles, TrendingUp, Plus } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import InsightCard from "@/components/InsightCard";
 import AdminInsightForm from "@/components/AdminInsightForm";
 import InsightModal from "@/components/InsightModal";
@@ -9,44 +8,19 @@ import api from "@/api/axios";
 import { toggleInsightLike } from "@/services/insightService";
 
 type ActiveTab = "domestic" | "global";
-
-interface DecodeMarketProps {
-  activeTab: ActiveTab;
-}
-
+interface DecodeMarketProps { activeTab: ActiveTab }
 interface InsightData {
-  _id: string;
-  title: string;
-  description: string;
-  investBeansInsight: string;
-  sentiment: 'positive' | 'negative' | 'neutral';
-  category: string;
-  marketType: 'domestic' | 'global';
-  views: number;
-  likes: number;
-  isLiked: boolean;
-  readTime: string;
-  isPublished: boolean;
-  publishedAt: string;
-  author: {
-    _id: string;
-    name: string;
-    email: string;
-  };
-  credits: {
-    source: string;
-    author?: string;
-    url?: string;
-    publishedDate?: string;
-  };
+  _id: string; title: string; description: string; investBeansInsight: string;
+  sentiment: "positive" | "negative" | "neutral"; category: string;
+  marketType: "domestic" | "global"; views: number; likes: number; isLiked: boolean;
+  readTime: string; isPublished: boolean; publishedAt: string;
+  author: { _id: string; name: string; email: string };
+  credits: { source: string; author?: string; url?: string; publishedDate?: string };
 }
 
 const DecodeMarket = ({ activeTab }: DecodeMarketProps) => {
   const { isAdmin } = useAuth();
-
-  // Configurable behaviour
-  const INITIAL_VISIBLE = 6;
-  const INCREMENT = 4;
+  const INITIAL_VISIBLE = 6, INCREMENT = 4;
 
   const [insights, setInsights] = useState<InsightData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -55,375 +29,188 @@ const DecodeMarket = ({ activeTab }: DecodeMarketProps) => {
   const [showAdminForm, setShowAdminForm] = useState(false);
   const [editingInsight, setEditingInsight] = useState<InsightData | null>(null);
   const [loadingInsight, setLoadingInsight] = useState(false);
-
-  // Visible count state (controls how many cards are shown)
-  const [visibleCount, setVisibleCount] = useState<number>(INITIAL_VISIBLE);
-
-  // Ref to track if initial fetch has been done
+  const [visibleCount, setVisibleCount] = useState(INITIAL_VISIBLE);
   const hasFetchedRef = useRef(false);
 
-  // Fetch insights from backend
   const fetchInsights = async () => {
     try {
       setLoading(true);
-      
-      // Use admin endpoint if user is admin, otherwise use public endpoint
       const endpoint = isAdmin ? "/insights/admin/all" : "/insights";
-      
-      const response = await api.get(endpoint, {
-        params: {
-          marketType: activeTab,
-          limit: 100,
-          page: 1,
-        },
-      });
-
+      const response = await api.get(endpoint, { params: { marketType: activeTab, limit: 100, page: 1 } });
       if (response.data?.success && response.data?.data) {
         const fetched = response.data.data.insights || [];
         setInsights(fetched);
-
-        // Reset visible count to initial or to total if fewer items returned
         setVisibleCount(Math.min(INITIAL_VISIBLE, fetched.length));
-      } else {
-        console.warn("Invalid response structure:", response.data);
-        setInsights([]);
-        setVisibleCount(0);
-      }
-    } catch (error) {
-      console.error("Failed to fetch insights:", error);
-      setInsights([]);
-      setVisibleCount(0);
-    } finally {
-      setLoading(false);
-    }
+      } else { setInsights([]); setVisibleCount(0); }
+    } catch { setInsights([]); setVisibleCount(0); }
+    finally { setLoading(false); }
   };
 
   useEffect(() => {
-    // Only fetch if we haven't fetched yet OR if activeTab changes
-    if (!hasFetchedRef.current || activeTab) {
-      fetchInsights();
-      hasFetchedRef.current = true;
-    }
+    if (!hasFetchedRef.current || activeTab) { fetchInsights(); hasFetchedRef.current = true; }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, isAdmin]);
 
   const handleReadMore = async (id: string) => {
-    const previewInsight = insights.find((i) => i._id === id);
-
-    if (previewInsight) {
-      setSelectedInsight(previewInsight);
-    }
-    setShowInsightModal(true);
-    setLoadingInsight(true);
-
+    const preview = insights.find(i => i._id === id);
+    if (preview) setSelectedInsight(preview);
+    setShowInsightModal(true); setLoadingInsight(true);
     try {
-      const response = await api.get(`/insights/${id}`);
-      if (response.data?.success) {
-        setSelectedInsight(response.data.data);
-      }
-    } catch (error) {
-      console.error("Failed to fetch insight details:", error);
-      if (!previewInsight) {
-        setShowInsightModal(false);
-      }
-    } finally {
-      setLoadingInsight(false);
-    }
+      const res = await api.get(`/insights/${id}`);
+      if (res.data?.success) setSelectedInsight(res.data.data);
+    } catch { if (!preview) setShowInsightModal(false); }
+    finally { setLoadingInsight(false); }
   };
 
   const handleLike = async (id: string) => {
     try {
-      const response = await toggleInsightLike(id);
-      
-      if (!response || typeof response.likes !== 'number' || typeof response.isLiked !== 'boolean') {
-        throw new Error('Invalid response from server');
-      }
-
-      // Update insights list
-      setInsights((prevInsights) =>
-        prevInsights.map((insight) =>
-          insight._id === id
-            ? {
-                ...insight,
-                likes: response.likes,
-                isLiked: response.isLiked,
-              }
-            : insight
-        )
-      );
-
-      // Update selected insight modal if it's open
-      if (selectedInsight && selectedInsight._id === id) {
-        setSelectedInsight({
-          ...selectedInsight,
-          likes: response.likes,
-          isLiked: response.isLiked,
-        });
-      }
-    } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : 'Failed to like insight';
-      console.error("Failed to like insight:", errorMsg);
-      
-      // Show user-friendly error
-      if (errorMsg.includes('401') || errorMsg.includes('login')) {
-        alert('Please login to like insights');
-      } else {
-        alert(errorMsg);
-      }
-      
-      // Re-throw to allow InsightCard to handle rollback
-      throw error;
+      const res = await toggleInsightLike(id);
+      if (!res || typeof res.likes !== "number" || typeof res.isLiked !== "boolean") throw new Error("Invalid response");
+      setInsights(prev => prev.map(i => i._id === id ? { ...i, likes: res.likes, isLiked: res.isLiked } : i));
+      if (selectedInsight?._id === id) setSelectedInsight({ ...selectedInsight, likes: res.likes, isLiked: res.isLiked });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Failed";
+      alert(msg.includes("401") || msg.includes("login") ? "Please login to like insights" : msg);
+      throw err;
     }
   };
 
-  const handleEdit = (insight: InsightData) => {
-    setEditingInsight(insight);
-    setShowAdminForm(true);
-  };
-
+  const handleEdit = (insight: InsightData) => { setEditingInsight(insight); setShowAdminForm(true); };
   const handleDelete = async (id: string) => {
-    try {
-      await api.delete(`/insights/admin/${id}`);
-      fetchInsights();
-    } catch (error) {
-      console.error("Failed to delete insight:", error);
-      alert("Failed to delete insight. Please try again.");
-    }
+    try { await api.delete(`/insights/admin/${id}`); fetchInsights(); }
+    catch { alert("Failed to delete insight."); }
   };
+  const handleFormSuccess = () => { fetchInsights(); setEditingInsight(null); };
 
-  const handleFormSuccess = () => {
-    fetchInsights();
-    setEditingInsight(null);
-  };
-
-  // Visible insights slice derived from visibleCount
   const visibleInsights = insights.slice(0, visibleCount);
-
-  // Helper booleans for UI
   const hasMoreThanInitial = insights.length > INITIAL_VISIBLE;
   const canShowMore = visibleCount < insights.length;
 
-  // Actions
-  const showMore = () => {
-    if (!canShowMore) return;
-    const next = Math.min(visibleCount + INCREMENT, insights.length);
-    setVisibleCount(next);
-  };
-
+  const showMore = () => { if (!canShowMore) return; setVisibleCount(Math.min(visibleCount + INCREMENT, insights.length)); };
   const showLess = () => {
     setVisibleCount(Math.min(INITIAL_VISIBLE, insights.length));
-    setTimeout(() => {
-      const beansSection = document.getElementById('decode-markets');
-      if (beansSection) {
-        beansSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    }, 100); 
+    setTimeout(() => document.getElementById("decode-markets")?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
   };
 
   return (
-    <section id="decode-markets" className="mb-5 relative overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-br from-accent/5 via-transparent to-accent/10 rounded-3xl"></div>
-      <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-accent/10 to-transparent rounded-full blur-3xl"></div>
-      <div className="absolute bottom-0 left-0 w-80 h-80 bg-gradient-to-tr from-accent/5 to-transparent rounded-full blur-2xl"></div>
+    <section id="decode-markets" className="mb-20 relative">
+      {/* Soft ambient glows */}
+      <div className="absolute top-0 right-0 w-[450px] h-[450px] rounded-full blur-[120px] pointer-events-none"
+        style={{ background: "radial-gradient(circle,rgba(212,168,67,0.05) 0%,transparent 70%)" }} />
+      <div className="absolute bottom-0 left-0 w-[350px] h-[350px] rounded-full blur-[100px] pointer-events-none"
+        style={{ background: "radial-gradient(circle,rgba(56,189,248,0.04) 0%,transparent 70%)" }} />
 
       <div className="relative z-10">
-        {/* Header with Create Button */}
-        <div className="text-center mb-6 md:mb-8 relative">
-          <div className="inline-flex items-center gap-2 px-3 md:px-4 py-2 rounded-full bg-gradient-to-r from-accent/10 to-accent/5 border border-accent/20 mb-4 md:mb-6">
-            <Sparkles className="w-3 h-3 md:w-4 md:h-4 text-accent" />
-            <span className="text-xs md:text-sm font-medium text-accent">
-              Market Intelligence
-            </span>
+        {/* Section header */}
+        <div className="text-center mb-10 relative">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-5"
+            style={{ background: "rgba(212,168,67,0.1)", border: "1px solid rgba(212,168,67,0.2)" }}>
+            <Sparkles className="w-3.5 h-3.5 text-[#D4A843]" />
+            <span className="text-xs font-semibold text-[#D4A843] uppercase tracking-wide">Market Intelligence</span>
           </div>
 
-          {/* Create Button - Absolute positioned on desktop, inline on mobile */}
           {isAdmin && (
-            <div className="absolute top-0 right-4 md:right-8 hidden sm:block">
-              <Button
-                onClick={() => {
-                  setEditingInsight(null);
-                  setShowAdminForm(true);
-                }}
-                className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all"
-                size="sm"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Create Insight
-              </Button>
+            <div className="absolute top-0 right-0 hidden sm:block">
+              <button onClick={() => { setEditingInsight(null); setShowAdminForm(true); }}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90"
+                style={{ background: "linear-gradient(135deg,#22c55e,#16a34a)" }}>
+                <Plus className="w-4 h-4" /> Create Insight
+              </button>
             </div>
           )}
 
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent mb-3 md:mb-4 px-4">
-            Decode the Market
+          <h2 className="text-3xl md:text-5xl font-bold text-white mb-4 px-4">
+            Decode the <span style={{ background: "linear-gradient(135deg,#D4A843,#F0C84A)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Market</span>
           </h2>
-          <p className="text-base md:text-lg lg:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed px-4">
-            Expert insights and analysis to help you understand market
-            movements and make informed investment decisions
+          <p className="text-slate-400 text-base md:text-lg max-w-3xl mx-auto leading-relaxed px-4">
+            Expert insights and analysis to help you understand market movements and make informed investment decisions
           </p>
         </div>
 
         <div className="px-4">
-          <div className="text-center mb-6 md:mb-8">
-            <div
-              className={`inline-flex items-center gap-2 px-4 py-2 rounded-full mb-4 ${
-                activeTab === "domestic"
-                  ? "bg-gradient-to-r from-green-500/10 to-emerald-500/5 border border-green-200/50"
-                  : "bg-gradient-to-r from-blue-500/10 to-indigo-500/5 border border-blue-200/50"
-              }`}
-            >
-              <TrendingUp
-                className={`w-4 h-4 ${
-                  activeTab === "domestic" ? "text-green-600" : "text-blue-600"
-                }`}
-              />
-              <span
-                className={`text-sm font-medium ${
-                  activeTab === "domestic" ? "text-green-700" : "text-blue-700"
-                }`}
-              >
-                {activeTab === "domestic"
-                  ? "Domestic Market Insights"
-                  : "Global Market Insights"}
-              </span>
+          {/* Sub-header */}
+          <div className="flex flex-col items-center gap-4 mb-8">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium"
+              style={activeTab === "domestic"
+                ? { color: "#34d399", background: "rgba(52,211,153,0.07)", border: "1px solid rgba(52,211,153,0.18)" }
+                : { color: "#60a5fa", background: "rgba(96,165,250,0.07)", border: "1px solid rgba(96,165,250,0.18)" }}>
+              <TrendingUp className="w-4 h-4" />
+              {activeTab === "domestic" ? "Domestic Market Insights" : "Global Market Insights"}
             </div>
-            
-            <div className="flex flex-col items-center gap-3 w-full">
-              <div className="text-center">
-                <h3 className="text-3xl font-bold text-foreground mb-2">
-                  {activeTab === "domestic" ? "Indian Markets" : "International Markets"}
-                </h3>
-                <p className="text-muted-foreground text-sm md:text-base">
-                  {activeTab === "domestic"
-                    ? "Analysis of NSE, BSE, and sectoral performance"
-                    : "Global economic trends and their impact on investments"}
-                </p>
-              </div>
-
-              {/* Admin Create Button - Mobile/Tablet Only */}
-              {isAdmin && (
-                <Button
-                  onClick={() => {
-                    setEditingInsight(null);
-                    setShowAdminForm(true);
-                  }}
-                  className="lg:hidden bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all flex"
-                  size="sm"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Create Insight
-                </Button>
-              )}
+            <div className="text-center">
+              <h3 className="text-2xl font-bold text-white mb-1">{activeTab === "domestic" ? "Indian Markets" : "International Markets"}</h3>
+              <p className="text-slate-400 text-sm">{activeTab === "domestic" ? "Analysis of NSE, BSE, and sectoral performance" : "Global economic trends and their impact on investments"}</p>
             </div>
+            {isAdmin && (
+              <button onClick={() => { setEditingInsight(null); setShowAdminForm(true); }}
+                className="lg:hidden inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white"
+                style={{ background: "linear-gradient(135deg,#22c55e,#16a34a)" }}>
+                <Plus className="w-4 h-4" /> Create Insight
+              </button>
+            )}
           </div>
 
-          {/* Loading State */}
           {loading ? (
-            <div className="text-center py-12">
-              <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-accent"></div>
-              <p className="mt-4 text-muted-foreground">Loading insights...</p>
+            <div className="text-center py-16">
+              <div className="inline-block animate-spin rounded-full h-12 w-12"
+                style={{ border: "2px solid rgba(212,168,67,0.15)", borderTopColor: "#D4A843" }} />
+              <p className="mt-4 text-slate-400 text-sm">Loading insights...</p>
             </div>
           ) : insights.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-muted-foreground mb-4">No insights available at the moment.</p>
+            <div className="text-center py-16">
+              <p className="text-slate-400 mb-4">No insights available at the moment.</p>
               {isAdmin && (
-                <Button
-                  onClick={() => {
-                    setEditingInsight(null);
-                    setShowAdminForm(true);
-                  }}
-                  className="bg-gradient-to-r from-accent to-accent/80 hover:from-accent/90 hover:to-accent/70 text-white font-semibold"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Create First Insight
-                </Button>
+                <button onClick={() => { setEditingInsight(null); setShowAdminForm(true); }}
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold text-[#0c1a2e]"
+                  style={{ background: "linear-gradient(135deg,#D4A843,#C4941E)" }}>
+                  <Plus className="w-4 h-4" /> Create First Insight
+                </button>
               )}
             </div>
           ) : (
             <>
-              {/* Desktop: Two column layout */}
-              <div className="hidden lg:grid lg:grid-cols-2 gap-8 xl:gap-12">
-                {visibleInsights.map((insight) => (
-                  <InsightCard
-                    key={insight._id}
-                    insight={insight}
-                    isAdmin={isAdmin}
-                    onReadMore={handleReadMore}
-                    onLike={handleLike}
-                    onEdit={handleEdit}
-                    onDelete={handleDelete}
-                  />
+              <div className="hidden lg:grid lg:grid-cols-2 gap-6 xl:gap-8">
+                {visibleInsights.map(insight => (
+                  <InsightCard key={insight._id} insight={insight} isAdmin={isAdmin}
+                    onReadMore={handleReadMore} onLike={handleLike} onEdit={handleEdit} onDelete={handleDelete} />
                 ))}
               </div>
-
-              {/* Mobile/Tablet: Single column layout */}
-              <div className="block lg:hidden space-y-6">
-                {visibleInsights.map((insight) => (
-                  <InsightCard
-                    key={insight._id}
-                    insight={insight}
-                    isAdmin={isAdmin}
-                    onReadMore={handleReadMore}
-                    onLike={handleLike}
-                    onEdit={handleEdit}
-                    onDelete={handleDelete}
-                  />
+              <div className="block lg:hidden space-y-5">
+                {visibleInsights.map(insight => (
+                  <InsightCard key={insight._id} insight={insight} isAdmin={isAdmin}
+                    onReadMore={handleReadMore} onLike={handleLike} onEdit={handleEdit} onDelete={handleDelete} />
                 ))}
               </div>
             </>
           )}
         </div>
 
-        {/* Show More / Show Less */}
         {hasMoreThanInitial && insights.length > 0 && (
-          <div className="mt-12 md:mt-16 text-center px-4 flex gap-4 justify-center">
-            {/* Show More */}
+          <div className="mt-12 text-center px-4 flex gap-4 justify-center">
             {canShowMore && (
-              <button
-                onClick={showMore}
-                aria-expanded={visibleCount > INITIAL_VISIBLE}
-                aria-controls="insights-list"
-                className="inline-flex items-center gap-2 px-4 md:px-6 py-3 rounded-full bg-gradient-to-r from-accent/10 to-accent/5 border border-accent/20 hover:border-accent/30 transition-all duration-300 group touch-manipulation active:scale-95"
-              >
-                <span className="text-accent font-semibold text-sm md:text-base">
-                  Show More
-                </span>
+              <button onClick={showMore}
+                className="px-6 py-3 rounded-full text-sm font-semibold transition-all active:scale-95 text-[#D4A843]"
+                style={{ background: "rgba(212,168,67,0.07)", border: "1px solid rgba(212,168,67,0.22)" }}>
+                Show More
               </button>
             )}
-
-            {/* Show Less */}
             {visibleCount > INITIAL_VISIBLE && (
-              <button
-                onClick={showLess}
-                aria-expanded={false}
-                className="inline-flex items-center gap-2 px-4 md:px-6 py-3 rounded-full bg-gradient-to-r from-accent/10 to-accent/5 border border-accent/20 hover:border-accent/30 transition-all duration-300 group touch-manipulation active:scale-95"
-              >
-                <span className="text-accent font-semibold text-sm md:text-base">Show Less</span>
+              <button onClick={showLess}
+                className="px-6 py-3 rounded-full text-sm font-semibold transition-all active:scale-95 text-slate-400"
+                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)" }}>
+                Show Less
               </button>
             )}
           </div>
         )}
       </div>
 
-      <InsightModal
-        isOpen={showInsightModal}
-        onClose={() => {
-          setShowInsightModal(false);
-          setSelectedInsight(null);
-          setLoadingInsight(false);
-        }}
-        insight={selectedInsight}
-        loading={loadingInsight}
-      />
-
-      <AdminInsightForm
-        isOpen={showAdminForm}
-        onClose={() => {
-          setShowAdminForm(false);
-          setEditingInsight(null);
-        }}
-        onSuccess={handleFormSuccess}
-        editingInsight={editingInsight}
-      />
+      <InsightModal isOpen={showInsightModal}
+        onClose={() => { setShowInsightModal(false); setSelectedInsight(null); setLoadingInsight(false); }}
+        insight={selectedInsight} loading={loadingInsight} />
+      <AdminInsightForm isOpen={showAdminForm}
+        onClose={() => { setShowAdminForm(false); setEditingInsight(null); }}
+        onSuccess={handleFormSuccess} editingInsight={editingInsight} />
     </section>
   );
 };

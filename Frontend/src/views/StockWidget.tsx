@@ -61,11 +61,11 @@ const StockWidget: React.FC<StockWidgetProps> = ({ symbol, market }) => {
     return () => clearInterval(interval);
   }, [symbol, market]);
 
-  if (!data.length) return <p>Loading {symbol}...</p>;
+  if (!data.length) return <p className="text-white">Loading {symbol}...</p>;
 
   return (
     <div className="p-4 border rounded-lg bg-background/50">
-      <h2 className="font-bold mb-2">{symbol} ({market})</h2>
+      <h2 className="font-bold mb-2 text-white">{symbol} ({market})</h2>
       <p className="text-xl mb-2">₹ {latestPrice}</p>
       <ResponsiveContainer width="100%" height={150}>
         <LineChart data={data}>

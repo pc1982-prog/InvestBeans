@@ -119,8 +119,8 @@ function Stars({ rating, size = 16 }: { rating: number; size?: number }) {
           key={i}
           size={size}
           style={{
-            fill: i < rating ? "#F59E0B" : "#E5E7EB",
-            color: i < rating ? "#F59E0B" : "#E5E7EB",
+            fill: i < rating ? "#F59E0B" : "rgba(255,255,255,0.15)",
+            color: i < rating ? "#F59E0B" : "rgba(255,255,255,0.15)",
           }}
         />
       ))}
@@ -146,13 +146,14 @@ function TestimonialCard({
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        background: "#fff",
+        /* card background matching HomeView card style */
+        background: "rgba(255,255,255,0.04)",
         borderRadius: "20px",
-        border: `1.5px solid ${hovered && !isMobile ? "#C4941E" : "#E4EAF4"}`,
+        border: `1.5px solid ${hovered && !isMobile ? "#C4941E" : "rgba(255,255,255,0.08)"}`,
         boxShadow:
           hovered && !isMobile
-            ? "0 16px 48px rgba(180,130,10,0.12)"
-            : "0 2px 16px rgba(0,0,0,0.05)",
+            ? "0 16px 48px rgba(180,130,10,0.18)"
+            : "0 2px 16px rgba(0,0,0,0.30)",
         padding: isMobile ? "24px 20px 22px" : "32px 30px 28px",
         cursor: "pointer",
         transition: "all 0.22s ease",
@@ -172,7 +173,7 @@ function TestimonialCard({
           position: "absolute",
           bottom: "-8px",
           right: "-4px",
-          opacity: 0.04,
+          opacity: 0.06,
           pointerEvents: "none",
         }}
       >
@@ -187,8 +188,9 @@ function TestimonialCard({
             fontWeight: 600,
             letterSpacing: "0.05em",
             textTransform: "uppercase" as const,
-            color: "#C4941E",
-            background: "#FDF8EC",
+            color: "#C9A84C",
+            /* ── CHANGED: #FDF8EC → translucent gold tint ── */
+            background: "rgba(201,168,76,0.12)",
             borderRadius: "20px",
             padding: "3px 11px",
             whiteSpace: "nowrap" as const,
@@ -211,7 +213,8 @@ function TestimonialCard({
           margin: 0,
           fontSize: isMobile ? "14px" : "15px",
           lineHeight: "1.78",
-          color: "#374151",
+          /* ── CHANGED: #374151 → soft white ── */
+          color: "rgba(255,255,255,0.70)",
           flexGrow: 1,
           display: "-webkit-box",
           WebkitLineClamp: isMobile ? 5 : 4,
@@ -223,7 +226,8 @@ function TestimonialCard({
       </p>
 
       {/* Divider */}
-      <div style={{ height: "1px", background: "#F1F5F9" }} />
+      {/* ── CHANGED: #F1F5F9 → subtle white line ── */}
+      <div style={{ height: "1px", background: "rgba(255,255,255,0.07)" }} />
 
       {/* Author */}
       <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
@@ -232,14 +236,15 @@ function TestimonialCard({
             width: isMobile ? "40px" : "46px",
             height: isMobile ? "40px" : "46px",
             borderRadius: "50%",
-            background: "#F5F3FF",
-            border: "2px solid #DDD6FE",
+            /* ── CHANGED: #F5F3FF / #DDD6FE → navy tint + gold border ── */
+            background: "rgba(255,255,255,0.05)",
+            border: "2px solid rgba(201,168,76,0.35)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             fontSize: isMobile ? "12px" : "13px",
             fontWeight: 700,
-            color: "#C4941E",
+            color: "#C9A84C",
             flexShrink: 0,
           }}
         >
@@ -251,7 +256,8 @@ function TestimonialCard({
               margin: 0,
               fontSize: isMobile ? "13px" : "14px",
               fontWeight: 700,
-              color: "#111827",
+              /* ── CHANGED: #111827 → off-white ── */
+              color: "#E8EDF5",
               whiteSpace: "nowrap" as const,
               overflow: "hidden",
               textOverflow: "ellipsis",
@@ -263,7 +269,8 @@ function TestimonialCard({
             style={{
               margin: 0,
               fontSize: "12px",
-              color: "#94A3B8",
+              /* ── CHANGED: #94A3B8 → muted white ── */
+              color: "rgba(255,255,255,0.45)",
               marginTop: "2px",
               whiteSpace: "nowrap" as const,
               overflow: "hidden",
@@ -297,20 +304,22 @@ function Modal({ t, onClose }: { t: Testimonial; onClose: () => void }) {
         alignItems: "center",
         justifyContent: "center",
         padding: "16px",
-        background: "rgba(15,20,40,0.5)",
+        background: "rgba(5,10,22,0.75)",
         backdropFilter: "blur(8px)",
       }}
     >
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
-          background: "#fff",
+          /* ── CHANGED: #fff → deep navy modal ── */
+          background: "#0F1E35",
           borderRadius: "24px",
           width: "100%",
           maxWidth: "540px",
           maxHeight: "88vh",
           overflowY: "auto",
-          boxShadow: "0 32px 80px rgba(0,0,0,0.2)",
+          /* ── CHANGED: subtle navy glow shadow ── */
+          boxShadow: "0 32px 80px rgba(0,0,0,0.60), 0 0 0 1px rgba(255,255,255,0.07)",
           animation: "popIn 0.22s cubic-bezier(0.34,1.56,0.64,1)",
           position: "relative",
         }}
@@ -332,13 +341,15 @@ function Modal({ t, onClose }: { t: Testimonial; onClose: () => void }) {
               width: "34px",
               height: "34px",
               borderRadius: "50%",
-              border: "1.5px solid #E5E7EB",
-              background: "#F9FAFB",
+              /* ── CHANGED: light border/bg → navy ── */
+              border: "1.5px solid rgba(255,255,255,0.12)",
+              background: "rgba(255,255,255,0.06)",
               cursor: "pointer",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              color: "#6B7280",
+              /* ── CHANGED: #6B7280 → soft white ── */
+              color: "rgba(255,255,255,0.60)",
               padding: 0,
             }}
           >
@@ -359,24 +370,27 @@ function Modal({ t, onClose }: { t: Testimonial; onClose: () => void }) {
                 width: "52px",
                 height: "52px",
                 borderRadius: "50%",
-                background: "#FDF8EC",
-                border: "2px solid #C7D2FE",
+                /* ── CHANGED: #FDF8EC / #C7D2FE → navy tint + gold ring ── */
+                background: "rgba(255,255,255,0.05)",
+                border: "2px solid rgba(201,168,76,0.35)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 fontSize: "15px",
                 fontWeight: 700,
-                color: "#C4941E",
+                color: "#C9A84C",
                 flexShrink: 0,
               }}
             >
               {t.avatar}
             </div>
             <div>
-              <p style={{ margin: 0, fontWeight: 800, fontSize: "17px", color: "#111827" }}>
+              {/* ── CHANGED: #111827 → off-white ── */}
+              <p style={{ margin: 0, fontWeight: 800, fontSize: "17px", color: "#E8EDF5" }}>
                 {t.name}
               </p>
-              <p style={{ margin: 0, fontSize: "13px", color: "#64748B", marginTop: "2px" }}>
+              {/* ── CHANGED: #64748B → muted white ── */}
+              <p style={{ margin: 0, fontSize: "13px", color: "rgba(255,255,255,0.50)", marginTop: "2px" }}>
                 {t.role}&nbsp;·&nbsp;{t.company}
               </p>
               <div style={{ marginTop: "6px" }}>
@@ -385,10 +399,12 @@ function Modal({ t, onClose }: { t: Testimonial; onClose: () => void }) {
             </div>
           </div>
 
-          <p style={{ margin: "10px 0 18px", fontSize: "12px", color: "#94A3B8" }}>
+          {/* ── CHANGED: #94A3B8 → muted white ── */}
+          <p style={{ margin: "10px 0 18px", fontSize: "12px", color: "rgba(255,255,255,0.40)" }}>
             {t.source}&nbsp;·&nbsp;{t.date}
           </p>
-          <div style={{ height: "1px", background: "#F1F5F9", marginBottom: "20px" }} />
+          {/* ── CHANGED: #F1F5F9 → subtle white line ── */}
+          <div style={{ height: "1px", background: "rgba(255,255,255,0.07)", marginBottom: "20px" }} />
           <Quote
             size={28}
             style={{ color: "#E8C45A", fill: "#E8C45A", marginBottom: "12px" }}
@@ -401,7 +417,8 @@ function Modal({ t, onClose }: { t: Testimonial; onClose: () => void }) {
                 margin: "0 0 14px",
                 fontSize: "15px",
                 lineHeight: "1.8",
-                color: "#374151",
+                /* ── CHANGED: #374151 → soft white ── */
+                color: "rgba(255,255,255,0.72)",
               }}
             >
               {para}
@@ -426,7 +443,6 @@ export default function TestimonialsSection() {
   const [modal, setModal] = useState<Testimonial | null>(null);
   const [paused, setPaused] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  // ← NEW: track whether cursor is over the cards+arrows row
   const [cardsHovered, setCardsHovered] = useState(false);
 
   useEffect(() => {
@@ -465,15 +481,20 @@ export default function TestimonialsSection() {
   return (
     <section
       style={{
-        background: "#F5F7FA",
+        background: "linear-gradient(160deg,#0c1a2e 0%,#0e2038 45%,#0b1825 100%)",
         padding: isMobile ? "52px 0 48px" : "80px 0 72px",
         fontFamily: "'Inter','Segoe UI',sans-serif",
         width: "100%",
         boxSizing: "border-box",
+        position: "relative",
       }}
       onMouseEnter={() => !isMobile && setPaused(true)}
       onMouseLeave={() => !isMobile && setPaused(false)}
     >
+      {/* Ambient glows matching DecodeMarket */}
+      <div style={{ position: "absolute", top: 0, right: 0, width: "450px", height: "450px", borderRadius: "50%", filter: "blur(120px)", pointerEvents: "none", background: "radial-gradient(circle,rgba(212,168,67,0.06) 0%,transparent 70%)" }} />
+      <div style={{ position: "absolute", bottom: 0, left: 0, width: "350px", height: "350px", borderRadius: "50%", filter: "blur(100px)", pointerEvents: "none", background: "radial-gradient(circle,rgba(56,189,248,0.04) 0%,transparent 70%)" }} />
+
       {/* Heading */}
       <div
         style={{
@@ -487,8 +508,9 @@ export default function TestimonialsSection() {
             display: "inline-flex",
             alignItems: "center",
             gap: "7px",
-            background: "#FDF8EC",
-            border: "1px solid #C7D2FE",
+            /* ── CHANGED: #FDF8EC badge → translucent navy with gold border ── */
+            background: "rgba(201,168,76,0.10)",
+            border: "1px solid rgba(201,168,76,0.25)",
             borderRadius: "100px",
             padding: "5px 14px",
             marginBottom: "14px",
@@ -499,14 +521,14 @@ export default function TestimonialsSection() {
               width: "6px",
               height: "6px",
               borderRadius: "50%",
-              background: "#C4941E",
+              background: "#C9A84C",
             }}
           />
           <span
             style={{
               fontSize: "11px",
               fontWeight: 600,
-              color: "#C4941E",
+              color: "#C9A84C",
               letterSpacing: "0.06em",
               textTransform: "uppercase",
             }}
@@ -520,7 +542,8 @@ export default function TestimonialsSection() {
             margin: "0 0 10px",
             fontSize: isMobile ? "26px" : "clamp(28px, 4.5vw, 42px)",
             fontWeight: 800,
-            color: "#0F172A",
+            /* ── CHANGED: #0F172A dark text → off-white ── */
+            color: "#E8EDF5",
             letterSpacing: "-0.025em",
             lineHeight: 1.15,
           }}
@@ -531,7 +554,8 @@ export default function TestimonialsSection() {
           style={{
             margin: "0 auto",
             fontSize: isMobile ? "14px" : "clamp(14px,2vw,17px)",
-            color: "#64748B",
+            /* ── CHANGED: #64748B → muted white ── */
+            color: "rgba(255,255,255,0.50)",
             maxWidth: "460px",
             lineHeight: 1.6,
           }}
@@ -553,22 +577,16 @@ export default function TestimonialsSection() {
           gap: "24px",
         }}
       >
-        {/*
-          Cards row — arrows are always rendered on desktop so layout stays
-          stable, but opacity + pointer-events control visibility based on
-          whether the cursor is anywhere inside this row.
-        */}
         <div
           style={{
             display: "flex",
             alignItems: "center",
             gap: isMobile ? "0" : "20px",
           }}
-          // ← Detect hover over the entire row (cards + arrows area)
           onMouseEnter={() => !isMobile && setCardsHovered(true)}
           onMouseLeave={() => !isMobile && setCardsHovered(false)}
         >
-          {/* LEFT ARROW — desktop only, hidden until row is hovered */}
+          {/* LEFT ARROW */}
           {!isMobile && (
             <button
               onClick={prev}
@@ -586,7 +604,6 @@ export default function TestimonialsSection() {
                 justifyContent: "center",
                 boxShadow: "0 4px 16px rgba(196,148,30,0.30)",
                 flexShrink: 0,
-                // ← Show / hide via opacity + pointer-events
                 opacity: cardsHovered ? 1 : 0,
                 pointerEvents: cardsHovered ? "auto" : "none",
                 transition: "opacity 0.22s ease, transform 0.18s ease, background 0.18s ease",
@@ -627,7 +644,7 @@ export default function TestimonialsSection() {
             ))}
           </div>
 
-          {/* RIGHT ARROW — desktop only, hidden until row is hovered */}
+          {/* RIGHT ARROW */}
           {!isMobile && (
             <button
               onClick={next}
@@ -645,7 +662,6 @@ export default function TestimonialsSection() {
                 justifyContent: "center",
                 boxShadow: "0 4px 16px rgba(196,148,30,0.30)",
                 flexShrink: 0,
-                // ← Show / hide via opacity + pointer-events
                 opacity: cardsHovered ? 1 : 0,
                 pointerEvents: cardsHovered ? "auto" : "none",
                 transition: "opacity 0.22s ease, transform 0.18s ease, background 0.18s ease",
@@ -677,7 +693,8 @@ export default function TestimonialsSection() {
                 height: "8px",
                 borderRadius: "100px",
                 border: "none",
-                background: i === index ? "#C4941E" : "#D5DCEA",
+                /* ── CHANGED: inactive dot #D5DCEA → soft white ── */
+                background: i === index ? "#C4941E" : "rgba(255,255,255,0.18)",
                 cursor: "pointer",
                 padding: 0,
                 transition: "all 0.3s ease",

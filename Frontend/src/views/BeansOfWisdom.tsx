@@ -88,7 +88,7 @@ export default function BeansOfWisdomView() {
       {/* ══════════════════════════════════
           SECTION HEADER
       ══════════════════════════════════ */}
-      <div className="flex items-end justify-between mb-8 flex-wrap gap-4">
+      {/* <div className="flex items-end justify-between mb-8 flex-wrap gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1.5">
             <div className="w-1 h-4 rounded-full bg-[#F59E0B]" />
@@ -96,7 +96,7 @@ export default function BeansOfWisdomView() {
               Weekly Edition
             </span>
           </div>
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-black tracking-tight leading-none">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white tracking-tight leading-none">
             Beans of{" "}
             <span className="text-[#F59E0B]">Wisdom</span>
           </h2>
@@ -123,7 +123,43 @@ export default function BeansOfWisdomView() {
             </button>
           </div>
         )}
+      </div> */}
+       <div className="mb-8 text-center">
+        <div className="flex items-center justify-center gap-2 mb-1.5">
+          <div className="w-1 h-4 rounded-full bg-[#F59E0B]" />
+          <span className="text-xs font-bold text-[#F59E0B] tracking-[0.2em] uppercase">
+            Weekly Edition
+          </span>
+          <div className="w-1 h-4 rounded-full bg-[#F59E0B]" />
+        </div>
+        <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white tracking-tight leading-none">
+          Beans of{" "}
+          <span className="text-[#F59E0B]">Wisdom</span>
+        </h2>
+        <p className="text-sm text-[#CBD5E1] mt-2 max-w-md mx-auto">
+          Curated market insight, delivered every week.
+        </p>
+
+        {isAdmin && (
+          <div className="flex items-center justify-center gap-2.5 mt-4">
+            <button
+              onClick={() => setShowEditForm(true)}
+              className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-bold text-[#0F172A] bg-[#F59E0B] hover:bg-[#D97706] rounded-xl transition-colors shadow-sm"
+            >
+              <Edit3 className="w-3.5 h-3.5" /> Edit
+            </button>
+            <button
+              onClick={handleDelete}
+              disabled={deleteLoading}
+              className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-bold text-red-400 bg-transparent hover:bg-red-900/20 border border-red-500/50 rounded-xl transition-colors disabled:opacity-40"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              {deleteLoading ? "Deleting…" : "Delete"}
+            </button>
+          </div>
+        )}
       </div>
+
 
       {/* ── Error ── */}
       {error && (

@@ -263,20 +263,11 @@ const Header = () => {
               {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
 
-            {/* <Link to="/" className="text-2xl font-bold shrink-0">
-              Invest<span className="font-normal text-accent">Beans</span>
-            </Link> */}
-            <Link
-              to="/"
-              className="flex items-center shrink-0"
-            >
-              <img
-                src="/images/Untitled-6-04.png"
-                alt="InvestBeans Logo"
-                className="h-7 w-auto object-contain relative -top-1"
-              />
+            <Link to="/"
+              className="flex items-center shrink-0" >
+              <img src="/images/Untitled-6-04.png" alt="InvestBeans Logo" className="h-7 w-auto object-contain relative -top-1 filter contrast-125" />
             </Link>
-
+          
             {/* Desktop nav list */}
             <ul className="hidden md:flex items-center gap-0.5">
 
