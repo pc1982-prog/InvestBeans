@@ -109,10 +109,19 @@ const Footer = () => {
         </div>
 
         <div className={borderTopCls}>
-          <p className={copyrightCls}>
-            © 2024 InvestBeans. All rights reserved. Built with ❤️ for smart investors.
-          </p>
-        </div>
+  <p className={copyrightCls}>
+    © 2024 InvestBeans. All rights reserved. 
+    Crafted and powered by{" "}
+    <a
+      href="https://www.strategixworks.com/"
+      target="_blank"
+      rel="noopener noreferrer"
+      className="font-bold tracking-wide hover:underline transition-all duration-200 text-accent "
+    >
+      Strategix
+    </a> — Delivering intelligent digital solutions.
+  </p>
+</div>
       </div>
     </footer>
   );
