@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/controllers/AuthContext';
+import { useTheme } from '@/controllers/Themecontext';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import {
@@ -466,15 +467,17 @@ function DetailModal({ ipo, onClose, onEdit, onDelete, deleting, isAdmin }: {
 function IPOCard({ ipo, onViewDetail, onEdit, onDelete, isAdmin }: {
   ipo: IPO; onViewDetail:()=>void; onEdit:()=>void; onDelete:()=>void; isAdmin: boolean;
 }) {
+  const { theme } = useTheme();
+  const isLight = theme === "light";
   return (
     <div
       className="rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden group hover:-translate-y-0.5 flex flex-col min-h-[360px]"
-      style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
-      onMouseEnter={e => (e.currentTarget.style.borderColor = "rgba(212,168,67,0.25)")}
-      onMouseLeave={e => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)")}>
+      style={{ background: isLight ? "rgba(255,255,255,0.70)" : "rgba(255,255,255,0.04)", border: isLight ? "1px solid rgba(13,37,64,0.12)" : "1px solid rgba(255,255,255,0.08)" }}
+      onMouseEnter={e => (e.currentTarget.style.borderColor = "rgba(212,168,67,0.40)")}
+      onMouseLeave={e => (e.currentTarget.style.borderColor = isLight ? "rgba(13,37,64,0.12)" : "rgba(255,255,255,0.08)")}>
 
       {/* Header */}
-      <div className="px-4 pt-4 pb-3" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+      <div className="px-4 pt-4 pb-3" style={{ borderBottom: isLight ? "1px solid rgba(13,37,64,0.08)" : "1px solid rgba(255,255,255,0.06)" }}>
         <div className="flex items-center justify-between mb-2.5">
           <div className="flex items-center gap-2.5 min-w-0">
             <div className="w-10 h-10 rounded-full flex items-center justify-center text-[#D4A843] font-bold text-xs flex-shrink-0"
@@ -482,8 +485,8 @@ function IPOCard({ ipo, onViewDetail, onEdit, onDelete, isAdmin }: {
               {ipo.logo}
             </div>
             <div className="min-w-0">
-              <h3 className="font-bold text-white text-[13px] leading-tight truncate">{ipo.companyName}</h3>
-              <p className="text-[11px] text-slate-400 mt-0.5 truncate">{ipo.industry||'—'}</p>
+              <h3 className={`font-bold text-[13px] leading-tight truncate ${isLight ? "text-navy" : "text-white"}`}>{ipo.companyName}</h3>
+              <p className={`text-[11px] mt-0.5 truncate ${isLight ? "text-navy/60" : "text-slate-400"}`}>{ipo.industry||'—'}</p>
             </div>
           </div>
           {isAdmin && (
@@ -511,25 +514,25 @@ function IPOCard({ ipo, onViewDetail, onEdit, onDelete, isAdmin }: {
       <div className="px-4 py-4 flex-1 space-y-3">
         <div className="grid grid-cols-2 gap-x-3 gap-y-3">
           <div>
-            <p className="text-[9px] text-slate-500 uppercase tracking-wider">Price Band</p>
-            <p className="text-xs font-bold text-white leading-tight mt-0.5">{ipo.priceRange}</p>
+            <p className={`text-[9px] uppercase tracking-wider ${isLight ? "text-navy/50" : "text-slate-500"}`}>Price Band</p>
+            <p className={`text-xs font-bold leading-tight mt-0.5 ${isLight ? "text-navy" : "text-white"}`}>{ipo.priceRange}</p>
           </div>
           <div>
-            <p className="text-[9px] text-slate-500 uppercase tracking-wider">Lot Size</p>
-            <p className="text-xs font-semibold text-white leading-tight mt-0.5">{ipo.lotSize} shares</p>
+            <p className={`text-[9px] uppercase tracking-wider ${isLight ? "text-navy/50" : "text-slate-500"}`}>Lot Size</p>
+            <p className={`text-xs font-semibold leading-tight mt-0.5 ${isLight ? "text-navy" : "text-white"}`}>{ipo.lotSize} shares</p>
           </div>
           <div>
-            <p className="text-[9px] text-slate-500 uppercase tracking-wider">Min. Investment</p>
+            <p className={`text-[9px] uppercase tracking-wider ${isLight ? "text-navy/50" : "text-slate-500"}`}>Min. Investment</p>
             <p className="text-xs font-bold text-[#D4A843] leading-tight mt-0.5">{ipo.minInvestment}</p>
           </div>
           <div>
-            <p className="text-[9px] text-slate-500 uppercase tracking-wider">Issue Size</p>
-            <p className="text-xs font-semibold text-white leading-tight mt-0.5">{ipo.issueSize}</p>
+            <p className={`text-[9px] uppercase tracking-wider ${isLight ? "text-navy/50" : "text-slate-500"}`}>Issue Size</p>
+            <p className={`text-xs font-semibold leading-tight mt-0.5 ${isLight ? "text-navy" : "text-white"}`}>{ipo.issueSize}</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-1.5 text-[11px] text-slate-400 pt-3"
-          style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+        <div className={`flex items-center gap-1.5 text-[11px] pt-3 ${isLight ? "text-navy/60" : "text-slate-400"}`}
+          style={{ borderTop: isLight ? "1px solid rgba(13,37,64,0.08)" : "1px solid rgba(255,255,255,0.06)" }}>
           <Calendar className="w-3 h-3 flex-shrink-0" />
           <span>{ipo.openDate}</span>
           <span>→</span>
@@ -555,8 +558,8 @@ function IPOCard({ ipo, onViewDetail, onEdit, onDelete, isAdmin }: {
                 {ipo.listingGain>=0?'+':''}{ipo.listingGain}%
               </span>
             )}
-            <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] text-slate-400 ml-auto"
-              style={{ background: "rgba(255,255,255,0.05)" }}>{ipo.exchange}</span>
+            <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] ml-auto ${isLight ? "text-navy/60" : "text-slate-400"}`}
+              style={{ background: isLight ? "rgba(13,37,64,0.06)" : "rgba(255,255,255,0.05)" }}>{ipo.exchange}</span>
           </div>
         )}
       </div>
@@ -579,6 +582,8 @@ function IPOCard({ ipo, onViewDetail, onEdit, onDelete, isAdmin }: {
 export default function IPOPage() {
   const navigate = useNavigate();
   const { isAdmin } = useAuth();
+  const { theme } = useTheme();
+  const isLight = theme === "light";
 
   const [ipos,      setIpos]      = useState<IPO[]>([]);
   const [counts,    setCounts]    = useState<Counts>({ open:0, upcoming:0, closed:0, listed:0, total:0 });
@@ -641,11 +646,11 @@ export default function IPOPage() {
   return (
     <>
       <Header />
-      <div className="min-h-screen" style={{ background: "linear-gradient(160deg,#0c1a2e 0%,#0e2038 45%,#0b1825 100%)" }}>
+      <div className="min-h-screen" style={{ background: isLight ? "linear-gradient(160deg,#dce8f7 0%,#e8f2fd 45%,#dce8f7 100%)" : "linear-gradient(160deg,#0c1a2e 0%,#0e2038 45%,#0b1825 100%)" }}>
 
         {/* ── HERO BANNER ─────────────────────────────────────────────────── */}
         <section className="relative overflow-hidden pt-10 pb-6 md:pt-14 md:pb-8"
-          style={{ background: "linear-gradient(135deg,#0a1628 0%,#0e2038 50%,#0c1a2e 100%)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+          style={{ background: isLight ? "linear-gradient(135deg,#edf5fe 0%,#dce8f7 50%,#e8f2fd 100%)" : "linear-gradient(135deg,#0a1628 0%,#0e2038 50%,#0c1a2e 100%)", borderBottom: isLight ? "1px solid rgba(13,37,64,0.1)" : "1px solid rgba(255,255,255,0.06)" }}>
           {/* Decorative glows */}
           <div className="absolute top-0 right-0 w-80 h-80 rounded-full blur-[100px] pointer-events-none"
             style={{ background: "radial-gradient(circle,rgba(212,168,67,0.10) 0%,transparent 70%)" }} />
@@ -662,14 +667,14 @@ export default function IPOPage() {
                   <Zap className="w-3.5 h-3.5 text-[#D4A843]" />
                   <span className="text-xs font-medium text-[#D4A843]">Live IPO Tracker</span>
                 </div>
-                <h1 className="text-3xl md:text-4xl font-bold text-white">
+                <h1 className={`text-3xl md:text-4xl font-bold ${isLight ? "text-navy" : "text-white"}`}>
                   All{' '}
                   <span style={{ background: "linear-gradient(135deg,#D4A843,#F0C84A)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
                     IPOs
                   </span>
                 </h1>
-                <p className="text-slate-400 mt-1 text-sm">
-                  Total <span className="text-white font-bold">{counts.total}</span> IPOs — NSE / BSE / SME
+                <p className={`mt-1 text-sm ${isLight ? "text-navy/60" : "text-slate-400"}`}>
+                  Total <span className={`font-bold ${isLight ? "text-navy" : "text-white"}`}>{counts.total}</span> IPOs — NSE / BSE / SME
                 </p>
               </div>
             </div>
@@ -689,7 +694,9 @@ export default function IPOPage() {
                       className="px-3 py-2 rounded-xl text-sm font-semibold transition-all whitespace-nowrap"
                       style={activeTab===s && !isSearching
                         ? { background: "linear-gradient(135deg,#D4A843,#C4941E)", color: "#0c1a2e" }
-                        : { background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.60)" }}>
+                        : isLight
+                          ? { background: "rgba(13,37,64,0.05)", border: "1px solid rgba(13,37,64,0.15)", color: "rgba(13,37,64,0.70)" }
+                          : { background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.60)" }}>
                       {STATUS_CFG[s].label}
                       <span className="ml-1.5 text-[11px] opacity-80">({counts[s]})</span>
                     </button>
@@ -704,8 +711,8 @@ export default function IPOPage() {
                     placeholder="Search company name or industry… (all statuses)"
                     value={search}
                     onChange={e => setSearch(e.target.value)}
-                    className="w-full rounded-xl pl-10 pr-10 py-2.5 text-sm text-white placeholder:text-slate-500 focus:outline-none transition-all"
-                    style={{ background: "rgba(255,255,255,0.06)", border: `1px solid ${isSearching ? 'rgba(212,168,67,0.50)' : 'rgba(255,255,255,0.12)'}` }}
+                    className={`w-full rounded-xl pl-10 pr-10 py-2.5 text-sm focus:outline-none transition-all ${isLight ? "text-navy placeholder:text-navy/40" : "text-white placeholder:text-slate-500"}`}
+                    style={{ background: isLight ? "rgba(13,37,64,0.05)" : "rgba(255,255,255,0.06)", border: `1px solid ${isSearching ? 'rgba(212,168,67,0.50)' : (isLight ? 'rgba(13,37,64,0.15)' : 'rgba(255,255,255,0.12)')}` }}
                   />
                   {search && (
                     <button
@@ -723,8 +730,8 @@ export default function IPOPage() {
                     <select
                       value={sortBy}
                       onChange={e => setSortBy(e.target.value as any)}
-                      className="appearance-none rounded-xl pl-3 pr-8 py-2.5 text-sm text-white focus:outline-none cursor-pointer h-full"
-                      style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.10)" }}>
+                      className={`appearance-none rounded-xl pl-3 pr-8 py-2.5 text-sm focus:outline-none cursor-pointer h-full ${isLight ? "text-navy" : "text-white"}`}
+                      style={{ background: isLight ? "rgba(13,37,64,0.05)" : "rgba(255,255,255,0.05)", border: isLight ? "1px solid rgba(13,37,64,0.15)" : "1px solid rgba(255,255,255,0.10)" }}>
                       <option value="default" className='text-black'>Sort</option>
                       <option value="gmp"  className='text-black'>GMP ↓</option>
                       <option value="rating"  className='text-black'>Rating ↓</option>
@@ -737,8 +744,8 @@ export default function IPOPage() {
                     <select
                       value={catFilter}
                       onChange={e => setCatFilter(e.target.value as any)}
-                      className="appearance-none rounded-xl pl-3 pr-8 py-2.5 text-sm text-white focus:outline-none cursor-pointer h-full"
-                      style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.10)" }}>
+                      className={`appearance-none rounded-xl pl-3 pr-8 py-2.5 text-sm focus:outline-none cursor-pointer h-full ${isLight ? "text-navy" : "text-white"}`}
+                      style={{ background: isLight ? "rgba(13,37,64,0.05)" : "rgba(255,255,255,0.05)", border: isLight ? "1px solid rgba(13,37,64,0.15)" : "1px solid rgba(255,255,255,0.10)" }}>
                       <option value="" className='text-black'>All</option>
                       <option value="Mainboard" className='text-black'>Mainboard</option>
                       <option value="SME" className='text-black'>SME</option>
@@ -751,8 +758,8 @@ export default function IPOPage() {
                     onClick={fetchIPOs}
                     disabled={loading}
                     title="Refresh"
-                    className="p-2.5 rounded-xl text-slate-400 hover:text-white transition-all flex-shrink-0"
-                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
+                    className={`p-2.5 rounded-xl transition-all flex-shrink-0 ${isLight ? "text-navy/50 hover:text-navy" : "text-slate-400 hover:text-white"}`}
+                    style={{ background: isLight ? "rgba(13,37,64,0.05)" : "rgba(255,255,255,0.04)", border: isLight ? "1px solid rgba(13,37,64,0.1)" : "1px solid rgba(255,255,255,0.08)" }}>
                     <RefreshCw className={`w-4 h-4 ${loading?'animate-spin':''}`} />
                   </button>
 
@@ -771,11 +778,11 @@ export default function IPOPage() {
 
               {/* Search result hint */}
               {isSearching && !loading && (
-                <div className="flex items-center gap-2 text-sm text-slate-400">
+                <div className={`flex items-center gap-2 text-sm ${isLight ? "text-navy/60" : "text-slate-400"}`}>
                   <Search className="w-3.5 h-3.5 text-[#D4A843]" />
                   <span>
                     Found{' '}
-                    <strong className="text-white">{ipos.length}</strong>{' '}
+                    <strong className={isLight ? "text-navy" : "text-white"}>{ipos.length}</strong>{' '}
                     IPO{ipos.length !== 1 ? 's' : ''} for{' '}
                     <span className="text-[#D4A843]">"{search}"</span>
                     {' '}— searching across all statuses
@@ -806,8 +813,8 @@ export default function IPOPage() {
           {error && !loading && (
             <div className="text-center py-16">
               <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-white mb-2">Something went wrong</h3>
-              <p className="text-sm text-slate-400 font-mono bg-white/5 px-4 py-2 rounded-lg inline-block">{error}</p>
+              <h3 className={`text-xl font-semibold mb-2 ${isLight ? "text-navy" : "text-white"}`}>Something went wrong</h3>
+              <p className={`text-sm font-mono px-4 py-2 rounded-lg inline-block ${isLight ? "text-navy/70 bg-navy/5" : "text-slate-400 bg-white/5"}`}>{error}</p>
               <br />
               <button onClick={fetchIPOs}
                 className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all"

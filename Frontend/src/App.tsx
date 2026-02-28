@@ -19,7 +19,7 @@ import EducationView from "@/views/EducationView";
 import TeamView from "@/views/TeamView";
 import BlogsView from "@/views/BlogsView";
 import BlogDetailView from "./views/BlogDetailView";
-import ScrollToTop from "@/controllers/ScrollToTop";  
+import ScrollToTop from "@/controllers/ScrollToTop";
 import PaymentSuccess from "./components/PaymentSuccess";
 import GlobalToastListener from "./components/GlobalToastListener";
 import TermsOfService from "./views/Termsofservice";
@@ -28,57 +28,55 @@ import PrivacyPolicy from "./views/Privacypolicy";
 import ChartPage from "./components/Chartpage";
 import IPOSection from "./views/Iposection";
 import IPOPage from "./views/Ipopage";
-
+import { ThemeProvider } from "@/controllers/Themecontext"
 
 const queryClient = new QueryClient();
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <GlobalToastListener /> 
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <ScrollToTop /> 
-          <Routes>
-            <Route path="/" element={<HomeController />} />
-            <Route path="/domestic" element={<DomesticController />} />
-            <Route path="/global" element={<GlobalController />} />
-            <Route path="/markets" element={<MarketsView />} />
-            <Route path="/chart/:symbol" element={<ChartPage />} />
-            <Route path="/education" element={<EducationView />} />
-            <Route path="/team" element={<TeamView />} />
-            <Route path="/blogs" element={<BlogsView />} />
-            <Route path="/blogs/:id" element={<BlogDetailView />} />
-            <Route path="/paymentsuccess" element={<PaymentSuccess />} />
-            <Route path="/terms-of-service" element={<TermsOfService />} />
-            <Route path="/help-center" element={<HelpCenter />} />
-            <Route path="/privacy-policy" element={<PrivacyPolicy/>} />
-            
-            <Route path="/ipo-section" element={<IPOSection/>} />
-            <Route path="/ipos" element={<IPOPage/>} />
-
-            {/* ✅ NEW: Password Reset Routes */}
-            <Route path="/forgot-password" element={<ForgotPasswordController />} />
-            <Route path="/reset-password" element={<ResetPasswordController />} />
-            
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute>
-                  <DashboardController />
-                </ProtectedRoute>
-              }
-            />
-            <Route path="/signin" element={<SignInController />} />
-            <Route path="/signup" element={<SignUpController />} />
-            <Route path="*" element={<NotFoundController />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </AuthProvider>
-  </QueryClientProvider>
+  <ThemeProvider>                          {/* ← ADDED: sabse bahar wrap karo */}
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <GlobalToastListener />
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <ScrollToTop />
+            <Routes>
+              <Route path="/" element={<HomeController />} />
+              <Route path="/domestic" element={<DomesticController />} />
+              <Route path="/global" element={<GlobalController />} />
+              <Route path="/markets" element={<MarketsView />} />
+              <Route path="/chart/:symbol" element={<ChartPage />} />
+              <Route path="/education" element={<EducationView />} />
+              <Route path="/team" element={<TeamView />} />
+              <Route path="/blogs" element={<BlogsView />} />
+              <Route path="/blogs/:id" element={<BlogDetailView />} />
+              <Route path="/paymentsuccess" element={<PaymentSuccess />} />
+              <Route path="/terms-of-service" element={<TermsOfService />} />
+              <Route path="/help-center" element={<HelpCenter />} />
+              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+              <Route path="/ipo-section" element={<IPOSection />} />
+              <Route path="/ipos" element={<IPOPage />} />
+              <Route path="/forgot-password" element={<ForgotPasswordController />} />
+              <Route path="/reset-password" element={<ResetPasswordController />} />
+              <Route
+                path="/dashboard"
+                element={
+                  <ProtectedRoute>
+                    <DashboardController />
+                  </ProtectedRoute>
+                }
+              />
+              <Route path="/signin" element={<SignInController />} />
+              <Route path="/signup" element={<SignUpController />} />
+              <Route path="*" element={<NotFoundController />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </AuthProvider>
+    </QueryClientProvider>
+  </ThemeProvider>                         // ← ADDED: closing tag
 );
 
 export default App;

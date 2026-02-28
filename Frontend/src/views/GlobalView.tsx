@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { useState, useMemo, useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
+import { useTheme } from "@/controllers/Themecontext";
 
 const G = "#2D4A35";
 const O = "#C07A3A";
@@ -29,7 +30,7 @@ function ErrorBanner({ error }: { error: string | null }) {
   );
 }
 
-function SectionLabel({ icon: Icon, children }: { icon?: any; children: React.ReactNode }) {
+function SectionLabel({ icon: Icon, children, isLight }: { icon?: any; children: React.ReactNode; isLight?: boolean }) {
   return (
     <div className="flex items-center gap-3 mb-6">
       {Icon && (
@@ -38,8 +39,8 @@ function SectionLabel({ icon: Icon, children }: { icon?: any; children: React.Re
           <Icon className="w-4.5 h-4.5" style={{ color: G }} />
         </div>
       )}
-      <h2 className="text-xl font-extrabold text-gray-900 tracking-tight">{children}</h2>
-      <div className="flex-1 h-px bg-gray-100 ml-2" />
+      <h2 className={`text-xl font-extrabold tracking-tight ${isLight ? "text-gray-900" : "text-slate-100"}`}>{children}</h2>
+      <div className={`flex-1 h-px ml-2 ${isLight ? "bg-gray-100" : "bg-white/10"}`} />
     </div>
   );
 }
@@ -59,9 +60,10 @@ interface MarketSelectorProps {
   icon?: any;
   onChartClick: (symbol: string, name: string) => void;
   autoSelectSymbol?: string;
+  isLight?: boolean;
 }
 
-function MarketSelector({ sectionId, title, markets, icon, onChartClick, autoSelectSymbol }: MarketSelectorProps) {
+function MarketSelector({ sectionId, title, markets, icon, onChartClick, autoSelectSymbol, isLight }: MarketSelectorProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
 
   useEffect(() => {
@@ -74,7 +76,7 @@ function MarketSelector({ sectionId, title, markets, icon, onChartClick, autoSel
     return (
       <div className="text-center py-16 text-gray-300">
         <Activity className="w-10 h-10 mx-auto mb-3 opacity-30" />
-        <p className="text-sm text-gray-400">No market data available</p>
+        <p className={`text-sm ${isLight ? "text-gray-400" : "text-slate-500"}`}>No market data available</p>
       </div>
     );
   }
@@ -83,7 +85,7 @@ function MarketSelector({ sectionId, title, markets, icon, onChartClick, autoSel
 
   return (
     <section id={sectionId} className="mb-12 scroll-mt-32">
-      <SectionLabel icon={icon}>{title}</SectionLabel>
+      <SectionLabel icon={icon} isLight={isLight}>{title}</SectionLabel>
       <div className="flex items-center gap-2.5 mb-5 flex-wrap">
         {markets.map((m, idx) => {
           const pos = m.changePercent >= 0;
@@ -96,7 +98,9 @@ function MarketSelector({ sectionId, title, markets, icon, onChartClick, autoSel
               style={
                 active
                   ? { background: G, color: "#fff", borderColor: G, boxShadow: `0 4px 12px ${G}30` }
-                  : { background: "#fff", color: "#374151", borderColor: "#e5e7eb" }
+                  : isLight
+                    ? { background: "#fff", color: "#374151", borderColor: "#e5e7eb" }
+                    : { background: "rgba(255,255,255,0.05)", color: "#94a3b8", borderColor: "rgba(255,255,255,0.1)" }
               }
             >
               <span className="flex items-center gap-2">
@@ -112,7 +116,7 @@ function MarketSelector({ sectionId, title, markets, icon, onChartClick, autoSel
       </div>
       <div
         onClick={() => onChartClick(sel.symbol, sel.name)}
-        className="cursor-pointer rounded-2xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200"
+        className={`cursor-pointer rounded-2xl border overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200 ${isLight ? "border-gray-100" : "border-white/8"}`}
       >
         <CleanChart
           symbol={sel.symbol}
@@ -133,6 +137,8 @@ function MarketSelector({ sectionId, title, markets, icon, onChartClick, autoSel
 // ══════════════════════════════════════════════════════════════
 export default function GlobalView() {
   const { data, loading, error, lastUpdated, refresh } = useGlobalMarkets();
+  const { theme } = useTheme();
+  const isLight = theme === "light";
   const [refreshing, setRefreshing] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalSymbol, setModalSymbol] = useState("");
@@ -192,29 +198,29 @@ export default function GlobalView() {
   };
 
   const SkeletonBlock = ({ h = "h-80" }: { h?: string }) => (
-    <div className={`${h} rounded-2xl bg-gray-50 animate-pulse border border-gray-100 mb-12`} />
+    <div className={`${h} rounded-2xl animate-pulse border mb-12 ${isLight ? "bg-gray-50 border-gray-100" : "bg-white/5 border-white/8"}`} />
   );
 
   return (
     <Layout>
-      <div className="min-h-screen bg-[#F8F7F4]">
+      <div className={`min-h-screen ${isLight ? "bg-[#F8F7F4]" : "bg-[#0c1a2e]"}`}>
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 max-w-7xl">
 
           {/* HERO */}
-          <div className="mb-12 rounded-2xl overflow-hidden border border-gray-200 shadow-sm">
+          <div className={`mb-12 rounded-2xl overflow-hidden border shadow-sm ${isLight ? "border-gray-200" : "border-white/8"}`}>
             <div className="h-1" style={{ background: `linear-gradient(to right, ${G}, ${O})` }} />
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 px-8 py-9 bg-white">
+            <div className={`flex flex-col md:flex-row md:items-center md:justify-between gap-6 px-8 py-9 ${isLight ? "bg-white" : "bg-[#0e2038]"}`}>
               <div>
                 <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold mb-4"
                   style={{ background: `${G}12`, color: G, border: `1px solid ${G}25` }}>
                   <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: G }} />
                   LIVE MARKETS
                 </div>
-                <h1 className="text-4xl sm:text-5xl font-black text-gray-900 tracking-tight leading-none mb-3">
+                <h1 className={`text-4xl sm:text-5xl font-black tracking-tight leading-none mb-3 ${isLight ? "text-gray-900" : "text-slate-100"}`}>
                   Global Financial
                   <span className="block" style={{ color: G }}>Markets</span>
                 </h1>
-                <p className="text-gray-400 text-sm font-normal">
+                <p className={`text-sm font-normal ${isLight ? "text-gray-400" : "text-slate-400"}`}>
                   Real-time data · Click any chart for detailed analysis
                 </p>
               </div>
@@ -235,28 +241,28 @@ export default function GlobalView() {
           {isLoading ? <SkeletonBlock /> : (
             <MarketSelector sectionId="section-us" title="United States Markets"
               markets={usMarkets} icon={BarChart3} onChartClick={handleChartClick}
-              autoSelectSymbol={tickerSymbol ?? undefined} />
+              autoSelectSymbol={tickerSymbol ?? undefined} isLight={isLight} />
           )}
 
           {isLoading ? <SkeletonBlock /> : (
             <MarketSelector sectionId="section-europe" title="European Markets"
               markets={europeMarkets} icon={LineChart} onChartClick={handleChartClick}
-              autoSelectSymbol={tickerSymbol ?? undefined} />
+              autoSelectSymbol={tickerSymbol ?? undefined} isLight={isLight} />
           )}
 
           {isLoading ? <SkeletonBlock /> : (
             <MarketSelector sectionId="section-asia" title="Asia Pacific Markets"
               markets={asiaMarkets} icon={Globe} onChartClick={handleChartClick}
-              autoSelectSymbol={tickerSymbol ?? undefined} />
+              autoSelectSymbol={tickerSymbol ?? undefined} isLight={isLight} />
           )}
 
           {/* FOREX */}
           <section className="mb-12">
-            <SectionLabel icon={DollarSign}>Foreign Exchange</SectionLabel>
+            <SectionLabel icon={DollarSign} isLight={isLight}>Foreign Exchange</SectionLabel>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
               {isLoading
                 ? Array.from({ length: 4 }).map((_, i) => (
-                    <div key={i} className="h-44 bg-gray-50 rounded-2xl animate-pulse border border-gray-100" />
+                    <div key={i} className={`h-44 rounded-2xl animate-pulse border ${isLight ? "bg-gray-50 border-gray-100" : "bg-white/5 border-white/8"}`} />
                   ))
                 : forexData.map((fx: ForexPair) => (
                     <div key={fx.pair} onClick={() => handleChartClick(fx.pair, fx.pair)}
@@ -270,11 +276,11 @@ export default function GlobalView() {
 
           {/* COMMODITIES */}
           <section className="mb-12">
-            <SectionLabel icon={Briefcase}>Key Commodities</SectionLabel>
+            <SectionLabel icon={Briefcase} isLight={isLight}>Key Commodities</SectionLabel>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
               {isLoading
                 ? Array.from({ length: 5 }).map((_, i) => (
-                    <div key={i} className="h-44 bg-gray-50 rounded-2xl animate-pulse border border-gray-100" />
+                    <div key={i} className={`h-44 rounded-2xl animate-pulse border ${isLight ? "bg-gray-50 border-gray-100" : "bg-white/5 border-white/8"}`} />
                   ))
                 : commoditiesData.map((c: Commodity) => (
                     <div key={c.symbol} onClick={() => handleChartClick(c.symbol, c.name)}
@@ -290,24 +296,24 @@ export default function GlobalView() {
           {/* BONDS + VIX */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-12">
             <div>
-              <SectionLabel icon={Landmark}>Treasury Yields</SectionLabel>
-              <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+              <SectionLabel icon={Landmark} isLight={isLight}>Treasury Yields</SectionLabel>
+              <div className={`rounded-2xl border shadow-sm overflow-hidden ${isLight ? "bg-white border-gray-100" : "bg-[#0e2038] border-white/8"}`}>
                 {isLoading ? (
-                  <div className="h-64 animate-pulse bg-gray-50" />
+                  <div className={`h-64 animate-pulse ${isLight ? "bg-gray-50" : "bg-white/5"}`} />
                 ) : bondsData.length > 0 ? (
-                  <div className="divide-y divide-gray-50">
+                  <div className={`divide-y ${isLight ? "divide-gray-50" : "divide-white/5"}`}>
                     {bondsData.map((bond: BondYield, i: number) => {
                       const pos = bond.change >= 0;
                       return (
-                        <div key={i} className="flex items-center justify-between px-6 py-4 hover:bg-gray-50/60 transition-colors">
+                        <div key={i} className={`flex items-center justify-between px-6 py-4 transition-colors ${isLight ? "hover:bg-gray-50/60" : "hover:bg-white/5"}`}>
                           <div>
-                            <p className="font-bold text-gray-900 text-sm">{bond.name}</p>
+                            <p className={`font-bold text-sm ${isLight ? "text-gray-900" : "text-slate-100"}`}>{bond.name}</p>
                             <p className="text-xs font-semibold mt-0.5" style={{ color: pos ? "#16a34a" : "#dc2626" }}>
                               {pos ? "+" : ""}{bond.change.toFixed(3)}%
                             </p>
                           </div>
                           <div className="text-right flex items-center gap-3">
-                            <span className="text-2xl font-black text-gray-900">{bond.yield.toFixed(3)}%</span>
+                            <span className={`text-2xl font-black ${isLight ? "text-gray-900" : "text-slate-100"}`}>{bond.yield.toFixed(3)}%</span>
                             {pos ? <TrendingUp className="w-4 h-4 text-emerald-500" /> : <TrendingDown className="w-4 h-4 text-red-500" />}
                           </div>
                         </div>
@@ -315,23 +321,23 @@ export default function GlobalView() {
                     })}
                   </div>
                 ) : (
-                  <p className="p-10 text-center text-gray-300 text-sm">Bond data unavailable</p>
+                  <p className={`p-10 text-center text-sm ${isLight ? "text-gray-300" : "text-slate-600"}`}>Bond data unavailable</p>
                 )}
               </div>
             </div>
 
             <div>
-              <SectionLabel icon={Percent}>Volatility Index (VIX)</SectionLabel>
+              <SectionLabel icon={Percent} isLight={isLight}>Volatility Index (VIX)</SectionLabel>
               {isLoading ? (
-                <div className="h-64 bg-gray-50 rounded-2xl animate-pulse border border-gray-100" />
+                <div className={`h-64 rounded-2xl animate-pulse border ${isLight ? "bg-gray-50 border-gray-100" : "bg-white/5 border-white/8"}`} />
               ) : data?.vix ? (() => {
                 const vs = VIX_STYLE[data.vix.sentiment];
                 const pos = data.vix.change >= 0;
                 return (
                   <div className={`rounded-2xl border ${vs.wrap} p-10 flex flex-col items-center justify-center gap-3 shadow-sm`}>
-                    <p className="text-xs font-bold tracking-[0.18em] uppercase text-gray-400">VIX Index</p>
-                    <div className="text-7xl font-black text-gray-900 leading-none">{data.vix.value.toFixed(2)}</div>
-                    <p className="font-bold text-gray-500 text-sm">
+                    <p className={`text-xs font-bold tracking-[0.18em] uppercase ${isLight ? "text-gray-400" : "text-slate-500"}`}>VIX Index</p>
+                    <div className={`text-7xl font-black leading-none ${isLight ? "text-gray-900" : "text-slate-100"}`}>{data.vix.value.toFixed(2)}</div>
+                    <p className={`font-bold text-sm ${isLight ? "text-gray-500" : "text-slate-400"}`}>
                       {pos ? "+" : ""}{data.vix.change.toFixed(2)} ({data.vix.changePercent.toFixed(2)}%)
                     </p>
                     <span className={`mt-1 px-5 py-1.5 rounded-full text-xs font-extrabold tracking-widest border ${vs.badge}`}>
@@ -340,8 +346,8 @@ export default function GlobalView() {
                   </div>
                 );
               })() : (
-                <div className="h-64 rounded-2xl border border-gray-100 bg-gray-50 flex items-center justify-center">
-                  <p className="text-gray-300 text-sm">VIX data unavailable</p>
+                <div className={`h-64 rounded-2xl border flex items-center justify-center ${isLight ? "border-gray-100 bg-gray-50" : "border-white/8 bg-white/5"}`}>
+                  <p className={`text-sm ${isLight ? "text-gray-300" : "text-slate-600"}`}>VIX data unavailable</p>
                 </div>
               )}
             </div>
@@ -349,24 +355,24 @@ export default function GlobalView() {
 
           {/* REGIONAL PERFORMANCE */}
           <section className="mb-12">
-            <SectionLabel icon={Globe}>Regional Performance</SectionLabel>
+            <SectionLabel icon={Globe} isLight={isLight}>Regional Performance</SectionLabel>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
               {isLoading
                 ? Array.from({ length: 3 }).map((_, i) => (
-                    <div key={i} className="h-56 bg-gray-50 rounded-2xl animate-pulse border border-gray-100" />
+                    <div key={i} className={`h-56 rounded-2xl animate-pulse border ${isLight ? "bg-gray-50 border-gray-100" : "bg-white/5 border-white/8"}`} />
                   ))
                 : regionsData.map((r: RegionSummary) => {
                     const pos = r.avgChange >= 0;
                     return (
-                      <div key={r.name} className="bg-white rounded-2xl border border-gray-100 hover:border-gray-200 hover:shadow-md transition-all duration-200 overflow-hidden">
+                      <div key={r.name} className={`rounded-2xl border hover:shadow-md transition-all duration-200 overflow-hidden ${isLight ? "bg-white border-gray-100 hover:border-gray-200" : "bg-[#0e2038] border-white/8 hover:border-white/15"}`}>
                         <div className="h-0.5" style={{ background: pos ? "linear-gradient(to right, #16a34a, transparent)" : "linear-gradient(to right, #dc2626, transparent)" }} />
                         <div className="p-5">
                           <div className="flex items-start justify-between mb-4">
                             <div className="flex items-center gap-3">
                               <span className="text-3xl">{r.flag}</span>
                               <div>
-                                <p className="font-extrabold text-gray-900 text-base">{r.name}</p>
-                                <p className="text-xs text-gray-400 mt-0.5">{r.countries.join(", ")}</p>
+                                <p className={`font-extrabold text-base ${isLight ? "text-gray-900" : "text-slate-100"}`}>{r.name}</p>
+                                <p className={`text-xs mt-0.5 ${isLight ? "text-gray-400" : "text-slate-500"}`}>{r.countries.join(", ")}</p>
                               </div>
                             </div>
                             <span className="text-xl font-black" style={{ color: pos ? "#16a34a" : "#dc2626" }}>
@@ -383,7 +389,7 @@ export default function GlobalView() {
                               <span className="text-red-600 font-bold text-xs">{r.worst.name} ({r.worst.change.toFixed(2)}%)</span>
                             </div>
                           </div>
-                          <div className="flex justify-between text-xs text-gray-300 mt-4 pt-4 border-t border-gray-50">
+                          <div className={`flex justify-between text-xs mt-4 pt-4 border-t ${isLight ? "text-gray-300 border-gray-50" : "text-slate-600 border-white/5"}`}>
                             <div className="flex items-center gap-1"><MapPin className="w-3 h-3" /> {r.countries.length} markets</div>
                             <div className="flex items-center gap-1"><Clock className="w-3 h-3" /> Live</div>
                           </div>
@@ -396,7 +402,7 @@ export default function GlobalView() {
 
           {/* EVENTS CALENDAR */}
           <section className="mb-12">
-            <SectionLabel>Global Events Calendar</SectionLabel>
+            <SectionLabel isLight={isLight}>Global Events Calendar</SectionLabel>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {eventsData.map((ev, i) => {
                 const IC: Record<string, { bg: string; text: string; border: string }> = {
@@ -408,13 +414,13 @@ export default function GlobalView() {
                 const d = new Date(ev.date);
                 const dateStr = isNaN(d.getTime()) ? ev.date : d.toLocaleDateString("en-IN", { day: "2-digit", month: "short" });
                 return (
-                  <div key={i} className="bg-white rounded-xl border border-gray-100 p-4 hover:border-gray-200 hover:shadow-sm transition-all duration-150">
+                  <div key={i} className={`rounded-xl border p-4 transition-all duration-150 ${isLight ? "bg-white border-gray-100 hover:border-gray-200 hover:shadow-sm" : "bg-[#0e2038] border-white/8 hover:border-white/15"}`}>
                     <div className="flex items-center gap-2 flex-wrap mb-3">
                       <span className={`px-2.5 py-0.5 text-[11px] font-extrabold rounded-full border ${s.bg} ${s.text} ${s.border}`}>{ev.impact}</span>
-                      <span className="px-2.5 py-0.5 bg-gray-50 text-gray-600 text-[11px] font-semibold rounded-full border border-gray-100">{ev.region}</span>
-                      <span className="ml-auto text-xs text-gray-300 font-medium">{dateStr}</span>
+                      <span className={`px-2.5 py-0.5 text-[11px] font-semibold rounded-full border ${isLight ? "bg-gray-50 text-gray-600 border-gray-100" : "bg-white/5 text-slate-400 border-white/8"}`}>{ev.region}</span>
+                      <span className={`ml-auto text-xs font-medium ${isLight ? "text-gray-300" : "text-slate-600"}`}>{dateStr}</span>
                     </div>
-                    <p className="font-semibold text-sm text-gray-800 leading-snug">{ev.title}</p>
+                    <p className={`font-semibold text-sm leading-snug ${isLight ? "text-gray-800" : "text-slate-200"}`}>{ev.title}</p>
                   </div>
                 );
               })}
@@ -422,14 +428,14 @@ export default function GlobalView() {
           </section>
 
           {/* STATUS BAR */}
-          <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+          <div className={`rounded-2xl border shadow-sm overflow-hidden ${isLight ? "bg-white border-gray-100" : "bg-[#0e2038] border-white/8"}`}>
             <div className="h-0.5" style={{ background: `linear-gradient(to right, ${G}, ${O}, transparent)` }} />
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-6 py-5 text-sm">
-              <div className="flex items-center gap-2.5 text-gray-400">
+              <div className={`flex items-center gap-2.5 ${isLight ? "text-gray-400" : "text-slate-500"}`}>
                 <Activity className="w-4 h-4" style={{ color: G }} />
                 <span className="font-medium">
                   Last updated:{" "}
-                  <span className="text-gray-600 font-semibold">
+                  <span className={`font-semibold ${isLight ? "text-gray-600" : "text-slate-300"}`}>
                     {lastUpdated ? lastUpdated.toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" }) : "Fetching…"}
                   </span>
                 </span>
@@ -439,8 +445,8 @@ export default function GlobalView() {
                   const open = data.marketStatus[region] === "open";
                   return (
                     <div key={region} className="flex items-center gap-1.5">
-                      {open ? <Wifi className="w-3.5 h-3.5 text-emerald-500" /> : <WifiOff className="w-3.5 h-3.5 text-gray-300" />}
-                      <span className={`uppercase font-bold text-xs ${open ? "text-emerald-600" : "text-gray-300"}`}>
+                      {open ? <Wifi className="w-3.5 h-3.5 text-emerald-500" /> : <WifiOff className={`w-3.5 h-3.5 ${isLight ? "text-gray-300" : "text-slate-600"}`} />}
+                      <span className={`uppercase font-bold text-xs ${open ? "text-emerald-600" : (isLight ? "text-gray-300" : "text-slate-600")}`}>
                         {region} {data.marketStatus[region]}
                       </span>
                     </div>

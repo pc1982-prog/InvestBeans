@@ -1,5 +1,7 @@
+
 'use client'
 import React, { useEffect, useRef, memo } from 'react';
+import { useTheme } from "@/controllers/Themecontext";
 
 interface TradingViewWidgetProps {
   symbol?: string;
@@ -9,15 +11,17 @@ interface TradingViewWidgetProps {
 
 function TradingViewWidget({
   symbol = 'NASDAQ:AAPL',
-  theme = 'dark',
+  theme: propTheme,
   height = '600px',
 }: TradingViewWidgetProps) {
+  const { theme: globalTheme } = useTheme();
+  const finalTheme = propTheme || globalTheme || 'dark';
+
   const container = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!container.current) return;
 
-    // Clear old widget before creating new one (fixes stale symbol bug)
     container.current.innerHTML = '';
 
     const script = document.createElement('script');
@@ -28,11 +32,11 @@ function TradingViewWidget({
       symbol,
       interval: 'D',
       timezone: 'Asia/Kolkata',
-      theme,
+      theme: finalTheme,
       style: '1',
       locale: 'en',
-      backgroundColor: '#0F0F0F',
-      gridColor: 'rgba(242,242,242,0.06)',
+      backgroundColor: finalTheme === 'light' ? '#F8F7F4' : '#0F0F0F',
+      gridColor: finalTheme === 'light' ? 'rgba(13,39,66,0.06)' : 'rgba(242,242,242,0.06)',
       allow_symbol_change: true,
       calendar: false,
       details: false,
@@ -57,7 +61,7 @@ function TradingViewWidget({
     return () => {
       if (container.current) container.current.innerHTML = '';
     };
-  }, [symbol, theme]);
+  }, [symbol, finalTheme]);
 
   return (
     <div

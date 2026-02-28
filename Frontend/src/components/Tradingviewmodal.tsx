@@ -1,6 +1,7 @@
 import { X } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 import TradingViewWidget from './TradingViewWidget';
+import { useTheme } from '@/controllers/Themecontext';
 
 interface TradingViewModalProps {
   isOpen: boolean;
@@ -43,6 +44,7 @@ const SYMBOL_MAP: Record<string, string> = {
 
 export default function TradingViewModal({ isOpen, onClose, symbol, name }: TradingViewModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
+  const { theme } = useTheme();
 
   const tvSymbol = SYMBOL_MAP[symbol] || symbol.replace('^', '');
 
@@ -106,7 +108,7 @@ export default function TradingViewModal({ isOpen, onClose, symbol, name }: Trad
         <div className="p-4 overflow-auto max-h-[calc(90vh-80px)] bg-gray-900">
           <TradingViewWidget
             symbol={tvSymbol}
-            theme="dark"
+            theme={theme === 'light' ? 'light' : 'dark'}
             height="600px"
           />
         </div>

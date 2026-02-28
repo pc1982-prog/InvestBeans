@@ -1,15 +1,17 @@
+
 import React, { useEffect, useRef, memo } from 'react';
+import { useTheme } from "@/controllers/Themecontext";
 
 interface StockHeatmapWidgetProps {
   dataSource?: string;
 }
 
 function StockHeatmapWidget({ dataSource = "SENSEX" }: StockHeatmapWidgetProps) {
+  const { theme } = useTheme();
   const container = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (container.current) {
-      // Clear previous widget
       container.current.innerHTML = '';
       
       const script = document.createElement("script");
@@ -23,7 +25,7 @@ function StockHeatmapWidget({ dataSource = "SENSEX" }: StockHeatmapWidgetProps) 
         "grouping": "sector",
         "locale": "en",
         "symbolUrl": "",
-        "colorTheme": "dark",
+        "colorTheme": theme,
         "exchanges": [],
         "hasTopBar": true,
         "isDataSetEnabled": true,
@@ -35,7 +37,7 @@ function StockHeatmapWidget({ dataSource = "SENSEX" }: StockHeatmapWidgetProps) 
       });
       container.current.appendChild(script);
     }
-  }, [dataSource]);
+  }, [dataSource, theme]);
 
   return (
     <div className="tradingview-widget-container w-full h-full" ref={container}>

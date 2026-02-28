@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import api from "@/api/axios";
+import { useTheme } from "@/controllers/Themecontext";
 
 interface InsightData {
   _id?: string; title: string; description: string; investBeansInsight: string;
@@ -13,15 +14,15 @@ interface AdminInsightFormProps {
   editingInsight?: Partial<InsightData>;
 }
 
-const inputStyle = {
-  background: "rgba(255,255,255,0.05)",
-  border: "1px solid rgba(255,255,255,0.1)",
-  color: "white",
-};
-const inputClass = "w-full px-4 py-3 text-sm rounded-xl placeholder:text-slate-500 focus:outline-none focus:ring-2 transition-all";
-
 const AdminInsightForm = ({ isOpen, onClose, onSuccess, editingInsight }: AdminInsightFormProps) => {
-  const empty = { title: "", description: "", investBeansInsight: "", creditSource: "", creditAuthor: "", creditUrl: "", sentiment: "neutral", category: "", marketType: "domestic" };
+  const { theme } = useTheme();
+  const isLight = theme === "light";
+
+  const empty = {
+    title: "", description: "", investBeansInsight: "",
+    creditSource: "", creditAuthor: "", creditUrl: "",
+    sentiment: "neutral", category: "", marketType: "domestic",
+  };
   const [formData, setFormData] = useState(empty);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -67,132 +68,251 @@ const AdminInsightForm = ({ isOpen, onClose, onSuccess, editingInsight }: AdminI
     } finally { setLoading(false); }
   };
 
+  // ── Theme tokens ─────────────────────────────────────────────────────────
+  const modalBg = isLight
+    ? "linear-gradient(160deg,#f0f7fe 0%,#e8f2fd 100%)"
+    : "linear-gradient(160deg,#0d1e36 0%,#0c1a2e 100%)";
+  const modalBorder = isLight
+    ? "1px solid rgba(13,37,64,0.12)"
+    : "1px solid rgba(255,255,255,0.09)";
+  const goldTopLine =
+    "linear-gradient(90deg,transparent,rgba(212,168,67,0.55),transparent)";
+
+  // Header
+  const headerBg = isLight ? "rgba(232,242,253,0.97)" : "rgba(13,30,54,0.97)";
+  const headerBorder = isLight ? "1px solid rgba(13,37,64,0.08)" : "1px solid rgba(255,255,255,0.07)";
+  const titleColor = isLight ? "#0d1b2a" : "white";
+  const subTitleColor = isLight ? "rgba(13,37,64,0.45)" : "rgba(148,163,184,1)";
+  const closeBtnBg = isLight ? "rgba(13,37,64,0.06)" : "rgba(255,255,255,0.05)";
+  const closeBtnColor = isLight ? "rgba(13,37,64,0.45)" : "rgba(148,163,184,1)";
+
+  // Inputs
+  const inputBg = isLight ? "rgba(255,255,255,0.85)" : "rgba(255,255,255,0.05)";
+  const inputBorder = isLight ? "1px solid rgba(13,37,64,0.15)" : "1px solid rgba(255,255,255,0.1)";
+  const inputColor = isLight ? "#0d1b2a" : "white";
+  const placeholderColor = isLight ? "rgba(13,37,64,0.3)" : "rgba(100,116,139,1)";
+  const inputFocusRing = isLight ? "focus:ring-accent/40" : "focus:ring-accent/30";
+  const inputStyle = { background: inputBg, border: inputBorder, color: inputColor };
+  const inputClass = `w-full px-4 py-3 text-sm rounded-xl placeholder:text-slate-400 focus:outline-none focus:ring-2 ${inputFocusRing} transition-all`;
+
+  // Label
+  const labelColor = isLight ? "rgba(13,37,64,0.75)" : "rgba(203,213,225,1)";
+  const labelOptionalColor = isLight ? "rgba(13,37,64,0.45)" : "rgba(100,116,139,1)";
+
+  // Credits section block
+  const creditBlockBg = isLight ? "rgba(212,168,67,0.06)" : "rgba(212,168,67,0.04)";
+  const creditBlockBorder = isLight ? "1px solid rgba(212,168,67,0.2)" : "1px solid rgba(212,168,67,0.13)";
+
+  // Select option bg (still dark, browser limitation)
+  const optionBg = "#0d1e36";
+
+  // Error block
+  const errorBg = isLight ? "rgba(251,113,133,0.06)" : "rgba(251,113,133,0.08)";
+  const errorBorder = isLight ? "1px solid rgba(251,113,133,0.25)" : "1px solid rgba(251,113,133,0.2)";
+  const errorColor = isLight ? "#be123c" : "rgba(251,113,133,1)";
+
+  // Footer bar
+  const footerBg = isLight ? "rgba(232,242,253,0.98)" : "rgba(10,22,40,0.98)";
+  const footerBorder = isLight ? "1px solid rgba(13,37,64,0.08)" : "1px solid rgba(255,255,255,0.07)";
+
+  // Cancel button
+  const cancelBg = isLight ? "rgba(13,37,64,0.06)" : "rgba(255,255,255,0.04)";
+  const cancelBorder = isLight ? "1px solid rgba(13,37,64,0.12)" : "1px solid rgba(255,255,255,0.1)";
+  const cancelColor = isLight ? "rgba(13,37,64,0.65)" : "rgba(203,213,225,1)";
+
+  // Char counter
+  const charCountColor = isLight ? "rgba(13,37,64,0.35)" : "rgba(100,116,139,1)";
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto animate-fade-in"
-      style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(8px)" }}>
+    <div
+      className="fixed inset-0 z-50 overflow-y-auto animate-fade-in"
+      style={{ background: "rgba(0,0,0,0.65)", backdropFilter: "blur(8px)" }}
+    >
       <div className="min-h-screen flex items-center justify-center p-4 sm:p-6">
-        <div className="relative w-full max-w-4xl rounded-2xl my-8 overflow-hidden shadow-2xl"
-          style={{ background: "linear-gradient(160deg,#0d1e36 0%,#0c1a2e 100%)", border: "1px solid rgba(255,255,255,0.09)", boxShadow: "0 25px 60px rgba(0,0,0,0.6)" }}>
+        <div
+          className="relative w-full max-w-4xl rounded-2xl my-8 overflow-hidden shadow-2xl"
+          style={{ background: modalBg, border: modalBorder, boxShadow: "0 25px 60px rgba(0,0,0,0.35)" }}
+        >
           {/* Gold top line */}
-          <div className="absolute top-0 left-0 right-0 h-px"
-            style={{ background: "linear-gradient(90deg,transparent,rgba(212,168,67,0.55),transparent)" }} />
+          <div className="absolute top-0 left-0 right-0 h-px" style={{ background: goldTopLine }} />
 
-          {/* Header */}
-          <div className="sticky top-0 z-10 px-6 py-5"
-            style={{ background: "rgba(13,30,54,0.97)", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
+          {/* ── HEADER ── */}
+          <div
+            className="sticky top-0 z-10 px-6 py-5"
+            style={{ background: headerBg, borderBottom: headerBorder }}
+          >
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-xl font-bold text-white">{editingInsight ? "Edit Insight" : "Create New Insight"}</h2>
-                <p className="text-xs text-slate-400 mt-0.5">Fill in the details below</p>
+                <h2 className="text-xl font-bold" style={{ color: titleColor }}>
+                  {editingInsight ? "Edit Insight" : "Create New Insight"}
+                </h2>
+                <p className="text-xs mt-0.5" style={{ color: subTitleColor }}>Fill in the details below</p>
               </div>
-              <button onClick={onClose} className="p-2 rounded-full text-slate-400 hover:text-white transition-colors"
-                style={{ background: "rgba(255,255,255,0.05)" }}>
+              <button
+                onClick={onClose}
+                className="p-2 rounded-full transition-colors hover:opacity-80"
+                style={{ background: closeBtnBg, color: closeBtnColor }}
+              >
                 <X className="w-5 h-5" />
               </button>
             </div>
           </div>
 
-          {/* Form */}
+          {/* ── FORM ── */}
           <form onSubmit={handleSubmit} className="p-6 sm:p-8 space-y-5 max-h-[calc(100vh-180px)] overflow-y-auto">
+
+            {/* Error banner */}
             {error && (
-              <div className="p-4 rounded-xl text-sm text-rose-300" style={{ background: "rgba(251,113,133,0.08)", border: "1px solid rgba(251,113,133,0.2)" }}>
+              <div className="p-4 rounded-xl text-sm" style={{ background: errorBg, border: errorBorder, color: errorColor }}>
                 {error}
               </div>
             )}
 
             {/* Title */}
             <div>
-              <Label className="text-sm font-semibold text-slate-300 mb-2 block">Title <span className="text-[#D4A843]">*</span></Label>
-              <input value={formData.title} onChange={e => set("title", e.target.value)} placeholder="Enter insight title"
-                required maxLength={200} className={inputClass} style={{ ...inputStyle, height: 48 }} />
+              <Label className="text-sm font-semibold mb-2 block" style={{ color: labelColor }}>
+                Title <span className="text-[#D4A843]">*</span>
+              </Label>
+              <input
+                value={formData.title} onChange={e => set("title", e.target.value)}
+                placeholder="Enter insight title" required maxLength={200}
+                className={inputClass} style={{ ...inputStyle, height: 48 }}
+              />
             </div>
 
             {/* Description */}
             <div>
-              <Label className="text-sm font-semibold text-slate-300 mb-2 block">Description <span className="text-[#D4A843]">*</span></Label>
-              <textarea value={formData.description} onChange={e => set("description", e.target.value)}
+              <Label className="text-sm font-semibold mb-2 block" style={{ color: labelColor }}>
+                Description <span className="text-[#D4A843]">*</span>
+              </Label>
+              <textarea
+                value={formData.description} onChange={e => set("description", e.target.value)}
                 placeholder="Brief description (shown on card preview)" required maxLength={1000} rows={5}
-                className={`${inputClass} resize-none`} style={inputStyle} />
-              <p className="text-xs text-slate-500 mt-1 text-right">{formData.description.length}/1000</p>
+                className={`${inputClass} resize-none`} style={inputStyle}
+              />
+              <p className="text-xs mt-1 text-right" style={{ color: charCountColor }}>
+                {formData.description.length}/1000
+              </p>
             </div>
 
-            {/* Insight */}
+            {/* InvestBeans Insight */}
             <div>
-              <Label className="text-sm font-semibold text-slate-300 mb-2 block">InvestBeans Insight <span className="text-[#D4A843]">*</span></Label>
-              <textarea value={formData.investBeansInsight} onChange={e => set("investBeansInsight", e.target.value)}
+              <Label className="text-sm font-semibold mb-2 block" style={{ color: labelColor }}>
+                InvestBeans Insight <span className="text-[#D4A843]">*</span>
+              </Label>
+              <textarea
+                value={formData.investBeansInsight} onChange={e => set("investBeansInsight", e.target.value)}
                 placeholder="Your expert analysis" required maxLength={2000} rows={4}
-                className={`${inputClass} resize-none`} style={inputStyle} />
-              <p className="text-xs text-slate-500 mt-1 text-right">{formData.investBeansInsight.length}/2000</p>
+                className={`${inputClass} resize-none`} style={inputStyle}
+              />
+              <p className="text-xs mt-1 text-right" style={{ color: charCountColor }}>
+                {formData.investBeansInsight.length}/2000
+              </p>
             </div>
 
-            {/* Credits */}
-            <div className="p-5 rounded-xl space-y-4"
-              style={{ background: "rgba(212,168,67,0.04)", border: "1px solid rgba(212,168,67,0.13)" }}>
+            {/* Credits block */}
+            <div className="p-5 rounded-xl space-y-4" style={{ background: creditBlockBg, border: creditBlockBorder }}>
               <h3 className="text-sm font-semibold text-[#D4A843] flex items-center gap-2">
-                <span className="w-1 h-4 rounded-full inline-block" style={{ background: "#D4A843" }} />Credits & Source
+                <span className="w-1 h-4 rounded-full inline-block" style={{ background: "#D4A843" }} />
+                Credits & Source
               </h3>
+
+              {/* Source */}
               <div>
-                <Label className="text-sm text-slate-300 mb-2 block">Source <span className="text-[#D4A843]">*</span></Label>
-                <input value={formData.creditSource} onChange={e => set("creditSource", e.target.value)}
-                  placeholder="e.g. Bloomberg, Reuters" required className={inputClass} style={{ ...inputStyle, height: 48 }} />
+                <Label className="text-sm mb-2 block" style={{ color: labelColor }}>
+                  Source <span className="text-[#D4A843]">*</span>
+                </Label>
+                <input
+                  value={formData.creditSource} onChange={e => set("creditSource", e.target.value)}
+                  placeholder="e.g. Bloomberg, Reuters" required
+                  className={inputClass} style={{ ...inputStyle, height: 48 }}
+                />
               </div>
+
+              {/* Author + URL */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-sm text-slate-400 mb-2 block">Author (Optional)</Label>
-                  <input value={formData.creditAuthor} onChange={e => set("creditAuthor", e.target.value)}
-                    placeholder="Author name" className={inputClass} style={{ ...inputStyle, height: 48 }} />
+                  <Label className="text-sm mb-2 block" style={{ color: labelOptionalColor }}>Author (Optional)</Label>
+                  <input
+                    value={formData.creditAuthor} onChange={e => set("creditAuthor", e.target.value)}
+                    placeholder="Author name"
+                    className={inputClass} style={{ ...inputStyle, height: 48 }}
+                  />
                 </div>
                 <div>
-                  <Label className="text-sm text-slate-400 mb-2 block">Source URL (Optional)</Label>
-                  <input type="url" value={formData.creditUrl} onChange={e => set("creditUrl", e.target.value)}
-                    placeholder="https://example.com" className={inputClass} style={{ ...inputStyle, height: 48 }} />
+                  <Label className="text-sm mb-2 block" style={{ color: labelOptionalColor }}>Source URL (Optional)</Label>
+                  <input
+                    type="url" value={formData.creditUrl} onChange={e => set("creditUrl", e.target.value)}
+                    placeholder="https://example.com"
+                    className={inputClass} style={{ ...inputStyle, height: 48 }}
+                  />
                 </div>
               </div>
             </div>
 
             {/* Category / Market / Sentiment */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {[
-                { label: "Category", key: "category", type: "input", placeholder: "e.g. Technology" },
-              ].map(f => (
-                <div key={f.key}>
-                  <Label className="text-sm font-semibold text-slate-300 mb-2 block">{f.label} <span className="text-[#D4A843]">*</span></Label>
-                  <input value={(formData as any)[f.key]} onChange={e => set(f.key, e.target.value)}
-                    placeholder={f.placeholder} required className={inputClass} style={{ ...inputStyle, height: 48 }} />
-                </div>
-              ))}
+              {/* Category */}
               <div>
-                <Label className="text-sm font-semibold text-slate-300 mb-2 block">Market Type <span className="text-[#D4A843]">*</span></Label>
-                <select value={formData.marketType} onChange={e => set("marketType", e.target.value)}
-                  className={inputClass} style={{ ...inputStyle, height: 48 }}>
-                  <option value="domestic" style={{ background: "#0d1e36" }}>Domestic</option>
-                  <option value="global" style={{ background: "#0d1e36" }}>Global</option>
+                <Label className="text-sm font-semibold mb-2 block" style={{ color: labelColor }}>
+                  Category <span className="text-[#D4A843]">*</span>
+                </Label>
+                <input
+                  value={formData.category} onChange={e => set("category", e.target.value)}
+                  placeholder="e.g. Technology" required
+                  className={inputClass} style={{ ...inputStyle, height: 48 }}
+                />
+              </div>
+
+              {/* Market Type */}
+              <div>
+                <Label className="text-sm font-semibold mb-2 block" style={{ color: labelColor }}>
+                  Market Type <span className="text-[#D4A843]">*</span>
+                </Label>
+                <select
+                  value={formData.marketType} onChange={e => set("marketType", e.target.value)}
+                  className={inputClass} style={{ ...inputStyle, height: 48 }}
+                >
+                  <option value="domestic" style={{ background: optionBg }}>Domestic</option>
+                  <option value="global" style={{ background: optionBg }}>Global</option>
                 </select>
               </div>
+
+              {/* Sentiment */}
               <div>
-                <Label className="text-sm font-semibold text-slate-300 mb-2 block">Sentiment <span className="text-[#D4A843]">*</span></Label>
-                <select value={formData.sentiment} onChange={e => set("sentiment", e.target.value)}
-                  className={inputClass} style={{ ...inputStyle, height: 48 }}>
-                  <option value="positive" style={{ background: "#0d1e36" }}>Positive</option>
-                  <option value="negative" style={{ background: "#0d1e36" }}>Negative</option>
-                  <option value="neutral" style={{ background: "#0d1e36" }}>Neutral</option>
+                <Label className="text-sm font-semibold mb-2 block" style={{ color: labelColor }}>
+                  Sentiment <span className="text-[#D4A843]">*</span>
+                </Label>
+                <select
+                  value={formData.sentiment} onChange={e => set("sentiment", e.target.value)}
+                  className={inputClass} style={{ ...inputStyle, height: 48 }}
+                >
+                  <option value="positive" style={{ background: optionBg }}>Positive</option>
+                  <option value="negative" style={{ background: optionBg }}>Negative</option>
+                  <option value="neutral" style={{ background: optionBg }}>Neutral</option>
                 </select>
               </div>
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex gap-3 pt-4 sticky bottom-0 -mx-6 sm:-mx-8 px-6 sm:px-8 pb-4"
-              style={{ background: "rgba(10,22,40,0.98)", borderTop: "1px solid rgba(255,255,255,0.07)", marginTop: "8px" }}>
-              <button type="button" onClick={onClose} disabled={loading}
-                className="flex-1 h-12 rounded-xl text-sm font-semibold text-slate-300 transition-all disabled:opacity-50 hover:text-white"
-                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)" }}>
+            {/* ── FOOTER ACTIONS ── */}
+            <div
+              className="flex gap-3 pt-4 sticky bottom-0 -mx-6 sm:-mx-8 px-6 sm:px-8 pb-4"
+              style={{ background: footerBg, borderTop: footerBorder, marginTop: "8px" }}
+            >
+              <button
+                type="button" onClick={onClose} disabled={loading}
+                className="flex-1 h-12 rounded-xl text-sm font-semibold transition-all disabled:opacity-50 hover:opacity-80"
+                style={{ background: cancelBg, border: cancelBorder, color: cancelColor }}
+              >
                 Cancel
               </button>
-              <button type="submit" disabled={loading}
+              <button
+                type="submit" disabled={loading}
                 className="flex-1 h-12 rounded-xl text-sm font-semibold transition-all hover:opacity-90 disabled:opacity-60"
-                style={{ background: "linear-gradient(135deg,#D4A843,#C4941E)", color: "#0c1a2e" }}>
+                style={{ background: "linear-gradient(135deg,#D4A843,#C4941E)", color: "#0c1a2e" }}
+              >
                 {loading ? "Saving..." : editingInsight ? "Update Insight" : "Create Insight"}
               </button>
             </div>

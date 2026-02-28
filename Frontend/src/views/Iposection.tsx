@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/controllers/AuthContext';
+import { useTheme } from '@/controllers/Themecontext';
 import {
   TrendingUp, TrendingDown, Calendar, Users, Building2,
   CheckCircle, Clock, AlertCircle, ArrowRight, Star, Target,
@@ -515,25 +516,26 @@ function DetailModal({
 // IPO CARD  ← taller: min-h-[360px] + increased body padding
 // ═══════════════════════════════════════════════════════════════════════════════
 function IPOCard({
-  ipo, onViewDetail, onEdit, onDelete, isAdmin,
+  ipo, onViewDetail, onEdit, onDelete, isAdmin, isLight,
 }: {
-  ipo: IPO; onViewDetail: () => void; onEdit: () => void; onDelete: () => void; isAdmin: boolean;
+  ipo: IPO; onViewDetail: () => void; onEdit: () => void; onDelete: () => void; isAdmin: boolean; isLight?: boolean;
 }) {
   return (
-    <div className="rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden group hover:-translate-y-0.5 flex flex-col min-h-[360px]" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
-      onMouseEnter={e => (e.currentTarget.style.borderColor = "rgba(212,168,67,0.25)")}
-      onMouseLeave={e => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)")}>
+    <div className="rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden group hover:-translate-y-0.5 flex flex-col min-h-[360px]"
+      style={{ background: isLight ? "rgba(255,255,255,0.70)" : "rgba(255,255,255,0.04)", border: isLight ? "1px solid rgba(13,37,64,0.12)" : "1px solid rgba(255,255,255,0.08)" }}
+      onMouseEnter={e => (e.currentTarget.style.borderColor = "rgba(212,168,67,0.40)")}
+      onMouseLeave={e => (e.currentTarget.style.borderColor = isLight ? "rgba(13,37,64,0.12)" : "rgba(255,255,255,0.08)")}>
 
       {/* Header */}
-      <div className="px-4 pt-4 pb-3" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+      <div className="px-4 pt-4 pb-3" style={{ borderBottom: isLight ? "1px solid rgba(13,37,64,0.08)" : "1px solid rgba(255,255,255,0.06)" }}>
         <div className="flex items-center justify-between mb-2.5">
           <div className="flex items-center gap-2.5 min-w-0">
             <div className="w-10 h-10 rounded-full flex items-center justify-center text-[#D4A843] font-bold text-xs flex-shrink-0" style={{ background: "linear-gradient(135deg,rgba(212,168,67,0.2),rgba(196,148,30,0.1))", border: "1px solid rgba(212,168,67,0.25)" }}>
               {ipo.logo}
             </div>
             <div className="min-w-0">
-              <h3 className="font-bold text-white text-[13px] leading-tight truncate">{ipo.companyName}</h3>
-              <p className="text-[11px] text-slate-400 mt-0.5 truncate">{ipo.industry || '—'}</p>
+              <h3 className={`font-bold text-[13px] leading-tight truncate ${isLight ? "text-navy" : "text-white"}`}>{ipo.companyName}</h3>
+              <p className={`text-[11px] mt-0.5 truncate ${isLight ? "text-navy/60" : "text-slate-400"}`}>{ipo.industry || '—'}</p>
             </div>
           </div>
           {isAdmin && (
@@ -559,24 +561,24 @@ function IPOCard({
       <div className="px-4 py-4 flex-1 space-y-3">
         <div className="grid grid-cols-2 gap-x-3 gap-y-3">
           <div>
-            <p className="text-[9px] text-slate-500 uppercase tracking-wider">Price Band</p>
-            <p className="text-xs font-bold text-white leading-tight mt-0.5">{ipo.priceRange}</p>
+            <p className={`text-[9px] uppercase tracking-wider ${isLight ? "text-navy/50" : "text-slate-500"}`}>Price Band</p>
+            <p className={`text-xs font-bold leading-tight mt-0.5 ${isLight ? "text-navy" : "text-white"}`}>{ipo.priceRange}</p>
           </div>
           <div>
-            <p className="text-[9px] text-slate-500 uppercase tracking-wider">Lot Size</p>
-            <p className="text-xs font-semibold text-white leading-tight mt-0.5">{ipo.lotSize} shares</p>
+            <p className={`text-[9px] uppercase tracking-wider ${isLight ? "text-navy/50" : "text-slate-500"}`}>Lot Size</p>
+            <p className={`text-xs font-semibold leading-tight mt-0.5 ${isLight ? "text-navy" : "text-white"}`}>{ipo.lotSize} shares</p>
           </div>
           <div>
-            <p className="text-[9px] text-slate-500 uppercase tracking-wider">Min. Investment</p>
+            <p className={`text-[9px] uppercase tracking-wider ${isLight ? "text-navy/50" : "text-slate-500"}`}>Min. Investment</p>
             <p className="text-xs font-bold text-[#D4A843] leading-tight mt-0.5">{ipo.minInvestment}</p>
           </div>
           <div>
-            <p className="text-[9px] text-slate-500 uppercase tracking-wider">Issue Size</p>
-            <p className="text-xs font-semibold text-white leading-tight mt-0.5">{ipo.issueSize}</p>
+            <p className={`text-[9px] uppercase tracking-wider ${isLight ? "text-navy/50" : "text-slate-500"}`}>Issue Size</p>
+            <p className={`text-xs font-semibold leading-tight mt-0.5 ${isLight ? "text-navy" : "text-white"}`}>{ipo.issueSize}</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-1.5 text-[11px] text-slate-400 pt-3" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+        <div className={`flex items-center gap-1.5 text-[11px] pt-3 ${isLight ? "text-navy/60" : "text-slate-400"}`} style={{ borderTop: isLight ? "1px solid rgba(13,37,64,0.08)" : "1px solid rgba(255,255,255,0.06)" }}>
           <Calendar className="w-3 h-3 flex-shrink-0" />
           <span>{ipo.openDate}</span>
           <span>→</span>
@@ -602,7 +604,7 @@ function IPOCard({
                 {ipo.listingGain >= 0 ? '+' : ''}{ipo.listingGain}%
               </span>
             )}
-            <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] text-slate-400 ml-auto" style={{ background: "rgba(255,255,255,0.05)" }}>{ipo.exchange}</span>
+            <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] ml-auto ${isLight ? "text-navy/60" : "text-slate-400"}`} style={{ background: isLight ? "rgba(13,37,64,0.06)" : "rgba(255,255,255,0.05)" }}>{ipo.exchange}</span>
           </div>
         )}
       </div>
@@ -626,6 +628,8 @@ function IPOCard({
 const IPOSection = () => {
   const navigate = useNavigate();
   const { isAdmin } = useAuth();
+  const { theme } = useTheme();
+  const isLight = theme === "light";
 
   const [ipos,     setIpos]     = useState<IPO[]>([]);
   const [counts,   setCounts]   = useState<Counts>({ open:0, upcoming:0, closed:0, listed:0, total:0 });
@@ -680,10 +684,10 @@ const IPOSection = () => {
 
   return (
     <>
-      <div className="min-h-screen" style={{ background: "linear-gradient(160deg,#0c1a2e 0%,#0e2038 45%,#0b1825 100%)" }}>
+      <div className="min-h-screen" style={{ background: isLight ? "linear-gradient(160deg,#dce8f7 0%,#e8f2fd 45%,#dce8f7 100%)" : "linear-gradient(160deg,#0c1a2e 0%,#0e2038 45%,#0b1825 100%)" }}>
 
         {/* Hero */}
-        <section className="relative overflow-hidden py-16 md:py-24" style={{ background: "linear-gradient(135deg,#0a1628 0%,#0e2038 50%,#0c1a2e 100%)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+        <section className="relative overflow-hidden py-16 md:py-24" style={{ background: isLight ? "linear-gradient(135deg,#edf5fe 0%,#dce8f7 50%,#e8f2fd 100%)" : "linear-gradient(135deg,#0a1628 0%,#0e2038 50%,#0c1a2e 100%)", borderBottom: isLight ? "1px solid rgba(13,37,64,0.1)" : "1px solid rgba(255,255,255,0.06)" }}>
           {/* Ambient glows matching DecodeMarket */}
           <div className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full blur-[130px] pointer-events-none" style={{ background: "radial-gradient(circle,rgba(212,168,67,0.10) 0%,transparent 70%)" }} />
           <div className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full blur-[100px] pointer-events-none" style={{ background: "radial-gradient(circle,rgba(56,189,248,0.07) 0%,transparent 70%)" }} />
@@ -693,10 +697,10 @@ const IPOSection = () => {
                 <Zap className="w-4 h-4 text-[#D4A843]" />
                 <span className="text-sm font-medium text-[#D4A843]">Live IPO Updates</span>
               </div>
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6">
+              <h1 className={`text-4xl md:text-5xl lg:text-6xl font-bold mb-6 ${isLight ? "text-navy" : "text-white"}`}>
                 Initial Public <span style={{ background: "linear-gradient(135deg,#D4A843,#F0C84A)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Offerings</span>
               </h1>
-              <p className="text-lg md:text-xl mb-8 leading-relaxed" style={{ color: "rgba(255,255,255,0.70)" }}>
+              <p className="text-lg md:text-xl mb-8 leading-relaxed" style={{ color: isLight ? "rgba(13,37,64,0.65)" : "rgba(255,255,255,0.70)" }}>
                 Stay updated with latest IPOs, track subscription status in real-time, and make informed investment decisions with comprehensive IPO analysis.
               </p>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto">
@@ -708,12 +712,12 @@ const IPOSection = () => {
                 ]).map(({ s, icon }) => (
                   <button key={s} onClick={() => switchTab(s)}
                     className="rounded-xl p-4 hover:scale-105 transition-all duration-200 cursor-pointer text-center group"
-                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
+                    style={{ background: isLight ? "rgba(13,37,64,0.05)" : "rgba(255,255,255,0.04)", border: isLight ? "1px solid rgba(13,37,64,0.12)" : "1px solid rgba(255,255,255,0.08)" }}
                     onMouseEnter={e => (e.currentTarget.style.borderColor = "rgba(212,168,67,0.30)")}
-                    onMouseLeave={e => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)")}>
+                    onMouseLeave={e => (e.currentTarget.style.borderColor = isLight ? "rgba(13,37,64,0.12)" : "rgba(255,255,255,0.08)")}>
                     {icon}
-                    <div className="text-2xl font-bold text-white">{counts[s]}</div>
-                    <div className="text-sm text-slate-400 group-hover:text-white transition-colors">{STATUS_CFG[s].label}</div>
+                    <div className={`text-2xl font-bold ${isLight ? "text-navy" : "text-white"}`}>{counts[s]}</div>
+                    <div className={`text-sm transition-colors ${isLight ? "text-navy/55 group-hover:text-navy" : "text-slate-400 group-hover:text-white"}`}>{STATUS_CFG[s].label}</div>
                   </button>
                 ))}
               </div>
@@ -803,7 +807,7 @@ const IPOSection = () => {
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {displayed.map(ipo => (
-                  <IPOCard key={ipo._id} ipo={ipo} isAdmin={isAdmin}
+                  <IPOCard key={ipo._id} ipo={ipo} isAdmin={isAdmin} isLight={isLight}
                     onViewDetail={() => { setSelectedIPO(ipo); setDetailOpen(true); }}
                     onEdit={() => { setEditIPO(ipo); setFormOpen(true); }}
                     onDelete={() => handleDelete(ipo)}
@@ -837,18 +841,18 @@ const IPOSection = () => {
           <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="p-6 rounded-2xl" style={{ background: "rgba(56,189,248,0.05)", border: "1px solid rgba(56,189,248,0.15)" }}>
               <Shield className="w-10 h-10 text-blue-400 mb-4" />
-              <h3 className="text-lg font-bold text-white mb-2">SEBI Regulated</h3>
-              <p className="text-sm text-slate-400">All IPOs listed are SEBI-regulated with complete RHP transparency for informed decisions.</p>
+              <h3 className={`text-lg font-bold mb-2 ${isLight ? "text-navy" : "text-white"}`}>SEBI Regulated</h3>
+              <p className={`text-sm ${isLight ? "text-navy/65" : "text-slate-400"}`}>All IPOs listed are SEBI-regulated with complete RHP transparency for informed decisions.</p>
             </div>
             <div className="p-6 rounded-2xl" style={{ background: "rgba(52,211,153,0.05)", border: "1px solid rgba(52,211,153,0.15)" }}>
               <BarChart3 className="w-10 h-10 text-emerald-400 mb-4" />
-              <h3 className="text-lg font-bold text-white mb-2">Live GMP & Subscription</h3>
-              <p className="text-sm text-slate-400">Real-time grey market premium, subscription data, and day-wise allotment tracking.</p>
+              <h3 className={`text-lg font-bold mb-2 ${isLight ? "text-navy" : "text-white"}`}>Live GMP & Subscription</h3>
+              <p className={`text-sm ${isLight ? "text-navy/65" : "text-slate-400"}`}>Real-time grey market premium, subscription data, and day-wise allotment tracking.</p>
             </div>
             <div className="p-6 rounded-2xl" style={{ background: "rgba(212,168,67,0.05)", border: "1px solid rgba(212,168,67,0.15)" }}>
               <FileText className="w-10 h-10 text-[#D4A843] mb-4" />
-              <h3 className="text-lg font-bold text-white mb-2">Expert Analysis</h3>
-              <p className="text-sm text-slate-400">Detailed IPO reviews, DRHP financials, and apply/avoid recommendations from experts.</p>
+              <h3 className={`text-lg font-bold mb-2 ${isLight ? "text-navy" : "text-white"}`}>Expert Analysis</h3>
+              <p className={`text-sm ${isLight ? "text-navy/65" : "text-slate-400"}`}>Detailed IPO reviews, DRHP financials, and apply/avoid recommendations from experts.</p>
             </div>
           </div>
         </section>

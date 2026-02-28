@@ -6,6 +6,7 @@ import InsightModal from "@/components/InsightModal";
 import { useAuth } from "@/controllers/AuthContext";
 import api from "@/api/axios";
 import { toggleInsightLike } from "@/services/insightService";
+import { useTheme } from "@/controllers/Themecontext";
 
 type ActiveTab = "domestic" | "global";
 interface DecodeMarketProps { activeTab: ActiveTab }
@@ -20,6 +21,8 @@ interface InsightData {
 
 const DecodeMarket = ({ activeTab }: DecodeMarketProps) => {
   const { isAdmin } = useAuth();
+  const { theme } = useTheme();
+  const isLight = theme === "light";
   const INITIAL_VISIBLE = 6, INCREMENT = 4;
 
   const [insights, setInsights] = useState<InsightData[]>([]);
@@ -133,7 +136,7 @@ const DecodeMarket = ({ activeTab }: DecodeMarketProps) => {
           </div>
 
           {/* Heading */}
-          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-3 sm:mb-4 leading-tight">
+          <h2 className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4 leading-tight ${isLight ? "text-navy" : "text-white"}`}>
             Decode the{" "}
             <span style={{ background: "linear-gradient(135deg,#D4A843,#F0C84A)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
               Market
@@ -173,7 +176,7 @@ const DecodeMarket = ({ activeTab }: DecodeMarketProps) => {
               {activeTab === "domestic" ? "Domestic Market Insights" : "Global Market Insights"}
             </div>
             <div className="text-center">
-              <h3 className="text-xl sm:text-2xl font-bold text-white mb-1">
+              <h3 className={`text-xl sm:text-2xl font-bold mb-1 ${isLight ? "text-navy" : "text-white"}`}>
                 {activeTab === "domestic" ? "Indian Markets" : "International Markets"}
               </h3>
               <p className="text-slate-400 text-xs sm:text-sm">

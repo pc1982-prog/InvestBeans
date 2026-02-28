@@ -6,13 +6,14 @@ import {
   CalendarDays, Info,
 } from "lucide-react";
 import { useState } from "react";
+import { useTheme } from "@/controllers/Themecontext";
 
 // ── Brand colours (same as GlobalView) ──────────────────────────
 const G = "#2D4A35";
 const O = "#C07A3A";
 
 // ── Placeholder helpers ──────────────────────────────────────────
-function SectionLabel({ icon: Icon, children }: { icon?: any; children: React.ReactNode }) {
+function SectionLabel({ icon: Icon, children, isLight }: { icon?: any; children: React.ReactNode; isLight?: boolean }) {
   return (
     <div className="flex items-center gap-3 mb-6">
       {Icon && (
@@ -23,8 +24,8 @@ function SectionLabel({ icon: Icon, children }: { icon?: any; children: React.Re
           <Icon className="w-4 h-4" style={{ color: G }} />
         </div>
       )}
-      <h2 className="text-xl font-extrabold text-gray-900 tracking-tight">{children}</h2>
-      <div className="flex-1 h-px bg-gray-100 ml-2" />
+      <h2 className={`text-xl font-extrabold tracking-tight ${isLight ? "text-gray-900" : "text-slate-100"}`}>{children}</h2>
+      <div className={`flex-1 h-px ml-2 ${isLight ? "bg-gray-100" : "bg-white/10"}`} />
     </div>
   );
 }
@@ -33,8 +34,8 @@ function SectionLabel({ icon: Icon, children }: { icon?: any; children: React.Re
 function Skeleton({ h = "h-80", className = "" }: { h?: string; className?: string }) {
   return (
     <div
-      className={`${h} rounded-2xl bg-gray-50 border border-gray-100 ${className}`}
-      style={{ background: "linear-gradient(90deg,#f3f4f6 25%,#e5e7eb 50%,#f3f4f6 75%)", backgroundSize: "400% 100%", animation: "shimmer 1.6s infinite" }}
+      className={`${h} rounded-2xl border ${className}`}
+      style={{ background: "linear-gradient(90deg,#f3f4f6 25%,#e5e7eb 50%,#f3f4f6 75%)", backgroundSize: "400% 100%", animation: "shimmer 1.6s infinite", borderColor: "#e5e7eb" }}
     />
   );
 }
@@ -129,12 +130,12 @@ function MiniSparkline({ symbol, pos }: { symbol: string; pos: boolean }) {
 }
 
 // ── Index selector card (mirrors GlobalView MarketSelector) ───────
-function IndexSelector() {
+function IndexSelector({ isLight }: { isLight?: boolean }) {
   const [sel, setSel] = useState(0);
   const idx = INDICES[sel];
   return (
     <section className="mb-12">
-      <SectionLabel icon={BarChart3}>Major Indices</SectionLabel>
+      <SectionLabel icon={BarChart3} isLight={isLight}>Major Indices</SectionLabel>
 
       {/* Tab pills */}
       <div className="flex items-center gap-2.5 mb-5 flex-wrap">
@@ -146,7 +147,9 @@ function IndexSelector() {
             style={
               sel === i
                 ? { background: G, color: "#fff", borderColor: G, boxShadow: `0 4px 12px ${G}30` }
-                : { background: "#fff", color: "#374151", borderColor: "#e5e7eb" }
+                : isLight
+                  ? { background: "#fff", color: "#374151", borderColor: "#e5e7eb" }
+                  : { background: "rgba(255,255,255,0.05)", color: "#94a3b8", borderColor: "rgba(255,255,255,0.1)" }
             }
           >
             <span className="flex items-center gap-2">
@@ -159,13 +162,13 @@ function IndexSelector() {
       </div>
 
       {/* Chart placeholder panel */}
-      <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+      <div className={`rounded-2xl border shadow-sm overflow-hidden ${isLight ? "bg-white border-gray-100" : "bg-[#0e2038] border-white/8"}`}>
         <div className="h-0.5" style={{ background: idx.pos ? "linear-gradient(to right,#16a34a,transparent)" : "linear-gradient(to right,#dc2626,transparent)" }} />
         <div className="p-6">
           <div className="flex items-start justify-between mb-4">
             <div>
-              <p className="text-xs font-bold tracking-widest uppercase text-gray-400">{idx.symbol} · NSE</p>
-              <p className="text-4xl font-black text-gray-900 leading-none mt-1">{idx.price}</p>
+              <p className={`text-xs font-bold tracking-widest uppercase ${isLight ? "text-gray-400" : "text-slate-500"}`}>{idx.symbol} · NSE</p>
+              <p className={`text-4xl font-black leading-none mt-1 ${isLight ? "text-gray-900" : "text-slate-100"}`}>{idx.price}</p>
               <div className="flex items-center gap-2 mt-2">
                 <span className="text-sm font-bold" style={{ color: idx.pos ? "#16a34a" : "#dc2626" }}>
                   {idx.change}&nbsp;({idx.pct})
@@ -173,20 +176,20 @@ function IndexSelector() {
                 {idx.pos ? <TrendingUp className="w-4 h-4 text-emerald-500" /> : <TrendingDown className="w-4 h-4 text-red-500" />}
               </div>
             </div>
-            <div className="text-right text-xs text-gray-300 flex flex-col items-end gap-1">
+            <div className={`text-right text-xs flex flex-col items-end gap-1 ${isLight ? "text-gray-300" : "text-slate-600"}`}>
               <span>Intraday data available via API</span>
               <span>1 min / 3 min / 5 min / 15 min</span>
             </div>
           </div>
 
           {/* Big chart placeholder with shimmer + label */}
-          <div className="relative h-64 rounded-2xl overflow-hidden border border-dashed border-gray-200 bg-gray-50 flex flex-col items-center justify-center gap-3">
+          <div className={`relative h-64 rounded-2xl overflow-hidden border border-dashed flex flex-col items-center justify-center gap-3 ${isLight ? "border-gray-200 bg-gray-50" : "border-white/10 bg-white/5"}`}>
             <div className="absolute inset-0 opacity-20"
               style={{ background: `repeating-linear-gradient(0deg,transparent,transparent 39px,${idx.pos ? "#16a34a" : "#dc2626"}22 39px,${idx.pos ? "#16a34a" : "#dc2626"}22 40px),repeating-linear-gradient(90deg,transparent,transparent 79px,#e5e7eb 79px,#e5e7eb 80px)` }}
             />
-            <LineChart className="w-10 h-10 text-gray-300" />
-            <p className="text-sm font-bold text-gray-400">Intraday Candle Chart</p>
-            <p className="text-xs text-gray-300 text-center px-8">Live OHLCV data available after Zerodha Kite Connect API integration</p>
+            <LineChart className={`w-10 h-10 ${isLight ? "text-gray-300" : "text-slate-600"}`} />
+            <p className={`text-sm font-bold ${isLight ? "text-gray-400" : "text-slate-500"}`}>Intraday Candle Chart</p>
+            <p className={`text-xs text-center px-8 ${isLight ? "text-gray-300" : "text-slate-600"}`}>Live OHLCV data available after Zerodha Kite Connect API integration</p>
             <span className="px-3 py-1 rounded-full text-xs font-extrabold tracking-widest border"
               style={{ background: `${G}10`, color: G, borderColor: `${G}25` }}>
               API READY · ₹500/month
@@ -201,9 +204,9 @@ function IndexSelector() {
               { label: "Low",    val: "—" },
               { label: "Volume", val: "—" },
             ].map(s => (
-              <div key={s.label} className="rounded-xl bg-gray-50 border border-gray-100 px-4 py-3 text-center">
-                <p className="text-xs text-gray-400 font-semibold">{s.label}</p>
-                <p className="text-base font-black text-gray-300 mt-0.5">{s.val}</p>
+              <div key={s.label} className={`rounded-xl border px-4 py-3 text-center ${isLight ? "bg-gray-50 border-gray-100" : "bg-white/5 border-white/8"}`}>
+                <p className={`text-xs font-semibold ${isLight ? "text-gray-400" : "text-slate-500"}`}>{s.label}</p>
+                <p className={`text-base font-black mt-0.5 ${isLight ? "text-gray-300" : "text-slate-600"}`}>{s.val}</p>
               </div>
             ))}
           </div>
@@ -215,27 +218,29 @@ function IndexSelector() {
 
 // ════════════════════════════════════════════════════════════════
 export default function DomesticView() {
+  const { theme } = useTheme();
+  const isLight = theme === "light";
   return (
     <Layout>
       <style>{`@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}`}</style>
-      <div className="min-h-screen bg-[#F8F7F4]">
+      <div className={`min-h-screen ${isLight ? "bg-[#F8F7F4]" : "bg-[#0c1a2e]"}`}>
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 max-w-7xl">
 
           {/* ── HERO ───────────────────────────────────────────── */}
-          <div className="mb-12 rounded-2xl overflow-hidden border border-gray-200 shadow-sm">
+          <div className="mb-12 rounded-2xl overflow-hidden border shadow-sm" style={{ borderColor: isLight ? "#e5e7eb" : "rgba(255,255,255,0.08)" }}>
             <div className="h-1" style={{ background: `linear-gradient(to right, ${G}, ${O})` }} />
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 px-8 py-9 bg-white">
+            <div className={`flex flex-col md:flex-row md:items-center md:justify-between gap-6 px-8 py-9 ${isLight ? "bg-white" : "bg-[#0e2038]"}`}>
               <div>
                 <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold mb-4"
                   style={{ background: `${G}12`, color: G, border: `1px solid ${G}25` }}>
                   <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: G }} />
                   PLACEHOLDER · LIVE DATA COMING SOON
                 </div>
-                <h1 className="text-4xl sm:text-5xl font-black text-gray-900 tracking-tight leading-none mb-3">
+                <h1 className={`text-4xl sm:text-5xl font-black tracking-tight leading-none mb-3 ${isLight ? "text-gray-900" : "text-slate-100"}`}>
                   Indian Stock
                   <span className="block" style={{ color: G }}>Markets</span>
                 </h1>
-                <p className="text-gray-400 text-sm font-normal">
+                <p className={`text-sm font-normal ${isLight ? "text-gray-400" : "text-slate-400"}`}>
                   NSE · BSE · F&amp;O · Sector data via Zerodha Kite Connect v3
                 </p>
               </div>
@@ -257,18 +262,18 @@ export default function DomesticView() {
           </div>
 
           {/* ── INDEX SELECTOR (with inline sparklines on summary) ─ */}
-          <IndexSelector />
+          <IndexSelector isLight={isLight} />
 
           {/* ── SECTOR PERFORMANCE ─────────────────────────────── */}
           <section className="mb-12">
-            <SectionLabel icon={Layers}>Sector Performance</SectionLabel>
+            <SectionLabel icon={Layers} isLight={isLight}>Sector Performance</SectionLabel>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
               {SECTORS.map((s) => (
-                <div key={s.name} className="bg-white rounded-2xl border border-gray-100 hover:border-gray-200 hover:shadow-md transition-all duration-200 overflow-hidden">
+                <div key={s.name} className={`rounded-2xl border hover:shadow-md transition-all duration-200 overflow-hidden ${isLight ? "bg-white border-gray-100 hover:border-gray-200" : "bg-[#0e2038] border-white/8 hover:border-white/15"}`}>
                   <div className="h-0.5" style={{ background: s.pos ? "linear-gradient(to right,#16a34a,transparent)" : "linear-gradient(to right,#dc2626,transparent)" }} />
                   <div className="p-5">
                     <div className="flex items-start justify-between mb-4">
-                      <p className="font-extrabold text-gray-900 text-base">{s.name}</p>
+                      <p className={`font-extrabold text-base ${isLight ? "text-gray-900" : "text-slate-100"}`}>{s.name}</p>
                       <span className="text-xl font-black" style={{ color: s.pos ? "#16a34a" : "#dc2626" }}>{s.chg}</span>
                     </div>
                     <div className="space-y-2 text-sm">
@@ -281,7 +286,7 @@ export default function DomesticView() {
                         <span className="text-red-600 font-bold text-xs">{s.bot}</span>
                       </div>
                     </div>
-                    <div className="flex justify-between text-xs text-gray-300 mt-4 pt-4 border-t border-gray-50">
+                    <div className={`flex justify-between text-xs mt-4 pt-4 border-t ${isLight ? "text-gray-300 border-gray-50" : "text-slate-600 border-white/5"}`}>
                       <div className="flex items-center gap-1"><Activity className="w-3 h-3" /> Sector Index</div>
                       <div className="flex items-center gap-1"><Clock className="w-3 h-3" /> Placeholder</div>
                     </div>
@@ -293,10 +298,10 @@ export default function DomesticView() {
 
           {/* ── TOP STOCKS (OHLCV) ──────────────────────────────── */}
           <section className="mb-12">
-            <SectionLabel icon={LineChart}>Top Stocks — OHLCV</SectionLabel>
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <SectionLabel icon={LineChart} isLight={isLight}>Top Stocks — OHLCV</SectionLabel>
+            <div className={`rounded-2xl border shadow-sm overflow-hidden ${isLight ? "bg-white border-gray-100" : "bg-[#0e2038] border-white/8"}`}>
               {/* Table header */}
-              <div className="grid grid-cols-8 gap-4 px-5 py-3 bg-gray-50 border-b border-gray-100 text-xs font-bold uppercase tracking-widest text-gray-400">
+              <div className={`grid grid-cols-8 gap-4 px-5 py-3 border-b text-xs font-bold uppercase tracking-widest ${isLight ? "bg-gray-50 border-gray-100 text-gray-400" : "bg-white/5 border-white/8 text-slate-500"}`}>
                 <div className="col-span-2">Symbol</div>
                 <div className="text-right">LTP</div>
                 <div className="text-right">Open</div>
@@ -308,22 +313,22 @@ export default function DomesticView() {
               {TOP_STOCKS.map((s, i) => (
                 <div
                   key={s.name}
-                  className={`grid grid-cols-8 gap-4 px-5 py-3.5 items-center hover:bg-gray-50/60 transition-colors text-sm ${i < TOP_STOCKS.length - 1 ? "border-b border-gray-50" : ""}`}
+                  className={`grid grid-cols-8 gap-4 px-5 py-3.5 items-center transition-colors text-sm ${i < TOP_STOCKS.length - 1 ? (isLight ? "border-b border-gray-50" : "border-b border-white/5") : ""} ${isLight ? "hover:bg-gray-50/60" : "hover:bg-white/5"}`}
                 >
                   <div className="col-span-2 flex items-center gap-3">
                     <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-black ${s.pos ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-600"}`}>
                       {s.name.slice(0, 2)}
                     </div>
                     <div>
-                      <p className="font-bold text-gray-900">{s.name}</p>
-                      <p className="text-xs text-gray-400">NSE</p>
+                      <p className={`font-bold ${isLight ? "text-gray-900" : "text-slate-100"}`}>{s.name}</p>
+                      <p className={`text-xs ${isLight ? "text-gray-400" : "text-slate-500"}`}>NSE</p>
                     </div>
                   </div>
-                  <div className="text-right font-black text-gray-900">{s.price}</div>
-                  <div className="text-right text-gray-500 font-medium">{s.open}</div>
+                  <div className={`text-right font-black ${isLight ? "text-gray-900" : "text-slate-100"}`}>{s.price}</div>
+                  <div className={`text-right font-medium ${isLight ? "text-gray-500" : "text-slate-400"}`}>{s.open}</div>
                   <div className="text-right text-emerald-600 font-medium">{s.high}</div>
                   <div className="text-right text-red-500 font-medium">{s.low}</div>
-                  <div className="text-right text-gray-500 font-medium">{s.vol}</div>
+                  <div className={`text-right font-medium ${isLight ? "text-gray-500" : "text-slate-400"}`}>{s.vol}</div>
                   <div className="text-right">
                     <span className={`inline-flex items-center gap-1 text-xs font-extrabold px-2 py-1 rounded-lg ${s.pos ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-600"}`}>
                       {s.pos ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
@@ -337,20 +342,20 @@ export default function DomesticView() {
 
           {/* ── FOREX (INR pairs) ───────────────────────────────── */}
           <section className="mb-12">
-            <SectionLabel icon={DollarSign}>INR Forex Pairs</SectionLabel>
+            <SectionLabel icon={DollarSign} isLight={isLight}>INR Forex Pairs</SectionLabel>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               {FOREX_PAIRS.map((fx) => (
-                <div key={fx.pair} className="bg-white rounded-2xl border border-gray-100 hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 overflow-hidden">
+                <div key={fx.pair} className={`rounded-2xl border hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 overflow-hidden ${isLight ? "bg-white border-gray-100" : "bg-[#0e2038] border-white/8"}`}>
                   <div className="h-0.5" style={{ background: fx.pos ? "linear-gradient(to right,#16a34a,transparent)" : "linear-gradient(to right,#dc2626,transparent)" }} />
                   <div className="p-4">
-                    <p className="text-xs font-bold tracking-widest uppercase text-gray-400 mb-2">{fx.pair}</p>
-                    <p className="text-2xl font-black text-gray-900">{fx.rate}</p>
+                    <p className={`text-xs font-bold tracking-widest uppercase mb-2 ${isLight ? "text-gray-400" : "text-slate-500"}`}>{fx.pair}</p>
+                    <p className={`text-2xl font-black ${isLight ? "text-gray-900" : "text-slate-100"}`}>{fx.rate}</p>
                     <div className="flex items-center gap-1.5 mt-1.5">
                       <span className="text-xs font-bold" style={{ color: fx.pos ? "#16a34a" : "#dc2626" }}>{fx.chg}</span>
-                      <span className="text-xs text-gray-300">·</span>
+                      <span className={`text-xs ${isLight ? "text-gray-300" : "text-slate-600"}`}>·</span>
                       <span className="text-xs font-bold" style={{ color: fx.pos ? "#16a34a" : "#dc2626" }}>{fx.pct}</span>
                     </div>
-                    <p className="text-xs text-gray-300 mt-3">Placeholder · API ready</p>
+                    <p className={`text-xs mt-3 ${isLight ? "text-gray-300" : "text-slate-600"}`}>Placeholder · API ready</p>
                   </div>
                 </div>
               ))}
@@ -359,9 +364,9 @@ export default function DomesticView() {
 
           {/* ── F&O OPEN INTEREST ───────────────────────────────── */}
           <section className="mb-12">
-            <SectionLabel icon={Percent}>F&amp;O Open Interest</SectionLabel>
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-              <div className="grid grid-cols-5 gap-4 px-5 py-3 bg-gray-50 border-b border-gray-100 text-xs font-bold uppercase tracking-widest text-gray-400">
+            <SectionLabel icon={Percent} isLight={isLight}>F&amp;O Open Interest</SectionLabel>
+            <div className={`rounded-2xl border shadow-sm overflow-hidden ${isLight ? "bg-white border-gray-100" : "bg-[#0e2038] border-white/8"}`}>
+              <div className={`grid grid-cols-5 gap-4 px-5 py-3 border-b text-xs font-bold uppercase tracking-widest ${isLight ? "bg-gray-50 border-gray-100 text-gray-400" : "bg-white/5 border-white/8 text-slate-500"}`}>
                 <div className="col-span-2">Instrument</div>
                 <div className="text-right">OI</div>
                 <div className="text-right">OI Change</div>
@@ -369,16 +374,16 @@ export default function DomesticView() {
               </div>
               {FNO_OI.map((f, i) => (
                 <div key={f.name}
-                  className={`grid grid-cols-5 gap-4 px-5 py-3.5 items-center hover:bg-gray-50/60 transition-colors text-sm ${i < FNO_OI.length - 1 ? "border-b border-gray-50" : ""}`}>
+                  className={`grid grid-cols-5 gap-4 px-5 py-3.5 items-center transition-colors text-sm ${i < FNO_OI.length - 1 ? (isLight ? "border-b border-gray-50" : "border-b border-white/5") : ""} ${isLight ? "hover:bg-gray-50/60" : "hover:bg-white/5"}`}>
                   <div className="col-span-2">
-                    <p className="font-bold text-gray-900">{f.name}</p>
-                    <p className="text-xs text-gray-400">Exp: {f.expiry}</p>
+                    <p className={`font-bold ${isLight ? "text-gray-900" : "text-slate-100"}`}>{f.name}</p>
+                    <p className={`text-xs ${isLight ? "text-gray-400" : "text-slate-500"}`}>Exp: {f.expiry}</p>
                   </div>
-                  <div className="text-right font-mono text-gray-600 font-semibold">{f.oi}</div>
+                  <div className={`text-right font-mono font-semibold ${isLight ? "text-gray-600" : "text-slate-300"}`}>{f.oi}</div>
                   <div className="text-right">
                     <span className={`text-xs font-extrabold ${f.pos ? "text-emerald-600" : "text-red-500"}`}>{f.chgOI}</span>
                   </div>
-                  <div className="text-right font-black text-gray-900">{f.ltp}</div>
+                  <div className={`text-right font-black ${isLight ? "text-gray-900" : "text-slate-100"}`}>{f.ltp}</div>
                 </div>
               ))}
             </div>
@@ -386,23 +391,23 @@ export default function DomesticView() {
 
           {/* ── MARKET DEPTH ────────────────────────────────────── */}
           <section className="mb-12">
-            <SectionLabel icon={ArrowUpDown}>Market Depth (Level 2)</SectionLabel>
+            <SectionLabel icon={ArrowUpDown} isLight={isLight}>Market Depth (Level 2)</SectionLabel>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               {MARKET_DEPTH.map((md) => (
-                <div key={md.stock} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                  <div className="flex items-center justify-between px-5 py-3 border-b border-gray-50">
-                    <p className="font-extrabold text-gray-900">{md.stock}</p>
+                <div key={md.stock} className={`rounded-2xl border shadow-sm overflow-hidden ${isLight ? "bg-white border-gray-100" : "bg-[#0e2038] border-white/8"}`}>
+                  <div className={`flex items-center justify-between px-5 py-3 border-b ${isLight ? "border-gray-50" : "border-white/5"}`}>
+                    <p className={`font-extrabold ${isLight ? "text-gray-900" : "text-slate-100"}`}>{md.stock}</p>
                     <span className="text-xs font-bold px-2.5 py-1 rounded-full" style={{ background: `${G}12`, color: G }}>5 Level Bid/Ask</span>
                   </div>
-                  <div className="grid grid-cols-2 divide-x divide-gray-50">
+                  <div className={`grid grid-cols-2 divide-x ${isLight ? "divide-gray-50" : "divide-white/5"}`}>
                     <div>
                       <div className="grid grid-cols-2 px-4 py-2 bg-emerald-50 border-b border-emerald-100 text-xs font-bold uppercase text-emerald-700">
                         <span>Bid Qty</span><span className="text-right">Price</span>
                       </div>
                       {md.bids.map((b, i) => (
-                        <div key={i} className="grid grid-cols-2 px-4 py-2 text-sm border-b border-gray-50 last:border-0 hover:bg-emerald-50/40 transition-colors">
+                        <div key={i} className={`grid grid-cols-2 px-4 py-2 text-sm border-b last:border-0 transition-colors ${isLight ? "border-gray-50 hover:bg-emerald-50/40" : "border-white/5 hover:bg-emerald-900/20"}`}>
                           <span className="font-bold text-emerald-600">{b.q}</span>
-                          <span className="text-right font-mono text-gray-700">{b.p}</span>
+                          <span className={`text-right font-mono ${isLight ? "text-gray-700" : "text-slate-300"}`}>{b.p}</span>
                         </div>
                       ))}
                     </div>
@@ -411,8 +416,8 @@ export default function DomesticView() {
                         <span>Price</span><span className="text-right">Ask Qty</span>
                       </div>
                       {md.asks.map((a, i) => (
-                        <div key={i} className="grid grid-cols-2 px-4 py-2 text-sm border-b border-gray-50 last:border-0 hover:bg-red-50/40 transition-colors">
-                          <span className="font-mono text-gray-700">{a.p}</span>
+                        <div key={i} className={`grid grid-cols-2 px-4 py-2 text-sm border-b last:border-0 transition-colors ${isLight ? "border-gray-50 hover:bg-red-50/40" : "border-white/5 hover:bg-red-900/20"}`}>
+                          <span className={`font-mono ${isLight ? "text-gray-700" : "text-slate-300"}`}>{a.p}</span>
                           <span className="text-right font-bold text-red-500">{a.q}</span>
                         </div>
                       ))}
@@ -425,19 +430,19 @@ export default function DomesticView() {
 
           {/* ── CORPORATE ACTIONS ───────────────────────────────── */}
           <section className="mb-12">
-            <SectionLabel icon={CalendarDays}>Corporate Actions</SectionLabel>
+            <SectionLabel icon={CalendarDays} isLight={isLight}>Corporate Actions</SectionLabel>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {CORP_ACTIONS.map((ca, i) => {
                 const COLOR: Record<string, string> = { Dividend: "bg-blue-50 text-blue-700 border-blue-200", Buyback: "bg-purple-50 text-purple-700 border-purple-200", Bonus: "bg-amber-50 text-amber-700 border-amber-200", Split: "bg-teal-50 text-teal-700 border-teal-200" };
                 const c = COLOR[ca.action] || "bg-gray-50 text-gray-600 border-gray-100";
                 return (
-                  <div key={i} className="bg-white rounded-xl border border-gray-100 p-4 hover:border-gray-200 hover:shadow-sm transition-all duration-150">
+                  <div key={i} className={`rounded-xl border p-4 transition-all duration-150 ${isLight ? "bg-white border-gray-100 hover:border-gray-200 hover:shadow-sm" : "bg-[#0e2038] border-white/8 hover:border-white/15"}`}>
                     <div className="flex items-center gap-2 flex-wrap mb-3">
                       <span className={`px-2.5 py-0.5 text-[11px] font-extrabold rounded-full border ${c}`}>{ca.action}</span>
-                      <span className="ml-auto text-xs text-gray-300 font-medium">Ex: {ca.exDate}</span>
+                      <span className={`ml-auto text-xs font-medium ${isLight ? "text-gray-300" : "text-slate-600"}`}>Ex: {ca.exDate}</span>
                     </div>
-                    <p className="font-extrabold text-gray-900 mb-1">{ca.name}</p>
-                    <p className="text-sm text-gray-500">{ca.detail}</p>
+                    <p className={`font-extrabold mb-1 ${isLight ? "text-gray-900" : "text-slate-100"}`}>{ca.name}</p>
+                    <p className={`text-sm ${isLight ? "text-gray-500" : "text-slate-400"}`}>{ca.detail}</p>
                   </div>
                 );
               })}
@@ -446,7 +451,7 @@ export default function DomesticView() {
 
           {/* ── NOT-YET-AVAILABLE DATA ──────────────────────────── */}
           <section className="mb-12">
-            <SectionLabel icon={Info}>Data Pending External Sources</SectionLabel>
+            <SectionLabel icon={Info} isLight={isLight}>Data Pending External Sources</SectionLabel>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {[
                 { label: "India VIX",            src: "nseindia.com",            desc: "Fear gauge — not in Zerodha API" },
@@ -454,12 +459,12 @@ export default function DomesticView() {
                 { label: "Market Breadth (A/D)", src: "nseindia.com/market-data",desc: "Advance–Decline ratio" },
                 { label: "Macro Data (CPI/GDP)", src: "rbi.org.in",              desc: "Fundamental economic indicators" },
               ].map((item) => (
-                <div key={item.label} className="rounded-xl border border-dashed border-gray-200 bg-gray-50 p-4 flex flex-col gap-2">
+                <div key={item.label} className={`rounded-xl border border-dashed p-4 flex flex-col gap-2 ${isLight ? "border-gray-200 bg-gray-50" : "border-white/10 bg-white/5"}`}>
                   <div className="w-8 h-8 rounded-lg bg-amber-50 border border-amber-100 flex items-center justify-center">
                     <Info className="w-4 h-4 text-amber-500" />
                   </div>
-                  <p className="font-bold text-gray-700 text-sm">{item.label}</p>
-                  <p className="text-xs text-gray-400 leading-relaxed">{item.desc}</p>
+                  <p className={`font-bold text-sm ${isLight ? "text-gray-700" : "text-slate-300"}`}>{item.label}</p>
+                  <p className={`text-xs leading-relaxed ${isLight ? "text-gray-400" : "text-slate-500"}`}>{item.desc}</p>
                   <span className="text-[10px] font-bold text-amber-600 bg-amber-50 border border-amber-100 rounded px-1.5 py-0.5 w-fit">{item.src}</span>
                 </div>
               ))}
@@ -467,14 +472,14 @@ export default function DomesticView() {
           </section>
 
           {/* ── STATUS BAR ──────────────────────────────────────── */}
-          <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+          <div className={`rounded-2xl border shadow-sm overflow-hidden ${isLight ? "bg-white border-gray-100" : "bg-[#0e2038] border-white/8"}`}>
             <div className="h-0.5" style={{ background: `linear-gradient(to right, ${G}, ${O}, transparent)` }} />
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-6 py-5 text-sm">
-              <div className="flex items-center gap-2.5 text-gray-400">
+              <div className={`flex items-center gap-2.5 ${isLight ? "text-gray-400" : "text-slate-500"}`}>
                 <Activity className="w-4 h-4" style={{ color: G }} />
                 <span className="font-medium">
                   Status:{" "}
-                  <span className="text-gray-600 font-semibold">Static placeholder · Zerodha API integration pending</span>
+                  <span className={`font-semibold ${isLight ? "text-gray-600" : "text-slate-300"}`}>Static placeholder · Zerodha API integration pending</span>
                 </span>
               </div>
               <div className="flex flex-wrap items-center gap-5">
@@ -489,8 +494,8 @@ export default function DomesticView() {
                   </div>
                 ))}
                 <div className="flex items-center gap-1.5">
-                  <Briefcase className="w-3.5 h-3.5 text-gray-300" />
-                  <span className="font-extrabold text-xs tracking-widest text-gray-300">PLACEHOLDER</span>
+                  <Briefcase className={`w-3.5 h-3.5 ${isLight ? "text-gray-300" : "text-slate-600"}`} />
+                  <span className={`font-extrabold text-xs tracking-widest ${isLight ? "text-gray-300" : "text-slate-600"}`}>PLACEHOLDER</span>
                 </div>
               </div>
             </div>

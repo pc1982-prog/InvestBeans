@@ -23,9 +23,12 @@ import {
   TrendingUp,
   TrendingDown,
   ChevronLeft,
+  Sun,
+  Moon,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useGlobalMarkets } from "@/hooks/useGlobalMarkets";
+import { useTheme } from '@/controllers/Themecontext'
 
 // ─── Hook: smooth hover dropdown (no blink) ───────────────────────────────────
 function useHoverDropdown(closeDelay = 150) {
@@ -44,7 +47,12 @@ function useHoverDropdown(closeDelay = 150) {
   const toggle = useCallback(() => setOpen((s) => !s), []);
   const close = useCallback(() => setOpen(false), []);
 
-  useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
+  useEffect(
+    () => () => {
+      if (timer.current) clearTimeout(timer.current);
+    },
+    []
+  );
 
   return { open, setOpen, enter, leave, toggle, close };
 }
@@ -52,19 +60,23 @@ function useHoverDropdown(closeDelay = 150) {
 // ─── Market Ticker ─────────────────────────────────────────────────────────────
 const MarketTickerInline = () => {
   const { data } = useGlobalMarkets();
+  const { theme } = useTheme();
   const [isPaused, setIsPaused] = useState(false);
   const tickerRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<number>();
-  const navigate = useNavigate(); // ← added
+  const navigate = useNavigate();
 
   const allMarkets = [
     ...(data?.indices.us || []),
     ...(data?.indices.europe || []),
     ...(data?.indices.asia || []),
   ].map((market) => ({
-    symbol: market.symbol, // ← added
+    symbol: market.symbol,
     name: market.name,
-    value: market.price.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+    value: market.price.toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }),
     change: `${market.changePercent > 0 ? "+" : ""}${market.changePercent.toFixed(2)}%`,
     isPositive: market.changePercent >= 0,
   }));
@@ -83,37 +95,81 @@ const MarketTickerInline = () => {
       }
     };
     animationRef.current = requestAnimationFrame(animate);
-    return () => { if (animationRef.current) cancelAnimationFrame(animationRef.current); };
+    return () => {
+      if (animationRef.current) cancelAnimationFrame(animationRef.current);
+    };
   }, [isPaused, allMarkets.length]);
 
   if (allMarkets.length === 0) return null;
 
+  // Ticker adapts to theme
+  const btnCls =
+    theme === "light"
+      ? "absolute z-10 bg-navy/10 hover:bg-navy/20 text-navy p-1 rounded-full transition-colors"
+      : "absolute z-10 bg-navy/80 hover:bg-navy text-white p-1 rounded-full transition-colors";
+
   return (
     <div className="relative flex items-center">
-      <button onClick={() => tickerRef.current?.scrollBy({ left: -200, behavior: "smooth" })} className="absolute left-2 z-10 bg-navy/80 hover:bg-navy text-white p-1 rounded-full transition-colors" onMouseEnter={() => setIsPaused(true)} onMouseLeave={() => setIsPaused(false)}>
+      <button
+        onClick={() => tickerRef.current?.scrollBy({ left: -200, behavior: "smooth" })}
+        className={`${btnCls} left-2`}
+        onMouseEnter={() => setIsPaused(true)}
+        onMouseLeave={() => setIsPaused(false)}
+      >
         <ChevronLeft className="w-4 h-4" />
       </button>
       <div className="flex-1 overflow-hidden mx-10">
-        <div ref={tickerRef} className="flex items-center gap-8 overflow-x-auto" onMouseEnter={() => setIsPaused(true)} onMouseLeave={() => setIsPaused(false)} style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
+        <div
+          ref={tickerRef}
+          className="flex items-center gap-8 overflow-x-auto"
+          onMouseEnter={() => setIsPaused(true)}
+          onMouseLeave={() => setIsPaused(false)}
+          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+        >
           {[...allMarkets, ...allMarkets].map((market, index) => (
             <div
               key={`${market.name}-${index}`}
-              onClick={() => navigate('/global', { state: { symbol: market.symbol, name: market.name } })} // ← added
-              className="flex items-center gap-4 whitespace-nowrap group hover:scale-110 transition-transform cursor-pointer" // ← scale-105→110, cursor-pointer added
+              onClick={() =>
+                navigate("/global", {
+                  state: { symbol: market.symbol, name: market.name },
+                })
+              }
+              className="flex items-center gap-4 whitespace-nowrap group hover:scale-110 transition-transform cursor-pointer"
             >
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-white/80 group-hover:text-white transition-colors">{market.name}</span>
-                <span className="font-bold text-base text-white">{market.value}</span>
+                <span className={`text-sm font-medium group-hover:transition-colors ${theme === "light" ? "text-navy/70 group-hover:text-navy" : "text-white/80 group-hover:text-white"}`}>
+                  {market.name}
+                </span>
+                <span className={`font-bold text-base ${theme === "light" ? "text-navy" : "text-white"}`}>{market.value}</span>
               </div>
-              <div className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium ${market.isPositive ? "bg-green-500/30 text-green-100 border border-green-400/50" : "bg-red-500/30 text-red-100 border border-red-400/50"}`}>
-                {market.isPositive ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+              <div
+                className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium ${
+                  market.isPositive
+                    ? theme === "light"
+                      ? "bg-green-500/15 text-green-700 border border-green-500/40"
+                      : "bg-green-500/30 text-green-100 border border-green-400/50"
+                    : theme === "light"
+                      ? "bg-red-500/15 text-red-600 border border-red-500/40"
+                      : "bg-red-500/30 text-red-100 border border-red-400/50"
+                }`}
+              >
+                {market.isPositive ? (
+                  <TrendingUp className="w-3 h-3" />
+                ) : (
+                  <TrendingDown className="w-3 h-3" />
+                )}
                 {market.change}
               </div>
             </div>
           ))}
         </div>
       </div>
-      <button onClick={() => tickerRef.current?.scrollBy({ left: 200, behavior: "smooth" })} className="absolute right-2 z-10 bg-navy/80 hover:bg-navy text-white p-1 rounded-full transition-colors" onMouseEnter={() => setIsPaused(true)} onMouseLeave={() => setIsPaused(false)}>
+      <button
+        onClick={() => tickerRef.current?.scrollBy({ left: 200, behavior: "smooth" })}
+        className={`${btnCls} right-2`}
+        onMouseEnter={() => setIsPaused(true)}
+        onMouseLeave={() => setIsPaused(false)}
+      >
         <ChevronRight className="w-4 h-4" />
       </button>
     </div>
@@ -121,19 +177,58 @@ const MarketTickerInline = () => {
 };
 
 // ─── Shared dropdown pieces ────────────────────────────────────────────────────
-const DropSection = ({ label }: { label: string }) => (
-  <p className="text-[10px] font-bold uppercase tracking-widest text-navy/40 px-3 pt-2 pb-0.5">{label}</p>
+const DropSection = ({ label, theme }: { label: string; theme: "dark" | "light" }) => (
+  <p
+    className={`text-[10px] font-bold uppercase tracking-widest px-3 pt-2 pb-0.5 ${
+      theme === "light" ? "text-navy/50" : "text-navy/40"
+    }`}
+  >
+    {label}
+  </p>
 );
 
-const DropLink = ({ to, onClick, children }: { to: string; onClick?: () => void; children: React.ReactNode }) => (
+const DropLink = ({
+  to,
+  onClick,
+  children,
+  theme,
+}: {
+  to: string;
+  onClick?: () => void;
+  children: React.ReactNode;
+  theme: "dark" | "light";
+}) => (
   <DropdownMenuItem asChild>
-    <Link to={to} onClick={onClick} className="block px-3 py-2 rounded-md text-sm font-medium hover:bg-accent/10 transition cursor-pointer">{children}</Link>
+    <Link
+      to={to}
+      onClick={onClick}
+      className={`block px-3 py-2 rounded-md text-sm font-medium hover:bg-accent/10 transition cursor-pointer ${
+        theme === "light" ? "text-navy" : "text-navy"
+      }`}
+    >
+      {children}
+    </Link>
   </DropdownMenuItem>
 );
 
-const DropBtn = ({ onClick, children }: { onClick: () => void; children: React.ReactNode }) => (
+const DropBtn = ({
+  onClick,
+  children,
+  theme,
+}: {
+  onClick: () => void;
+  children: React.ReactNode;
+  theme: "dark" | "light";
+}) => (
   <DropdownMenuItem asChild>
-    <button onClick={onClick} className="w-full text-left px-3 py-2 text-sm rounded-md hover:bg-accent/10 transition cursor-pointer">{children}</button>
+    <button
+      onClick={onClick}
+      className={`w-full text-left px-3 py-2 text-sm rounded-md hover:bg-accent/10 transition cursor-pointer ${
+        theme === "light" ? "text-navy" : "text-navy"
+      }`}
+    >
+      {children}
+    </button>
   </DropdownMenuItem>
 );
 
@@ -142,26 +237,38 @@ const NavItem = ({
   label,
   dd,
   children,
+  theme,
 }: {
   label: string;
   dd: ReturnType<typeof useHoverDropdown>;
   children: React.ReactNode;
+  theme: "dark" | "light";
 }) => (
   <li onMouseEnter={dd.enter} onMouseLeave={dd.leave}>
     <DropdownMenu open={dd.open} onOpenChange={dd.setOpen}>
       <DropdownMenuTrigger asChild>
         <button
-          className="font-medium hover:text-accent transition-colors px-2 py-1 rounded-md flex items-center gap-1 focus:outline-none focus:ring-2 focus:ring-accent/40 whitespace-nowrap"
+          className={`font-medium hover:text-accent transition-colors px-2 py-1 rounded-md flex items-center gap-1 focus:outline-none focus:ring-2 focus:ring-accent/40 whitespace-nowrap ${
+            theme === "light" ? "text-navy/90 hover:text-accent" : "text-white hover:text-accent"
+          }`}
           onClick={dd.toggle}
         >
           {label}
-          <ChevronDown className={`w-4 h-4 opacity-80 transition-transform duration-200 ${dd.open ? "rotate-180" : ""}`} />
+          <ChevronDown
+            className={`w-4 h-4 opacity-80 transition-transform duration-200 ${
+              dd.open ? "rotate-180" : ""
+            }`}
+          />
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="start"
         sideOffset={6}
-        className="p-2 bg-white text-navy rounded-xl shadow-xl ring-1 ring-black/10 border border-white/10"
+        className={`p-2 rounded-xl shadow-xl border ${
+          theme === "light"
+            ? "bg-white text-navy ring-1 ring-black/10 border-slate-200"
+            : "bg-white text-navy ring-1 ring-black/10 border-white/10"
+        }`}
       >
         {children}
       </DropdownMenuContent>
@@ -173,6 +280,8 @@ const NavItem = ({
 const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { theme, toggleTheme } = useTheme();
+  const isLight = theme === "light";
 
   function scrollToSection(id: string) {
     if (location.pathname === "/team") {
@@ -180,7 +289,9 @@ const Header = () => {
       return;
     }
     navigate("/team");
-    setTimeout(() => { document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" }); }, 120);
+    setTimeout(() => {
+      document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 120);
   }
 
   const { isAuthenticated, signOut, user, isAdmin, showToast } = useAuth();
@@ -208,7 +319,9 @@ const Header = () => {
   const getUserInitials = () => {
     if (!user?.name) return "U";
     const names = user.name.split(" ");
-    return names.length >= 2 ? `${names[0][0]}${names[1][0]}`.toUpperCase() : user.name.substring(0, 2).toUpperCase();
+    return names.length >= 2
+      ? `${names[0][0]}${names[1][0]}`.toUpperCase()
+      : user.name.substring(0, 2).toUpperCase();
   };
 
   const handleSignOut = async () => {
@@ -219,14 +332,43 @@ const Header = () => {
   };
 
   // ── Mobile accordion component ──────────────────────────────────────────────
-  const MobileAccordion = ({ label, isOpen, toggle, children }: { label: string; isOpen: boolean; toggle: () => void; children: React.ReactNode }) => (
+  const MobileAccordion = ({
+    label,
+    isOpen,
+    toggle,
+    children,
+  }: {
+    label: string;
+    isOpen: boolean;
+    toggle: () => void;
+    children: React.ReactNode;
+  }) => (
     <li className="rounded-md overflow-hidden">
-      <button onClick={toggle} className="w-full flex items-center justify-between text-white hover:text-accent transition-colors font-medium py-3 px-3 rounded-md">
+      <button
+        onClick={toggle}
+        className={`w-full flex items-center justify-between font-medium py-3 px-3 rounded-md transition-colors ${
+          isLight
+            ? "text-navy hover:text-accent"
+            : "text-white hover:text-accent"
+        }`}
+      >
         <span>{label}</span>
-        <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`} />
+        <ChevronDown
+          className={`w-4 h-4 transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`}
+        />
       </button>
-      <div className={`overflow-hidden transition-[max-height,opacity] duration-200 ease-in-out ${isOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"}`}>
-        <div className="bg-navy/90 rounded-md border border-white/5 px-2 py-2 space-y-0.5 mb-1">
+      <div
+        className={`overflow-hidden transition-[max-height,opacity] duration-200 ease-in-out ${
+          isOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+        }`}
+      >
+        <div
+          className={`rounded-md border px-2 py-2 space-y-0.5 mb-1 ${
+            isLight
+              ? "bg-slate-100 border-slate-200"
+              : "bg-navy/90 border-white/5"
+          }`}
+        >
           {children}
         </div>
       </div>
@@ -234,143 +376,244 @@ const Header = () => {
   );
 
   const MobileLink = ({ to, children }: { to: string; children: React.ReactNode }) => (
-    <Link to={to} className="block text-white/90 hover:text-accent transition-colors font-medium py-2 px-3 rounded-md text-sm" onClick={closeMobile}>{children}</Link>
+    <Link
+      to={to}
+      className={`block font-medium py-2 px-3 rounded-md text-sm transition-colors hover:text-accent ${
+        isLight ? "text-navy/80" : "text-white/90"
+      }`}
+      onClick={closeMobile}
+    >
+      {children}
+    </Link>
   );
 
   const MobileSectionLabel = ({ label }: { label: string }) => (
-    <p className="text-[10px] font-bold uppercase tracking-widest text-white/30 px-3 pt-2 pb-0.5">{label}</p>
+    <p
+      className={`text-[10px] font-bold uppercase tracking-widest px-3 pt-2 pb-0.5 ${
+        isLight ? "text-navy/40" : "text-white/30"
+      }`}
+    >
+      {label}
+    </p>
   );
 
   const MobileScrollBtn = ({ id, children }: { id: string; children: React.ReactNode }) => (
-    <button onClick={() => { scrollToSection(id); closeMobile(); }} className="block text-white/90 hover:text-accent transition-colors font-medium py-2 px-3 rounded-md w-full text-left text-sm">
+    <button
+      onClick={() => {
+        scrollToSection(id);
+        closeMobile();
+      }}
+      className={`block font-medium py-2 px-3 rounded-md w-full text-left text-sm transition-colors hover:text-accent ${
+        isLight ? "text-navy/80" : "text-white/90"
+      }`}
+    >
       {children}
     </button>
   );
 
+  // ── Theme-aware class helpers ─────────────────────────────────────────────
+  const headerBg = isLight
+    ? "bg-white/95 text-navy shadow-md border-b border-slate-200"
+    : "bg-navy/95 text-white shadow-lg";
+
+  const tickerBg = isLight
+    ? "bg-white/95 py-3 border-b border-slate-200 shadow-sm"
+    : "bg-gradient-to-r from-navy via-navy/95 to-navy py-3 border-b border-white/10";
+
+  const mobileBg = isLight
+    ? "md:hidden bg-white border-t border-slate-200"
+    : "md:hidden bg-navy border-t border-white/10";
+
+  const mobileIPOBlog = isLight
+    ? "block hover:text-accent transition-colors font-medium py-3 px-3 rounded-md text-navy/90"
+    : "block text-white hover:text-accent transition-colors font-medium py-3 px-3 rounded-md";
+
+  const userBtnCls = isLight
+    ? "p-2.5 rounded-full bg-navy/8 hover:bg-navy/15 transition-all hover:scale-110"
+    : "p-2.5 rounded-full bg-white/10 hover:bg-white/20 transition-all hover:scale-110";
+
+  const userIconCls = isLight ? "text-navy" : "text-white";
+
+  const dropdownContentCls = isLight
+    ? "min-w-[160px] p-2 bg-white text-navy rounded-xl shadow-xl ring-1 ring-black/10 border border-slate-200"
+    : "min-w-[160px] p-2 bg-white text-navy rounded-xl shadow-xl ring-1 ring-black/10";
+
   return (
     <div className="sticky top-0 z-50">
-      {/* Ticker */}
-      <div className="bg-gradient-to-r from-navy via-navy/95 to-navy py-3 border-b border-white/10">
+      {/* ── Market Ticker Bar (always dark — industry standard) ── */}
+      <div className={tickerBg}>
         <MarketTickerInline />
       </div>
 
-      <header className="bg-navy/95 text-white shadow-lg backdrop-blur-sm">
+      <header className={`${headerBg} backdrop-blur-sm`}>
         <nav className="container mx-auto px-6 py-3 flex items-center justify-between min-h-[64px]">
 
           {/* ── Left: logo + nav ──────────────────────────────────────────────── */}
           <div className="flex items-center gap-3 md:gap-5">
-            <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="md:hidden text-white hover:text-accent transition-colors p-2 rounded-md" aria-label="Toggle menu">
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className={`md:hidden hover:text-accent transition-colors p-2 rounded-md ${
+                isLight ? "text-navy" : "text-white"
+              }`}
+              aria-label="Toggle menu"
+            >
               {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
 
-            <Link to="/"
-              className="flex items-center shrink-0" >
-              <img src="/images/Untitled-6-04.png" alt="InvestBeans Logo" className="h-7 w-auto object-contain relative -top-1 filter contrast-125" />
+            <Link to="/" className="flex items-center shrink-0">
+              <img
+                src={isLight ? "/images/investbeans logo-03.png" : "/images/Untitled-6-04.png"}
+                alt="InvestBeans Logo"
+                className={`h-7 w-auto max-w-[150px] md:max-w-none object-contain relative -top-1  ${!isLight ? "filter contrast-125 "  : ""}`}
+              />
             </Link>
-          
+
             {/* Desktop nav list */}
             <ul className="hidden md:flex items-center gap-0.5">
 
               {/* 1. ABOUT */}
-              <NavItem label="About" dd={about}>
+              <NavItem label="About" dd={about} theme={theme}>
                 <div className="min-w-[260px]">
-                  <DropBtn onClick={() => { scrollToSection("our-story"); about.close(); }}>Our Story & Founder's Journey</DropBtn>
-                  <DropBtn onClick={() => { scrollToSection("mission"); about.close(); }}>Mission, Vision & Values</DropBtn>
-                  <DropBtn onClick={() => { scrollToSection("team-members"); about.close(); }}>Team</DropBtn>
-                  <DropBtn onClick={() => { scrollToSection("why-us"); about.close(); }}>Why Us</DropBtn>
-                  <DropBtn onClick={() => { scrollToSection("what-we-do"); about.close(); }}>What We Do</DropBtn>
-                  <DropBtn onClick={() => { scrollToSection("certifications"); about.close(); }}>Trust and Compliance</DropBtn>
+                  <DropBtn theme={theme} onClick={() => { scrollToSection("our-story"); about.close(); }}>Our Story & Founder's Journey</DropBtn>
+                  <DropBtn theme={theme} onClick={() => { scrollToSection("mission"); about.close(); }}>Mission, Vision & Values</DropBtn>
+                  <DropBtn theme={theme} onClick={() => { scrollToSection("team-members"); about.close(); }}>Team</DropBtn>
+                  <DropBtn theme={theme} onClick={() => { scrollToSection("why-us"); about.close(); }}>Why Us</DropBtn>
+                  <DropBtn theme={theme} onClick={() => { scrollToSection("what-we-do"); about.close(); }}>What We Do</DropBtn>
+                  <DropBtn theme={theme} onClick={() => { scrollToSection("certifications"); about.close(); }}>Trust and Compliance</DropBtn>
                 </div>
               </NavItem>
 
               {/* 2. SEGMENTS */}
-              <NavItem label="Segments" dd={segments}>
+              <NavItem label="Segments" dd={segments} theme={theme}>
                 <div className="min-w-[200px]">
-                  <DropSection label="Equity" />
-                  <DropLink to="/domestic" onClick={segments.close}>Domestic</DropLink>
-                  <DropLink to="/global" onClick={segments.close}>Global</DropLink>
-                  <DropLink to="/markets" onClick={segments.close}>Commodities</DropLink>
-                  <DropLink to="/markets" onClick={segments.close}>Currency</DropLink>
+                  <DropSection label="Equity" theme={theme} />
+                  <DropLink to="/domestic" onClick={segments.close} theme={theme}>Domestic</DropLink>
+                  <DropLink to="/global" onClick={segments.close} theme={theme}>Global</DropLink>
+                  <DropLink to="/markets" onClick={segments.close} theme={theme}>Commodities</DropLink>
+                  <DropLink to="/markets" onClick={segments.close} theme={theme}>Currency</DropLink>
                 </div>
               </NavItem>
 
               {/* 3. DASHBOARDS */}
-              <NavItem label="Dashboards" dd={dashboards}>
+              <NavItem label="Dashboards" dd={dashboards} theme={theme}>
                 <div className="min-w-[200px]">
-                  <DropLink to="/dashboard" onClick={dashboards.close}>Bharat (India)</DropLink>
-                  <DropLink to="/dashboard" onClick={dashboards.close}>Global</DropLink>
-                  <DropLink to="/dashboard" onClick={dashboards.close}>ETFs</DropLink>
+                  <DropLink to="/dashboard" onClick={dashboards.close} theme={theme}>Bharat (India)</DropLink>
+                  <DropLink to="/dashboard" onClick={dashboards.close} theme={theme}>Global</DropLink>
+                  <DropLink to="/dashboard" onClick={dashboards.close} theme={theme}>ETFs</DropLink>
                 </div>
               </NavItem>
 
               {/* 4. LEARN */}
-              <NavItem label="Learn" dd={learn}>
+              <NavItem label="Learn" dd={learn} theme={theme}>
                 <div className="min-w-[220px]">
-                  <DropSection label="Financial" />
-                  <DropLink to="/education#financial-ebooks" onClick={learn.close}>E-books</DropLink>
-                  <DropLink to="/education#financial-tutorials" onClick={learn.close}>Tutorials</DropLink>
-                  <DropLink to="/education#financial-certifications" onClick={learn.close}>Certifications</DropLink>
+                  <DropSection label="Financial" theme={theme} />
+                  <DropLink to="/education#financial-ebooks" onClick={learn.close} theme={theme}>E-books</DropLink>
+                  <DropLink to="/education#financial-tutorials" onClick={learn.close} theme={theme}>Tutorials</DropLink>
+                  <DropLink to="/education#financial-certifications" onClick={learn.close} theme={theme}>Certifications</DropLink>
                   <DropdownMenuSeparator className="my-1" />
-                  <DropSection label="Non-Financial" />
-                  <DropLink to="/education#nonfinancial-ebooks" onClick={learn.close}>E-books</DropLink>
-                  <DropLink to="/education#nonfinancial-tutorials" onClick={learn.close}>Tutorials</DropLink>
+                  <DropSection label="Non-Financial" theme={theme} />
+                  <DropLink to="/education#nonfinancial-ebooks" onClick={learn.close} theme={theme}>E-books</DropLink>
+                  <DropLink to="/education#nonfinancial-tutorials" onClick={learn.close} theme={theme}>Tutorials</DropLink>
                 </div>
               </NavItem>
 
               {/* 5. EVENTS */}
-              <NavItem label="Events" dd={events}>
+              <NavItem label="Events" dd={events} theme={theme}>
                 <div className="min-w-[160px]">
-                  <DropLink to="/domestic" onClick={events.close}>Domestic</DropLink>
-                  <DropLink to="/global" onClick={events.close}>Global</DropLink>
+                  <DropLink to="/domestic" onClick={events.close} theme={theme}>Domestic</DropLink>
+                  <DropLink to="/global" onClick={events.close} theme={theme}>Global</DropLink>
                 </div>
               </NavItem>
 
               {/* 6. IPO */}
               <li>
-                <Link to="/ipos" className="font-medium hover:text-accent transition-colors px-2 py-1 rounded-md whitespace-nowrap">
+                <Link
+                  to="/ipos"
+                  className={`font-medium hover:text-accent transition-colors px-2 py-1 rounded-md whitespace-nowrap ${
+                    isLight ? "text-navy/90" : "text-white"
+                  }`}
+                >
                   IPO
                 </Link>
               </li>
 
               {/* 7. BLOGS */}
               <li>
-                <Link to="/blogs" className="font-medium hover:text-accent transition-colors px-2 py-1 rounded-md whitespace-nowrap">
+                <Link
+                  to="/blogs"
+                  className={`font-medium hover:text-accent transition-colors px-2 py-1 rounded-md whitespace-nowrap ${
+                    isLight ? "text-navy/90" : "text-white"
+                  }`}
+                >
                   Blogs
                 </Link>
               </li>
 
               {/* 8. HELP */}
-              <NavItem label="Help" dd={help}>
+              <NavItem label="Help" dd={help} theme={theme}>
                 <div className="min-w-[160px]">
-                  <DropLink to="/help-center" onClick={help.close}>FAQs</DropLink>
-                  <DropLink to="/help-center" onClick={help.close}>Contact Us</DropLink>
+                  <DropLink to="/help-center" onClick={help.close} theme={theme}>FAQs</DropLink>
+                  <DropLink to="/help-center" onClick={help.close} theme={theme}>Contact Us</DropLink>
                 </div>
               </NavItem>
 
             </ul>
           </div>
 
-          {/* ── Right: user menu ──────────────────────────────────────────────── */}
-          <div className="flex items-center gap-4">
+          {/* ── Right: theme toggle + user menu ──────────────────────────── */}
+          <div className="flex items-center gap-3">
+
+            {/* ── Dark / Light Toggle Button ─────────────────────────────── */}
+            <button
+              onClick={toggleTheme}
+              aria-label={isLight ? "Switch to dark mode" : "Switch to light mode"}
+              className={`relative flex items-center justify-center w-10 h-10 rounded-full transition-all duration-300 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-accent/40 ${
+                isLight
+                  ? "bg-slate-100 hover:bg-slate-200 text-navy shadow-sm border border-slate-300"
+                  : "bg-white/10 hover:bg-white/20 text-white"
+              }`}
+            >
+              {isLight ? (
+                <Moon className="w-4 h-4" />
+              ) : (
+                <Sun className="w-4 h-4" />
+              )}
+            </button>
+
             {isAuthenticated && user ? (
               <li onMouseEnter={userMenu.enter} onMouseLeave={userMenu.leave} className="list-none">
                 <DropdownMenu open={userMenu.open} onOpenChange={userMenu.setOpen}>
                   <DropdownMenuTrigger asChild>
-                    <button onClick={userMenu.toggle} className="flex items-center gap-3 p-1.5 rounded-full hover:bg-white/10 transition-all focus:outline-none focus:ring-2 focus:ring-accent/40">
-                      <Avatar className="h-9 w-9 border-2 border-white/20 ring-2 ring-white/10">
+                    <button
+                      onClick={userMenu.toggle}
+                      className={`flex items-center gap-3 p-1.5 rounded-full transition-all focus:outline-none focus:ring-2 focus:ring-accent/40 ${
+                        isLight ? "hover:bg-navy/8" : "hover:bg-white/10"
+                      }`}
+                    >
+                      <Avatar className={`h-9 w-9 border-2 ring-2 ${isLight ? "border-slate-300 ring-slate-200" : "border-white/20 ring-white/10"}`}>
                         <AvatarImage src={user?.image} alt={user.name} className="object-cover" />
-                        <AvatarFallback className="bg-gradient-to-br from-accent to-accent/80 text-white font-semibold">{getUserInitials()}</AvatarFallback>
+                        <AvatarFallback className="bg-gradient-to-br from-accent to-accent/80 text-white font-semibold">
+                          {getUserInitials()}
+                        </AvatarFallback>
                       </Avatar>
-                      <span className="hidden md:block text-sm font-medium max-w-[150px] truncate">{user.name}</span>
-                      <ChevronDown className="hidden md:block w-4 h-4" />
+                      <span className={`hidden md:block text-sm font-medium max-w-[150px] truncate ${isLight ? "text-navy" : "text-white"}`}>
+                        {user.name}
+                      </span>
+                      <ChevronDown className={`hidden md:block w-4 h-4 ${isLight ? "text-navy/60" : "text-white"}`} />
                     </button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" sideOffset={8} className="min-w-[240px] p-2 bg-white text-navy rounded-xl shadow-xl ring-1 ring-black/10">
+                  <DropdownMenuContent
+                    align="end"
+                    sideOffset={8}
+                    className="min-w-[240px] p-2 bg-white text-navy rounded-xl shadow-xl ring-1 ring-black/10"
+                  >
                     <div className="px-3 py-3 border-b border-gray-200">
                       <div className="flex items-center gap-3 mb-2">
                         <Avatar className="h-10 w-10 border-2 border-gray-200">
                           <AvatarImage src={user?.image} alt={user.name} className="object-cover" />
-                          <AvatarFallback className="bg-gradient-to-br from-accent to-accent/80 text-white font-semibold text-sm">{getUserInitials()}</AvatarFallback>
+                          <AvatarFallback className="bg-gradient-to-br from-accent to-accent/80 text-white font-semibold text-sm">
+                            {getUserInitials()}
+                          </AvatarFallback>
                         </Avatar>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-semibold text-navy truncate">{user.name}</p>
@@ -386,7 +629,10 @@ const Header = () => {
                     </div>
                     <DropdownMenuSeparator className="my-2" />
                     <DropdownMenuItem asChild>
-                      <button onClick={() => { userMenu.close(); handleSignOut(); }} className="flex items-center gap-2 w-full px-3 py-2 rounded-md text-sm font-medium hover:bg-destructive/10 text-destructive transition">
+                      <button
+                        onClick={() => { userMenu.close(); handleSignOut(); }}
+                        className="flex items-center gap-2 w-full px-3 py-2 rounded-md text-sm font-medium hover:bg-destructive/10 text-destructive transition"
+                      >
                         <LogOut className="w-4 h-4" /> Logout
                       </button>
                     </DropdownMenuItem>
@@ -400,16 +646,32 @@ const Header = () => {
                   <li onMouseEnter={userMenu.enter} onMouseLeave={userMenu.leave} className="list-none">
                     <DropdownMenu open={userMenu.open} onOpenChange={userMenu.setOpen}>
                       <DropdownMenuTrigger asChild>
-                        <button onClick={userMenu.toggle} className="p-2.5 rounded-full bg-white/10 hover:bg-white/20 transition-all hover:scale-110">
-                          <User className="w-5 h-5 text-white" />
+                        <button onClick={userMenu.toggle} className={userBtnCls}>
+                          <User className={`w-5 h-5 ${userIconCls}`} />
                         </button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" sideOffset={8} className="min-w-[160px] p-2 bg-white text-navy rounded-xl shadow-xl ring-1 ring-black/10">
+                      <DropdownMenuContent
+                        align="end"
+                        sideOffset={8}
+                        className={dropdownContentCls}
+                      >
                         <DropdownMenuItem asChild>
-                          <Link to="/signin" className="block px-3 py-2 rounded-md text-sm font-medium hover:bg-accent/10 transition" onClick={userMenu.close}>Login</Link>
+                          <Link
+                            to="/signin"
+                            className="block px-3 py-2 rounded-md text-sm font-medium hover:bg-accent/10 transition"
+                            onClick={userMenu.close}
+                          >
+                            Login
+                          </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
-                          <Link to="/signup" className="block px-3 py-2 rounded-md text-sm font-medium hover:bg-accent/10 transition" onClick={userMenu.close}>Sign up</Link>
+                          <Link
+                            to="/signup"
+                            className="block px-3 py-2 rounded-md text-sm font-medium hover:bg-accent/10 transition"
+                            onClick={userMenu.close}
+                          >
+                            Sign up
+                          </Link>
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -419,16 +681,30 @@ const Header = () => {
                 <div className="md:hidden">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <button className="p-2.5 rounded-full bg-white/10 hover:bg-white/20 transition-all hover:scale-110">
-                        <User className="w-5 h-5 text-white" />
+                      <button className={userBtnCls}>
+                        <User className={`w-5 h-5 ${userIconCls}`} />
                       </button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" sideOffset={8} className="min-w-[160px] p-2 bg-white text-navy rounded-xl shadow-xl ring-1 ring-black/10">
+                    <DropdownMenuContent
+                      align="end"
+                      sideOffset={8}
+                      className={dropdownContentCls}
+                    >
                       <DropdownMenuItem asChild>
-                        <Link to="/signin" className="block px-3 py-2 rounded-md text-sm font-medium hover:bg-accent/10 transition">Login</Link>
+                        <Link
+                          to="/signin"
+                          className="block px-3 py-2 rounded-md text-sm font-medium hover:bg-accent/10 transition"
+                        >
+                          Login
+                        </Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
-                        <Link to="/signup" className="block px-3 py-2 rounded-md text-sm font-medium hover:bg-accent/10 transition">Sign up</Link>
+                        <Link
+                          to="/signup"
+                          className="block px-3 py-2 rounded-md text-sm font-medium hover:bg-accent/10 transition"
+                        >
+                          Sign up
+                        </Link>
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -440,11 +716,11 @@ const Header = () => {
 
         {/* ── Mobile Menu ───────────────────────────────────────────────────────── */}
         {isMobileMenuOpen && (
-          <div className="md:hidden bg-navy border-t border-white/10">
+          <div className={mobileBg}>
             <div className="container mx-auto px-4 py-4">
               <ul className="space-y-1">
 
-                <MobileAccordion label="About" isOpen={mobileAboutOpen} toggle={() => setMobileAboutOpen(s => !s)}>
+                <MobileAccordion label="About" isOpen={mobileAboutOpen} toggle={() => setMobileAboutOpen((s) => !s)}>
                   <MobileScrollBtn id="our-story">Our Story & Founder's Journey</MobileScrollBtn>
                   <MobileScrollBtn id="mission">Mission, Vision & Values</MobileScrollBtn>
                   <MobileScrollBtn id="team-members">Team</MobileScrollBtn>
@@ -453,7 +729,7 @@ const Header = () => {
                   <MobileScrollBtn id="certifications">Trust and Compliance</MobileScrollBtn>
                 </MobileAccordion>
 
-                <MobileAccordion label="Segments" isOpen={mobileSegmentsOpen} toggle={() => setMobileSegmentsOpen(s => !s)}>
+                <MobileAccordion label="Segments" isOpen={mobileSegmentsOpen} toggle={() => setMobileSegmentsOpen((s) => !s)}>
                   <MobileSectionLabel label="Equity" />
                   <MobileLink to="/domestic">Domestic</MobileLink>
                   <MobileLink to="/global">Global</MobileLink>
@@ -461,13 +737,13 @@ const Header = () => {
                   <MobileLink to="/markets">Currency</MobileLink>
                 </MobileAccordion>
 
-                <MobileAccordion label="Dashboards" isOpen={mobileDashboardsOpen} toggle={() => setMobileDashboardsOpen(s => !s)}>
+                <MobileAccordion label="Dashboards" isOpen={mobileDashboardsOpen} toggle={() => setMobileDashboardsOpen((s) => !s)}>
                   <MobileLink to="/dashboard">Bharat (India)</MobileLink>
                   <MobileLink to="/dashboard">Global</MobileLink>
                   <MobileLink to="/dashboard">ETFs</MobileLink>
                 </MobileAccordion>
 
-                <MobileAccordion label="Learn" isOpen={mobileLearnOpen} toggle={() => setMobileLearnOpen(s => !s)}>
+                <MobileAccordion label="Learn" isOpen={mobileLearnOpen} toggle={() => setMobileLearnOpen((s) => !s)}>
                   <MobileSectionLabel label="Financial" />
                   <MobileLink to="/education#financial-ebooks">E-books</MobileLink>
                   <MobileLink to="/education#financial-tutorials">Tutorials</MobileLink>
@@ -477,27 +753,38 @@ const Header = () => {
                   <MobileLink to="/education#nonfinancial-tutorials">Tutorials</MobileLink>
                 </MobileAccordion>
 
-                <MobileAccordion label="Events" isOpen={mobileEventsOpen} toggle={() => setMobileEventsOpen(s => !s)}>
+                <MobileAccordion label="Events" isOpen={mobileEventsOpen} toggle={() => setMobileEventsOpen((s) => !s)}>
                   <MobileLink to="/domestic">Domestic</MobileLink>
                   <MobileLink to="/global">Global</MobileLink>
                 </MobileAccordion>
 
                 <li>
-                  <Link to="/ipos" className="block text-white hover:text-accent transition-colors font-medium py-3 px-3 rounded-md" onClick={closeMobile}>IPO</Link>
+                  <Link to="/ipos" className={mobileIPOBlog} onClick={closeMobile}>
+                    IPO
+                  </Link>
                 </li>
 
                 <li>
-                  <Link to="/blogs" className="block text-white hover:text-accent transition-colors font-medium py-3 px-3 rounded-md" onClick={closeMobile}>Blogs</Link>
+                  <Link to="/blogs" className={mobileIPOBlog} onClick={closeMobile}>
+                    Blogs
+                  </Link>
                 </li>
 
-                <MobileAccordion label="Help" isOpen={mobileHelpOpen} toggle={() => setMobileHelpOpen(s => !s)}>
+                <MobileAccordion label="Help" isOpen={mobileHelpOpen} toggle={() => setMobileHelpOpen((s) => !s)}>
                   <MobileLink to="/help-center">FAQs</MobileLink>
                   <MobileLink to="/help-center">Contact Us</MobileLink>
                 </MobileAccordion>
 
                 {isAuthenticated && (
                   <li className="pt-3">
-                    <Button onClick={() => { handleSignOut(); closeMobile(); }} className="w-full bg-white text-navy hover:bg-accent hover:text-white font-semibold transition-all shadow-sm">
+                    <Button
+                      onClick={() => { handleSignOut(); closeMobile(); }}
+                      className={`w-full font-semibold transition-all shadow-sm ${
+                        isLight
+                          ? "bg-navy text-white hover:bg-navy/80"
+                          : "bg-white text-navy hover:bg-accent hover:text-white"
+                      }`}
+                    >
                       Log out
                     </Button>
                   </li>
