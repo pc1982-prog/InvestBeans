@@ -90,10 +90,13 @@ const Footer = () => {
           <div>
             <h3 className={sectionHeadingCls}>Quick Links</h3>
             <ul className="space-y-3 text-sm">
-              <li><a href="#" className={linkCls}>Home</a></li>
-              <li><a href="#" className={linkCls}>Markets</a></li>
-              <li><a href="#" className={linkCls}>Dashboard</a></li>
-              <li><a href="#" className={linkCls}>Insights</a></li>
+              <li><a href="/" className={linkCls}>Home</a></li>
+              <li><a href="/markets" className={linkCls}>Markets</a></li>
+              <li><a href="/dashboard" className={linkCls}>Dashboard</a></li>
+              <li><a href="/global" className={linkCls}>Global</a></li>
+              <li><a href="/domestic" className={linkCls}>Domestics</a></li>
+              <li><a href="/pricing" className={linkCls}>Pricing</a></li>
+
             </ul>
           </div>
 

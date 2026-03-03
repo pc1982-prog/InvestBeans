@@ -11,6 +11,7 @@ import DecodeMarket from "./DecodeMarket";
 import BeansOfWisdomView from "./BeansOfWisdom";
 import IPOSection from "./Iposection";
 import TestimonialsPage from "@/components/Testimonials";
+import Subscribeview from "./Subscribeview";
 
 type ActiveTab = "domestic" | "global";
 type HomeViewProps = { activeTab: ActiveTab; onChangeTab: (tab: ActiveTab) => void };
@@ -204,28 +205,13 @@ const HomeView = ({ activeTab, onChangeTab }: HomeViewProps) => {
                   <StockHeatmapWidget dataSource={activeTab === "domestic" ? "SENSEX" : "World"} />
                 </div>
               </div>
-
-              {/* Market status bar */}
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 rounded-xl px-5 py-3"
-                style={{ background: statusBarBg, border: statusBarBorder }}>
-                <div className="flex items-center gap-2 text-sm" style={{ color: isLight ? "rgba(13,37,64,0.55)" : "rgba(148,163,184,1)" }}>
-                  <Sparkles className="w-4 h-4 text-[#D4A843]" />
-                  <span>Last Updated: 24/04/2024 - 10:45 AM</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
-                  <span style={{ color: isLight ? "rgba(13,37,64,0.55)" : "rgba(148,163,184,1)" }}>
-                    Market Status: <span className="text-emerald-500 font-semibold">Open</span>
-                  </span>
-                </div>
-              </div>
             </div>
           </section>
 
           {/* ═══════════════════════════════════════════════════════════════
               IPO SECTION
           ═══════════════════════════════════════════════════════════════ */}
-          <IPOSection />
+          <section ><IPOSection /></section>
 
           {/* ═══════════════════════════════════════════════════════════════
               DECODE MARKET
@@ -298,60 +284,20 @@ const HomeView = ({ activeTab, onChangeTab }: HomeViewProps) => {
           {/* ═══════════════════════════════════════════════════════════════
               NEWSLETTER
           ═══════════════════════════════════════════════════════════════ */}
-          <section className="mt-10">
-            <div className="rounded-2xl p-10 md:p-12 relative overflow-hidden"
-              style={{ background: sectionWrapBg, border: sectionWrapBorder }}>
-              {/* Gold top line */}
-              <div className="absolute top-0 left-0 right-0 h-px"
-                style={{ background: sectionTopLine }} />
-              {/* Ambient glow */}
-              <div className="absolute top-0 right-0 w-72 h-72 rounded-full blur-[100px] pointer-events-none"
-                style={{ background: glow1 }} />
 
-              <div className="relative z-10 max-w-3xl mx-auto text-center">
-                {/* Mail icon */}
-                <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-5 mx-auto"
-                  style={{ background: "rgba(212,168,67,0.1)", border: "1px solid rgba(212,168,67,0.25)" }}>
-                  <Mail className="w-7 h-7 text-[#D4A843]" />
-                </div>
 
-                {/* Heading */}
-                <h3 className={`text-3xl md:text-4xl font-bold mb-3 ${headingCls}`}>
-                  Stay Ahead in the{" "}
-                  <span style={{ background: GOLD, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-                    Market
-                  </span>
-                </h3>
-                <p className={`mb-8 ${subTextCls}`}>
-                  Subscribe for daily insights, market trends, and expert analysis delivered to your inbox
-                </p>
-
-                {/* Email form */}
-                <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
-                  <input
-                    type="email"
-                    placeholder="Enter your email"
-                    className="flex-1 h-12 px-4 rounded-xl text-sm focus:outline-none placeholder:text-slate-400"
-                    style={{
-                      background: emailInputBg,
-                      border: emailInputBorder,
-                      color: emailInputText,
-                    }}
-                  />
-                  <button className="h-12 px-6 rounded-xl font-semibold text-sm text-[#0c1a2e] whitespace-nowrap"
-                    style={{ background: GOLD }}>
-                    Subscribe
-                  </button>
-                </div>
-
-                {/* Social proof */}
-                <p className={`text-xs mt-4 ${subTextCls}`}>
-                  Join 50,000+ investors getting daily market insights
-                </p>
-              </div>
-            </div>
-          </section>
-
+          <Subscribeview
+            sectionWrapBg={sectionWrapBg}
+            sectionWrapBorder={sectionWrapBorder}
+            sectionTopLine={sectionTopLine}
+            glow1={glow1}
+            headingCls={headingCls}
+            subTextCls={subTextCls}
+            GOLD={GOLD}
+            emailInputBg={emailInputBg}
+            emailInputBorder={emailInputBorder}
+            emailInputText={emailInputText}
+          />
         </div>
       </div>
     </Layout>

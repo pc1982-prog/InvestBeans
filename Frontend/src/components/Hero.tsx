@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Sparkles } from "lucide-react";
 import { useTheme } from "@/controllers/Themecontext"
 
@@ -86,37 +87,101 @@ const IndexChartIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
-// ── Tab data ────────────────────────────────────────────────────────────────
-const TABS = {
-  bharat: {
-    label: "Bharat BeansIndex",
-    flag: "🇮🇳",
-    stats: [
-      { value: "+0.85%", sub: "SENSEX vs NIFTY 50", positive: true  },
-      { value: "+1.14%", sub: "FII vs DII",          positive: true  },
-      { value: "13.42",  sub: "India VIX",           positive: null  },
-      { value: "+0.32%", sub: "GIFT NIFTY",          positive: true  },
-    ],
-  },
-  us: {
-    label: "US BeansIndex",
-    flag: "🇺🇸",
-    stats: [
-      { value: "+1.14%", sub: "NASDAQ vs S&P 500",  positive: true  },
-      { value: "₹83.62", sub: "USD / INR",           positive: null  },
-      { value: "+2.3%",  sub: "GOLD vs SILVER",      positive: true  },
-      { value: "84%",    sub: "Market Sync Index",   positive: null  },
-    ],
-  },
-} as const;
+// ── Static Bharat tab (no API needed) ───────────────────────────────────────
+const BHARAT_STATS = [
+  { value: "+0.85%", sub: "SENSEX vs NIFTY 50", positive: true  },
+  { value: "+1.14%", sub: "FII vs DII",          positive: true  },
+  { value: "13.42",  sub: "India VIX",           positive: null  },
+  { value: "+0.32%", sub: "GIFT NIFTY",          positive: true  },
+];
 
-type TabKey = keyof typeof TABS;
+// Navigation map: stat sub → GlobalView section id
+const STAT_NAV: Record<string, { path: string; section: string }> = {
+  "NASDAQ vs S&P 500": { path: "/global", section: "section-us"   },
+  "USD / INR":         { path: "/global", section: "section-forex" },
+  "GOLD vs SILVER":    { path: "/global", section: "section-commodities" },
+  "Dow Jones":         { path: "/global", section: "section-us"   },
+};
+
+type TabKey = "bharat" | "us";
+
+interface StatItem { value: string; sub: string; positive: boolean | null; section?: string; path?: string; }
 
 const Hero = () => {
   const [activeTab, setActiveTab] = useState<TabKey>("bharat");
   const { theme } = useTheme();
   const isLight = theme === "light";
-  const current = TABS[activeTab];
+  const navigate = useNavigate();
+
+  // ── Live US stats from backend ───────────────────────────────────────────
+  const [usStats, setUsStats] = useState<StatItem[]>([
+    { value: "...", sub: "NASDAQ",    positive: null },
+    { value: "...", sub: "USD / INR", positive: null },
+    { value: "...", sub: "Gold",      positive: null },
+    { value: "...", sub: "Dow Jones", positive: null },
+  ]);
+
+  useEffect(() => {
+    const API = import.meta.env.VITE_API_URL || "http://localhost:8000";
+    fetch(`${API}/markets/global`)
+      .then(r => r.json())
+      .then(data => {
+        const us    = data?.indices?.us    || [];
+        const forex = data?.forex          || [];
+        const comms = data?.commodities    || [];
+
+        const nasdaq = us.find((m: any) => m.symbol === "^IXIC");
+        const sp500  = us.find((m: any) => m.symbol === "^GSPC");
+        const dow    = us.find((m: any) => m.symbol === "^DJI");
+        const usdinr = forex.find((m: any) => m.pair === "USD/INR");
+        const gold   = comms.find((m: any) => m.symbol === "GC=F");
+        const silver = comms.find((m: any) => m.symbol === "SI=F");
+
+        const fmt = (v: number | undefined, prefix = "+") =>
+          v == null ? "N/A" : `${v >= 0 ? prefix : ""}${v.toFixed(2)}%`;
+
+        // NASDAQ — primary value
+        const nasdaqVal = nasdaq
+          ? `${nasdaq.changePercent >= 0 ? "+" : ""}${nasdaq.changePercent.toFixed(2)}%`
+          : "N/A";
+        const nasdaqPos = nasdaq ? nasdaq.changePercent >= 0 : null;
+
+        // USD/INR — use changePercent from forex (daily % move), not raw rate
+        // rate can be unreliable; show % change instead which is always meaningful
+        const usdInrVal = usdinr?.changePercent != null
+          ? `${usdinr.changePercent >= 0 ? "+" : ""}${usdinr.changePercent.toFixed(2)}%`
+          : usdinr?.rate != null
+          ? `₹${Number(usdinr.rate).toFixed(2)}`
+          : "N/A";
+        const usdInrPos = usdinr?.changePercent != null
+          ? usdinr.changePercent >= 0
+          : null;
+
+        // Gold — primary value
+        const goldVal = gold
+          ? `${gold.changePercent >= 0 ? "+" : ""}${gold.changePercent.toFixed(2)}%`
+          : "N/A";
+        const goldPos = gold ? gold.changePercent >= 0 : null;
+
+        // Dow Jones
+        const dowVal = dow
+          ? `${dow.changePercent >= 0 ? "+" : ""}${dow.changePercent.toFixed(2)}%`
+          : "N/A";
+        const dowPos = dow ? dow.changePercent >= 0 : null;
+
+        setUsStats([
+          { value: nasdaqVal, sub: "NASDAQ",    positive: nasdaqPos, path: "/global", section: "section-us"          },
+          { value: usdInrVal, sub: "USD / INR", positive: usdInrPos, path: "/global", section: "section-forex"        },
+          { value: goldVal,   sub: "Gold",       positive: goldPos,   path: "/global", section: "section-commodities"  },
+          { value: dowVal,    sub: "Dow Jones",  positive: dowPos,    path: "/global", section: "section-us"           },
+        ]);
+      })
+      .catch(() => {}); // silently keep placeholder values
+  }, []);
+
+  const currentStats: StatItem[] = activeTab === "bharat"
+    ? BHARAT_STATS
+    : usStats;
 
   // ── Light mode: professional bluish gradient ──────────────────────────────
   const sectionStyle = isLight
@@ -156,12 +221,12 @@ const Hero = () => {
 
   // ── Icon boxes ────────────────────────────────────────────────────────────
   const iconBoxLg = isLight
-    ? "p-3.5 rounded-2xl bg-accent/12 border border-accent/25 shadow-lg shadow-accent/10 hover:scale-110 hover:bg-accent/18 transition-all duration-300"
-    : "p-3.5 rounded-2xl bg-accent/15 border border-accent/30 shadow-lg shadow-accent/10 hover:scale-110 hover:bg-accent/20 transition-all duration-300";
+    ? "p-3.5 rounded-2xl bg-amber-100 border-2 border-amber-300 shadow-lg shadow-amber-200/60 transition-all duration-300 "
+    : "p-3.5 rounded-2xl bg-accent/30 border-2 border-accent/60 shadow-lg shadow-accent/25 transition-all duration-300 ";
 
   const iconBoxSm = isLight
-    ? "p-3 rounded-2xl bg-accent/8 border border-accent/18 shadow-md shadow-accent/10 hover:scale-110 hover:bg-accent/12 transition-all duration-300"
-    : "p-3 rounded-2xl bg-accent/10 border border-accent/20 shadow-md shadow-accent/10 hover:scale-110 hover:bg-accent/15 transition-all duration-300";
+    ? "p-3 rounded-2xl bg-amber-50 border-2 border-amber-200 shadow-md shadow-amber-100/60 transition-all duration-300 "
+    : "p-3 rounded-2xl bg-accent/20 border-2 border-accent/45 shadow-md shadow-accent/20 transition-all duration-300 ";
 
   // ── Tab pill container ────────────────────────────────────────────────────
   const tabContainerCls = isLight
@@ -196,13 +261,13 @@ const Hero = () => {
           {/* ── Custom SVG brand icons ──────────────────────────────────── */}
           <div className="flex justify-center items-center gap-5 mb-8">
             <div className={iconBoxLg}>
-              <BeanSproutIcon className="w-8 h-8 text-accent" />
+              <BeanSproutIcon className={`w-8 h-8 ${isLight ? "text-amber-500" : "text-accent"}`} style={{ filter: isLight ? "drop-shadow(0 2px 6px rgba(217,119,6,0.4))" : "drop-shadow(0 2px 8px rgba(201,168,76,0.6))" }} />
             </div>
             <div className={iconBoxSm}>
-              <CoinStackIcon className="w-7 h-7 text-accent/85" />
+              <CoinStackIcon className={`w-7 h-7 ${isLight ? "text-amber-400" : "text-accent"}`} style={{ filter: isLight ? "drop-shadow(0 2px 4px rgba(217,119,6,0.3))" : "drop-shadow(0 2px 6px rgba(201,168,76,0.5))" }} />
             </div>
             <div className={iconBoxLg}>
-              <IndexChartIcon className="w-8 h-8 text-accent" />
+              <IndexChartIcon className={`w-8 h-8 ${isLight ? "text-amber-500" : "text-accent"}`} style={{ filter: isLight ? "drop-shadow(0 2px 6px rgba(217,119,6,0.4))" : "drop-shadow(0 2px 8px rgba(201,168,76,0.6))" }} />
             </div>
           </div>
 
@@ -230,7 +295,7 @@ const Hero = () => {
 
           {/* ── Bharat / US tabs ──────────────────────────────────────── */}
           <div className={tabContainerCls}>
-            {(Object.keys(TABS) as TabKey[]).map((key) => {
+            {(["bharat", "us"] as TabKey[]).map((key) => {
               const active = activeTab === key;
               return (
                 <button
@@ -269,8 +334,8 @@ const Hero = () => {
                   }}
                 >
                   {active && <Sparkles className="w-3.5 h-3.5" strokeWidth={2.5} />}
-                  <span>{TABS[key].flag}</span>
-                  <span>{TABS[key].label}</span>
+                  <span>{key === "bharat" ? "🇮🇳" : "🇺🇸"}</span>
+                  <span>{key === "bharat" ? "Bharat BeansIndex" : "US BeansIndex"}</span>
                 </button>
               );
             })}
@@ -278,22 +343,61 @@ const Hero = () => {
 
           {/* ── Dynamic stats grid ─────────────────────────────────────── */}
           <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 max-w-4xl mx-auto">
-            {current.stats.map((stat) => (
-              <div key={stat.sub} className={statCardCls}>
+            {currentStats.map((stat) => (
+              <div
+                key={stat.sub}
+                className={statCardCls}
+                onClick={() => {
+                  if (stat.path && stat.section) {
+                    navigate(`${stat.path}?scrollTo=${stat.section}`);
+                  }
+                }}
+                style={{ cursor: stat.path ? "pointer" : "default" }}
+              >
+                {/* Sub label on top like a badge */}
+                <div style={{
+                  fontSize: "10px", fontWeight: 700, letterSpacing: "0.08em",
+                  textTransform: "uppercase",
+                  color: isLight ? "rgba(13,37,64,0.45)" : "rgba(255,255,255,0.45)",
+                  marginBottom: "8px",
+                }}>
+                  {stat.sub}
+                </div>
+
+                {/* Main value */}
                 <div
-                  className="text-2xl md:text-3xl font-bold mb-1.5"
+                  className="text-2xl md:text-3xl font-bold"
                   style={{
                     color:
                       stat.positive === true
-                        ? "#16a34a"   // slightly darker green for light bg legibility
+                        ? "#16a34a"
                         : stat.positive === false
                         ? "#dc2626"
                         : "var(--accent, #C9A84C)",
+                    lineHeight: 1.1,
                   }}
                 >
-                  {stat.value}
+                  {stat.value === "..." ? (
+                    <span style={{ opacity: 0.35, fontSize: "1rem" }}>—</span>
+                  ) : stat.value}
                 </div>
-                <div className={statSubCls}>{stat.sub}</div>
+
+                {/* Today's change label */}
+                <div style={{
+                  fontSize: "10px", marginTop: "6px",
+                  color: isLight ? "rgba(13,37,64,0.35)" : "rgba(255,255,255,0.30)",
+                }}>
+                  Today's change
+                </div>
+
+                {stat.path && (
+                  <div style={{
+                    fontSize: "10px", marginTop: "6px",
+                    color: "var(--accent, #C9A84C)", opacity: 0.8, fontWeight: 600,
+                  }}>
+                    View details →
+                  </div>
+                )}
               </div>
             ))}
           </div>

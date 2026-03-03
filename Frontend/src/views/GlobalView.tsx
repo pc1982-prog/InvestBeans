@@ -145,6 +145,18 @@ export default function GlobalView() {
   const [modalName, setModalName] = useState("");
   const location = useLocation();
 
+  // Handle ?scrollTo= from Hero stat card clicks
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const scrollTo = params.get("scrollTo");
+    if (!scrollTo) return;
+    // wait a tick for page to render
+    const t = setTimeout(() => {
+      document.getElementById(scrollTo)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 400);
+    return () => clearTimeout(t);
+  }, [location.search]);
+
   // Ticker se aaya symbol
   const [tickerSymbol, setTickerSymbol] = useState<string | null>(null);
   const scrollDoneRef = useRef(false);
@@ -257,7 +269,7 @@ export default function GlobalView() {
           )}
 
           {/* FOREX */}
-          <section className="mb-12">
+          <section id="section-forex" className="mb-12 scroll-mt-32">
             <SectionLabel icon={DollarSign} isLight={isLight}>Foreign Exchange</SectionLabel>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
               {isLoading
@@ -275,7 +287,7 @@ export default function GlobalView() {
           </section>
 
           {/* COMMODITIES */}
-          <section className="mb-12">
+          <section id="section-commodities" className="mb-12 scroll-mt-32">
             <SectionLabel icon={Briefcase} isLight={isLight}>Key Commodities</SectionLabel>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
               {isLoading
@@ -427,40 +439,7 @@ export default function GlobalView() {
             </div>
           </section>
 
-          {/* STATUS BAR */}
-          <div className={`rounded-2xl border shadow-sm overflow-hidden ${isLight ? "bg-white border-gray-100" : "bg-[#0e2038] border-white/8"}`}>
-            <div className="h-0.5" style={{ background: `linear-gradient(to right, ${G}, ${O}, transparent)` }} />
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-6 py-5 text-sm">
-              <div className={`flex items-center gap-2.5 ${isLight ? "text-gray-400" : "text-slate-500"}`}>
-                <Activity className="w-4 h-4" style={{ color: G }} />
-                <span className="font-medium">
-                  Last updated:{" "}
-                  <span className={`font-semibold ${isLight ? "text-gray-600" : "text-slate-300"}`}>
-                    {lastUpdated ? lastUpdated.toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" }) : "Fetching…"}
-                  </span>
-                </span>
-              </div>
-              <div className="flex flex-wrap items-center gap-5">
-                {data && (["us", "europe", "asia"] as const).map((region) => {
-                  const open = data.marketStatus[region] === "open";
-                  return (
-                    <div key={region} className="flex items-center gap-1.5">
-                      {open ? <Wifi className="w-3.5 h-3.5 text-emerald-500" /> : <WifiOff className={`w-3.5 h-3.5 ${isLight ? "text-gray-300" : "text-slate-600"}`} />}
-                      <span className={`uppercase font-bold text-xs ${open ? "text-emerald-600" : (isLight ? "text-gray-300" : "text-slate-600")}`}>
-                        {region} {data.marketStatus[region]}
-                      </span>
-                    </div>
-                  );
-                })}
-                <div className="flex items-center gap-1.5">
-                  <div className={`w-2 h-2 rounded-full ${loading === "loading" || refreshing ? "bg-amber-400 animate-pulse" : "bg-emerald-500"}`} />
-                  <span className={`font-extrabold text-xs tracking-widest ${loading === "loading" || refreshing ? "text-amber-500" : "text-emerald-600"}`}>
-                    {loading === "loading" || refreshing ? "UPDATING" : "LIVE"}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
+      
 
         </div>
       </div>

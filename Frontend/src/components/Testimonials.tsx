@@ -1,53 +1,59 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { Star, X, ChevronLeft, ChevronRight, Quote } from "lucide-react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import {
+  Star, X, ChevronLeft, ChevronRight, Quote,
+  Plus, Edit3, Trash2, Loader2,
+} from "lucide-react";
 import { useTheme } from "@/controllers/Themecontext";
+import { useAuth } from "@/controllers/AuthContext";
+import {
+  getAllTestimonials,
+  getMyTestimonial,
+  deleteTestimonial,
+  Testimonial as ApiTestimonial,
+} from "@/services/Testimonialservice";
+import TestimonialForm from "@/components/Testimonialform";
+import { useToast, ToastContainer } from "@/components/ui/ToastTestimonial";
 
+// ─────────────────────────────────────────────────────────────────────────────
+//  Types
+// ─────────────────────────────────────────────────────────────────────────────
 interface Testimonial {
-  id: number; name: string; role: string; company: string; avatar: string;
-  rating: number; preview: string; fullText: string;
-  date: string; source: string; tag: string;
+  id: string;
+  _id?: string;
+  name: string;
+  role: string;
+  company: string;
+  avatar: string;
+  rating: number;
+  preview: string;
+  fullText: string;
+  date: string;
+  source: string;
+  tag: string;
+  userId?: string;
 }
 
-const TESTIMONIALS: Testimonial[] = [
-  {
-    id: 1, name: "Arjun Mehta", role: "Portfolio Manager", company: "Axis Capital",
-    avatar: "AM", rating: 5, source: "Google Reviews", date: "March 14, 2024", tag: "Equity Research",
-    preview: "The research quality here is unmatched. Their Sensex forecast for Q1 2024 was spot-on, and the actionable insights helped us reallocate our mid-cap exposure at exactly the right time.",
-    fullText: "The research quality here is unmatched. Their Sensex forecast for Q1 2024 was spot-on, and the actionable insights helped us reallocate our mid-cap exposure at exactly the right time.\n\nWhat sets this platform apart is the depth of analysis — they don't just tell you what happened, they explain the macro drivers and the second-order effects. I've been in wealth management for 14 years and the signal-to-noise ratio here is genuinely impressive.\n\nThe US inflation impact report alone saved our fund from a costly misjudgement on IT sector allocations. I recommend this to every serious investor in my network.",
-  },
-  {
-    id: 2, name: "Priya Nair", role: "Independent Investor", company: "Self-Managed",
-    avatar: "PN", rating: 5, source: "Trustpilot", date: "April 2, 2024", tag: "Portfolio Growth",
-    preview: "This platform cuts through the noise beautifully. The deep dives are both accessible and rigorous. My portfolio returns have improved by nearly 18% year-on-year since subscribing.",
-    fullText: "As someone managing my own portfolio, I was always overwhelmed by the sheer amount of conflicting information online. This platform cuts through the noise beautifully.\n\nThe deep dives are written in a way that's both accessible and rigorous — I never feel talked down to, and I always walk away having learned something concrete.\n\nSince subscribing, my portfolio returns have improved by nearly 18% year-on-year. I tell every investor friend about this.",
-  },
-  {
-    id: 3, name: "Rohan Desai", role: "Founder & CEO", company: "FinRoute Ventures",
-    avatar: "RD", rating: 5, source: "Google Reviews", date: "April 10, 2024", tag: "Fintech",
-    preview: "We integrated these market insights into our fintech advisory engine. The India-specific global macro analysis bridges international developments with precise domestic implications perfectly.",
-    fullText: "We integrated these market insights into our fintech product's advisory engine. The structured data and forecast accuracy gave us a real competitive edge in our B2B pitch.\n\nOur enterprise clients were particularly impressed by the India-specific global macro analysis — it's rare to find research that bridges international developments with their precise domestic implications.\n\nWhen the RBI made its surprise rate decision in February, there was a comprehensive breakdown available within 24 hours. That kind of responsiveness is invaluable.",
-  },
-  {
-    id: 4, name: "Sunita Kapoor", role: "CFO", company: "Meridian Industries",
-    avatar: "SK", rating: 4, source: "Trustpilot", date: "April 18, 2024", tag: "FX Hedging",
-    preview: "Our treasury team uses these reports for FX hedging decisions. Before subscribing we were reactive — now we take informed forward positions on INR-USD with real confidence.",
-    fullText: "Our treasury team uses the global economics reports to inform FX hedging decisions. The correlation analysis between US Fed policy and INR movement has been particularly valuable for our import-heavy operations.\n\nBefore subscribing, we were largely reactive in our hedging strategy. Now we're able to take more informed forward positions.\n\nOverall this has become an indispensable part of our financial planning toolkit.",
-  },
-  {
-    id: 5, name: "Vikram Singhania", role: "Senior Analyst", company: "HDFC Securities",
-    avatar: "VS", rating: 5, source: "Google Reviews", date: "May 5, 2024", tag: "Institutional",
-    preview: "The sectoral breakdowns and earnings forecast models are genuinely best-in-class. I've compared this against Bloomberg and Reuters — the India-centric lens here is unique and deeply valuable.",
-    fullText: "The sectoral breakdowns and earnings forecast models are genuinely best-in-class. I've compared this against Bloomberg and Reuters analysis on multiple occasions — the India-centric lens this platform brings is unique and deeply valuable for domestic institutional work.\n\nThe platform has become my first stop every morning before markets open. The pre-market brief alone is worth the subscription price several times over.",
-  },
-  {
-    id: 6, name: "Meera Joshi", role: "Financial Planner", company: "Wealth Tree Advisory",
-    avatar: "MJ", rating: 5, source: "Trustpilot", date: "May 20, 2024", tag: "Financial Planning",
-    preview: "The monthly macro digest is the single most valuable 20 minutes of reading in my professional calendar. It helps me have far more informed conversations with high-net-worth clients.",
-    fullText: "I recommend this platform to every client who wants to understand their investments. The monthly macro digest is the single most valuable 20 minutes of reading in my professional calendar.\n\nIt has helped me have much more informed conversations with high-net-worth clients about their equity allocations. The visual charts and summaries are especially helpful when presenting complex macro ideas to non-technical investors.",
-  },
-];
+function toUnified(t: ApiTestimonial): Testimonial {
+  return {
+    id: t._id,
+    _id: t._id,
+    name: t.name,
+    role: t.role || "",
+    company: t.company || "",
+    avatar: t.avatar || t.name?.slice(0, 2).toUpperCase() || "??",
+    rating: t.rating,
+    preview: t.preview,
+    fullText: t.fullText,
+    date: new Date(t.createdAt).toLocaleDateString("en-IN", {
+      year: "numeric", month: "long", day: "numeric",
+    }),
+    source: t.source || "InvestBeans",
+    tag: t.tag || "General",
+    userId: t.user?._id,
+  };
+}
 
 // ─── Stars ─────────────────────────────────────────────────────────────────
 function Stars({ rating, size = 16, isLight }: { rating: number; size?: number; isLight: boolean }) {
@@ -66,29 +72,61 @@ function Stars({ rating, size = 16, isLight }: { rating: number; size?: number; 
   );
 }
 
-// ─── Card ──────────────────────────────────────────────────────────────────
+// ─── Small icon-only action button ─────────────────────────────────────────
+function ActionIcon({
+  icon: Icon, color, bg, border: borderStyle, title, onClick, loading,
+}: {
+  icon: any; color: string; bg: string; border: string;
+  title: string; onClick: (e: React.MouseEvent) => void; loading?: boolean;
+}) {
+  const [hov, setHov] = useState(false);
+  return (
+    <button
+      title={title}
+      onClick={onClick}
+      onMouseEnter={() => setHov(true)}
+      onMouseLeave={() => setHov(false)}
+      style={{
+        width: "30px", height: "30px", borderRadius: "50%",
+        border: borderStyle,
+        background: hov ? color : bg,
+        color: hov ? "#fff" : color,
+        display: "flex", alignItems: "center", justifyContent: "center",
+        cursor: "pointer", transition: "all 0.18s ease", flexShrink: 0,
+      }}
+    >
+      {loading
+        ? <Loader2 size={13} style={{ animation: "spin 1s linear infinite" }} />
+        : <Icon size={13} strokeWidth={2.2} />}
+    </button>
+  );
+}
+
+// ─── Testimonial Card ──────────────────────────────────────────────────────
 function TestimonialCard({
-  t, onClick, isMobile, isLight,
-}: { t: Testimonial; onClick: () => void; isMobile: boolean; isLight: boolean }) {
+  t, onClick, isMobile, isLight, onDelete, onEdit, canEdit, canDelete, deleting,
+}: {
+  t: Testimonial; onClick: () => void; isMobile: boolean; isLight: boolean;
+  onDelete?: () => void; onEdit?: () => void;
+  canEdit?: boolean; canDelete?: boolean; deleting?: boolean;
+}) {
   const [hovered, setHovered] = useState(false);
 
-  const cardBg = isLight ? "rgba(255,255,255,0.85)" : "rgba(255,255,255,0.04)";
+  const cardBg           = isLight ? "rgba(255,255,255,0.85)" : "rgba(255,255,255,0.04)";
   const cardBorderNormal = isLight ? "rgba(13,37,64,0.1)" : "rgba(255,255,255,0.08)";
-  const cardBorderHover = "#C4941E";
+  const cardBorderHover  = "#C4941E";
   const cardShadowNormal = isLight ? "0 2px 12px rgba(13,37,64,0.06)" : "0 2px 16px rgba(0,0,0,0.30)";
-  const cardShadowHover = "0 16px 48px rgba(180,130,10,0.18)";
-
-  const reviewTextColor = isLight ? "rgba(13,37,64,0.65)" : "rgba(226,232,240,1)";
-  const nameColor = isLight ? "#0d1b2a" : "white";
-  const roleColor = isLight ? "rgba(13,37,64,0.5)" : "rgba(148,163,184,1)";
-  const avatarBg = isLight ? "rgba(212,168,67,0.15)" : "rgba(201,168,76,0.15)";
-  const sourceColor = isLight ? "rgba(13,37,64,0.4)" : "rgba(100,116,139,1)";
-  const sourceDotColor = isLight ? "rgba(13,37,64,0.2)" : "rgba(255,255,255,0.20)";
-  const tagBg = isLight ? "rgba(212,168,67,0.1)" : "rgba(201,168,76,0.12)";
+  const cardShadowHover  = "0 16px 48px rgba(180,130,10,0.18)";
+  const reviewTextColor  = isLight ? "rgba(13,37,64,0.65)" : "rgba(226,232,240,1)";
+  const nameColor        = isLight ? "#0d1b2a" : "white";
+  const roleColor        = isLight ? "rgba(13,37,64,0.5)" : "rgba(148,163,184,1)";
+  const avatarBg         = isLight ? "rgba(212,168,67,0.15)" : "rgba(201,168,76,0.15)";
+  const sourceColor      = isLight ? "rgba(13,37,64,0.4)" : "rgba(100,116,139,1)";
+  const sourceDotColor   = isLight ? "rgba(13,37,64,0.2)" : "rgba(255,255,255,0.20)";
+  const tagBg            = isLight ? "rgba(212,168,67,0.1)" : "rgba(201,168,76,0.12)";
 
   return (
     <div
-      onClick={onClick}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
@@ -97,16 +135,11 @@ function TestimonialCard({
         border: `1.5px solid ${hovered && !isMobile ? cardBorderHover : cardBorderNormal}`,
         boxShadow: hovered && !isMobile ? cardShadowHover : cardShadowNormal,
         padding: isMobile ? "24px 20px 22px" : "32px 30px 28px",
-        cursor: "pointer",
         transition: "all 0.22s ease",
         transform: hovered && !isMobile ? "translateY(-4px)" : "translateY(0)",
-        display: "flex",
-        flexDirection: "column" as const,
-        gap: "16px",
-        width: "100%",
-        boxSizing: "border-box" as const,
-        position: "relative" as const,
-        overflow: "hidden",
+        display: "flex", flexDirection: "column" as const, gap: "16px",
+        width: "100%", boxSizing: "border-box" as const,
+        position: "relative" as const, overflow: "hidden",
       }}
     >
       {/* Watermark */}
@@ -114,34 +147,70 @@ function TestimonialCard({
         <Quote size={isMobile ? 80 : 120} style={{ color: "#C4941E" }} />
       </div>
 
-      {/* Tag + Stars */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "8px" }}>
+      {/* Top row: Tag + Stars + Action icons */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px" }}>
         <span style={{
           fontSize: "11px", fontWeight: 600, letterSpacing: "0.05em",
           textTransform: "uppercase" as const, color: "#C9A84C",
           background: tagBg, borderRadius: "20px", padding: "3px 11px", whiteSpace: "nowrap" as const,
+          flexShrink: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis",
         }}>
           {t.tag}
         </span>
-        <Stars rating={t.rating} size={isMobile ? 14 : 16} isLight={isLight} />
+
+        <div style={{ display: "flex", alignItems: "center", gap: "8px", flexShrink: 0 }}>
+          <Stars rating={t.rating} size={isMobile ? 14 : 16} isLight={isLight} />
+
+          {/* Icon actions — only for owner (edit) or admin (delete) */}
+          {(canEdit || canDelete) && t._id && (
+            <div style={{ display: "flex", gap: "6px" }}>
+              {canEdit && (
+                <ActionIcon
+                  icon={Edit3}
+                  title="Edit your review"
+                  color="#C4941E"
+                  bg="rgba(196,148,30,0.1)"
+                  border="1px solid rgba(196,148,30,0.35)"
+                  onClick={(e) => { e.stopPropagation(); onEdit?.(); }}
+                />
+              )}
+              {canDelete && (
+                <ActionIcon
+                  icon={Trash2}
+                  title="Delete review"
+                  color="#ef4444"
+                  bg="rgba(239,68,68,0.08)"
+                  border="1px solid rgba(239,68,68,0.3)"
+                  onClick={(e) => { e.stopPropagation(); onDelete?.(); }}
+                  loading={deleting}
+                />
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Quote icon */}
       <Quote size={isMobile ? 20 : 24} style={{ color: "#E8C45A", fill: "#E8C45A", marginBottom: "-4px" }} />
 
       {/* Review text */}
-      <p style={{
-        margin: 0, fontSize: isMobile ? "14px" : "15px",
-        color: reviewTextColor, lineHeight: 1.75,
-        display: "-webkit-box", WebkitLineClamp: 4,
-        WebkitBoxOrient: "vertical" as any, overflow: "hidden",
-        fontStyle: "italic",
-      }}>
+      <p
+        onClick={onClick}
+        style={{
+          margin: 0, fontSize: isMobile ? "14px" : "15px",
+          color: reviewTextColor, lineHeight: 1.75,
+          display: "-webkit-box", WebkitLineClamp: 4,
+          WebkitBoxOrient: "vertical" as any, overflow: "hidden",
+          fontStyle: "italic", cursor: "pointer",
+        }}
+      >
         {t.preview}
       </p>
 
-      {/* Read more hint */}
-      <p style={{ margin: 0, fontSize: "12px", color: "#C4941E", fontWeight: 600 }}>Read full review →</p>
+      {/* Read more */}
+      <p onClick={onClick} style={{ margin: 0, fontSize: "12px", color: "#C4941E", fontWeight: 600, cursor: "pointer" }}>
+        Read full review →
+      </p>
 
       {/* Author */}
       <div style={{ display: "flex", alignItems: "center", gap: "12px", paddingTop: "4px" }}>
@@ -155,7 +224,7 @@ function TestimonialCard({
         <div style={{ flex: 1, minWidth: 0 }}>
           <p style={{ margin: 0, fontSize: "14px", fontWeight: 700, color: nameColor }}>{t.name}</p>
           <p style={{ margin: "2px 0 0", fontSize: "12px", color: roleColor }}>
-            {t.role} · {t.company}
+            {[t.role, t.company].filter(Boolean).join(" · ")}
           </p>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "6px", flexShrink: 0 }}>
@@ -167,99 +236,51 @@ function TestimonialCard({
   );
 }
 
-// ─── Modal ─────────────────────────────────────────────────────────────────
+// ─── Full-review Modal ─────────────────────────────────────────────────────
 function Modal({ t, onClose, isLight }: { t: Testimonial; onClose: () => void; isLight: boolean }) {
-  const modalBg = isLight
-    ? "linear-gradient(160deg,#f0f7fe 0%,#e8f2fd 100%)"
-    : "linear-gradient(160deg,#0d1f38 0%,#0c1a2e 100%)";
-  const modalBorder = isLight ? "1px solid rgba(13,37,64,0.12)" : "1px solid rgba(255,255,255,0.1)";
-  const titleColor = isLight ? "#0d1b2a" : "white";
-  const metaColor = isLight ? "rgba(13,37,64,0.5)" : "rgba(148,163,184,1)";
+  const modalBg      = isLight ? "linear-gradient(160deg,#f0f7fe 0%,#e8f2fd 100%)" : "linear-gradient(160deg,#0d1f38 0%,#0c1a2e 100%)";
+  const modalBorder  = isLight ? "1px solid rgba(13,37,64,0.12)" : "1px solid rgba(255,255,255,0.1)";
+  const titleColor   = isLight ? "#0d1b2a" : "white";
+  const metaColor    = isLight ? "rgba(13,37,64,0.5)" : "rgba(148,163,184,1)";
   const dividerColor = isLight ? "rgba(13,37,64,0.08)" : "rgba(255,255,255,0.08)";
-  const bodyColor = isLight ? "rgba(13,37,64,0.65)" : "rgba(226,232,240,1)";
-  const avatarBg = isLight ? "rgba(212,168,67,0.15)" : "rgba(201,168,76,0.18)";
-  const closeBtnBg = isLight ? "rgba(13,37,64,0.07)" : "rgba(255,255,255,0.1)";
+  const bodyColor    = isLight ? "rgba(13,37,64,0.65)" : "rgba(226,232,240,1)";
+  const avatarBg     = isLight ? "rgba(212,168,67,0.15)" : "rgba(201,168,76,0.18)";
+  const closeBtnBg   = isLight ? "rgba(13,37,64,0.07)" : "rgba(255,255,255,0.1)";
   const closeBtnColor = isLight ? "rgba(13,37,64,0.5)" : "rgba(203,213,225,1)";
 
   return (
     <div
-      style={{
-        position: "fixed", inset: 0, zIndex: 9999,
-        display: "flex", alignItems: "center", justifyContent: "center",
-        padding: "16px", background: "rgba(0,0,0,0.65)", backdropFilter: "blur(8px)",
-      }}
+      style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", padding: "16px", background: "rgba(0,0,0,0.65)", backdropFilter: "blur(8px)" }}
       onClick={onClose}
     >
       <div
-        style={{
-          width: "100%", maxWidth: "640px", maxHeight: "90vh",
-          borderRadius: "24px", overflow: "hidden", overflowY: "auto",
-          background: modalBg, border: modalBorder,
-          boxShadow: "0 32px 80px rgba(0,0,0,0.35)",
-          position: "relative",
-        }}
+        style={{ width: "100%", maxWidth: "640px", maxHeight: "90vh", borderRadius: "24px", overflow: "hidden", overflowY: "auto", background: modalBg, border: modalBorder, boxShadow: "0 32px 80px rgba(0,0,0,0.35)", position: "relative" }}
         onClick={e => e.stopPropagation()}
       >
-        {/* Gold top accent */}
-        <div style={{
-          position: "absolute", top: 0, left: 0, right: 0, height: "2px",
-          background: "linear-gradient(90deg,transparent,rgba(212,168,67,0.6),transparent)",
-        }} />
-
+        <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: "2px", background: "linear-gradient(90deg,transparent,rgba(212,168,67,0.6),transparent)" }} />
         <div style={{ padding: "32px 28px 28px" }}>
-          {/* Header */}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "24px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
-              <div style={{
-                width: "52px", height: "52px", borderRadius: "50%", background: avatarBg,
-                display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: "18px", fontWeight: 800, color: "#C9A84C",
-              }}>
+              <div style={{ width: "52px", height: "52px", borderRadius: "50%", background: avatarBg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "18px", fontWeight: 800, color: "#C9A84C" }}>
                 {t.avatar}
               </div>
               <div>
                 <p style={{ margin: 0, fontSize: "18px", fontWeight: 800, color: titleColor }}>{t.name}</p>
-                <p style={{ margin: "3px 0 0", fontSize: "13px", color: metaColor }}>{t.role} · {t.company}</p>
+                <p style={{ margin: "3px 0 0", fontSize: "13px", color: metaColor }}>{[t.role, t.company].filter(Boolean).join(" · ")}</p>
               </div>
             </div>
-            <button
-              onClick={onClose}
-              style={{
-                width: "36px", height: "36px", borderRadius: "50%", border: "none",
-                background: closeBtnBg, color: closeBtnColor, cursor: "pointer",
-                display: "flex", alignItems: "center", justifyContent: "center", transition: "opacity 0.2s",
-              }}
-              onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.opacity = "0.7"}
-              onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.opacity = "1"}
-            >
+            <button onClick={onClose} style={{ width: "36px", height: "36px", borderRadius: "50%", border: "none", background: closeBtnBg, color: closeBtnColor, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
               <X size={16} />
             </button>
           </div>
-
-          {/* Stars + tag + source */}
           <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "20px", flexWrap: "wrap" }}>
             <Stars rating={t.rating} size={18} isLight={isLight} />
-            <span style={{
-              fontSize: "11px", fontWeight: 600, textTransform: "uppercase" as const,
-              letterSpacing: "0.05em", color: "#C9A84C",
-              background: "rgba(212,168,67,0.1)", borderRadius: "20px", padding: "3px 10px",
-            }}>
-              {t.tag}
-            </span>
+            <span style={{ fontSize: "11px", fontWeight: 600, textTransform: "uppercase" as const, letterSpacing: "0.05em", color: "#C9A84C", background: "rgba(212,168,67,0.1)", borderRadius: "20px", padding: "3px 10px" }}>{t.tag}</span>
             <span style={{ fontSize: "12px", color: metaColor }}>{t.date} · {t.source}</span>
           </div>
-
-          {/* Divider */}
           <div style={{ height: "1px", background: dividerColor, marginBottom: "20px" }} />
-
-          {/* Full review text */}
           {t.fullText.split("\n\n").map((para, i) => (
-            <p key={i} style={{
-              margin: "0 0 16px", fontSize: "15px", lineHeight: 1.8,
-              color: bodyColor, fontStyle: "italic",
-            }}>
-              {para}
-            </p>
+            <p key={i} style={{ margin: "0 0 16px", fontSize: "15px", lineHeight: 1.8, color: bodyColor, fontStyle: "italic" }}>{para}</p>
           ))}
         </div>
       </div>
@@ -267,15 +288,35 @@ function Modal({ t, onClose, isLight }: { t: Testimonial; onClose: () => void; i
   );
 }
 
-// ─── Main component ────────────────────────────────────────────────────────
+// ─── Main Component ────────────────────────────────────────────────────────
 export default function TestimonialsPage() {
   const { theme } = useTheme();
   const isLight = theme === "light";
+  const { user, isAdmin, loading: authLoading } = useAuth();
+  const isLoggedIn = !!user;
 
   const [index, setIndex] = useState(0);
   const [modal, setModal] = useState<Testimonial | null>(null);
   const [isMobile, setIsMobile] = useState(false);
   const [cardsHovered, setCardsHovered] = useState(false);
+
+  // Touch swipe
+  const touchStartX = useRef<number | null>(null);
+  const touchStartY = useRef<number | null>(null);
+
+  // API state
+  const [apiTestimonials, setApiTestimonials] = useState<Testimonial[]>([]);
+  const [myTestimonial, setMyTestimonial] = useState<ApiTestimonial | null>(null);
+  const [loadingApi, setLoadingApi] = useState(true);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  // Form
+  const [formOpen, setFormOpen] = useState(false);
+  const [editTarget, setEditTarget] = useState<ApiTestimonial | null>(null);
+  const { toasts, toast, removeToast } = useToast();
+
+  // Only real API reviews — no static/dummy data
+  const allTestimonials = apiTestimonials;
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
@@ -284,152 +325,239 @@ export default function TestimonialsPage() {
     return () => window.removeEventListener("resize", check);
   }, []);
 
-  const perPage = isMobile ? 1 : 2;
-  const totalDots = Math.ceil(TESTIMONIALS.length / perPage);
-  const visible = TESTIMONIALS.slice(index * perPage, index * perPage + perPage);
+  useEffect(() => { fetchAll(); }, []);
+  useEffect(() => {
+    if (isLoggedIn) fetchMine();
+    else setMyTestimonial(null);
+  }, [isLoggedIn]);
+
+  const fetchAll = async () => {
+    try {
+      setLoadingApi(true);
+      const data = await getAllTestimonials();
+      setApiTestimonials(data.map(toUnified));
+    } catch { /* silent fail */ } finally {
+      setLoadingApi(false);
+    }
+  };
+
+  const fetchMine = async () => {
+    try { setMyTestimonial(await getMyTestimonial()); }
+    catch { setMyTestimonial(null); }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!window.confirm("Are you sure you want to delete this review?")) return;
+    try {
+      setDeletingId(id);
+      await deleteTestimonial(id);
+      setApiTestimonials(prev => prev.filter(t => t._id !== id));
+      if (myTestimonial?._id === id) setMyTestimonial(null);
+      toast.success("Review deleted successfully.");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to delete review.");
+    } finally { setDeletingId(null); }
+  };
+
+  const handleFormSuccess = (updated: ApiTestimonial) => {
+    const unified = toUnified(updated);
+    setApiTestimonials(prev => {
+      const idx = prev.findIndex(t => t._id === updated._id);
+      if (idx >= 0) {
+        const copy = [...prev]; copy[idx] = unified;
+        toast.success("Review updated successfully.");
+        return copy;
+      }
+      toast.success("Review posted! Thank you for your feedback.");
+      return [unified, ...prev];
+    });
+    setMyTestimonial(updated);
+    setEditTarget(null);
+  };
+
+  const openCreate = () => { setEditTarget(null); setFormOpen(true); };
+  const openEdit = (t: Testimonial) => {
+    setEditTarget({
+      _id: t._id!, user: { _id: t.userId!, name: t.name, email: "" },
+      name: t.name, role: t.role, company: t.company, avatar: t.avatar,
+      rating: t.rating, preview: t.preview, fullText: t.fullText,
+      tag: t.tag, source: t.source, createdAt: "",
+    });
+    setFormOpen(true);
+  };
+
+  // ── Carousel ──────────────────────────────────────────────────────────────
+  const perPage  = isMobile ? 1 : 2;
+  const totalDots = Math.max(1, Math.ceil(allTestimonials.length / perPage));
+  const visible  = allTestimonials.slice(index * perPage, index * perPage + perPage);
 
   const prev = useCallback(() => setIndex(i => (i - 1 + totalDots) % totalDots), [totalDots]);
   const next = useCallback(() => setIndex(i => (i + 1) % totalDots), [totalDots]);
 
-  // Auto-advance
-  useEffect(() => {
-    if (cardsHovered) return;
-    const t = setInterval(next, 5000);
-    return () => clearInterval(t);
-  }, [next, cardsHovered]);
+  useEffect(() => { setIndex(0); }, [allTestimonials.length]);
 
-  // Theme tokens for section wrapper
-  const sectionBg = isLight ? "transparent" : "transparent";
-  const headingColor = isLight ? "#0d1b2a" : "#E8EDF5";
+  useEffect(() => {
+    if (cardsHovered || allTestimonials.length === 0) return;
+    const id = setInterval(next, 5000);
+    return () => clearInterval(id);
+  }, [next, cardsHovered, allTestimonials.length]);
+
+  // ── Touch swipe ───────────────────────────────────────────────────────────
+  const onTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+  };
+  const onTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current === null || touchStartY.current === null) return;
+    const dx = e.changedTouches[0].clientX - touchStartX.current;
+    const dy = e.changedTouches[0].clientY - touchStartY.current;
+    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 40) {
+      dx < 0 ? next() : prev();
+    }
+    touchStartX.current = null;
+    touchStartY.current = null;
+  };
+
+  // ── Button visibility logic ───────────────────────────────────────────────
+  // ● Not logged in           → soft prompt text only
+  // ● Logged in, no review    → "Write a Review" button
+  // ● Logged in, has review   → "Edit My Review" button  (no duplicate create)
+  // ● Admin                   → no top button; delete icon shows on each card
+  const userAlreadyPosted = !!myTestimonial;
+  const showWriteBtn = isLoggedIn && !isAdmin && !userAlreadyPosted && !authLoading;
+  const showEditBtn  = isLoggedIn && !isAdmin &&  userAlreadyPosted && !!myTestimonial && !authLoading;
+
+  // Theme tokens
+  const headingColor    = isLight ? "#0d1b2a" : "#E8EDF5";
   const subHeadingColor = isLight ? "rgba(13,37,64,0.55)" : "rgba(255,255,255,0.50)";
-  const badgeBg = isLight ? "rgba(212,168,67,0.1)" : "rgba(201,168,76,0.10)";
-  const badgeBorder = isLight ? "1px solid rgba(212,168,67,0.28)" : "1px solid rgba(201,168,76,0.25)";
-  const dotInactive = isLight ? "rgba(13,37,64,0.15)" : "rgba(255,255,255,0.18)";
+  const badgeBg         = isLight ? "rgba(212,168,67,0.1)" : "rgba(201,168,76,0.10)";
+  const badgeBorder     = isLight ? "1px solid rgba(212,168,67,0.28)" : "1px solid rgba(201,168,76,0.25)";
+  const dotInactive     = isLight ? "rgba(13,37,64,0.15)" : "rgba(255,255,255,0.18)";
 
   return (
     <section
       id="testimonials"
-      style={{
-        background: sectionBg,
-        padding: isMobile ? "56px 0 48px" : "80px 0 72px",
-        overflow: "hidden",
-      }}
+      style={{ background: "transparent", padding: isMobile ? "56px 0 48px" : "80px 0 72px", overflow: "hidden" }}
     >
-      {/* Section header */}
-      <div style={{
-        textAlign: "center", marginBottom: isMobile ? "36px" : "52px", padding: "0 20px",
-      }}>
-        {/* Badge */}
-        <div style={{
-          display: "inline-flex", alignItems: "center", gap: "7px",
-          background: badgeBg, border: badgeBorder,
-          borderRadius: "100px", padding: "5px 14px", marginBottom: "14px",
-        }}>
+      {/* ── Header ── */}
+      <div style={{ textAlign: "center", marginBottom: isMobile ? "36px" : "52px", padding: "0 20px" }}>
+        <div style={{ display: "inline-flex", alignItems: "center", gap: "7px", background: badgeBg, border: badgeBorder, borderRadius: "100px", padding: "5px 14px", marginBottom: "14px" }}>
           <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#C9A84C" }} />
-          <span style={{ fontSize: "11px", fontWeight: 600, color: "#C9A84C", letterSpacing: "0.06em", textTransform: "uppercase" }}>
-            User Reviews
-          </span>
+          <span style={{ fontSize: "11px", fontWeight: 600, color: "#C9A84C", letterSpacing: "0.06em", textTransform: "uppercase" }}>User Reviews</span>
         </div>
-
-        {/* Heading */}
-        <h2 style={{
-          margin: "0 0 10px",
-          fontSize: isMobile ? "26px" : "clamp(28px, 4.5vw, 42px)",
-          fontWeight: 800, color: headingColor,
-          letterSpacing: "-0.025em", lineHeight: 1.15,
-        }}>
+        <h2 style={{ margin: "0 0 10px", fontSize: isMobile ? "26px" : "clamp(28px, 4.5vw, 42px)", fontWeight: 800, color: headingColor, letterSpacing: "-0.025em", lineHeight: 1.15 }}>
           What Our Users are Saying
         </h2>
-        <p style={{
-          margin: "0 auto",
-          fontSize: isMobile ? "14px" : "clamp(14px,2vw,17px)",
-          color: subHeadingColor, maxWidth: "460px", lineHeight: 1.6,
-        }}>
+        <p style={{ margin: "0 auto 20px", fontSize: isMobile ? "14px" : "clamp(14px,2vw,17px)", color: subHeadingColor, maxWidth: "460px", lineHeight: 1.6 }}>
           Trusted by thousands of investors and professionals across India
         </p>
+
+        {/* Auth-aware CTA */}
+        {!authLoading && (
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", flexWrap: "wrap" }}>
+
+            {showWriteBtn && (
+              <button
+                onClick={openCreate}
+                style={{ display: "inline-flex", alignItems: "center", gap: "7px", padding: "10px 22px", borderRadius: "12px", fontSize: "14px", fontWeight: 700, background: "#C4941E", border: "none", color: "#fff", cursor: "pointer", boxShadow: "0 4px 16px rgba(196,148,30,0.28)" }}
+              >
+                <Plus size={16} /> Write a Review
+              </button>
+            )}
+            {showEditBtn && (
+              <button
+                onClick={() => openEdit(toUnified(myTestimonial!))}
+                style={{ display: "inline-flex", alignItems: "center", gap: "7px", padding: "10px 22px", borderRadius: "12px", fontSize: "14px", fontWeight: 700, background: "transparent", border: "1px solid #C4941E", color: "#C4941E", cursor: "pointer" }}
+              >
+                <Edit3 size={15} /> Edit My Review
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
-      {/* Carousel */}
-      <div style={{
-        width: "100%", maxWidth: "1400px", margin: "0 auto",
-        padding: isMobile ? "0 16px" : "0 20px",
-        boxSizing: "border-box", display: "flex", flexDirection: "column", gap: "24px",
-      }}>
-        <div
-          style={{ display: "flex", alignItems: "center", gap: isMobile ? "0" : "20px" }}
-          onMouseEnter={() => !isMobile && setCardsHovered(true)}
-          onMouseLeave={() => !isMobile && setCardsHovered(false)}
-        >
-          {/* LEFT ARROW */}
-          {!isMobile && (
-            <button
-              onClick={prev}
-              style={{
-                width: "48px", height: "48px", minWidth: "48px", borderRadius: "50%",
-                border: "none", background: "#C4941E", color: "#fff",
-                cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
-                boxShadow: "0 4px 16px rgba(196,148,30,0.30)", flexShrink: 0,
-                opacity: cardsHovered ? 1 : 0, pointerEvents: cardsHovered ? "auto" : "none",
-                transition: "opacity 0.22s ease, transform 0.18s ease, background 0.18s ease",
-              }}
-              onMouseEnter={e => { const b = e.currentTarget as HTMLButtonElement; b.style.background = "#B8860B"; b.style.transform = "scale(1.1)"; }}
-              onMouseLeave={e => { const b = e.currentTarget as HTMLButtonElement; b.style.background = "#C4941E"; b.style.transform = "scale(1)"; }}
-            >
-              <ChevronLeft size={22} />
-            </button>
-          )}
+      {/* ── Carousel ── */}
+      <div style={{ width: "100%", maxWidth: "1400px", margin: "0 auto", padding: isMobile ? "0 16px" : "0 20px", boxSizing: "border-box", display: "flex", flexDirection: "column", gap: "24px" }}>
 
-          {/* CARDS */}
-          <div style={{
-            flex: 1, display: "grid",
-            gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
-            gap: isMobile ? "0" : "24px", minWidth: 0, width: "100%",
-          }}>
-            {visible.map((t) => (
-              <TestimonialCard
-                key={t.id} t={t} isMobile={isMobile} isLight={isLight}
-                onClick={() => setModal(t)}
-              />
-            ))}
+        {/* Loading spinner */}
+        {loadingApi && (
+          <div style={{ display: "flex", justifyContent: "center", padding: "48px" }}>
+            <Loader2 size={28} style={{ color: "#C4941E", animation: "spin 1s linear infinite" }} />
           </div>
+        )}
 
-          {/* RIGHT ARROW */}
-          {!isMobile && (
-            <button
-              onClick={next}
-              style={{
-                width: "48px", height: "48px", minWidth: "48px", borderRadius: "50%",
-                border: "none", background: "#C4941E", color: "#fff",
-                cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
-                boxShadow: "0 4px 16px rgba(196,148,30,0.30)", flexShrink: 0,
-                opacity: cardsHovered ? 1 : 0, pointerEvents: cardsHovered ? "auto" : "none",
-                transition: "opacity 0.22s ease, transform 0.18s ease, background 0.18s ease",
-              }}
-              onMouseEnter={e => { const b = e.currentTarget as HTMLButtonElement; b.style.background = "#B8860B"; b.style.transform = "scale(1.1)"; }}
-              onMouseLeave={e => { const b = e.currentTarget as HTMLButtonElement; b.style.background = "#C4941E"; b.style.transform = "scale(1)"; }}
-            >
-              <ChevronRight size={22} />
-            </button>
-          )}
-        </div>
+        {/* Empty state */}
+        {!loadingApi && allTestimonials.length === 0 && (
+          <div style={{ textAlign: "center", padding: "48px 20px", color: subHeadingColor }}>
+            <Quote size={40} style={{ color: "#C4941E", opacity: 0.3, display: "block", margin: "0 auto 12px" }} />
+            <p style={{ margin: 0, fontSize: "15px" }}>No reviews yet. Be the first to share your experience!</p>
+          </div>
+        )}
+
+        {/* Cards + arrows */}
+        {!loadingApi && allTestimonials.length > 0 && (
+          <div
+            style={{ display: "flex", alignItems: "center", gap: isMobile ? "0" : "20px" }}
+            onMouseEnter={() => !isMobile && setCardsHovered(true)}
+            onMouseLeave={() => !isMobile && setCardsHovered(false)}
+            onTouchStart={onTouchStart}
+            onTouchEnd={onTouchEnd}
+          >
+            {!isMobile && (
+              <button onClick={prev} style={{ width: "48px", height: "48px", minWidth: "48px", borderRadius: "50%", border: "none", background: "#C4941E", color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 16px rgba(196,148,30,0.30)", flexShrink: 0, opacity: cardsHovered ? 1 : 0, pointerEvents: cardsHovered ? "auto" : "none", transition: "opacity 0.22s ease" }}>
+                <ChevronLeft size={22} />
+              </button>
+            )}
+
+            <div style={{ flex: 1, display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: isMobile ? "0" : "24px", minWidth: 0 }}>
+              {visible.map(t => {
+                const isMyCard  = !!t._id && t.userId === user?._id;
+                const isApiCard = !!t._id;
+                return (
+                  <TestimonialCard
+                    key={t.id} t={t}
+                    isMobile={isMobile} isLight={isLight}
+                    onClick={() => setModal(t)}
+                    canEdit={isLoggedIn && isMyCard && !isAdmin}
+                    canDelete={isAdmin && isApiCard}
+                    onEdit={() => openEdit(t)}
+                    onDelete={() => handleDelete(t._id!)}
+                    deleting={deletingId === t._id}
+                  />
+                );
+              })}
+            </div>
+
+            {!isMobile && (
+              <button onClick={next} style={{ width: "48px", height: "48px", minWidth: "48px", borderRadius: "50%", border: "none", background: "#C4941E", color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 16px rgba(196,148,30,0.30)", flexShrink: 0, opacity: cardsHovered ? 1 : 0, pointerEvents: cardsHovered ? "auto" : "none", transition: "opacity 0.22s ease" }}>
+                <ChevronRight size={22} />
+              </button>
+            )}
+          </div>
+        )}
 
         {/* Dots */}
-        <div style={{ display: "flex", justifyContent: "center", gap: "6px" }}>
-          {Array.from({ length: totalDots }).map((_, i) => (
-            <button
-              key={i} onClick={() => setIndex(i)}
-              style={{
-                width: i === index ? "24px" : "8px", height: "8px",
-                borderRadius: "100px", border: "none",
-                background: i === index ? "#C4941E" : dotInactive,
-                cursor: "pointer", padding: 0, transition: "all 0.3s ease",
-              }}
-            />
-          ))}
-        </div>
+        {!loadingApi && totalDots > 1 && (
+          <div style={{ display: "flex", justifyContent: "center", gap: "6px", alignItems: "center" }}>
+            {Array.from({ length: totalDots }).map((_, i) => (
+              <button key={i} onClick={() => setIndex(i)} style={{ width: i === index ? "24px" : "8px", height: "8px", borderRadius: "100px", border: "none", background: i === index ? "#C4941E" : dotInactive, cursor: "pointer", padding: 0, transition: "all 0.3s ease" }} />
+            ))}
+          </div>
+        )}
+
+
       </div>
 
       {modal && <Modal t={modal} onClose={() => setModal(null)} isLight={isLight} />}
+
+      <TestimonialForm
+        isOpen={formOpen}
+        onClose={() => { setFormOpen(false); setEditTarget(null); }}
+        onSuccess={handleFormSuccess}
+        existing={editTarget}
+      />
+
+      <ToastContainer toasts={toasts} onRemove={removeToast} />
     </section>
   );
 }

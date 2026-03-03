@@ -29,6 +29,7 @@ import ChartPage from "./components/Chartpage";
 import IPOSection from "./views/Iposection";
 import IPOPage from "./views/Ipopage";
 import { ThemeProvider } from "@/controllers/Themecontext"
+import PricingPlan from "./views/Pricingplan";
 
 const queryClient = new QueryClient();
 
@@ -47,6 +48,7 @@ const App = () => (
               <Route path="/domestic" element={<DomesticController />} />
               <Route path="/global" element={<GlobalController />} />
               <Route path="/markets" element={<MarketsView />} />
+              <Route path="/pricing" element={<PricingPlan />} />
               <Route path="/chart/:symbol" element={<ChartPage />} />
               <Route path="/education" element={<EducationView />} />
               <Route path="/team" element={<TeamView />} />

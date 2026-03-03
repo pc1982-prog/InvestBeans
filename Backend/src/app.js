@@ -179,6 +179,9 @@ import insightRouter from "./routes/insight.routes.js";
 import globalMarketsRouter from "./routes/globalMarkets.routes.js";
 import marketHistoryRouter from "./routes/marketHistory.routes.js";
 import ipoRouter from "./routes/Ipo.routes.js";
+import testimonialRouter from "./routes/Testimonial.routes.js";
+import subscriberRouter from "./routes/Subscriber.routes.js";
+
 
 
 //payment routes
@@ -197,9 +200,14 @@ app.use("/api/v1/insights", insightRouter);
 //payment routes
 
 app.use('/api/v1',paymentRouter)
+
 app.use("/api/v1/markets", globalMarketsRouter);
 app.use("/api/v1/markets", marketHistoryRouter);
+
+app.use("/api/v1/subscribe", subscriberRouter);
 app.use("/api/v1/ipo", ipoRouter);
+app.use("/api/v1/testimonials", testimonialRouter);
+
 
 
 

@@ -74,8 +74,8 @@ const SignInView = () => {
 
   // Google button
   const googleBtnCls = isLight
-    ? "w-full h-12 mb-6 border-2 border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-slate-700 font-medium"
-    : "w-full h-12 mb-6 border border-white/10 hover:border-white/20 hover:bg-white/5 text-slate-300 font-medium";
+    ? "w-full h-12 mb-6 border-2 border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-slate-700 font-medium bg-white"
+    : "w-full h-12 mb-6 border border-white/20 hover:border-white/40 text-white font-medium bg-white/10 hover:bg-white/15";
 
   // Divider
   const dividerBorder = isLight ? "border-t border-slate-200" : "border-t border-white/10";

@@ -471,35 +471,7 @@ export default function DomesticView() {
             </div>
           </section>
 
-          {/* ── STATUS BAR ──────────────────────────────────────── */}
-          <div className={`rounded-2xl border shadow-sm overflow-hidden ${isLight ? "bg-white border-gray-100" : "bg-[#0e2038] border-white/8"}`}>
-            <div className="h-0.5" style={{ background: `linear-gradient(to right, ${G}, ${O}, transparent)` }} />
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-6 py-5 text-sm">
-              <div className={`flex items-center gap-2.5 ${isLight ? "text-gray-400" : "text-slate-500"}`}>
-                <Activity className="w-4 h-4" style={{ color: G }} />
-                <span className="font-medium">
-                  Status:{" "}
-                  <span className={`font-semibold ${isLight ? "text-gray-600" : "text-slate-300"}`}>Static placeholder · Zerodha API integration pending</span>
-                </span>
-              </div>
-              <div className="flex flex-wrap items-center gap-5">
-                {[
-                  { label: "NSE", status: "pending" },
-                  { label: "BSE", status: "pending" },
-                  { label: "F&O", status: "pending" },
-                ].map((m) => (
-                  <div key={m.label} className="flex items-center gap-1.5">
-                    <div className="w-2 h-2 rounded-full bg-amber-400" />
-                    <span className="uppercase font-bold text-xs text-amber-500">{m.label} {m.status}</span>
-                  </div>
-                ))}
-                <div className="flex items-center gap-1.5">
-                  <Briefcase className={`w-3.5 h-3.5 ${isLight ? "text-gray-300" : "text-slate-600"}`} />
-                  <span className={`font-extrabold text-xs tracking-widest ${isLight ? "text-gray-300" : "text-slate-600"}`}>PLACEHOLDER</span>
-                </div>
-              </div>
-            </div>
-          </div>
+       
 
         </div>
       </div>
