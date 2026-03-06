@@ -181,6 +181,7 @@ import marketHistoryRouter from "./routes/marketHistory.routes.js";
 import ipoRouter from "./routes/Ipo.routes.js";
 import testimonialRouter from "./routes/Testimonial.routes.js";
 import subscriberRouter from "./routes/Subscriber.routes.js";
+import KiteRouter from "./routes/kite.routes.js"
 
 
 
@@ -203,7 +204,7 @@ app.use('/api/v1',paymentRouter)
 
 app.use("/api/v1/markets", globalMarketsRouter);
 app.use("/api/v1/markets", marketHistoryRouter);
-
+app.use("/api/v1/kite", KiteRouter);
 app.use("/api/v1/subscribe", subscriberRouter);
 app.use("/api/v1/ipo", ipoRouter);
 app.use("/api/v1/testimonials", testimonialRouter);
