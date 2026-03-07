@@ -12,6 +12,40 @@ import {
 } from "lucide-react";
 import BeansOfWisdomForm from "@/components/BeansOfWisdomForm";
 
+/* ── Animation styles injected once ── */
+const StyleInjector = () => {
+  useEffect(() => {
+    if (document.getElementById("bow-anim")) return;
+    const s = document.createElement("style");
+    s.id = "bow-anim";
+    s.textContent = `
+      @keyframes bow-up {
+        from { opacity:0; transform:translateY(14px); }
+        to   { opacity:1; transform:translateY(0); }
+      }
+      @keyframes bow-line {
+        from { transform:scaleX(0); }
+        to   { transform:scaleX(1); }
+      }
+      @keyframes bow-dot {
+        0%,100% { opacity:1; transform:scale(1); }
+        50%      { opacity:.45; transform:scale(.7); }
+      }
+      .bow-up  { animation: bow-up 0.5s cubic-bezier(.22,.68,0,1.15) both; }
+      .bow-d1  { animation-delay:.06s; }
+      .bow-d2  { animation-delay:.14s; }
+      .bow-d3  { animation-delay:.22s; }
+      .bow-d4  { animation-delay:.30s; }
+      .bow-d5  { animation-delay:.38s; }
+      .bow-d6  { animation-delay:.46s; }
+      .bow-line-anim { transform-origin:left; animation: bow-line 0.55s .25s cubic-bezier(.22,.68,0,1.15) both; }
+      .bow-dot  { animation: bow-dot 2.2s ease-in-out infinite; }
+    `;
+    document.head.appendChild(s);
+  }, []);
+  return null;
+};
+
 export default function BeansOfWisdomView() {
   const { isAdmin, loading: authLoading } = useAuth();
   const { theme } = useTheme();
@@ -49,70 +83,56 @@ export default function BeansOfWisdomView() {
 
   const handleFormSuccess = () => { fetchBeans(); setShowEditForm(false); };
 
-  // ── Theme tokens ─────────────────────────────────────────────────────────
-
-  // Section bg (transparent — inherits page bg)
+  /* ══════════════════════════════════════════
+     ORIGINAL COLORS — unchanged
+  ══════════════════════════════════════════ */
   const sectionHeadingColor = isLight ? "#0d1b2a" : "white";
-  const sectionSubColor = isLight ? "rgba(13,37,64,0.55)" : "rgba(203,213,225,1)";
+  const sectionSubColor     = isLight ? "rgba(13,37,64,0.55)" : "rgba(203,213,225,1)";
 
-  // Main card wrapper
-  const cardWrapBorder = isLight
-    ? "1px solid rgba(13,37,64,0.12)"
-    : "1px solid #334155";
-  const cardWrapBg = isLight ? "#f0f7fe" : "#0F172A";
-  const cardWrapShadow = isLight
-    ? "0 8px 32px rgba(13,37,64,0.08)"
-    : "0 8px 32px rgba(0,0,0,0.2)";
+  const cardWrapBorder  = isLight ? "1px solid rgba(13,37,64,0.12)" : "1px solid #334155";
+  const cardWrapBg      = isLight ? "#f0f7fe" : "#0F172A";
+  const cardWrapShadow  = isLight ? "0 8px 32px rgba(13,37,64,0.08)" : "0 8px 32px rgba(0,0,0,0.2)";
 
-  // Left column (hero + description)
-  const leftColBg = isLight ? "#dce8f7" : "#1E293B";
-  const dividerColor = isLight ? "rgba(13,37,64,0.08)" : "rgba(255,255,255,0.07)";
+  const leftColBg       = isLight ? "#dce8f7" : "#1E293B";
+  const dividerColor    = isLight ? "rgba(13,37,64,0.08)" : "rgba(255,255,255,0.07)";
 
-  // Badge inside hero
-  const badgeBg = isLight ? "rgba(13,37,64,0.06)" : "rgba(255,255,255,0.05)";
-  const badgeBorder = isLight ? "1px solid rgba(13,37,64,0.1)" : "1px solid rgba(255,255,255,0.1)";
-  const badgeTextColor = isLight ? "rgba(13,37,64,0.65)" : "rgba(255,255,255,0.85)";
+  const badgeBg         = isLight ? "rgba(13,37,64,0.06)" : "rgba(255,255,255,0.05)";
+  const badgeBorder     = isLight ? "1px solid rgba(13,37,64,0.1)" : "1px solid rgba(255,255,255,0.1)";
+  const badgeTextColor  = isLight ? "rgba(13,37,64,0.65)" : "rgba(255,255,255,0.85)";
 
-  // Title in hero
-  const heroTitleColor = isLight ? "#0d1b2a" : "white";
+  const heroTitleColor    = isLight ? "#0d1b2a" : "white";
   const heroSubtitleColor = isLight ? "rgba(13,37,64,0.55)" : "rgba(255,255,255,0.60)";
 
-  // Tag chips
-  const tagBg = isLight ? "rgba(13,37,64,0.07)" : "rgba(255,255,255,0.08)";
+  const tagBg     = isLight ? "rgba(13,37,64,0.07)" : "rgba(255,255,255,0.08)";
   const tagBorder = isLight ? "1px solid rgba(13,37,64,0.1)" : "1px solid rgba(255,255,255,0.12)";
-  const tagColor = isLight ? "rgba(13,37,64,0.6)" : "rgba(255,255,255,0.70)";
+  const tagColor  = isLight ? "rgba(13,37,64,0.6)" : "rgba(255,255,255,0.70)";
 
-  // Description icon box
-  const descIconBg = isLight ? "rgba(13,37,64,0.06)" : "rgba(255,255,255,0.05)";
+  const descIconBg     = isLight ? "rgba(13,37,64,0.06)" : "rgba(255,255,255,0.05)";
   const descIconBorder = isLight ? "1px solid rgba(13,37,64,0.1)" : "1px solid rgba(255,255,255,0.10)";
-  const descTextColor = isLight ? "rgba(13,37,64,0.60)" : "rgba(255,255,255,0.60)";
+  const descTextColor  = isLight ? "rgba(13,37,64,0.60)" : "rgba(255,255,255,0.60)";
 
-  // Right col — Key Principle
-  const keyPrincipleBg = isLight ? "#c8ddf5" : "#334155";
-  const keyPrincipleBorder = isLight ? "1px solid rgba(13,37,64,0.1)" : "1px solid #1E293B";
-  const keyPrincipleTextColor = isLight ? "#0d1b2a" : "white";
+  const keyPrincipleBg         = isLight ? "#c8ddf5" : "#334155";
+  const keyPrincipleBorderClr  = isLight ? "rgba(13,37,64,0.1)" : "#1E293B";
+  const keyPrincipleTextColor  = isLight ? "#0d1b2a" : "white";
 
-  // Right col — Insight panel
-  const insightPanelBg = isLight ? "#dce8f7" : "#1E293B";
-  const insightPanelBorder = isLight ? "1px solid rgba(13,37,64,0.08)" : "1px solid #334155";
-  const insightIconBg = isLight ? "rgba(245,158,11,0.1)" : "rgba(245,158,11,0.12)";
-  const insightIconBorder = isLight ? "1px solid rgba(245,158,11,0.2)" : "1px solid rgba(245,158,11,0.20)";
-  const insightTextColor = isLight ? "rgba(13,37,64,0.65)" : "rgba(203,213,225,1)";
+  const insightPanelBg     = isLight ? "#dce8f7" : "#1E293B";
+  const insightPanelBorder = isLight ? "rgba(13,37,64,0.08)" : "#334155";
+  const insightIconBg      = isLight ? "rgba(245,158,11,0.1)" : "rgba(245,158,11,0.12)";
+  const insightIconBorder  = isLight ? "1px solid rgba(245,158,11,0.2)" : "1px solid rgba(245,158,11,0.20)";
+  const insightTextColor   = isLight ? "rgba(13,37,64,0.65)" : "rgba(203,213,225,1)";
 
-  // Quote panel
-  const quotePanelBg = isLight ? "#dce8f7" : "#1E293B";
+  const quotePanelBg  = isLight ? "#dce8f7" : "#1E293B";
   const quoteTextColor = isLight ? "rgba(13,37,64,0.60)" : "rgba(255,255,255,0.70)";
 
-  // Error banner
-  const errorBg = isLight ? "rgba(220,38,38,0.05)" : "rgba(220,38,38,0.1)";
+  const errorBg    = isLight ? "rgba(220,38,38,0.05)" : "rgba(220,38,38,0.1)";
   const errorBorder = isLight ? "1px solid rgba(220,38,38,0.2)" : "1px solid rgba(239,68,68,0.5)";
-  const errorColor = isLight ? "#991b1b" : "rgba(252,165,165,1)";
+  const errorColor  = isLight ? "#991b1b" : "rgba(252,165,165,1)";
 
-  // Loading / empty state
   const emptyIconColor = "#F59E0B";
   const emptyTextColor = isLight ? "rgba(13,37,64,0.45)" : "rgba(148,163,184,1)";
-  const spinnerColor = isLight ? "#D97706" : "#F59E0B";
+  const spinnerColor   = isLight ? "#D97706" : "#F59E0B";
 
+  /* ── Loading ── */
   if (authLoading || loading) {
     return (
       <section className="py-10 px-4 sm:px-6 md:px-10 lg:px-12">
@@ -126,6 +146,7 @@ export default function BeansOfWisdomView() {
     );
   }
 
+  /* ── Empty ── */
   if (!bean) {
     return (
       <section className="py-10 px-4 sm:px-6 md:px-10 lg:px-12">
@@ -138,116 +159,160 @@ export default function BeansOfWisdomView() {
   }
 
   return (
-    <section id="beans-of-wisdom" className="py-10 px-4 sm:px-6 md:px-10 lg:px-12">
+    <>
+      <StyleInjector />
 
-      {/* ── Section header ── */}
-      <div className="mb-8 text-center">
-        <div className="flex items-center justify-center gap-2 mb-1.5">
-          <div className="w-1 h-4 rounded-full bg-[#F59E0B]" />
-          <span className="text-xs font-bold text-[#F59E0B] tracking-[0.2em] uppercase">
-            Weekly Edition
-          </span>
-          <div className="w-1 h-4 rounded-full bg-[#F59E0B]" />
+      <section id="beans-of-wisdom" className="py-10 px-4 sm:px-6 md:px-10 lg:px-12">
+
+        {/* ════════════════════════════════════════
+            SECTION HEADER — original, unchanged
+        ════════════════════════════════════════ */}
+        <div className="mb-8 text-center">
+          <div className="flex items-center justify-center gap-2 mb-1.5">
+            <div className="w-1 h-4 rounded-full bg-[#F59E0B]" />
+            <span className="text-xs font-bold text-[#F59E0B] tracking-[0.2em] uppercase">
+              Weekly Edition
+            </span>
+            <div className="w-1 h-4 rounded-full bg-[#F59E0B]" />
+          </div>
+          <h2
+            className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight leading-none"
+            style={{ color: sectionHeadingColor }}
+          >
+            Beans of <span className="text-[#F59E0B]">Wisdom</span>
+          </h2>
+          <p className="text-sm mt-2 max-w-md mx-auto" style={{ color: sectionSubColor }}>
+            Curated market insight, delivered every week.
+          </p>
+
+          {isAdmin && (
+            <div className="flex items-center justify-center gap-2.5 mt-4">
+              <button
+                onClick={() => setShowEditForm(true)}
+                className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-bold text-[#0F172A] bg-[#F59E0B] hover:bg-[#D97706] rounded-xl transition-colors shadow-sm"
+              >
+                <Edit3 className="w-3.5 h-3.5" /> Edit
+              </button>
+              <button
+                onClick={handleDelete} disabled={deleteLoading}
+                className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-bold text-red-500 bg-transparent hover:bg-red-500/10 border border-red-400/50 rounded-xl transition-colors disabled:opacity-40"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                {deleteLoading ? "Deleting…" : "Delete"}
+              </button>
+            </div>
+          )}
         </div>
-        <h2
-          className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight leading-none"
-          style={{ color: sectionHeadingColor }}
-        >
-          Beans of{" "}
-          <span className="text-[#F59E0B]">Wisdom</span>
-        </h2>
-        <p className="text-sm mt-2 max-w-md mx-auto" style={{ color: sectionSubColor }}>
-          Curated market insight, delivered every week.
-        </p>
 
-        {isAdmin && (
-          <div className="flex items-center justify-center gap-2.5 mt-4">
-            <button
-              onClick={() => setShowEditForm(true)}
-              className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-bold text-[#0F172A] bg-[#F59E0B] hover:bg-[#D97706] rounded-xl transition-colors shadow-sm"
-            >
-              <Edit3 className="w-3.5 h-3.5" /> Edit
-            </button>
-            <button
-              onClick={handleDelete} disabled={deleteLoading}
-              className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-bold text-red-500 bg-transparent hover:bg-red-500/10 border border-red-400/50 rounded-xl transition-colors disabled:opacity-40"
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-              {deleteLoading ? "Deleting…" : "Delete"}
-            </button>
+        {/* ── Error ── */}
+        {error && (
+          <div
+            className="mb-6 flex items-start gap-2 rounded-xl p-4 text-sm"
+            style={{ background: errorBg, border: errorBorder, color: errorColor }}
+          >
+            <p className="flex-1">{error}</p>
+            <button onClick={() => setError(null)}><X className="w-4 h-4" /></button>
           </div>
         )}
-      </div>
 
-      {/* ── Error ── */}
-      {error && (
+        {/* ════════════════════════════════════════════════
+            MAIN CARD — redesigned layout
+        ════════════════════════════════════════════════ */}
         <div
-          className="mb-6 flex items-start gap-2 rounded-xl p-4 text-sm"
-          style={{ background: errorBg, border: errorBorder, color: errorColor }}
+          className="rounded-2xl overflow-hidden bow-up bow-d1"
+          style={{ border: cardWrapBorder, boxShadow: cardWrapShadow, background: cardWrapBg }}
         >
-          <p className="flex-1">{error}</p>
-          <button onClick={() => setError(null)}><X className="w-4 h-4" /></button>
-        </div>
-      )}
 
-      {/* ═══════════════════════════════════════
-          MAIN CARD
-      ═══════════════════════════════════════ */}
-      <div
-        className="rounded-2xl overflow-hidden"
-        style={{ border: cardWrapBorder, boxShadow: cardWrapShadow, background: cardWrapBg }}
-      >
-        <div className="grid grid-cols-1 md:grid-cols-5">
+          {/* ── TOP STRIP: amber accent bar ── */}
+          <div
+            style={{
+              height: 3,
+              background: "linear-gradient(90deg,#F59E0B,rgba(245,158,11,0.5),transparent)",
+            }}
+          />
 
-          {/* ─── LEFT COLUMN ─── */}
-          <div className="md:col-span-3 flex flex-col" style={{ background: leftColBg }}>
+          {/* ── BODY GRID ── */}
+          <div className="grid grid-cols-1 lg:grid-cols-5">
 
-            {/* Hero */}
-            <div className="relative px-6 py-8 sm:px-8 sm:py-10 md:px-12 md:py-12 flex flex-col justify-between flex-1 overflow-hidden">
-              {/* Decorative rings */}
-              <div className="absolute -top-16 -right-16 w-72 h-72 rounded-full pointer-events-none"
-                style={{ border: isLight ? "1px solid rgba(13,37,64,0.06)" : "1px solid rgba(255,255,255,0.06)" }} />
-              <div className="absolute -top-8 -right-8 w-48 h-48 rounded-full pointer-events-none"
-                style={{ border: isLight ? "1px solid rgba(13,37,64,0.04)" : "1px solid rgba(255,255,255,0.04)" }} />
-              {/* Accent top bar */}
-              <div className="absolute top-0 left-0 right-0 h-[3px]"
-                style={{ background: "linear-gradient(90deg,#F59E0B,rgba(245,158,11,0.8),transparent)" }} />
+            {/* ══════ LEFT ══════ */}
+            <div
+              className="lg:col-span-3 flex flex-col"
+              style={{ background: leftColBg, borderRight: `1px solid ${dividerColor}` }}
+            >
 
-              <div className="relative z-10">
-                {/* Badge */}
+              {/* ── Title + badge block ── */}
+              <div className="bow-up bow-d2 px-7 sm:px-9 md:px-11 pt-9 pb-7">
+
+                {/* Badge row */}
                 <div
-                  className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 mb-7 w-fit"
+                  className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 mb-6 w-fit"
                   style={{ background: badgeBg, border: badgeBorder }}
                 >
-                  <span className="w-2 h-2 rounded-full bg-[#F59E0B] animate-pulse" />
-                  <span className="text-[11px] font-bold tracking-[0.16em] uppercase" style={{ color: badgeTextColor }}>
+                  <span className="bow-dot w-2 h-2 rounded-full bg-[#F59E0B] block" />
+                  <span className="text-[10px] font-bold tracking-[0.18em] uppercase" style={{ color: badgeTextColor }}>
                     Today's Wisdom
                   </span>
                 </div>
 
                 {/* Title */}
                 <h3
-                  className="text-3xl sm:text-4xl md:text-5xl lg:text-[3.5rem] font-extrabold leading-[1.05] tracking-tight mb-5"
+                  className="text-3xl sm:text-4xl md:text-5xl lg:text-[3.2rem] font-extrabold leading-[1.06] tracking-tight"
                   style={{ color: heroTitleColor }}
                 >
                   {bean.title}
                 </h3>
 
+                {/* Animated underline accent */}
+                <div
+                  className="bow-line-anim mt-4 mb-5"
+                  style={{ height: 3, width: 52, background: "linear-gradient(90deg,#F59E0B,rgba(245,158,11,0.4))", borderRadius: 2 }}
+                />
+
                 {/* Subtitle */}
                 {bean.subtitle && (
-                  <p className="text-[13px] sm:text-[14px] leading-relaxed max-w-lg" style={{ color: heroSubtitleColor }}>
+                  <p className="text-[13.5px] leading-relaxed max-w-lg" style={{ color: heroSubtitleColor }}>
                     {bean.subtitle}
                   </p>
                 )}
               </div>
 
-              {/* Tags */}
+              {/* ── Divider ── */}
+              <div className="mx-7 sm:mx-9 h-px" style={{ background: dividerColor }} />
+
+              {/* ── Description block ── */}
+              {(bean.sectionTitle || bean.description) && (
+                <div className="bow-up bow-d3 px-7 sm:px-9 md:px-11 py-6 flex gap-4">
+                  <div
+                    className="flex-shrink-0 w-9 h-9 rounded-xl flex items-center justify-center mt-0.5"
+                    style={{ background: descIconBg, border: descIconBorder }}
+                  >
+                    <Sparkles className="w-4 h-4 text-[#F59E0B]" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    {bean.sectionTitle && (
+                      <p className="text-[10px] font-extrabold uppercase tracking-[0.22em] text-[#F59E0B] mb-2">
+                        {bean.sectionTitle}
+                      </p>
+                    )}
+                    {bean.description && (
+                      <p className="text-[13px] sm:text-[13.5px] leading-[1.85]" style={{ color: descTextColor }}>
+                        {bean.description}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* ── Divider ── */}
+              <div className="mx-7 sm:mx-9 h-px" style={{ background: dividerColor }} />
+
+              {/* ── Tags ── */}
               {bean.tags && bean.tags.length > 0 && (
-                <div className="relative z-10 flex flex-wrap gap-2 mt-6 sm:mt-8">
+                <div className="bow-up bow-d4 px-7 sm:px-9 md:px-11 py-5 flex flex-wrap gap-2">
                   {bean.tags.map((tag, i) => (
                     <span
                       key={i}
-                      className="text-[11px] font-semibold px-3 py-1 rounded-full transition-colors cursor-default"
+                      className="text-[11px] font-semibold px-3 py-1 rounded-full cursor-default"
                       style={{ color: tagColor, background: tagBg, border: tagBorder }}
                     >
                       #{tag}
@@ -257,122 +322,127 @@ export default function BeansOfWisdomView() {
               )}
             </div>
 
-            {/* Divider */}
-            <div className="mx-6 sm:mx-8 h-px" style={{ background: dividerColor }} />
+            {/* ══════ RIGHT ══════ */}
+            <div className="lg:col-span-2 flex flex-col">
 
-            {/* Description */}
-            {(bean.sectionTitle || bean.description) && (
-              <div className="px-6 py-6 sm:px-8 sm:py-8 md:px-12 flex gap-4 sm:gap-5">
+              {/* ── Key Principle ── */}
+              {bean.keyPrinciple && (
                 <div
-                  className="flex-shrink-0 mt-0.5 w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center"
-                  style={{ background: descIconBg, border: descIconBorder }}
+                  className="bow-up bow-d3 flex-1 flex flex-col justify-center gap-4 px-7 py-7"
+                  style={{
+                    background: keyPrincipleBg,
+                    borderBottom: `1px solid ${keyPrincipleBorderClr}`,
+                  }}
                 >
-                  <Sparkles className="w-4 h-4 text-[#F59E0B]" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  {bean.sectionTitle && (
-                    <p className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-[#F59E0B] mb-2.5">
-                      {bean.sectionTitle}
+                  {/* Label row */}
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-lg bg-[#F59E0B] flex items-center justify-center flex-shrink-0">
+                      <TrendingUp className="w-4 h-4 text-[#0F172A]" />
+                    </div>
+                    <p className="text-[10px] font-extrabold uppercase tracking-[0.22em] text-[#F59E0B]">
+                      Key Principle
                     </p>
-                  )}
-                  {bean.description && (
-                    <p className="text-[13px] sm:text-[13.5px] leading-[1.9]" style={{ color: descTextColor }}>
-                      {bean.description}
-                    </p>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* ─── RIGHT COLUMN ─── */}
-          <div className="md:col-span-2 flex flex-col">
-
-            {/* Key Principle */}
-            {bean.keyPrinciple && (
-              <div
-                className="flex-1 p-6 sm:p-7 md:p-8 flex flex-col justify-center gap-3"
-                style={{ background: keyPrincipleBg, borderBottom: keyPrincipleBorder }}
-              >
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-lg bg-[#F59E0B] flex items-center justify-center flex-shrink-0">
-                    <TrendingUp className="w-4 h-4 text-[#0F172A]" />
                   </div>
-                  <p className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-[#F59E0B]">
-                    Key Principle
-                  </p>
-                </div>
-                <p className="text-lg sm:text-xl md:text-[1.45rem] font-bold leading-snug" style={{ color: keyPrincipleTextColor }}>
-                  {bean.keyPrinciple}
-                </p>
-                <div className="w-10 h-[3px] rounded-full bg-[#F59E0B]" />
-              </div>
-            )}
 
-            {/* Insight */}
-            {bean.insightText && (
-              <div
-                className="flex-1 p-6 sm:p-7 md:p-8 flex flex-col justify-center gap-3"
-                style={{ background: insightPanelBg, borderBottom: insightPanelBorder }}
-              >
-                <div className="flex items-center gap-2.5">
-                  <div
-                    className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-                    style={{ background: insightIconBg, border: insightIconBorder }}
+                  {/* Value */}
+                  <p
+                    className="text-xl sm:text-2xl font-extrabold leading-snug tracking-tight"
+                    style={{ color: keyPrincipleTextColor }}
                   >
-                    <Lightbulb className="w-4 h-4 text-[#F59E0B]" />
+                    {bean.keyPrinciple}
+                  </p>
+
+                  {/* Bottom accent */}
+                  <div className="w-10 h-[3px] rounded-full bg-[#F59E0B]" />
+                </div>
+              )}
+
+              {/* ── Insight ── */}
+              {bean.insightText && (
+                <div
+                  className="bow-up bow-d4 flex-1 flex flex-col justify-center gap-3 px-7 py-7"
+                  style={{
+                    background: insightPanelBg,
+                    borderBottom: `1px solid ${insightPanelBorder}`,
+                  }}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <div
+                      className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+                      style={{ background: insightIconBg, border: insightIconBorder }}
+                    >
+                      <Lightbulb className="w-4 h-4 text-[#F59E0B]" />
+                    </div>
+                    <p className="text-[10px] font-extrabold uppercase tracking-[0.22em] text-[#F59E0B]">
+                      {bean.insightTag || "Investment Strategy"}
+                    </p>
                   </div>
-                  <p className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-[#F59E0B]">
-                    {bean.insightTag || "Investment Strategy"}
+                  <p className="text-[13px] leading-[1.85]" style={{ color: insightTextColor }}>
+                    {bean.insightText}
                   </p>
                 </div>
-                <p className="text-[13px] leading-[1.9]" style={{ color: insightTextColor }}>
-                  {bean.insightText}
-                </p>
-              </div>
-            )}
+              )}
 
-            {/* Quote */}
-            {bean.quote && (
-              <div
-                className="relative flex flex-col justify-center p-6 sm:p-7 md:p-9 overflow-hidden"
-                style={{ background: quotePanelBg }}
-              >
-                {/* Subtle inner glow */}
+              {/* ── Quote ── */}
+              {bean.quote && (
                 <div
-                  className="absolute inset-0 pointer-events-none"
-                  style={{ background: "radial-gradient(ellipse at 50% 0%,rgba(245,158,11,0.1) 0%,transparent 65%)" }}
-                />
-                {/* Accent top bar */}
-                <div
-                  className="absolute top-0 left-0 right-0 h-[2px]"
-                  style={{ background: "linear-gradient(90deg,rgba(245,158,11,0.5),transparent)" }}
-                />
+                  className="bow-up bow-d5 relative flex flex-col justify-center px-7 py-8 overflow-hidden"
+                  style={{ background: quotePanelBg }}
+                >
+                  {/* Top accent bar */}
+                  <div
+                    className="absolute top-0 left-0 right-0 h-[2px]"
+                    style={{ background: "linear-gradient(90deg,rgba(245,158,11,0.55),transparent)" }}
+                  />
+                  {/* Radial glow */}
+                  <div
+                    className="absolute inset-0 pointer-events-none"
+                    style={{ background: "radial-gradient(ellipse at 50% 0%,rgba(245,158,11,0.07) 0%,transparent 65%)" }}
+                  />
 
-                <div className="relative z-10">
-                  <div className="text-6xl leading-none font-serif select-none mb-3"
-                    style={{ color: "rgba(245,158,11,0.3)" }}>"</div>
-                  <p className="text-[14px] md:text-[15px] italic font-light leading-[1.95] px-1"
-                    style={{ color: quoteTextColor }}>
-                    {bean.quote}
-                  </p>
-                  <div className="text-6xl leading-none font-serif select-none text-right mt-2"
-                    style={{ color: "rgba(245,158,11,0.3)" }}>"</div>
+                  <div className="relative z-10">
+                    <div
+                      className="text-[5rem] leading-none font-serif select-none mb-2"
+                      style={{ color: "rgba(245,158,11,0.25)" }}
+                    >
+                      "
+                    </div>
+                    <p
+                      className="text-[13.5px] md:text-[14.5px] italic font-light leading-[1.9] px-1"
+                      style={{ color: quoteTextColor }}
+                    >
+                      {bean.quote}
+                    </p>
+                    <div
+                      className="text-[5rem] leading-none font-serif select-none text-right mt-1"
+                      style={{ color: "rgba(245,158,11,0.25)" }}
+                    >
+                      "
+                    </div>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
+
           </div>
+          {/* ── BOTTOM STRIP ── */}
+          <div
+            style={{
+              height: 3,
+              background: "linear-gradient(90deg,transparent,rgba(245,158,11,0.4),#F59E0B)",
+            }}
+          />
         </div>
-      </div>
 
-      {isAdmin && (
-        <BeansOfWisdomForm
-          isOpen={showEditForm}
-          onClose={() => setShowEditForm(false)}
-          bean={bean}
-          onSuccess={handleFormSuccess}
-        />
-      )}
-    </section>
+        {isAdmin && (
+          <BeansOfWisdomForm
+            isOpen={showEditForm}
+            onClose={() => setShowEditForm(false)}
+            bean={bean}
+            onSuccess={handleFormSuccess}
+          />
+        )}
+      </section>
+    </>
   );
 }
