@@ -7,7 +7,8 @@ export interface Insight {
   investBeansInsight: string;
   sentiment?: 'positive' | 'negative' | 'neutral';
   category?: string;
-  marketType: 'domestic' | 'global';
+  // ✅ Added commodities
+  marketType: 'domestic' | 'global' | 'commodities';
   views?: number;
   likes?: number;
   isLiked?: boolean;
@@ -44,16 +45,12 @@ export interface LikeResponse {
 
 // Get all published insights
 export const getAllInsights = async (
-  marketType: 'domestic' | 'global',
+  marketType: 'domestic' | 'global' | 'commodities',
   limit: number = 100,
   page: number = 1
 ): Promise<InsightResponse> => {
   const response = await api.get('/insights', {
-    params: {
-      marketType,
-      limit,
-      page,
-    },
+    params: { marketType, limit, page },
   });
   return response.data.data;
 };
@@ -68,8 +65,7 @@ export const getInsightById = async (id: string): Promise<Insight> => {
 export const toggleInsightLike = async (id: string): Promise<LikeResponse> => {
   try {
     const response = await api.post(`/insights/${id}/like`);
-    
-    // Validate response structure
+
     if (!response.data?.success) {
       throw new Error(response.data?.message || 'Failed to toggle like');
     }
@@ -81,7 +77,6 @@ export const toggleInsightLike = async (id: string): Promise<LikeResponse> => {
     return response.data.data;
   } catch (error: unknown) {
     if (error instanceof Error) {
-      // Check for authentication errors
       if (error.message.includes('401') || error.message.includes('Unauthorized')) {
         throw new Error('Please login to like insights');
       }

@@ -72,13 +72,9 @@ const AdminInsightForm = ({ isOpen, onClose, onSuccess, editingInsight }: AdminI
   const modalBg = isLight
     ? "linear-gradient(160deg,#f0f7fe 0%,#e8f2fd 100%)"
     : "linear-gradient(160deg,#0d1e36 0%,#0c1a2e 100%)";
-  const modalBorder = isLight
-    ? "1px solid rgba(13,37,64,0.12)"
-    : "1px solid rgba(255,255,255,0.09)";
-  const goldTopLine =
-    "linear-gradient(90deg,transparent,rgba(212,168,67,0.55),transparent)";
+  const modalBorder = isLight ? "1px solid rgba(13,37,64,0.12)" : "1px solid rgba(255,255,255,0.09)";
+  const goldTopLine = "linear-gradient(90deg,transparent,rgba(212,168,67,0.55),transparent)";
 
-  // Header
   const headerBg = isLight ? "rgba(232,242,253,0.97)" : "rgba(13,30,54,0.97)";
   const headerBorder = isLight ? "1px solid rgba(13,37,64,0.08)" : "1px solid rgba(255,255,255,0.07)";
   const titleColor = isLight ? "#0d1b2a" : "white";
@@ -86,41 +82,33 @@ const AdminInsightForm = ({ isOpen, onClose, onSuccess, editingInsight }: AdminI
   const closeBtnBg = isLight ? "rgba(13,37,64,0.06)" : "rgba(255,255,255,0.05)";
   const closeBtnColor = isLight ? "rgba(13,37,64,0.45)" : "rgba(148,163,184,1)";
 
-  // Inputs
   const inputBg = isLight ? "rgba(255,255,255,0.85)" : "rgba(255,255,255,0.05)";
   const inputBorder = isLight ? "1px solid rgba(13,37,64,0.15)" : "1px solid rgba(255,255,255,0.1)";
   const inputColor = isLight ? "#0d1b2a" : "white";
-  const placeholderColor = isLight ? "rgba(13,37,64,0.3)" : "rgba(100,116,139,1)";
   const inputFocusRing = isLight ? "focus:ring-accent/40" : "focus:ring-accent/30";
   const inputStyle = { background: inputBg, border: inputBorder, color: inputColor };
-  const inputClass = `w-full px-4 py-3 text-sm rounded-xl placeholder:text-slate-400 focus:outline-none focus:ring-2 ${inputFocusRing} transition-all`;
+  const inputClass = `w-full px-3 py-2 text-sm rounded-xl placeholder:text-slate-400 focus:outline-none focus:ring-2 ${inputFocusRing} transition-all`;
 
-  // Label
   const labelColor = isLight ? "rgba(13,37,64,0.75)" : "rgba(203,213,225,1)";
   const labelOptionalColor = isLight ? "rgba(13,37,64,0.45)" : "rgba(100,116,139,1)";
 
-  // Credits section block
+  // ✅ More compact credits block
   const creditBlockBg = isLight ? "rgba(212,168,67,0.06)" : "rgba(212,168,67,0.04)";
   const creditBlockBorder = isLight ? "1px solid rgba(212,168,67,0.2)" : "1px solid rgba(212,168,67,0.13)";
 
-  // Select option bg (still dark, browser limitation)
   const optionBg = "#0d1e36";
 
-  // Error block
   const errorBg = isLight ? "rgba(251,113,133,0.06)" : "rgba(251,113,133,0.08)";
   const errorBorder = isLight ? "1px solid rgba(251,113,133,0.25)" : "1px solid rgba(251,113,133,0.2)";
   const errorColor = isLight ? "#be123c" : "rgba(251,113,133,1)";
 
-  // Footer bar
   const footerBg = isLight ? "rgba(232,242,253,0.98)" : "rgba(10,22,40,0.98)";
   const footerBorder = isLight ? "1px solid rgba(13,37,64,0.08)" : "1px solid rgba(255,255,255,0.07)";
 
-  // Cancel button
   const cancelBg = isLight ? "rgba(13,37,64,0.06)" : "rgba(255,255,255,0.04)";
   const cancelBorder = isLight ? "1px solid rgba(13,37,64,0.12)" : "1px solid rgba(255,255,255,0.1)";
   const cancelColor = isLight ? "rgba(13,37,64,0.65)" : "rgba(203,213,225,1)";
 
-  // Char counter
   const charCountColor = isLight ? "rgba(13,37,64,0.35)" : "rgba(100,116,139,1)";
 
   if (!isOpen) return null;
@@ -140,7 +128,7 @@ const AdminInsightForm = ({ isOpen, onClose, onSuccess, editingInsight }: AdminI
 
           {/* ── HEADER ── */}
           <div
-            className="sticky top-0 z-10 px-6 py-5"
+            className="sticky top-0 z-10 px-6 py-4"
             style={{ background: headerBg, borderBottom: headerBorder }}
           >
             <div className="flex items-center justify-between">
@@ -161,133 +149,134 @@ const AdminInsightForm = ({ isOpen, onClose, onSuccess, editingInsight }: AdminI
           </div>
 
           {/* ── FORM ── */}
-          <form onSubmit={handleSubmit} className="p-6 sm:p-8 space-y-5 max-h-[calc(100vh-180px)] overflow-y-auto">
+          <form onSubmit={handleSubmit} className="p-5 sm:p-6 space-y-4 max-h-[calc(100vh-160px)] overflow-y-auto">
 
             {/* Error banner */}
             {error && (
-              <div className="p-4 rounded-xl text-sm" style={{ background: errorBg, border: errorBorder, color: errorColor }}>
+              <div className="p-3 rounded-xl text-sm" style={{ background: errorBg, border: errorBorder, color: errorColor }}>
                 {error}
               </div>
             )}
 
             {/* Title */}
             <div>
-              <Label className="text-sm font-semibold mb-2 block" style={{ color: labelColor }}>
+              <Label className="text-xs font-semibold mb-1.5 block" style={{ color: labelColor }}>
                 Title <span className="text-[#D4A843]">*</span>
               </Label>
               <input
                 value={formData.title} onChange={e => set("title", e.target.value)}
                 placeholder="Enter insight title" required maxLength={200}
-                className={inputClass} style={{ ...inputStyle, height: 48 }}
+                className={inputClass} style={{ ...inputStyle, height: 42 }}
               />
             </div>
 
             {/* Description */}
             <div>
-              <Label className="text-sm font-semibold mb-2 block" style={{ color: labelColor }}>
+              <Label className="text-xs font-semibold mb-1.5 block" style={{ color: labelColor }}>
                 Description <span className="text-[#D4A843]">*</span>
               </Label>
               <textarea
                 value={formData.description} onChange={e => set("description", e.target.value)}
-                placeholder="Brief description (shown on card preview)" required maxLength={1000} rows={5}
+                placeholder="Brief description (shown on card preview)" required maxLength={1000} rows={4}
                 className={`${inputClass} resize-none`} style={inputStyle}
               />
-              <p className="text-xs mt-1 text-right" style={{ color: charCountColor }}>
+              <p className="text-xs mt-0.5 text-right" style={{ color: charCountColor }}>
                 {formData.description.length}/1000
               </p>
             </div>
 
             {/* InvestBeans Insight */}
             <div>
-              <Label className="text-sm font-semibold mb-2 block" style={{ color: labelColor }}>
+              <Label className="text-xs font-semibold mb-1.5 block" style={{ color: labelColor }}>
                 InvestBeans Insight <span className="text-[#D4A843]">*</span>
               </Label>
               <textarea
                 value={formData.investBeansInsight} onChange={e => set("investBeansInsight", e.target.value)}
-                placeholder="Your expert analysis" required maxLength={2000} rows={4}
+                placeholder="Your expert analysis" required maxLength={2000} rows={3}
                 className={`${inputClass} resize-none`} style={inputStyle}
               />
-              <p className="text-xs mt-1 text-right" style={{ color: charCountColor }}>
+              <p className="text-xs mt-0.5 text-right" style={{ color: charCountColor }}>
                 {formData.investBeansInsight.length}/2000
               </p>
             </div>
 
-            {/* Credits block */}
-            <div className="p-5 rounded-xl space-y-4" style={{ background: creditBlockBg, border: creditBlockBorder }}>
-              <h3 className="text-sm font-semibold text-[#D4A843] flex items-center gap-2">
-                <span className="w-1 h-4 rounded-full inline-block" style={{ background: "#D4A843" }} />
+            {/* ✅ Compact Credits block — all 3 fields in one row on larger screens */}
+            <div className="p-3.5 rounded-xl" style={{ background: creditBlockBg, border: creditBlockBorder }}>
+              <h3 className="text-xs font-semibold text-[#D4A843] flex items-center gap-1.5 mb-3">
+                <span className="w-1 h-3.5 rounded-full inline-block" style={{ background: "#D4A843" }} />
                 Credits & Source
               </h3>
 
-              {/* Source */}
-              <div>
-                <Label className="text-sm mb-2 block" style={{ color: labelColor }}>
-                  Source <span className="text-[#D4A843]">*</span>
-                </Label>
-                <input
-                  value={formData.creditSource} onChange={e => set("creditSource", e.target.value)}
-                  placeholder="e.g. Bloomberg, Reuters" required
-                  className={inputClass} style={{ ...inputStyle, height: 48 }}
-                />
-              </div>
-
-              {/* Author + URL */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {/* Source */}
                 <div>
-                  <Label className="text-sm mb-2 block" style={{ color: labelOptionalColor }}>Author (Optional)</Label>
+                  <Label className="text-xs mb-1 block" style={{ color: labelColor }}>
+                    Source <span className="text-[#D4A843]">*</span>
+                  </Label>
+                  <input
+                    value={formData.creditSource} onChange={e => set("creditSource", e.target.value)}
+                    placeholder="e.g. Bloomberg" required
+                    className={inputClass} style={{ ...inputStyle, height: 38 }}
+                  />
+                </div>
+                {/* Author */}
+                <div>
+                  <Label className="text-xs mb-1 block" style={{ color: labelOptionalColor }}>Author (optional)</Label>
                   <input
                     value={formData.creditAuthor} onChange={e => set("creditAuthor", e.target.value)}
                     placeholder="Author name"
-                    className={inputClass} style={{ ...inputStyle, height: 48 }}
+                    className={inputClass} style={{ ...inputStyle, height: 38 }}
                   />
                 </div>
+                {/* URL */}
                 <div>
-                  <Label className="text-sm mb-2 block" style={{ color: labelOptionalColor }}>Source URL (Optional)</Label>
+                  <Label className="text-xs mb-1 block" style={{ color: labelOptionalColor }}>URL (optional)</Label>
                   <input
                     type="url" value={formData.creditUrl} onChange={e => set("creditUrl", e.target.value)}
                     placeholder="https://example.com"
-                    className={inputClass} style={{ ...inputStyle, height: 48 }}
+                    className={inputClass} style={{ ...inputStyle, height: 38 }}
                   />
                 </div>
               </div>
             </div>
 
             {/* Category / Market / Sentiment */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               {/* Category */}
               <div>
-                <Label className="text-sm font-semibold mb-2 block" style={{ color: labelColor }}>
+                <Label className="text-xs font-semibold mb-1.5 block" style={{ color: labelColor }}>
                   Category <span className="text-[#D4A843]">*</span>
                 </Label>
                 <input
                   value={formData.category} onChange={e => set("category", e.target.value)}
                   placeholder="e.g. Technology" required
-                  className={inputClass} style={{ ...inputStyle, height: 48 }}
+                  className={inputClass} style={{ ...inputStyle, height: 42 }}
                 />
               </div>
 
-              {/* Market Type */}
+              {/* Market Type — ✅ Commodities added */}
               <div>
-                <Label className="text-sm font-semibold mb-2 block" style={{ color: labelColor }}>
+                <Label className="text-xs font-semibold mb-1.5 block" style={{ color: labelColor }}>
                   Market Type <span className="text-[#D4A843]">*</span>
                 </Label>
                 <select
                   value={formData.marketType} onChange={e => set("marketType", e.target.value)}
-                  className={inputClass} style={{ ...inputStyle, height: 48 }}
+                  className={inputClass} style={{ ...inputStyle, height: 42 }}
                 >
                   <option value="domestic" style={{ background: optionBg }}>Domestic</option>
                   <option value="global" style={{ background: optionBg }}>Global</option>
+                  <option value="commodities" style={{ background: optionBg }}>Commodities</option>
                 </select>
               </div>
 
               {/* Sentiment */}
               <div>
-                <Label className="text-sm font-semibold mb-2 block" style={{ color: labelColor }}>
+                <Label className="text-xs font-semibold mb-1.5 block" style={{ color: labelColor }}>
                   Sentiment <span className="text-[#D4A843]">*</span>
                 </Label>
                 <select
                   value={formData.sentiment} onChange={e => set("sentiment", e.target.value)}
-                  className={inputClass} style={{ ...inputStyle, height: 48 }}
+                  className={inputClass} style={{ ...inputStyle, height: 42 }}
                 >
                   <option value="positive" style={{ background: optionBg }}>Positive</option>
                   <option value="negative" style={{ background: optionBg }}>Negative</option>
@@ -298,19 +287,19 @@ const AdminInsightForm = ({ isOpen, onClose, onSuccess, editingInsight }: AdminI
 
             {/* ── FOOTER ACTIONS ── */}
             <div
-              className="flex gap-3 pt-4 sticky bottom-0 -mx-6 sm:-mx-8 px-6 sm:px-8 pb-4"
+              className="flex gap-3 pt-3 sticky bottom-0 -mx-5 sm:-mx-6 px-5 sm:px-6 pb-4"
               style={{ background: footerBg, borderTop: footerBorder, marginTop: "8px" }}
             >
               <button
                 type="button" onClick={onClose} disabled={loading}
-                className="flex-1 h-12 rounded-xl text-sm font-semibold transition-all disabled:opacity-50 hover:opacity-80"
+                className="flex-1 h-11 rounded-xl text-sm font-semibold transition-all disabled:opacity-50 hover:opacity-80"
                 style={{ background: cancelBg, border: cancelBorder, color: cancelColor }}
               >
                 Cancel
               </button>
               <button
                 type="submit" disabled={loading}
-                className="flex-1 h-12 rounded-xl text-sm font-semibold transition-all hover:opacity-90 disabled:opacity-60"
+                className="flex-1 h-11 rounded-xl text-sm font-semibold transition-all hover:opacity-90 disabled:opacity-60"
                 style={{ background: "linear-gradient(135deg,#D4A843,#C4941E)", color: "#0c1a2e" }}
               >
                 {loading ? "Saving..." : editingInsight ? "Update Insight" : "Create Insight"}

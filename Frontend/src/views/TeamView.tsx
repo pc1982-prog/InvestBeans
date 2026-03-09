@@ -323,7 +323,6 @@ const TeamView = () => {
             <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto no-scrollbar py-3" role="tablist" aria-label="About page sections">
               {[
                 { href: '#our-story', label: 'Our Story' },
-                { href: '#founder-journey', label: "Founder's Journey" },
                 { href: '#team-members', label: 'Team' },
                 { href: '#mission', label: 'Mission' },
                 { href: '#core-values', label: 'Core Values' },
@@ -430,76 +429,7 @@ const TeamView = () => {
             </div>
           </Reveal>
 
-          {/* Founder's Journey */}
-          <Reveal id="founder-journey" className="scroll-mt-24 mb-10">
-            <div className="gsap-section-card relative overflow-hidden rounded-[32px] border border-white/10 bg-slate-900/70 backdrop-blur-xl p-6 sm:p-10 text-white shadow-[0_30px_90px_-50px_rgba(8,47,73,0.8)]">
-              <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_top,_rgba(99,102,241,0.4),_transparent_60%)] pointer-events-none"></div>
-              <div className="relative grid gap-10 lg:grid-cols-[0.9fr_1.1fr] items-start">
-                <div className="space-y-6">
-                  <div className="rounded-3xl border border-white/10 bg-slate-900/60 p-6">
-                    <div className="flex items-center gap-4">
-                      <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-blue-500 flex items-center justify-center text-2xl font-bold">
-                        MT
-                      </div>
-                      <div>
-                        <p className="text-xs uppercase tracking-[0.4em] text-white/60">Founder</p>
-                        <p className="text-lg font-semibold">Manu Tyagi</p>
-                        <p className="text-sm text-white/70">NISM Certified Research Analyst</p>
-                      </div>
-                    </div>
-                    <p className="mt-4 text-sm text-white/70">
-                      Defence upbringing. Global schooling. Corporate boardrooms. Trading terminals. Manu bridges structure with empathy to shape InvestBeans.
-                    </p>
-                  </div>
-                  <div className="rounded-3xl border border-white/10 bg-white/5 p-5 space-y-4">
-                    <p className="text-xs uppercase tracking-[0.4em] text-white/60">Milestones</p>
-                    <ul className="space-y-3 text-sm text-white/80">
-                      {founderMilestones.map((item) => (
-                        <li key={item.year} className="flex gap-3">
-                          <span className="text-white font-semibold">{item.year}</span>
-                          <div>
-                            <p className="font-medium text-white">{item.title}</p>
-                            <p className="text-white/70">{item.detail}</p>
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-
-                <div className="space-y-4 text-sm sm:text-base leading-relaxed text-white/80">
-                  <div className="space-y-4">
-                    <p>
-                      Manu Tyagi is a Delhi University graduate and KV Moscow alumnus raised in an Air Force household—discipline, precision, and observational thinking were table
-                      stakes. A decade in CXO-facing roles at WNS, DS Group, Radisson, and Publicis grounded him in business fundamentals and stakeholder empathy.
-                    </p>
-                    {readMoreFounder && (
-                      <>
-                        <p>
-                          Transitioning from corporate strategy to full-time market participation in 2020, he crafted modular routines that blend macro awareness, sector heat maps,
-                          and journaling hygiene. Those routines now shape InvestBeans’ education stack.
-                        </p>
-                        <p>
-                          Manu holds NISM certifications across research analysis and derivatives, with a passion for translating complex briefs into simple, disciplined action
-                          plans for learners of every background.
-                        </p>
-                      </>
-                    )}
-                  </div>
-                  <button
-                    onClick={() => setReadMoreFounder(!readMoreFounder)}
-                    type="button"
-                    className="inline-flex items-center gap-2 text-sm font-semibold text-white hover:text-blue-200"
-                  >
-                    {readMoreFounder ? 'Show Less' : 'Read More'}
-                    <svg className={`w-4 h-4 transition-transform ${readMoreFounder ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </Reveal>
+         
 
           {/* Team Members */}
           <div id="team-members" className="scroll-mt-24 mb-12">

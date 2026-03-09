@@ -1,125 +1,327 @@
 'use client';
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Sparkles } from "lucide-react";
-import { useTheme } from "@/controllers/Themecontext"
+import { Sparkles, TrendingUp, TrendingDown } from "lucide-react";
+import { useTheme } from "@/controllers/Themecontext";
 
-// ── Custom SVG Icons — InvestBeans brand concept ─────────────────────────
-const BeanSproutIcon = ({ className }: { className?: string }) => (
-  <svg
-    viewBox="0 0 48 48"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-    className={className}
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path
-      d="M14 30 C10 22, 12 12, 22 10 C32 8, 38 16, 36 26 C34 34, 26 38, 18 36 C14 34, 12 32, 14 30Z"
-      stroke="currentColor"
-      strokeWidth="2.2"
-      fill="none"
-    />
-    <path
-      d="M20 12 C18 18, 18 24, 22 30"
-      stroke="currentColor"
-      strokeWidth="1.6"
-      strokeDasharray="2 2"
-      opacity="0.6"
-    />
-    <path d="M24 10 L24 3" stroke="currentColor" strokeWidth="2" />
-    <path
-      d="M24 6 C22 4, 18 3, 17 5 C16 7, 18 8, 24 8"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      fill="none"
-    />
-    <path
-      d="M24 4 C26 2, 30 2, 31 4 C32 6, 29 7, 24 7"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      fill="none"
-    />
+// ─── Icons ─────────────────────────────────────────────────────────────────────
+const PieChartIcon = ({ className, style }: { className?: string; style?: React.CSSProperties }) => (
+  <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className={className} style={style} strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="22" cy="26" r="15" stroke="currentColor" strokeWidth="2" fill="none" />
+    <path d="M22 26 L22 11 A15 15 0 0 1 36.3 18.5 Z" stroke="currentColor" strokeWidth="1.5" fill="currentColor" fillOpacity="0.25" />
+    <path d="M22 26 L36.3 18.5 A15 15 0 0 1 34 40 Z" stroke="currentColor" strokeWidth="1.5" fill="currentColor" fillOpacity="0.12" />
+    <path d="M30 8 L36 4 L42 8" stroke="currentColor" strokeWidth="2.2" />
+    <path d="M36 4 L36 14" stroke="currentColor" strokeWidth="2.2" />
+    <circle cx="10" cy="14" r="1.5" fill="currentColor" opacity="0.5" />
   </svg>
 );
 
-const CoinStackIcon = ({ className }: { className?: string }) => (
-  <svg
-    viewBox="0 0 48 48"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-    className={className}
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <ellipse cx="22" cy="38" rx="13" ry="4.5" stroke="currentColor" strokeWidth="2" />
-    <path d="M9 38 L9 34" stroke="currentColor" strokeWidth="2" />
-    <path d="M35 38 L35 34" stroke="currentColor" strokeWidth="2" />
-    <ellipse cx="22" cy="34" rx="13" ry="4.5" stroke="currentColor" strokeWidth="2" />
-    <path d="M9 34 L9 29" stroke="currentColor" strokeWidth="2" />
-    <path d="M35 34 L35 29" stroke="currentColor" strokeWidth="2" />
-    <ellipse cx="22" cy="29" rx="13" ry="4.5" stroke="currentColor" strokeWidth="2" />
-    <path d="M9 29 L9 24.5" stroke="currentColor" strokeWidth="2" />
-    <path d="M35 29 L35 24.5" stroke="currentColor" strokeWidth="2" />
-    <ellipse cx="22" cy="24.5" rx="13" ry="4.5" stroke="currentColor" strokeWidth="2" />
-    <path d="M34 16 L38 10 L42 16" stroke="currentColor" strokeWidth="2.2" />
-    <path d="M38 10 L38 22" stroke="currentColor" strokeWidth="2.2" />
+const GrowthPlantIcon = ({ className, style }: { className?: string; style?: React.CSSProperties }) => (
+  <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className={className} style={style} strokeLinecap="round" strokeLinejoin="round">
+    <path d="M24 40 L24 18" stroke="currentColor" strokeWidth="2.2" />
+    <path d="M24 28 C20 26, 14 27, 13 22 C12 17, 18 14, 24 20" stroke="currentColor" strokeWidth="1.8" fill="currentColor" fillOpacity="0.2" />
+    <path d="M24 22 C28 20, 34 20, 35 15 C36 10, 30 8, 24 14" stroke="currentColor" strokeWidth="1.8" fill="currentColor" fillOpacity="0.2" />
+    <path d="M14 40 L34 40" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    <path d="M24 14 L25.2 11 L26.4 14 L29.5 14 L27 16 L28.2 19 L24 17 L19.8 19 L21 16 L18.5 14 L21.6 14 Z" stroke="currentColor" strokeWidth="1.2" fill="currentColor" fillOpacity="0.35" />
   </svg>
 );
 
-const IndexChartIcon = ({ className }: { className?: string }) => (
-  <svg
-    viewBox="0 0 48 48"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-    className={className}
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
+const IndexChartIcon = ({ className, style }: { className?: string; style?: React.CSSProperties }) => (
+  <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className={className} style={style} strokeLinecap="round" strokeLinejoin="round">
     <path d="M6 38 L42 38" stroke="currentColor" strokeWidth="2" />
     <path d="M6 38 L6 8" stroke="currentColor" strokeWidth="2" />
-    <rect x="10" y="26" width="6" height="12" rx="1.5" stroke="currentColor" strokeWidth="1.8" fill="none" />
-    <rect x="20" y="20" width="6" height="18" rx="1.5" stroke="currentColor" strokeWidth="1.8" fill="none" />
-    <rect x="30" y="14" width="6" height="24" rx="1.5" stroke="currentColor" strokeWidth="1.8" fill="none" />
-    <path d="M13 25 L23 18 L33 11" stroke="currentColor" strokeWidth="2.2" strokeDasharray="0" />
+    <rect x="10" y="26" width="6" height="12" rx="1.5" stroke="currentColor" strokeWidth="1.8" fill="currentColor" fillOpacity="0.2" />
+    <rect x="20" y="20" width="6" height="18" rx="1.5" stroke="currentColor" strokeWidth="1.8" fill="currentColor" fillOpacity="0.2" />
+    <rect x="30" y="14" width="6" height="24" rx="1.5" stroke="currentColor" strokeWidth="1.8" fill="currentColor" fillOpacity="0.2" />
+    <path d="M13 25 L23 18 L33 11" stroke="currentColor" strokeWidth="2.2" />
     <circle cx="33" cy="11" r="2.5" fill="currentColor" />
   </svg>
 );
 
-// ── Static Bharat tab (no API needed) ───────────────────────────────────────
-const BHARAT_STATS = [
-  { value: "+0.85%", sub: "SENSEX vs NIFTY 50", positive: true  },
-  { value: "+1.14%", sub: "FII vs DII",          positive: true  },
-  { value: "13.42",  sub: "India VIX",           positive: null  },
-  { value: "+0.32%", sub: "GIFT NIFTY",          positive: true  },
-];
+// ─── Mini Sparkline SVG ─────────────────────────────────────────────────────────
+const Sparkline = ({ positive, color }: { positive: boolean; color: string }) => {
+  // Generate a smooth sparkline path — rising if positive, falling if negative
+  const pts = positive
+    ? [0,32, 8,28, 16,30, 24,22, 32,18, 40,14, 48,16, 56,10, 64,8, 72,4]
+    : [0,4, 8,8, 16,6, 24,14, 32,18, 40,22, 48,20, 56,28, 64,30, 72,34];
 
-// Navigation map: stat sub → GlobalView section id
-const STAT_NAV: Record<string, { path: string; section: string }> = {
-  "NASDAQ vs S&P 500": { path: "/global", section: "section-us"   },
-  "USD / INR":         { path: "/global", section: "section-forex" },
-  "GOLD vs SILVER":    { path: "/global", section: "section-commodities" },
-  "Dow Jones":         { path: "/global", section: "section-us"   },
+  let d = `M${pts[0]},${pts[1]}`;
+  for (let i = 2; i < pts.length; i += 2) {
+    const cx = pts[i - 2] + (pts[i] - pts[i - 2]) / 2;
+    d += ` C${cx},${pts[i - 1]} ${cx},${pts[i + 1]} ${pts[i]},${pts[i + 1]}`;
+  }
+
+  const gradId = `sg-${positive ? "up" : "dn"}-${color.replace('#', '')}`;
+
+  return (
+    <svg viewBox="0 0 72 40" className="w-full h-10" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity="0.35" />
+          <stop offset="100%" stopColor={color} stopOpacity="0.0" />
+        </linearGradient>
+      </defs>
+      <path d={d + ` L72,40 L0,40 Z`} fill={`url(#${gradId})`} />
+      <path d={d} fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
 };
 
-type TabKey = "bharat" | "us";
+// ─── SENSEX vs NIFTY Card ───────────────────────────────────────────────────────
+const SensexNiftyCard = ({ cardBg, cardBorder, isLight }: any) => {
+  const sensexPositive = true;
+  const niftyPositive = true;
+  return (
+    <div style={{ background: cardBg, border: cardBorder }} className="rounded-2xl p-5 relative overflow-hidden group hover:scale-[1.02] transition-all duration-300 cursor-pointer">
+      <div className="flex items-center gap-1.5 mb-3">
+        <span style={{ width: 8, height: 8, borderRadius: 2, background: "#C9A84C", display: "inline-block" }} />
+        <span className={`text-[11px] font-bold uppercase tracking-widest ${isLight ? "text-navy/60" : "text-white/50"}`}>SENSEX vs NIFTY 50</span>
+      </div>
+      <div className="space-y-2 mb-3">
+        <div className="flex items-center justify-between">
+          <span className={`text-sm font-medium ${isLight ? "text-navy/70" : "text-white/70"}`}>Sensex</span>
+          <div className="flex items-center gap-2">
+            <span className={`text-lg font-bold ${isLight ? "text-navy" : "text-white"}`}>81,250</span>
+            <span className="flex items-center gap-0.5 text-emerald-400 text-sm font-semibold">
+              <TrendingUp className="w-3.5 h-3.5" /> +0.42%
+            </span>
+          </div>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className={`text-sm font-medium ${isLight ? "text-navy/70" : "text-white/70"}`}>Nifty 50</span>
+          <div className="flex items-center gap-2">
+            <span className={`text-lg font-bold ${isLight ? "text-navy" : "text-white"}`}>24,720</span>
+            <span className="flex items-center gap-0.5 text-emerald-400 text-sm font-semibold">
+              <TrendingUp className="w-3.5 h-3.5" /> +0.39%
+            </span>
+          </div>
+        </div>
+      </div>
+      <Sparkline positive={true} color="#22c55e" />
+    </div>
+  );
+};
 
-interface StatItem { value: string; sub: string; positive: boolean | null; section?: string; path?: string; }
+// ─── FII vs DII Card ────────────────────────────────────────────────────────────
+const FiiDiiCard = ({ cardBg, cardBorder, isLight }: any) => {
+  const fiiVal = -1240;
+  const diiVal = 1980;
+  const total = Math.abs(fiiVal) + diiVal;
+  const fiiPct = Math.round((Math.abs(fiiVal) / total) * 100);
+  const diiPct = 100 - fiiPct;
+  return (
+    <div style={{ background: cardBg, border: cardBorder }} className="rounded-2xl p-5 relative overflow-hidden group hover:scale-[1.02] transition-all duration-300 cursor-pointer">
+      <div className="flex items-center gap-1.5 mb-3">
+        <span style={{ width: 8, height: 8, borderRadius: 2, background: "#C9A84C", display: "inline-block" }} />
+        <span className={`text-[11px] font-bold uppercase tracking-widest ${isLight ? "text-navy/60" : "text-white/50"}`}>FII vs DII</span>
+      </div>
+      <div className="flex justify-between items-end mb-4">
+        <div>
+          <div className={`text-[11px] font-semibold mb-1 ${isLight ? "text-navy/50" : "text-white/40"}`}>FII</div>
+          <div className="text-xl font-bold text-red-400">−₹1,240 Cr</div>
+        </div>
+        <div className="text-right">
+          <div className={`text-[11px] font-semibold mb-1 ${isLight ? "text-navy/50" : "text-white/40"}`}>DII</div>
+          <div className="text-xl font-bold text-emerald-400">+₹1,980 Cr</div>
+        </div>
+      </div>
+      {/* Progress bar */}
+      <div className="h-2.5 rounded-full overflow-hidden flex" style={{ background: isLight ? "rgba(0,0,0,0.08)" : "rgba(255,255,255,0.08)" }}>
+        <div style={{ width: `${fiiPct}%`, background: "linear-gradient(90deg,#ef4444,#f87171)", borderRadius: "999px 0 0 999px", transition: "width 1s ease" }} />
+        <div style={{ width: `${diiPct}%`, background: "linear-gradient(90deg,#a855f7,#22c55e)", borderRadius: "0 999px 999px 0", transition: "width 1s ease" }} />
+      </div>
+      <div className="flex justify-between mt-1.5">
+        <span className="text-[10px] text-red-400/80">{fiiPct}% selling</span>
+        <span className="text-[10px] text-emerald-400/80">{diiPct}% buying</span>
+      </div>
+    </div>
+  );
+};
 
+// ─── India VIX Card ─────────────────────────────────────────────────────────────
+const IndiaVixCard = ({ cardBg, cardBorder, isLight }: any) => {
+  const vix = 13.42;
+  const vixChange = -3.10;
+  // VIX slider: 0=10, 100=40; fear level
+  const sliderPct = Math.min(100, Math.max(0, ((vix - 10) / 30) * 100)); // 11.4%
+  const fearLabel = vix < 15 ? "Low" : vix < 20 ? "Moderate" : "High";
+  const fearColor = vix < 15 ? "#22c55e" : vix < 20 ? "#f59e0b" : "#ef4444";
+  return (
+    <div style={{ background: cardBg, border: cardBorder }} className="rounded-2xl p-5 relative overflow-hidden group hover:scale-[1.02] transition-all duration-300 cursor-pointer">
+      <div className="flex items-center gap-1.5 mb-3">
+        <span style={{ width: 8, height: 8, borderRadius: 2, background: "#C9A84C", display: "inline-block" }} />
+        <span className={`text-[11px] font-bold uppercase tracking-widest ${isLight ? "text-navy/60" : "text-white/50"}`}>INDIA VIX</span>
+      </div>
+      <div className="flex items-end justify-between mb-3">
+        <span className={`text-4xl font-extrabold tracking-tight ${isLight ? "text-navy" : "text-white"}`}>{vix}</span>
+        <div className="flex flex-col items-end gap-1">
+          <span className="flex items-center gap-1 text-red-400 font-bold text-sm">
+            <TrendingDown className="w-3.5 h-3.5" /> {vixChange}%
+          </span>
+          <span className="text-[11px] font-bold px-2 py-0.5 rounded-full" style={{ background: `${fearColor}22`, color: fearColor, border: `1px solid ${fearColor}44` }}>
+            Market Fear: {fearLabel}
+          </span>
+        </div>
+      </div>
+      {/* VIX slider — green to red */}
+      <div className="relative h-2.5 rounded-full overflow-hidden" style={{ background: "linear-gradient(90deg,#22c55e,#84cc16,#f59e0b,#ef4444)" }}>
+        <div className="absolute top-1/2 -translate-y-1/2 w-4 h-4 bg-white rounded-full shadow-md border-2 border-slate-300 transition-all duration-700"
+          style={{ left: `calc(${sliderPct}% - 8px)` }} />
+      </div>
+      <div className="flex justify-between mt-1">
+        <span className="text-[9px] text-emerald-400/70">Low Fear</span>
+        <span className="text-[9px] text-red-400/70">High Fear</span>
+      </div>
+    </div>
+  );
+};
+
+// ─── GIFT NIFTY Card ────────────────────────────────────────────────────────────
+const GiftNiftyCard = ({ cardBg, cardBorder, isLight }: any) => (
+  <div style={{ background: cardBg, border: cardBorder }} className="rounded-2xl p-5 relative overflow-hidden group hover:scale-[1.02] transition-all duration-300 cursor-pointer">
+    <div className="flex items-center gap-1.5 mb-3">
+      <span style={{ width: 8, height: 8, borderRadius: 2, background: "#C9A84C", display: "inline-block" }} />
+      <span className={`text-[11px] font-bold uppercase tracking-widest ${isLight ? "text-navy/60" : "text-white/50"}`}>GIFT NIFTY</span>
+    </div>
+    <div className="flex items-end justify-between mb-1">
+      <div>
+        <div className={`text-3xl font-extrabold tracking-tight ${isLight ? "text-navy" : "text-white"}`}>24,760</div>
+        <div className="flex items-center gap-1 mt-1">
+          <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
+          <span className="text-emerald-400 font-bold text-sm">+0.32%</span>
+        </div>
+      </div>
+    </div>
+    <div className={`text-[11px] font-medium mb-2 ${isLight ? "text-navy/50" : "text-white/40"}`}>Positive Opening Indicated</div>
+    <Sparkline positive={true} color="#C9A84C" />
+  </div>
+);
+
+// ─── USD/INR Card ───────────────────────────────────────────────────────────────
+const UsdInrCard = ({ cardBg, cardBorder, isLight, liveValue }: any) => {
+  const rate = liveValue || 82.94;
+  const changeVal = -0.12;
+  const positive = changeVal >= 0;
+  // slider: 80 to 86 range
+  const sliderPct = Math.min(100, Math.max(0, ((rate - 80) / 6) * 100));
+  return (
+    <div style={{ background: cardBg, border: cardBorder }} className="rounded-2xl p-5 relative overflow-hidden group hover:scale-[1.02] transition-all duration-300 cursor-pointer">
+      <div className="flex items-center gap-1.5 mb-3">
+        <span style={{ width: 8, height: 8, borderRadius: 2, background: "#C9A84C", display: "inline-block" }} />
+        <span className={`text-[11px] font-bold uppercase tracking-widest ${isLight ? "text-navy/60" : "text-white/50"}`}>USD / INR</span>
+      </div>
+      <div className="flex items-end justify-between mb-2">
+        <div>
+          <div className={`text-3xl font-extrabold tracking-tight ${isLight ? "text-navy" : "text-white"}`}>₹{rate.toFixed ? rate.toFixed(2) : rate}</div>
+          <div className="flex items-center gap-1 mt-1">
+            <TrendingDown className="w-3.5 h-3.5 text-red-400" />
+            <span className="text-red-400 font-bold text-sm">{changeVal}%</span>
+          </div>
+        </div>
+      </div>
+      <div className={`text-[11px] font-medium mb-2 ${isLight ? "text-navy/50" : "text-white/40"}`}>Rupee Strengthening</div>
+      {/* Slider — blue to red (weak to strong rupee means USD goes down = blue) */}
+      <div className="relative h-2.5 rounded-full overflow-hidden" style={{ background: "linear-gradient(90deg,#3b82f6,#06b6d4,#f59e0b,#ef4444)" }}>
+        <div className="absolute top-1/2 -translate-y-1/2 w-4 h-4 bg-white rounded-full shadow-md border-2 border-slate-300 transition-all duration-700"
+          style={{ left: `calc(${sliderPct}% - 8px)` }} />
+      </div>
+      <div className="flex justify-between mt-1">
+        <span className="text-[9px] text-blue-400/70">₹80</span>
+        <span className="text-[9px] text-red-400/70">₹86</span>
+      </div>
+    </div>
+  );
+};
+
+// ─── Gold vs Silver Card ────────────────────────────────────────────────────────
+const GoldSilverCard = ({ cardBg, cardBorder, isLight, liveGold, liveSilver }: any) => {
+  const gold = liveGold || 74200;
+  const silver = liveSilver || 83900;
+  const goldUp = true;
+  const silverDown = true;
+  return (
+    <div style={{ background: cardBg, border: cardBorder }} className="rounded-2xl p-5 relative overflow-hidden group hover:scale-[1.02] transition-all duration-300 cursor-pointer">
+      <div className="flex items-center gap-1.5 mb-4">
+        <span style={{ width: 8, height: 8, borderRadius: 2, background: "#C9A84C", display: "inline-block" }} />
+        <span className={`text-[11px] font-bold uppercase tracking-widest ${isLight ? "text-navy/60" : "text-white/50"}`}>GOLD vs SILVER</span>
+      </div>
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-lg">🪙</span>
+            <span className={`font-semibold text-sm ${isLight ? "text-navy/80" : "text-white/80"}`}>Gold</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className={`text-lg font-bold ${isLight ? "text-navy" : "text-white"}`}>₹{gold.toLocaleString()}</span>
+            <TrendingUp className="w-4 h-4 text-emerald-400" />
+          </div>
+        </div>
+        {/* Gold mini bar */}
+        <div className="h-1.5 rounded-full overflow-hidden" style={{ background: isLight ? "rgba(0,0,0,0.08)" : "rgba(255,255,255,0.08)" }}>
+          <div style={{ width: "72%", background: "linear-gradient(90deg,#C9A84C,#f5d78e)", borderRadius: 999, height: "100%", transition: "width 1s ease" }} />
+        </div>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-lg">🥈</span>
+            <span className={`font-semibold text-sm ${isLight ? "text-navy/80" : "text-white/80"}`}>Silver</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className={`text-lg font-bold ${isLight ? "text-navy" : "text-white"}`}>₹{silver.toLocaleString()}</span>
+            <TrendingDown className="w-4 h-4 text-red-400" />
+          </div>
+        </div>
+        {/* Silver mini bar */}
+        <div className="h-1.5 rounded-full overflow-hidden" style={{ background: isLight ? "rgba(0,0,0,0.08)" : "rgba(255,255,255,0.08)" }}>
+          <div style={{ width: "58%", background: "linear-gradient(90deg,#94a3b8,#cbd5e1)", borderRadius: 999, height: "100%", transition: "width 1s ease" }} />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ─── US Stats Cards ─────────────────────────────────────────────────────────────
+interface USStatCardProps { label: string; value: string; positive: boolean | null; cardBg: any; cardBorder: any; isLight: boolean; path?: string; section?: string; onNavigate?: (path: string, section: string) => void; }
+const USStatCard = ({ label, value, positive, cardBg, cardBorder, isLight, path, section, onNavigate }: USStatCardProps) => {
+  const isUp = positive === true;
+  const isDown = positive === false;
+  const color = isUp ? "#22c55e" : isDown ? "#ef4444" : "#C9A84C";
+  const loading = value === "..." || value === "N/A";
+  const clickable = !!path && !!section;
+  return (
+    <div
+      style={{ background: cardBg, border: cardBorder }}
+      className={`rounded-2xl p-5 relative overflow-hidden group hover:scale-[1.02] transition-all duration-300 ${clickable ? "cursor-pointer hover:border-accent/40" : ""}`}
+      onClick={() => clickable && onNavigate?.(path!, section!)}
+    >
+      <div className="flex items-center gap-1.5 mb-3">
+        <span style={{ width: 8, height: 8, borderRadius: 2, background: "#C9A84C", display: "inline-block" }} />
+        <span className={`text-[11px] font-bold uppercase tracking-widest ${isLight ? "text-navy/60" : "text-white/50"}`}>{label}</span>
+      </div>
+      <div className="mb-3">
+        <div className="text-3xl font-extrabold tracking-tight" style={{ color: loading ? (isLight ? "#64748b" : "#94a3b8") : color }}>
+          {loading ? "—" : value}
+        </div>
+        <div className={`text-[11px] mt-1 ${isLight ? "text-navy/40" : "text-white/35"}`}>Today's change</div>
+      </div>
+      <Sparkline positive={isUp} color={color} />
+      {clickable && (
+        <div style={{ fontSize: "10px", marginTop: "6px", color: "#C9A84C", opacity: 0.8, fontWeight: 600 }}>
+          View details →
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ─── Main Hero Component ────────────────────────────────────────────────────────
 const Hero = () => {
-  const [activeTab, setActiveTab] = useState<TabKey>("bharat");
+  const [activeTab, setActiveTab] = useState<"bharat" | "us">("bharat");
   const { theme } = useTheme();
   const isLight = theme === "light";
   const navigate = useNavigate();
 
-  // ── Live US stats from backend ───────────────────────────────────────────
-  const [usStats, setUsStats] = useState<StatItem[]>([
-    { value: "...", sub: "NASDAQ",    positive: null },
-    { value: "...", sub: "USD / INR", positive: null },
-    { value: "...", sub: "Gold",      positive: null },
-    { value: "...", sub: "Dow Jones", positive: null },
-  ]);
+  const [usData, setUsData] = useState({ nasdaq: "...", usdInr: "...", gold: "...", dow: "...", nasdaqPos: null as boolean | null, usdInrPos: null as boolean | null, goldPos: null as boolean | null, dowPos: null as boolean | null, usdInrRate: 82.94 });
 
   useEffect(() => {
     const API = import.meta.env.VITE_API_URL || "http://localhost:8000";
@@ -129,278 +331,146 @@ const Hero = () => {
         const us    = data?.indices?.us    || [];
         const forex = data?.forex          || [];
         const comms = data?.commodities    || [];
-
         const nasdaq = us.find((m: any) => m.symbol === "^IXIC");
-        const sp500  = us.find((m: any) => m.symbol === "^GSPC");
         const dow    = us.find((m: any) => m.symbol === "^DJI");
         const usdinr = forex.find((m: any) => m.pair === "USD/INR");
         const gold   = comms.find((m: any) => m.symbol === "GC=F");
-        const silver = comms.find((m: any) => m.symbol === "SI=F");
-
-        const fmt = (v: number | undefined, prefix = "+") =>
-          v == null ? "N/A" : `${v >= 0 ? prefix : ""}${v.toFixed(2)}%`;
-
-        // NASDAQ — primary value
-        const nasdaqVal = nasdaq
-          ? `${nasdaq.changePercent >= 0 ? "+" : ""}${nasdaq.changePercent.toFixed(2)}%`
-          : "N/A";
-        const nasdaqPos = nasdaq ? nasdaq.changePercent >= 0 : null;
-
-        // USD/INR — use changePercent from forex (daily % move), not raw rate
-        // rate can be unreliable; show % change instead which is always meaningful
-        const usdInrVal = usdinr?.changePercent != null
-          ? `${usdinr.changePercent >= 0 ? "+" : ""}${usdinr.changePercent.toFixed(2)}%`
-          : usdinr?.rate != null
-          ? `₹${Number(usdinr.rate).toFixed(2)}`
-          : "N/A";
-        const usdInrPos = usdinr?.changePercent != null
-          ? usdinr.changePercent >= 0
-          : null;
-
-        // Gold — primary value
-        const goldVal = gold
-          ? `${gold.changePercent >= 0 ? "+" : ""}${gold.changePercent.toFixed(2)}%`
-          : "N/A";
-        const goldPos = gold ? gold.changePercent >= 0 : null;
-
-        // Dow Jones
-        const dowVal = dow
-          ? `${dow.changePercent >= 0 ? "+" : ""}${dow.changePercent.toFixed(2)}%`
-          : "N/A";
-        const dowPos = dow ? dow.changePercent >= 0 : null;
-
-        setUsStats([
-          { value: nasdaqVal, sub: "NASDAQ",    positive: nasdaqPos, path: "/global", section: "section-us"          },
-          { value: usdInrVal, sub: "USD / INR", positive: usdInrPos, path: "/global", section: "section-forex"        },
-          { value: goldVal,   sub: "Gold",       positive: goldPos,   path: "/global", section: "section-commodities"  },
-          { value: dowVal,    sub: "Dow Jones",  positive: dowPos,    path: "/global", section: "section-us"           },
-        ]);
+        const fmt = (v: number) => `${v >= 0 ? "+" : ""}${v.toFixed(2)}%`;
+        setUsData({
+          nasdaq:    nasdaq  ? fmt(nasdaq.changePercent)       : "N/A",
+          usdInr:    usdinr?.changePercent != null ? fmt(usdinr.changePercent) : usdinr?.rate != null ? fmt(0) : "N/A",
+          gold:      gold    ? fmt(gold.changePercent)         : "N/A",
+          dow:       dow     ? fmt(dow.changePercent)          : "N/A",
+          nasdaqPos: nasdaq  ? nasdaq.changePercent >= 0       : null,
+          usdInrPos: usdinr?.changePercent != null ? usdinr.changePercent >= 0 : null,
+          goldPos:   gold    ? gold.changePercent >= 0         : null,
+          dowPos:    dow     ? dow.changePercent >= 0          : null,
+          usdInrRate: usdinr?.rate ? Number(usdinr.rate) : 82.94,
+        });
       })
-      .catch(() => {}); // silently keep placeholder values
+      .catch(() => {});
   }, []);
 
-  const currentStats: StatItem[] = activeTab === "bharat"
-    ? BHARAT_STATS
-    : usStats;
-
-  // ── Light mode: professional bluish gradient ──────────────────────────────
-  const sectionStyle = isLight
-    ? {
-        background: "linear-gradient(135deg, #dbe9f9 0%, #e8f2fd 30%, #edf5fe 60%, #dce8f7 100%)",
-      }
-    : undefined;
-
+  // ── Theme tokens ───────────────────────────────────────────────────────────
+  const sectionStyle: React.CSSProperties = isLight
+    ? { background: "linear-gradient(135deg,#dbe9f9 0%,#e8f2fd 30%,#edf5fe 60%,#dce8f7 100%)" }
+    : {};
   const sectionCls = isLight
     ? "text-navy py-20 relative overflow-hidden"
     : "gradient-hero text-white py-20 relative overflow-hidden";
 
-  // ── Decorative blobs ──────────────────────────────────────────────────────
-  const blob1 = isLight
-    ? "absolute top-0 right-0 w-96 h-96 rounded-full blur-3xl pointer-events-none bg-blue-200/50"
-    : "absolute top-0 right-0 w-96 h-96 bg-accent/18 rounded-full blur-3xl pointer-events-none";
-
-  const blob2 = isLight
-    ? "absolute bottom-0 left-0 w-96 h-96 rounded-full blur-3xl pointer-events-none bg-indigo-200/40"
-    : "absolute bottom-0 left-0 w-96 h-96 bg-accent/12 rounded-full blur-3xl pointer-events-none";
-
   const gridOpacity = isLight ? "opacity-[0.04]" : "opacity-[0.06]";
-  const gridColor = isLight ? "#0d2540" : "white";
+  const gridColor   = isLight ? "#0d2540" : "white";
 
-  // ── Typography ────────────────────────────────────────────────────────────
-  const punchlineCls = isLight
-    ? "text-accent text-xs md:text-sm font-bold tracking-[0.18em] uppercase"
-    : "text-accent text-xs md:text-sm font-bold tracking-[0.18em] uppercase";
+  const cardBg = isLight ? "rgba(255,255,255,0.78)" : "rgba(255,255,255,0.05)";
+  const cardBorder = isLight ? "1px solid rgba(13,37,64,0.10)" : "1px solid rgba(255,255,255,0.10)";
+
+  const iconGlow = isLight
+    ? { filter: "drop-shadow(0 0 10px rgba(217,119,6,0.55))" }
+    : { filter: "drop-shadow(0 0 14px rgba(212,168,67,0.80))" };
 
   const lineCls = isLight
-    ? "h-px w-10 bg-accent/50 rounded-full"
-    : "h-px w-10 bg-accent/40 rounded-full";
+    ? "h-px w-10 bg-accent rounded-full shadow-[0_0_8px_rgba(212,168,67,0.7)]"
+    : "h-px w-10 bg-accent rounded-full shadow-[0_0_10px_rgba(212,168,67,0.85)]";
 
-  const subheadingCls = isLight
-    ? "text-lg md:text-xl text-navy/70 mb-10 leading-relaxed max-w-2xl mx-auto"
-    : "text-lg md:text-xl text-white/88 mb-10 leading-relaxed max-w-2xl mx-auto";
+  const tabWrapStyle: React.CSSProperties = isLight
+    ? { display:"inline-flex", alignItems:"center", gap:6, background:"#fff", border:"1.5px solid #CBD5E1", borderRadius:18, padding:6, boxShadow:"0 4px 24px rgba(13,27,64,0.10)" }
+    : { display:"inline-flex", alignItems:"center", gap:6, background:"#1E293B", border:"1.5px solid #334155", borderRadius:18, padding:6, boxShadow:"0 4px 24px rgba(0,0,0,0.40)" };
 
-  // ── Icon boxes ────────────────────────────────────────────────────────────
-  const iconBoxLg = isLight
-    ? "p-3.5 rounded-2xl bg-amber-100 border-2 border-amber-300 shadow-lg shadow-amber-200/60 transition-all duration-300 "
-    : "p-3.5 rounded-2xl bg-accent/30 border-2 border-accent/60 shadow-lg shadow-accent/25 transition-all duration-300 ";
-
-  const iconBoxSm = isLight
-    ? "p-3 rounded-2xl bg-amber-50 border-2 border-amber-200 shadow-md shadow-amber-100/60 transition-all duration-300 "
-    : "p-3 rounded-2xl bg-accent/20 border-2 border-accent/45 shadow-md shadow-accent/20 transition-all duration-300 ";
-
-  // ── Tab pill container ────────────────────────────────────────────────────
-  const tabContainerCls = isLight
-    ? "inline-flex items-center gap-1.5 bg-white/80 backdrop-blur-md border border-slate-300 rounded-2xl p-1.5 shadow-xl shadow-navy/10"
-    : "inline-flex items-center gap-1.5 bg-white/8 backdrop-blur-md border border-white/15 rounded-2xl p-1.5 shadow-2xl shadow-black/30";
-
-  // ── Stat cards ────────────────────────────────────────────────────────────
-  const statCardCls = isLight
-    ? "group text-center p-5 rounded-2xl border border-navy/12 bg-white/75 backdrop-blur-sm hover:bg-white hover:border-accent/40 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-accent/10 cursor-default shadow-sm"
-    : "group text-center p-5 rounded-2xl border border-white/18 bg-white/8 backdrop-blur-sm hover:bg-white/14 hover:border-accent/45 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-accent/10 cursor-default";
-
-  const statSubCls = isLight
-    ? "text-xs md:text-sm text-navy/60 group-hover:text-navy/90 transition-colors duration-300 font-medium"
-    : "text-xs md:text-sm text-white/75 group-hover:text-white/95 transition-colors duration-300 font-medium";
+  const activeTabStyle: React.CSSProperties = { background:"linear-gradient(135deg,#C9A84C,#e8c96a)", color:"#0D1117", fontWeight:700, boxShadow:"0 4px 16px rgba(201,168,76,0.40)", border:"none" };
+  const inactiveTabStyle: React.CSSProperties = isLight
+    ? { background:"#F1F5F9", color:"#1E293B", fontWeight:600, border:"1.5px solid #CBD5E1" }
+    : { background:"#0F172A", color:"#E2E8F0", fontWeight:600, border:"1.5px solid #475569" };
+  const inactiveHoverStyle: React.CSSProperties = isLight
+    ? { background:"#E2E8F0", color:"#0F172A", border:"1.5px solid #94A3B8" }
+    : { background:"#1E3A5F", color:"#F8FAFC", border:"1.5px solid #64748B" };
 
   return (
     <section className={sectionCls} style={sectionStyle}>
-      {/* Background decorations */}
-      <div className={blob1} />
-      <div className={blob2} />
-      <div
-        className={`absolute inset-0 pointer-events-none ${gridOpacity}`}
-        style={{
-          backgroundImage: `linear-gradient(${gridColor} 1px, transparent 1px), linear-gradient(90deg, ${gridColor} 1px, transparent 1px)`,
-          backgroundSize: "40px 40px",
-        }}
-      />
+      {/* Blobs */}
+      <div className={isLight ? "absolute top-0 right-0 w-96 h-96 rounded-full blur-3xl pointer-events-none bg-blue-200/50" : "absolute top-0 right-0 w-96 h-96 bg-accent/18 rounded-full blur-3xl pointer-events-none"} />
+      <div className={isLight ? "absolute bottom-0 left-0 w-96 h-96 rounded-full blur-3xl pointer-events-none bg-indigo-200/40" : "absolute bottom-0 left-0 w-96 h-96 bg-accent/12 rounded-full blur-3xl pointer-events-none"} />
+      {/* Grid */}
+      <div className={`absolute inset-0 pointer-events-none ${gridOpacity}`}
+        style={{ backgroundImage: `linear-gradient(${gridColor} 1px,transparent 1px),linear-gradient(90deg,${gridColor} 1px,transparent 1px)`, backgroundSize:"40px 40px" }} />
 
       <div className="container mx-auto px-6 relative z-10">
-        <div className="max-w-4xl mx-auto text-center animate-fade-in">
+        <div className="max-w-5xl mx-auto text-center animate-fade-in">
 
-          {/* ── Custom SVG brand icons ──────────────────────────────────── */}
-          <div className="flex justify-center items-center gap-5 mb-8">
-            <div className={iconBoxLg}>
-              <BeanSproutIcon className={`w-8 h-8 ${isLight ? "text-amber-500" : "text-accent"}`} style={{ filter: isLight ? "drop-shadow(0 2px 6px rgba(217,119,6,0.4))" : "drop-shadow(0 2px 8px rgba(201,168,76,0.6))" }} />
-            </div>
-            <div className={iconBoxSm}>
-              <CoinStackIcon className={`w-7 h-7 ${isLight ? "text-amber-400" : "text-accent"}`} style={{ filter: isLight ? "drop-shadow(0 2px 4px rgba(217,119,6,0.3))" : "drop-shadow(0 2px 6px rgba(201,168,76,0.5))" }} />
-            </div>
-            <div className={iconBoxLg}>
-              <IndexChartIcon className={`w-8 h-8 ${isLight ? "text-amber-500" : "text-accent"}`} style={{ filter: isLight ? "drop-shadow(0 2px 6px rgba(217,119,6,0.4))" : "drop-shadow(0 2px 8px rgba(201,168,76,0.6))" }} />
-            </div>
+          {/* 3 Icons */}
+          <div className="flex justify-center items-end gap-6 mb-8">
+            <PieChartIcon className={`w-9 h-9 ${isLight ? "text-amber-500" : "text-accent"}`} style={iconGlow} />
+            <GrowthPlantIcon className={`w-11 h-11 ${isLight ? "text-amber-500" : "text-accent"}`} style={iconGlow} />
+            <IndexChartIcon className={`w-9 h-9 ${isLight ? "text-amber-500" : "text-accent"}`} style={iconGlow} />
           </div>
 
-          {/* ── Baazigar punchline ─────────────────────────────────────── */}
+          {/* Punchline */}
           <div className="flex justify-center items-center gap-3 mb-4">
-            <span className={lineCls} />
-            <p className={punchlineCls}>Baazigar Banein… Sattebaaz Nahi</p>
-            <span className={lineCls} />
-          </div>
+  <span className="w-10 h-[2px] bg-[#FFA726]" />
 
-          {/* ── BeansIndex heading ─────────────────────────────────────── */}
-          <h1
-            className={`text-6xl md:text-7xl lg:text-8xl font-extrabold mb-4 leading-none tracking-tight ${
-              isLight ? "text-navy" : "text-white"
-            }`}
-          >
+  <p
+    className="text-xs md:text-sm font-extrabold tracking-[0.2em] uppercase"
+    style={{ color: "#FFA726" }}
+  >
+    Baazigar Banein… Sattebaaz Nahi
+  </p>
+
+  <span className="w-10 h-[2px] bg-[#FFA726]" />
+</div>
+
+          {/* Heading */}
+          <h1 className={`text-6xl md:text-7xl lg:text-8xl font-extrabold mb-4 leading-none tracking-tight ${isLight ? "text-navy" : "text-white"}`}>
             Beans<span className="text-accent">Index</span>
           </h1>
 
-          {/* ── Subheading ─────────────────────────────────────────────── */}
-          <p className={subheadingCls}>
-            Daily research-backed stock insights — where every pick is powered
-            by analysis, not assumptions.
+          {/* Subheading */}
+          <p className={`text-lg md:text-xl mb-10 leading-relaxed max-w-2xl mx-auto ${isLight ? "text-navy/70" : "text-white/80"}`}>
+            Daily research-backed stock insights — where every pick is powered by analysis, not assumptions.
           </p>
 
-          {/* ── Bharat / US tabs ──────────────────────────────────────── */}
-          <div className={tabContainerCls}>
-            {(["bharat", "us"] as TabKey[]).map((key) => {
+          {/* Tab Switcher */}
+          <div style={tabWrapStyle}>
+            {(["bharat", "us"] as const).map((key) => {
               const active = activeTab === key;
               return (
-                <button
-                  key={key}
-                  onClick={() => setActiveTab(key)}
-                  className="relative flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold transition-all duration-300 focus:outline-none"
-                  style={{
-                    background: active
-                      ? "linear-gradient(135deg, var(--accent, #C9A84C), #e8c96a)"
-                      : "transparent",
-                    color: active
-                      ? "#0D1117"
-                      : isLight
-                      ? "rgba(13,27,42,0.45)"
-                      : "rgba(255,255,255,0.55)",
-                    boxShadow: active ? "0 4px 20px rgba(201,168,76,0.35)" : "none",
-                    transform: active ? "scale(1.03)" : "scale(1)",
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!active) {
-                      (e.currentTarget as HTMLButtonElement).style.color = isLight
-                        ? "rgba(13,27,42,0.85)"
-                        : "rgba(255,255,255,0.9)";
-                      (e.currentTarget as HTMLButtonElement).style.background = isLight
-                        ? "rgba(13,27,42,0.06)"
-                        : "rgba(255,255,255,0.08)";
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!active) {
-                      (e.currentTarget as HTMLButtonElement).style.color = isLight
-                        ? "rgba(13,27,42,0.45)"
-                        : "rgba(255,255,255,0.55)";
-                      (e.currentTarget as HTMLButtonElement).style.background = "transparent";
-                    }
-                  }}
+                <button key={key} onClick={() => setActiveTab(key)}
+                  style={{ ...(active ? activeTabStyle : inactiveTabStyle), display:"flex", alignItems:"center", gap:8, padding:"10px 22px", borderRadius:12, fontSize:14, cursor:"pointer", transition:"all 0.2s ease", outline:"none", transform: active ? "scale(1.02)" : "scale(1)" }}
+                  onMouseEnter={(e) => { if (!active) Object.assign((e.currentTarget as HTMLButtonElement).style, inactiveHoverStyle); }}
+                  onMouseLeave={(e) => { if (!active) Object.assign((e.currentTarget as HTMLButtonElement).style, inactiveTabStyle); }}
                 >
-                  {active && <Sparkles className="w-3.5 h-3.5" strokeWidth={2.5} />}
-                  <span>{key === "bharat" ? "🇮🇳" : "🇺🇸"}</span>
+                  {active && <Sparkles style={{ width:14, height:14 }} strokeWidth={2.5} />}
+                  <span style={{ fontSize:16 }}>{key === "bharat" ? "🇮🇳" : "🇺🇸"}</span>
                   <span>{key === "bharat" ? "Bharat BeansIndex" : "US BeansIndex"}</span>
                 </button>
               );
             })}
           </div>
 
-          {/* ── Dynamic stats grid ─────────────────────────────────────── */}
-          <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 max-w-4xl mx-auto">
-            {currentStats.map((stat) => (
-              <div
-                key={stat.sub}
-                className={statCardCls}
-                onClick={() => {
-                  if (stat.path && stat.section) {
-                    navigate(`${stat.path}?scrollTo=${stat.section}`);
-                  }
-                }}
-                style={{ cursor: stat.path ? "pointer" : "default" }}
-              >
-                {/* Sub label on top like a badge */}
-                <div style={{
-                  fontSize: "10px", fontWeight: 700, letterSpacing: "0.08em",
-                  textTransform: "uppercase",
-                  color: isLight ? "rgba(13,37,64,0.45)" : "rgba(255,255,255,0.45)",
-                  marginBottom: "8px",
-                }}>
-                  {stat.sub}
-                </div>
+          {/* ── BHARAT Stats Grid ── */}
+          {activeTab === "bharat" && (
+            <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-5xl mx-auto">
+              <SensexNiftyCard cardBg={cardBg} cardBorder={cardBorder} isLight={isLight} />
+              <FiiDiiCard cardBg={cardBg} cardBorder={cardBorder} isLight={isLight} />
+              <IndiaVixCard cardBg={cardBg} cardBorder={cardBorder} isLight={isLight} />
+              <GiftNiftyCard cardBg={cardBg} cardBorder={cardBorder} isLight={isLight} />
+              <UsdInrCard cardBg={cardBg} cardBorder={cardBorder} isLight={isLight} liveValue={usData.usdInrRate} />
+              <GoldSilverCard cardBg={cardBg} cardBorder={cardBorder} isLight={isLight} />
+            </div>
+          )}
 
-                {/* Main value */}
-                <div
-                  className="text-2xl md:text-3xl font-bold"
-                  style={{
-                    color:
-                      stat.positive === true
-                        ? "#16a34a"
-                        : stat.positive === false
-                        ? "#dc2626"
-                        : "var(--accent, #C9A84C)",
-                    lineHeight: 1.1,
-                  }}
-                >
-                  {stat.value === "..." ? (
-                    <span style={{ opacity: 0.35, fontSize: "1rem" }}>—</span>
-                  ) : stat.value}
-                </div>
-
-                {/* Today's change label */}
-                <div style={{
-                  fontSize: "10px", marginTop: "6px",
-                  color: isLight ? "rgba(13,37,64,0.35)" : "rgba(255,255,255,0.30)",
-                }}>
-                  Today's change
-                </div>
-
-                {stat.path && (
-                  <div style={{
-                    fontSize: "10px", marginTop: "6px",
-                    color: "var(--accent, #C9A84C)", opacity: 0.8, fontWeight: 600,
-                  }}>
-                    View details →
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
+          {/* ── US Stats Grid ── */}
+          {activeTab === "us" && (
+            <div className="mt-10 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-5xl mx-auto">
+              <USStatCard label="NASDAQ" value={usData.nasdaq} positive={usData.nasdaqPos} cardBg={cardBg} cardBorder={cardBorder} isLight={isLight}
+                path="/global" section="section-us" onNavigate={(p, s) => navigate(`${p}?scrollTo=${s}`)} />
+              <USStatCard label="USD / INR" value={usData.usdInr} positive={usData.usdInrPos} cardBg={cardBg} cardBorder={cardBorder} isLight={isLight}
+                path="/global" section="section-forex" onNavigate={(p, s) => navigate(`${p}?scrollTo=${s}`)} />
+              <USStatCard label="Gold" value={usData.gold} positive={usData.goldPos} cardBg={cardBg} cardBorder={cardBorder} isLight={isLight}
+                path="/global" section="section-commodities" onNavigate={(p, s) => navigate(`${p}?scrollTo=${s}`)} />
+              <USStatCard label="Dow Jones" value={usData.dow} positive={usData.dowPos} cardBg={cardBg} cardBorder={cardBorder} isLight={isLight}
+                path="/global" section="section-us" onNavigate={(p, s) => navigate(`${p}?scrollTo=${s}`)} />
+            </div>
+          )}
 
         </div>
       </div>

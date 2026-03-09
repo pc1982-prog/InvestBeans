@@ -8,7 +8,8 @@ const getAllIPOs = asyncHandler(async (req, res) => {
   const { status, search, sort, category } = req.query;
   const filter = {};
 
-  if (status && ["upcoming","open","closed","listed"].includes(status)) {
+  // "listed" removed from valid statuses
+  if (status && ["upcoming","open","closed"].includes(status)) {
     filter.status = status;
   }
   if (search?.trim()) {
@@ -27,11 +28,11 @@ const getAllIPOs = asyncHandler(async (req, res) => {
 
   const ipos = await IPO.find(filter).sort(sortOption).lean();
 
+  // "listed" count removed
   const counts = {
     open:     await IPO.countDocuments({ status: "open" }),
     upcoming: await IPO.countDocuments({ status: "upcoming" }),
     closed:   await IPO.countDocuments({ status: "closed" }),
-    listed:   await IPO.countDocuments({ status: "listed" }),
     total:    await IPO.countDocuments(),
   };
 
@@ -51,7 +52,7 @@ const createIPO = asyncHandler(async (req, res) => {
     companyName, logo, industry, status, category, exchange,
     openDate, closeDate, allotmentDate, refundDate, listingDate,
     priceRange, lotSize, issueSize, minInvestment,
-    subscriptionStatus, listingGain, gmp, rating, rhpLink,
+    subscriptionStatus, listingGain, gmp, rating, rhpLink, swot,
   } = req.body;
 
   // Validation
@@ -63,6 +64,11 @@ const createIPO = asyncHandler(async (req, res) => {
   if (!minInvestment?.trim()) throw new ApiError(400, "minInvestment is required");
   if (!lotSize || isNaN(Number(lotSize)) || Number(lotSize) < 1)
     throw new ApiError(400, "lotSize must be a valid positive number");
+
+  // Reject "listed" status
+  const validStatuses = ["upcoming","open","closed"];
+  if (status && !validStatuses.includes(status))
+    throw new ApiError(400, `Invalid status. Allowed: ${validStatuses.join(", ")}`);
 
   const ipo = await IPO.create({
     companyName:        companyName.trim(),
@@ -85,6 +91,12 @@ const createIPO = asyncHandler(async (req, res) => {
     gmp:                (gmp !== undefined && gmp !== "" && gmp !== null) ? Number(gmp) : null,
     rating:             rating ? Number(rating) : 3,
     rhpLink:            rhpLink?.trim() || "",
+    swot: {
+      strengths:     Array.isArray(swot?.strengths)     ? swot.strengths.filter(Boolean)     : [],
+      weaknesses:    Array.isArray(swot?.weaknesses)    ? swot.weaknesses.filter(Boolean)    : [],
+      opportunities: Array.isArray(swot?.opportunities) ? swot.opportunities.filter(Boolean) : [],
+      threats:       Array.isArray(swot?.threats)       ? swot.threats.filter(Boolean)       : [],
+    },
   });
 
   console.log("✅ IPO created:", ipo.companyName);
@@ -96,12 +108,26 @@ const updateIPO = asyncHandler(async (req, res) => {
   const ipo = await IPO.findById(req.params.id);
   if (!ipo) throw new ApiError(404, "IPO not found");
 
+  // Reject "listed" status on update too
+  if (req.body.status && !["upcoming","open","closed"].includes(req.body.status))
+    throw new ApiError(400, "Invalid status. Allowed: upcoming, open, closed");
+
   const fields = [
     "companyName","logo","industry","status","category","exchange",
     "openDate","closeDate","allotmentDate","refundDate","listingDate",
     "priceRange","lotSize","issueSize","minInvestment",
     "subscriptionStatus","listingGain","gmp","rating","rhpLink",
   ];
+
+  // Handle swot separately (nested object)
+  if (req.body.swot) {
+    ipo.swot = {
+      strengths:     Array.isArray(req.body.swot.strengths)     ? req.body.swot.strengths.filter(Boolean)     : ipo.swot?.strengths     || [],
+      weaknesses:    Array.isArray(req.body.swot.weaknesses)    ? req.body.swot.weaknesses.filter(Boolean)    : ipo.swot?.weaknesses    || [],
+      opportunities: Array.isArray(req.body.swot.opportunities) ? req.body.swot.opportunities.filter(Boolean) : ipo.swot?.opportunities || [],
+      threats:       Array.isArray(req.body.swot.threats)       ? req.body.swot.threats.filter(Boolean)       : ipo.swot?.threats       || [],
+    };
+  }
 
   fields.forEach((f) => {
     if (req.body[f] === undefined) return;

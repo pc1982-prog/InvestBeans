@@ -43,7 +43,7 @@ const insightSchema = new mongoose.Schema(
       },
       publishedDate: {
         type: Date,
-        default: Date.now, // Auto-set to current date
+        default: Date.now,
       },
     },
     sentiment: {
@@ -58,7 +58,8 @@ const insightSchema = new mongoose.Schema(
     },
     marketType: {
       type: String,
-      enum: ["domestic", "global"],
+      // ✅ Added "commodities" as a valid market type
+      enum: ["domestic", "global", "commodities"],
       required: [true, "Market type is required"],
     },
     views: {
@@ -77,7 +78,10 @@ const insightSchema = new mongoose.Schema(
       type: String,
       default: "5 min read",
     },
-   
+    isPublished: {
+      type: Boolean,
+      default: true,
+    },
     publishedAt: {
       type: Date,
       default: Date.now,
@@ -108,7 +112,7 @@ insightSchema.methods.incrementViews = function () {
 insightSchema.methods.toggleLike = function (userId) {
   const userIdStr = userId.toString();
   const isLiked = this.likedBy.some(id => id.toString() === userIdStr);
-  
+
   if (isLiked) {
     this.likedBy = this.likedBy.filter(id => id.toString() !== userIdStr);
     this.likes = Math.max(0, this.likes - 1);
@@ -116,7 +120,7 @@ insightSchema.methods.toggleLike = function (userId) {
     this.likedBy.push(userId);
     this.likes += 1;
   }
-  
+
   return this.save();
 };
 

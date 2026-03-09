@@ -20,79 +20,37 @@ const InsightModal = ({ isOpen, onClose, insight, loading = false }: InsightModa
   if (!isOpen) return null;
   const showLoading = loading && !insight;
 
-  // ── Theme-aware tokens ───────────────────────────────────────────────────
+  // ── Theme tokens ─────────────────────────────────────────────────────────
   const backdropBg = "rgba(0,0,0,0.6)";
-
   const modalBg = isLight
     ? "linear-gradient(160deg,#f0f7fe 0%,#e8f2fd 100%)"
     : "linear-gradient(160deg,#0d1e36 0%,#0c1a2e 100%)";
+  const modalBorder = isLight ? "1px solid rgba(13,37,64,0.12)" : "1px solid rgba(255,255,255,0.08)";
+  const goldTopLine = "linear-gradient(90deg,transparent,rgba(212,168,67,0.55),transparent)";
 
-  const modalBorder = isLight
-    ? "1px solid rgba(13,37,64,0.12)"
-    : "1px solid rgba(255,255,255,0.08)";
-
-  const goldTopLine =
-    "linear-gradient(90deg,transparent,rgba(212,168,67,0.55),transparent)";
-
-  // Header bar
-  const headerBg = isLight
-    ? "rgba(232,242,253,0.97)"
-    : "rgba(13,30,54,0.97)";
-  const headerBorder = isLight
-    ? "1px solid rgba(13,37,64,0.08)"
-    : "1px solid rgba(255,255,255,0.07)";
-
-  // Text colours
+  const headerBg = isLight ? "rgba(232,242,253,0.97)" : "rgba(13,30,54,0.97)";
+  const headerBorder = isLight ? "1px solid rgba(13,37,64,0.08)" : "1px solid rgba(255,255,255,0.07)";
   const titleColor = isLight ? "#0d1b2a" : "white";
   const metaColor = isLight ? "rgba(13,37,64,0.5)" : "rgba(148,163,184,1)";
-
-  // Close button
-  const closeBtnBg = isLight
-    ? "rgba(13,37,64,0.06)"
-    : "rgba(255,255,255,0.05)";
+  const closeBtnBg = isLight ? "rgba(13,37,64,0.06)" : "rgba(255,255,255,0.05)";
   const closeBtnColor = isLight ? "rgba(13,37,64,0.45)" : "rgba(148,163,184,1)";
-
-  // Section heading bar
   const sectionBarColor = "#D4A843";
-
-  // Body text
   const overviewTextColor = isLight ? "rgba(13,37,64,0.65)" : "rgba(148,163,184,1)";
-
-  // InvestBeans insight block
-  const insightBlockBg = isLight
-    ? "rgba(212,168,67,0.07)"
-    : "rgba(212,168,67,0.05)";
-  const insightBlockBorder = isLight
-    ? "1px solid rgba(212,168,67,0.2)"
-    : "1px solid rgba(212,168,67,0.15)";
+  const insightBlockBg = isLight ? "rgba(212,168,67,0.07)" : "rgba(212,168,67,0.05)";
+  const insightBlockBorder = isLight ? "1px solid rgba(212,168,67,0.2)" : "1px solid rgba(212,168,67,0.15)";
   const insightBodyColor = isLight ? "rgba(13,37,64,0.75)" : "rgba(203,213,225,1)";
 
   // Credits block
-  const creditBlockBg = isLight
-    ? "rgba(255,255,255,0.6)"
-    : "rgba(255,255,255,0.02)";
-  const creditBlockBorder = isLight
-    ? "1px solid rgba(13,37,64,0.09)"
-    : "1px solid rgba(255,255,255,0.07)";
+  const creditBlockBg = isLight ? "rgba(255,255,255,0.6)" : "rgba(255,255,255,0.02)";
+  const creditBlockBorder = isLight ? "1px solid rgba(13,37,64,0.09)" : "1px solid rgba(255,255,255,0.07)";
   const creditLabelColor = isLight ? "rgba(13,37,64,0.4)" : "rgba(100,116,139,1)";
   const creditValueColor = isLight ? "#0d1b2a" : "rgba(226,232,240,1)";
-  const creditSubColor = isLight ? "rgba(13,37,64,0.6)" : "rgba(203,213,225,1)";
+  const dividerColor = isLight ? "rgba(13,37,64,0.07)" : "rgba(255,255,255,0.06)";
 
-  // Footer bar
-  const footerBg = isLight
-    ? "rgba(232,242,253,0.98)"
-    : "rgba(10,22,40,0.98)";
-  const footerBorder = isLight
-    ? "1px solid rgba(13,37,64,0.08)"
-    : "1px solid rgba(255,255,255,0.06)";
-
-  // Skeleton pulse colours
-  const skeletonBase = isLight
-    ? "rgba(13,37,64,0.06)"
-    : "rgba(255,255,255,0.07)";
-  const skeletonGold = isLight
-    ? "rgba(212,168,67,0.1)"
-    : "rgba(212,168,67,0.08)";
+  const footerBg = isLight ? "rgba(232,242,253,0.98)" : "rgba(10,22,40,0.98)";
+  const footerBorder = isLight ? "1px solid rgba(13,37,64,0.08)" : "1px solid rgba(255,255,255,0.06)";
+  const skeletonBase = isLight ? "rgba(13,37,64,0.06)" : "rgba(255,255,255,0.07)";
+  const skeletonGold = isLight ? "rgba(212,168,67,0.1)" : "rgba(212,168,67,0.08)";
 
   // ── Sentiment ────────────────────────────────────────────────────────────
   const getSentimentStyle = () => {
@@ -131,11 +89,7 @@ const InsightModal = ({ isOpen, onClose, insight, loading = false }: InsightModa
         {/* ═══════════════ LOADING SKELETON ═══════════════ */}
         {showLoading ? (
           <>
-            {/* Skeleton header */}
-            <div
-              className="sticky top-0 z-10 p-6 flex-shrink-0"
-              style={{ background: headerBg, borderBottom: headerBorder }}
-            >
+            <div className="sticky top-0 z-10 p-6 flex-shrink-0" style={{ background: headerBg, borderBottom: headerBorder }}>
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 space-y-3">
                   <div className="flex gap-3">
@@ -145,28 +99,21 @@ const InsightModal = ({ isOpen, onClose, insight, loading = false }: InsightModa
                   <div className="h-9 w-3/4 rounded-lg animate-pulse" style={{ background: skeletonBase }} />
                   <div className="h-5 w-1/2 rounded animate-pulse" style={{ background: skeletonBase }} />
                 </div>
-                <button onClick={onClose} className="p-2 rounded-full transition-colors"
-                  style={{ background: closeBtnBg, color: closeBtnColor }}>
+                <button onClick={onClose} className="p-2 rounded-full" style={{ background: closeBtnBg, color: closeBtnColor }}>
                   <X className="w-5 h-5" />
                 </button>
               </div>
             </div>
-
-            {/* Skeleton body */}
             <div className="flex-1 overflow-y-auto p-6 space-y-5">
               {[1, 2, 3].map(i => (
-                <div key={i} className="h-4 rounded animate-pulse"
-                  style={{ background: skeletonBase, width: `${90 - i * 10}%` }} />
+                <div key={i} className="h-4 rounded animate-pulse" style={{ background: skeletonBase, width: `${90 - i * 10}%` }} />
               ))}
               <div className="rounded-xl p-6 mt-4" style={{ background: skeletonGold, border: `1px solid ${skeletonGold}` }}>
                 {[1, 2, 3].map(i => (
-                  <div key={i} className="h-4 rounded animate-pulse mb-3"
-                    style={{ background: skeletonGold, width: `${95 - i * 8}%` }} />
+                  <div key={i} className="h-4 rounded animate-pulse mb-3" style={{ background: skeletonGold, width: `${95 - i * 8}%` }} />
                 ))}
               </div>
             </div>
-
-            {/* Skeleton footer */}
             <div className="p-4 flex-shrink-0" style={{ background: footerBg, borderTop: footerBorder }}>
               <div className="h-12 rounded-xl animate-pulse" style={{ background: skeletonBase }} />
             </div>
@@ -174,13 +121,9 @@ const InsightModal = ({ isOpen, onClose, insight, loading = false }: InsightModa
         ) : insight ? (
           <>
             {/* ═══════════════ HEADER ═══════════════ */}
-            <div
-              className="sticky top-0 z-10 p-6 flex-shrink-0"
-              style={{ background: headerBg, borderBottom: headerBorder }}
-            >
+            <div className="sticky top-0 z-10 p-6 flex-shrink-0" style={{ background: headerBg, borderBottom: headerBorder }}>
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1">
-                  {/* Sentiment + Category badges */}
                   <div className="flex items-center gap-3 mb-3">
                     <span
                       className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium capitalize"
@@ -199,13 +142,9 @@ const InsightModal = ({ isOpen, onClose, insight, loading = false }: InsightModa
                       {insight.category}
                     </span>
                   </div>
-
-                  {/* Title */}
                   <h2 className="text-2xl md:text-3xl font-bold leading-tight mb-4" style={{ color: titleColor }}>
                     {insight.title}
                   </h2>
-
-                  {/* Meta row */}
                   <div className="flex flex-wrap items-center gap-4 text-sm" style={{ color: metaColor }}>
                     {[
                       { icon: <Clock className="w-4 h-4 text-[#D4A843]/50" />, text: insight.readTime },
@@ -216,8 +155,6 @@ const InsightModal = ({ isOpen, onClose, insight, loading = false }: InsightModa
                     ))}
                   </div>
                 </div>
-
-                {/* Close button */}
                 <button
                   onClick={onClose}
                   className="flex-shrink-0 p-2 rounded-full transition-colors hover:opacity-80"
@@ -229,11 +166,11 @@ const InsightModal = ({ isOpen, onClose, insight, loading = false }: InsightModa
             </div>
 
             {/* ═══════════════ BODY ═══════════════ */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+            <div className="flex-1 overflow-y-auto p-6 space-y-5">
 
               {/* Overview */}
               <div>
-                <h3 className="text-base font-semibold mb-3 flex items-center gap-2" style={{ color: titleColor }}>
+                <h3 className="text-base font-semibold mb-2 flex items-center gap-2" style={{ color: titleColor }}>
                   <span className="w-1 h-4 rounded-full inline-block" style={{ background: sectionBarColor }} />
                   Overview
                 </h3>
@@ -243,52 +180,72 @@ const InsightModal = ({ isOpen, onClose, insight, loading = false }: InsightModa
               </div>
 
               {/* InvestBeans Insight */}
-              <div className="rounded-xl p-6" style={{ background: insightBlockBg, border: insightBlockBorder }}>
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="p-2 rounded-lg" style={{ background: "linear-gradient(135deg,#D4A843,#C4941E)" }}>
-                    <Lightbulb className="w-5 h-5 text-[#0c1a2e]" />
+              <div className="rounded-xl p-4" style={{ background: insightBlockBg, border: insightBlockBorder }}>
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="p-1.5 rounded-lg" style={{ background: "linear-gradient(135deg,#D4A843,#C4941E)" }}>
+                    <Lightbulb className="w-4 h-4 text-[#0c1a2e]" />
                   </div>
-                  <h3 className="text-base font-bold" style={{ color: titleColor }}>InvestBeans Insight</h3>
+                  <h3 className="text-sm font-bold" style={{ color: titleColor }}>InvestBeans Insight</h3>
                 </div>
-                <p className="leading-relaxed whitespace-pre-wrap text-sm md:text-base" style={{ color: insightBodyColor }}>
+                <p className="leading-relaxed whitespace-pre-wrap text-sm" style={{ color: insightBodyColor }}>
                   {insight.investBeansInsight}
                 </p>
               </div>
 
-              {/* Credits */}
-              <div className="rounded-xl p-6" style={{ background: creditBlockBg, border: creditBlockBorder }}>
-                <h3 className="text-base font-semibold mb-4 flex items-center gap-2" style={{ color: titleColor }}>
-                  <span className="w-1 h-4 rounded-full inline-block"
+              {/* ✅ Compact Credits — all fields in one row */}
+              <div className="rounded-xl p-4" style={{ background: creditBlockBg, border: creditBlockBorder }}>
+                <h3 className="text-xs font-semibold mb-3 flex items-center gap-2" style={{ color: titleColor }}>
+                  <span className="w-1 h-3.5 rounded-full inline-block"
                     style={{ background: isLight ? "rgba(13,37,64,0.3)" : "rgba(100,116,139,1)" }} />
                   Source & Credits
                 </h3>
-                <div className="space-y-3">
-                  <div>
-                    <span className="text-xs uppercase tracking-wider" style={{ color: creditLabelColor }}>Source</span>
-                    <p className="font-medium mt-0.5" style={{ color: creditValueColor }}>{insight.credits.source}</p>
+
+                {/* One row: Source | Author | Published */}
+                <div className="flex flex-wrap items-start gap-x-6 gap-y-2">
+                  {/* Source */}
+                  <div className="min-w-0">
+                    <span className="text-[10px] uppercase tracking-wider block mb-0.5" style={{ color: creditLabelColor }}>Source</span>
+                    <span className="text-sm font-semibold" style={{ color: creditValueColor }}>{insight.credits.source}</span>
                   </div>
+
+                  {/* Divider */}
                   {insight.credits.author && (
-                    <div>
-                      <span className="text-xs uppercase tracking-wider" style={{ color: creditLabelColor }}>Author</span>
-                      <p className="mt-0.5" style={{ color: creditSubColor }}>{insight.credits.author}</p>
-                    </div>
+                    <>
+                      <div className="self-stretch w-px mt-1" style={{ background: dividerColor }} />
+                      <div className="min-w-0">
+                        <span className="text-[10px] uppercase tracking-wider block mb-0.5" style={{ color: creditLabelColor }}>Author</span>
+                        <span className="text-sm" style={{ color: creditValueColor }}>{insight.credits.author}</span>
+                      </div>
+                    </>
                   )}
+
+                  {/* Divider */}
                   {insight.credits.publishedDate && (
-                    <div>
-                      <span className="text-xs uppercase tracking-wider" style={{ color: creditLabelColor }}>Published</span>
-                      <p className="mt-0.5" style={{ color: creditSubColor }}>{formatDate(insight.credits.publishedDate)}</p>
-                    </div>
+                    <>
+                      <div className="self-stretch w-px mt-1" style={{ background: dividerColor }} />
+                      <div className="min-w-0">
+                        <span className="text-[10px] uppercase tracking-wider block mb-0.5" style={{ color: creditLabelColor }}>Published</span>
+                        <span className="text-sm" style={{ color: creditValueColor }}>{formatDate(insight.credits.publishedDate)}</span>
+                      </div>
+                    </>
                   )}
+
+                  {/* View Source link — inline at the end */}
                   {insight.credits.url && (
-                    <a
-                      href={insight.credits.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 font-medium transition-colors text-sm mt-1 hover:opacity-80"
-                      style={{ color: "#D4A843" }}
-                    >
-                      View Original Source <ExternalLink className="w-4 h-4" />
-                    </a>
+                    <>
+                      <div className="self-stretch w-px mt-1" style={{ background: dividerColor }} />
+                      <div className="min-w-0 flex items-end pb-0.5">
+                        <a
+                          href={insight.credits.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 text-sm font-medium hover:opacity-80 transition-opacity"
+                          style={{ color: "#D4A843" }}
+                        >
+                          View Source <ExternalLink className="w-3.5 h-3.5" />
+                        </a>
+                      </div>
+                    </>
                   )}
                 </div>
               </div>

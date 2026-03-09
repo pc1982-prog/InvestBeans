@@ -80,10 +80,10 @@ const Footer = () => {
               Empowering investors with data-driven decisions since 2024.
             </p>
             <div className="flex gap-4">
-              <a href="#" className={socialBtnCls}><Facebook className="w-5 h-5" /></a>
+              
               <a href="#" className={socialBtnCls}><Twitter className="w-5 h-5" /></a>
-              <a href="#" className={socialBtnCls}><Linkedin className="w-5 h-5" /></a>
-              <a href="#" className={socialBtnCls}><Instagram className="w-5 h-5" /></a>
+              <a href="https://www.linkedin.com/company/investbeans/?viewAsMember=true" className={socialBtnCls}><Linkedin className="w-5 h-5" /></a>
+              <a href="https://www.instagram.com/investbeans?igsh=emowanMybzRyN2tm" className={socialBtnCls}><Instagram className="w-5 h-5" /></a>
             </div>
           </div>
 
@@ -91,12 +91,11 @@ const Footer = () => {
             <h3 className={sectionHeadingCls}>Quick Links</h3>
             <ul className="space-y-3 text-sm">
               <li><a href="/" className={linkCls}>Home</a></li>
-              <li><a href="/markets" className={linkCls}>Markets</a></li>
+              <li><a href="/markets" className={linkCls}>Segments</a></li>
               <li><a href="/dashboard" className={linkCls}>Dashboard</a></li>
               <li><a href="/global" className={linkCls}>Global</a></li>
               <li><a href="/domestic" className={linkCls}>Domestics</a></li>
               <li><a href="/pricing" className={linkCls}>Pricing</a></li>
-
             </ul>
           </div>
 

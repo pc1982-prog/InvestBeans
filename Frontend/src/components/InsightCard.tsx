@@ -42,7 +42,6 @@ const InsightCard = ({ insight, isAdmin = false, onReadMore, onLike, onEdit, onD
 
   useEffect(() => { setLiked(isLiked); setLikeCount(likes); }, [isLiked, likes]);
 
-  // ── Sentiment colours (same in both modes — green/red/gold are universal) ──
   const getSentimentStyle = () => {
     switch (sentiment) {
       case "positive":
@@ -68,48 +67,24 @@ const InsightCard = ({ insight, isAdmin = false, onReadMore, onLike, onEdit, onD
 
   const s = getSentimentStyle();
 
-  // ── Theme-aware card styles ───────────────────────────────────────────────
   const cardBg = isLight
     ? "linear-gradient(145deg,rgba(255,255,255,0.92) 0%,rgba(237,245,254,0.97) 100%)"
     : "linear-gradient(145deg,rgba(15,32,64,0.95) 0%,rgba(12,26,46,0.98) 100%)";
 
-  const cardBorder = isLight
-    ? `1px solid ${s.borderAccent}`
-    : `1px solid ${s.borderAccent}`;
-
-  const cardShadow = isLight
-    ? "0 4px 20px rgba(13,37,64,0.08)"
-    : "0 4px 24px rgba(0,0,0,0.3)";
-
+  const cardBorder = `1px solid ${s.borderAccent}`;
+  const cardShadow = isLight ? "0 4px 20px rgba(13,37,64,0.08)" : "0 4px 24px rgba(0,0,0,0.3)";
   const hoverGlow = isLight
     ? "radial-gradient(ellipse at top right,rgba(212,168,67,0.07) 0%,transparent 60%)"
     : "radial-gradient(ellipse at top right,rgba(212,168,67,0.05) 0%,transparent 60%)";
 
-  // Category badge
-  const categoryBg = isLight
-    ? "rgba(13,37,64,0.06)"
-    : "rgba(255,255,255,0.06)";
-  const categoryBorder = isLight
-    ? "1px solid rgba(13,37,64,0.1)"
-    : "1px solid rgba(255,255,255,0.09)";
+  const categoryBg = isLight ? "rgba(13,37,64,0.06)" : "rgba(255,255,255,0.06)";
+  const categoryBorder = isLight ? "1px solid rgba(13,37,64,0.1)" : "1px solid rgba(255,255,255,0.09)";
   const categoryColor = isLight ? "rgba(13,37,64,0.7)" : "rgba(203,213,225,1)";
-
-  // Title colour
   const titleColor = isLight ? "#0d1b2a" : "white";
-  const titleHoverColor = "#D4A843";
-
-  // Description text
+  // ✅ Description: 2-line clamp with ellipsis (overflow hidden + webkit clamp for cross-browser)
   const descColor = isLight ? "rgba(13,37,64,0.6)" : "rgba(148,163,184,1)";
-
-  // Divider line
-  const dividerColor = isLight
-    ? "rgba(13,37,64,0.07)"
-    : "rgba(255,255,255,0.05)";
-
-  // Timestamp / meta text
+  const dividerColor = isLight ? "rgba(13,37,64,0.07)" : "rgba(255,255,255,0.05)";
   const metaColor = isLight ? "rgba(13,37,64,0.45)" : "rgba(100,116,139,1)";
-
-  // Like / view colour
   const statsColor = isLight ? "rgba(13,37,64,0.5)" : "rgba(100,116,139,1)";
   const likedColor = "#D4A843";
 
@@ -167,8 +142,18 @@ const InsightCard = ({ insight, isAdmin = false, onReadMore, onLike, onEdit, onD
           {title}
         </h3>
 
-        {/* ── Description ── */}
-        <p className="mb-4 leading-relaxed line-clamp-2 text-sm" style={{ color: descColor }}>
+        {/* ── Description — strictly 2 lines with trailing ellipsis ── */}
+        <p
+          className="mb-4 leading-relaxed text-sm"
+          style={{
+            color: descColor,
+            display: "-webkit-box",
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: "vertical",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+          }}
+        >
           {description}
         </p>
 
@@ -209,7 +194,6 @@ const InsightCard = ({ insight, isAdmin = false, onReadMore, onLike, onEdit, onD
 
           {/* Action buttons */}
           <div className="flex gap-2">
-            {/* View Details */}
             <button
               onClick={() => onReadMore(_id)}
               className="flex-1 inline-flex items-center justify-center px-4 py-2.5 rounded-full font-semibold text-sm transition-all duration-300 hover:opacity-90 hover:shadow-lg active:scale-95"
@@ -218,7 +202,6 @@ const InsightCard = ({ insight, isAdmin = false, onReadMore, onLike, onEdit, onD
               View Details
             </button>
 
-            {/* Admin controls */}
             {isAdmin && onEdit && onDelete && (
               <>
                 <Button

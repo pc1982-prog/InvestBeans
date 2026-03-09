@@ -7,15 +7,17 @@ import Footer from '../components/Footer';
 import {
   TrendingUp, TrendingDown, Calendar, Users, Building2,
   CheckCircle, Clock, AlertCircle, ArrowRight, Star, Target,
-  Zap, BarChart3, FileText, ExternalLink,
-  Search, IndianRupee, Plus, X, Edit3,
+  Zap, BarChart3, FileText, Search, IndianRupee, Plus, X, Edit3,
   Save, Trash2, Loader2, RefreshCw, ChevronDown,
+  ShieldCheck, ShieldAlert, AlertTriangle, Filter, Calculator,
 } from 'lucide-react';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
 const IPO_ENDPOINT = `${API_BASE}/ipo`;
 
-type IPOStatus = 'upcoming' | 'open' | 'closed' | 'listed';
+/* ── types ── */
+type IPOStatus = 'upcoming' | 'open' | 'closed';   // "listed" removed
+
 interface IPO {
   _id: string; companyName: string; logo: string; industry: string;
   status: IPOStatus; openDate: string; closeDate: string;
@@ -23,14 +25,14 @@ interface IPO {
   issueSize: string; minInvestment: string; subscriptionStatus?: string;
   listingGain?: number | null; gmp?: number | null; allotmentDate?: string;
   refundDate?: string; exchange: string; rating: number; rhpLink?: string; category?: string;
+  swot?: { strengths: string[]; weaknesses: string[]; opportunities: string[]; threats: string[]; };
 }
-interface Counts { open: number; upcoming: number; closed: number; listed: number; total: number; }
+interface Counts { open: number; upcoming: number; closed: number; total: number; }
 
 const STATUS_CFG = {
   upcoming: { bg: 'bg-blue-500/10',   text: 'text-blue-500',   label: 'Upcoming' },
   open:     { bg: 'bg-green-500/10',  text: 'text-green-500',  label: 'Open Now' },
   closed:   { bg: 'bg-orange-500/10', text: 'text-orange-500', label: 'Closed'   },
-  listed:   { bg: 'bg-purple-500/10', text: 'text-purple-500', label: 'Listed'   },
 };
 
 const INDUSTRIES = [
@@ -47,32 +49,48 @@ const BLANK: Omit<IPO,'_id'> = {
   openDate:'', closeDate:'', allotmentDate:'', refundDate:'', listingDate:'',
   priceRange:'', lotSize:0, issueSize:'', minInvestment:'',
   subscriptionStatus:'', listingGain:null, gmp:null, rating:3, rhpLink:'',
+  swot:{ strengths:[], weaknesses:[], opportunities:[], threats:[] },
 };
+
+/* ── date helpers ── */
+function toInputDate(s: string): string {
+  if (!s) return '';
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  const d = new Date(s);
+  return isNaN(d.getTime()) ? '' : d.toISOString().slice(0, 10);
+}
+function fmtDate(s: string): string {
+  if (!s) return '—';
+  const d = new Date(s);
+  return isNaN(d.getTime())
+    ? s
+    : d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+/* ── price helpers ── */
+function parseUpperPrice(pr: string): number | null {
+  const c = pr.replace(/₹/g, '').replace(/,/g, '');
+  const v = parseFloat(c.split(/[-–—]/).pop()!.trim());
+  return isNaN(v) ? null : v;
+}
+function calcMin(pr: string, lot: number): string {
+  const upper = parseUpperPrice(pr);
+  if (!upper || !lot || lot < 1) return '';
+  return `₹${(upper * lot).toLocaleString('en-IN')}`;
+}
 
 function autoLogo(name: string) {
   return name.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase().slice(0,2);
 }
 
-function RupeeInput({ value, onChange, placeholder, className }: {
-  value: string; onChange: (v: string) => void; placeholder?: string; className?: string;
+/* ── PriceBandInput — auto ₹ prefix on both numbers ── */
+function PriceBandInput({ value, onChange, className, style }: {
+  value: string; onChange: (v: string) => void; className?: string; style?: React.CSSProperties;
 }) {
   return (
-    <input className={className} placeholder={placeholder} value={value}
+    <input className={className} style={style} placeholder="₹475 – ₹500" value={value}
       onChange={e => {
-        const raw = e.target.value.replace(/^₹\s*/, '');
-        onChange(raw ? `₹${raw}` : '');
-      }}
-    />
-  );
-}
-
-function PriceBandInput({ value, onChange, placeholder, className }: {
-  value: string; onChange: (v: string) => void; placeholder?: string; className?: string;
-}) {
-  return (
-    <input className={className} placeholder={placeholder} value={value}
-      onChange={e => {
-        const raw = e.target.value.replace(/₹/g, '').replace(/\s*–\s*/g, '-').trim();
+        const raw = e.target.value.replace(/₹/g, '').replace(/\s*[–-]\s*/g, '-').trim();
         const parts = raw.split('-');
         if (parts.length >= 2) {
           const p1 = parts[0].trim();
@@ -87,15 +105,16 @@ function PriceBandInput({ value, onChange, placeholder, className }: {
 }
 
 async function callAPI(url: string, opts?: RequestInit) {
-  const res = await fetch(url, { headers: {'Content-Type':'application/json'}, credentials:'include', ...opts });
+  const res  = await fetch(url, { headers:{'Content-Type':'application/json'}, credentials:'include', ...opts });
   const json = await res.json();
   if (!res.ok) throw new Error(json.message || `Error ${res.status}`);
   return json.data;
 }
 
+/* ── Status Badge ── */
 function StatusBadge({ status }: { status: IPOStatus }) {
   const c = STATUS_CFG[status];
-  const Icon = { upcoming:Clock, open:CheckCircle, closed:AlertCircle, listed:TrendingUp }[status];
+  const Icon = { upcoming:Clock, open:CheckCircle, closed:AlertCircle }[status];
   return (
     <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold ${c.bg} ${c.text}`}>
       <Icon className="w-3 h-3" />{c.label}
@@ -103,211 +122,312 @@ function StatusBadge({ status }: { status: IPOStatus }) {
   );
 }
 
+/* ── Stars ── */
 function Stars({ rating, onClick }: { rating: number; onClick?: (n:number)=>void }) {
   return (
     <div className="flex items-center gap-0.5">
       {[...Array(5)].map((_,i) => (
         <Star key={i} onClick={()=>onClick?.(i+1)}
-          className={`w-3.5 h-3.5 ${i<rating?'fill-yellow-500 text-yellow-500':'text-gray-300'} ${onClick?'cursor-pointer':''}`} />
+          className={`w-3.5 h-3.5 ${i<rating?'fill-yellow-500 text-yellow-500':'text-gray-300'} ${onClick?'cursor-pointer hover:scale-110 transition-transform':''}`} />
       ))}
     </div>
   );
 }
 
-// ─── FORM MODAL ───────────────────────────────────────────────────────────────
+/* ═══════════════════════════════════════════════════════════════════
+   FORM MODAL (inline version — full dark/light theming)
+═══════════════════════════════════════════════════════════════════ */
 function FormModal({ initial, onSave, onClose, saving }: {
-  initial?: IPO; onSave: (d:Omit<IPO,'_id'>)=>Promise<void>; onClose:()=>void; saving:boolean;
+  initial?: IPO; onSave:(d:Omit<IPO,'_id'>)=>Promise<void>; onClose:()=>void; saving:boolean;
 }) {
+  const { theme } = useTheme();
+  const isDark = theme !== 'light';
+
   const [form, setForm] = useState<Omit<IPO,'_id'>>(initial ? {...initial} : {...BLANK});
   const [errors, setErrors] = useState<Record<string,string>>({});
 
   const set = (k: keyof Omit<IPO,'_id'>, v: any) =>
-    setForm(f => ({...f, [k]:v, ...(k==='companyName'&&!initial?{logo:autoLogo(v)}:{})}));
+    setForm(prev => {
+      const next: Omit<IPO,'_id'> = {
+        ...prev, [k]: v,
+        ...(k==='companyName'&&!initial ? {logo:autoLogo(v)} : {}),
+      };
+      const pr  = k === 'priceRange' ? v : next.priceRange;
+      const lot = k === 'lotSize'    ? v : next.lotSize;
+      const auto = calcMin(pr, Number(lot));
+      if ((k === 'priceRange' || k === 'lotSize') && auto) next.minInvestment = auto;
+      return next;
+    });
 
   const validate = () => {
     const e: Record<string,string> = {};
-    if (!form.companyName.trim()) e.companyName='Company name required';
-    if (!form.openDate.trim())    e.openDate='Open date required';
-    if (!form.closeDate.trim())   e.closeDate='Close date required';
-    if (!form.priceRange.trim())  e.priceRange='Price band required';
-    if (!form.issueSize.trim())   e.issueSize='Issue size required';
-    if (!form.minInvestment.trim()) e.minInvestment='Min investment required';
-    if (!form.lotSize||form.lotSize<1) e.lotSize='Lot size required';
-    setErrors(e);
-    return !Object.keys(e).length;
+    if (!form.companyName.trim())   e.companyName   = 'Required';
+    if (!form.openDate.trim())      e.openDate      = 'Required';
+    if (!form.closeDate.trim())     e.closeDate     = 'Required';
+    if (!form.priceRange.trim())    e.priceRange    = 'Required';
+    if (!form.issueSize.trim())     e.issueSize     = 'Required';
+    if (!form.minInvestment.trim()) e.minInvestment = 'Required';
+    if (!form.lotSize||form.lotSize<1) e.lotSize    = 'Required';
+    setErrors(e); return !Object.keys(e).length;
   };
 
   const submit = async () => { if (!validate()) return; await onSave({...form, logo:form.logo||autoLogo(form.companyName)}); };
 
-  const inp = 'w-full rounded-lg px-3 py-2.5 text-sm text-white placeholder:text-slate-500 focus:outline-none transition-colors bg-white/[0.06] border border-white/10 focus:border-[rgba(212,168,67,0.5)]';
-  const lbl = 'block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5';
-  const err = 'text-red-400 text-xs mt-1';
+  /* ── tokens ── */
+  const modalBg   = isDark ? '#0f1e38' : '#f0f7fe';
+  const modalBdr  = isDark ? 'rgba(255,255,255,0.10)' : 'rgba(13,37,64,0.12)';
+  const blockBg   = isDark ? 'rgba(212,168,67,0.05)'  : 'rgba(212,168,67,0.06)';
+  const blockBdr  = isDark ? 'rgba(212,168,67,0.12)'  : 'rgba(212,168,67,0.18)';
+  const bLabel    = isDark ? '#C4941E'  : '#b45309';
+  const footBg    = isDark ? '#0f1e38'  : '#f0f7fe';
+  const footBdr   = isDark ? 'rgba(255,255,255,0.10)' : 'rgba(13,37,64,0.10)';
+  const inBg      = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.90)';
+  const inBdr     = isDark ? 'rgba(255,255,255,0.12)' : 'rgba(13,37,64,0.18)';
+  const inTxt     = isDark ? '#ffffff'  : '#0d1b2a';
+  const lblClr    = isDark ? 'rgba(148,163,184,1)' : 'rgba(13,37,64,0.55)';
+  const hintClr   = isDark ? 'rgba(100,116,139,1)' : 'rgba(13,37,64,0.40)';
+  const starOff   = isDark ? 'rgb(209,213,219)' : 'rgba(13,37,64,0.20)';
+  const cancelClr = isDark ? 'rgba(148,163,184,1)' : 'rgba(13,37,64,0.60)';
+  const cancelBdr = isDark ? 'rgba(255,255,255,0.12)' : 'rgba(13,37,64,0.15)';
+  /* solid select bg so option text is ALWAYS readable */
+  const selBg     = isDark ? '#1a2d48' : '#ffffff';
+  const selTxt    = isDark ? '#ffffff' : '#0d1b2a';
+
+  const IC = `w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none transition-colors`;
+  const IS: React.CSSProperties = { background: inBg, border:`1px solid ${inBdr}`, color: inTxt, outline:'none' };
+  const SS: React.CSSProperties = { background: selBg, border:`1px solid ${inBdr}`, color: selTxt, outline:'none', cursor:'pointer' };
+  const OS: React.CSSProperties = { background: selBg, color: selTxt };
+  const DS: React.CSSProperties = { ...IS, colorScheme: isDark ? 'dark' : 'light' };
+  const LB = 'block text-xs font-semibold uppercase tracking-wider mb-1.5';
+  const ER = 'text-xs mt-1 text-red-400';
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/65 backdrop-blur-sm" onClick={onClose}>
       <div className="rounded-2xl w-full max-w-2xl max-h-[92vh] overflow-y-auto shadow-2xl"
-        style={{ background: "linear-gradient(135deg,#0e2038 0%,#0c1a2e 100%)", border: "1px solid rgba(255,255,255,0.10)" }}
+        style={{ background: modalBg, border:`1px solid ${modalBdr}` }}
         onClick={e=>e.stopPropagation()}>
 
+        {/* header */}
         <div className="sticky top-0 p-5 flex items-center justify-between z-10 rounded-t-2xl"
-          style={{ background: "linear-gradient(135deg,#0a1628,#142640)", borderBottom: "1px solid rgba(212,168,67,0.20)" }}>
+          style={{ background:'linear-gradient(90deg,#0d2540,#C4941E)' }}>
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center"
-              style={{ background: "rgba(212,168,67,0.15)", border: "1px solid rgba(212,168,67,0.25)" }}>
-              {initial ? <Edit3 className="w-4 h-4 text-[#D4A843]" /> : <Plus className="w-4 h-4 text-[#D4A843]" />}
+            <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center">
+              {initial ? <Edit3 className="w-4 h-4 text-white"/> : <Plus className="w-4 h-4 text-white"/>}
             </div>
             <div>
               <h2 className="text-lg font-bold text-white">{initial ? 'Edit IPO' : 'Add New IPO'}</h2>
-              <p className="text-white/60 text-xs">* fields are required</p>
+              <p className="text-white/60 text-xs">* fields required hain</p>
             </div>
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-white hover:bg-white/10 rounded-full p-2 transition-all">
-            <X className="w-5 h-5" />
+          <button onClick={onClose} className="text-white/70 hover:text-white hover:bg-white/20 rounded-full p-2 transition-all">
+            <X className="w-5 h-5"/>
           </button>
         </div>
 
         <div className="p-5 space-y-5">
+
           {/* Company Info */}
-          <div className="p-4 rounded-xl space-y-4" style={{ background: "rgba(212,168,67,0.05)", border: "1px solid rgba(212,168,67,0.12)" }}>
-            <p className="text-xs font-bold text-[#D4A843] uppercase tracking-wider">Company Info</p>
+          <section className="p-4 rounded-xl space-y-4" style={{background:blockBg,border:`1px solid ${blockBdr}`}}>
+            <p className="text-xs font-bold uppercase tracking-wider" style={{color:bLabel}}>Company Information</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="sm:col-span-2">
-                <label className={lbl}>Company Name *</label>
-                <input className={inp} placeholder="e.g. Tata Technologies Ltd" value={form.companyName} onChange={e=>set('companyName',e.target.value)} />
-                {errors.companyName && <p className={err}>{errors.companyName}</p>}
+                <label className={LB} style={{color:lblClr}}>Company Name *</label>
+                <input className={IC} style={IS} placeholder="e.g. Tata Technologies Ltd"
+                  value={form.companyName} onChange={e=>set('companyName',e.target.value)}/>
+                {errors.companyName&&<p className={ER}>{errors.companyName}</p>}
               </div>
               <div>
-                <label className={lbl}>Logo (2 chars)</label>
-                <input className={inp} placeholder="e.g. TT" maxLength={2} value={form.logo} onChange={e=>set('logo',e.target.value.toUpperCase())} />
-                <p className="text-xs text-slate-400 mt-1">Auto-generated from company name</p>
+                <label className={LB} style={{color:lblClr}}>Logo (2 chars)</label>
+                <input className={IC} style={IS} placeholder="e.g. TT" maxLength={2}
+                  value={form.logo} onChange={e=>set('logo',e.target.value.toUpperCase())}/>
+                <p className="text-xs mt-1" style={{color:hintClr}}>Auto-generated from company name</p>
               </div>
               <div>
-                <label className={lbl}>Industry</label>
-                <select className={inp} value={form.industry} onChange={e=>set('industry',e.target.value)}>
-                  <option value="">-- Select --</option>
-                  {INDUSTRIES.map(i=><option key={i}>{i}</option>)}
+                <label className={LB} style={{color:lblClr}}>Industry</label>
+                <select className={IC} style={SS} value={form.industry} onChange={e=>set('industry',e.target.value)}>
+                  <option value="" style={OS}>-- Select Industry --</option>
+                  {INDUSTRIES.map(i=><option key={i} value={i} style={OS}>{i}</option>)}
                 </select>
               </div>
             </div>
-          </div>
+          </section>
 
           {/* Classification */}
-          <div className="p-4 rounded-xl space-y-3" style={{ background: "rgba(212,168,67,0.05)", border: "1px solid rgba(212,168,67,0.12)" }}>
-            <p className="text-xs font-bold text-[#D4A843] uppercase tracking-wider">Classification</p>
+          <section className="p-4 rounded-xl space-y-3" style={{background:blockBg,border:`1px solid ${blockBdr}`}}>
+            <p className="text-xs font-bold uppercase tracking-wider" style={{color:bLabel}}>Classification</p>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <div className="sm:col-span-2">
-                <label className={lbl}>Status *</label>
-                <select className={inp} value={form.status} onChange={e=>set('status',e.target.value as IPOStatus)}>
-                  <option value="upcoming">Upcoming</option>
-                  <option value="open">Open Now</option>
-                  <option value="closed">Closed</option>
-                  <option value="listed">Listed</option>
+                <label className={LB} style={{color:lblClr}}>Status *</label>
+                <select className={IC} style={SS} value={form.status} onChange={e=>set('status',e.target.value as IPOStatus)}>
+                  <option value="upcoming" style={OS}>Upcoming</option>
+                  <option value="open"     style={OS}>Open Now</option>
+                  <option value="closed"   style={OS}>Closed</option>
+                  {/* "listed" removed */}
                 </select>
               </div>
               <div>
-                <label className={lbl}>Exchange</label>
-                <select className={inp} value={form.exchange} onChange={e=>set('exchange',e.target.value)}>
-                  <option>NSE / BSE</option><option>NSE</option><option>BSE</option>
-                  <option>NSE SME</option><option>BSE SME</option>
+                <label className={LB} style={{color:lblClr}}>Exchange</label>
+                <select className={IC} style={SS} value={form.exchange} onChange={e=>set('exchange',e.target.value)}>
+                  {['NSE / BSE','NSE','BSE','NSE SME','BSE SME'].map(ex=><option key={ex} value={ex} style={OS}>{ex}</option>)}
                 </select>
               </div>
               <div>
-                <label className={lbl}>Category</label>
-                <select className={inp} value={form.category} onChange={e=>set('category',e.target.value)}>
-                  <option>Mainboard</option><option>SME</option>
+                <label className={LB} style={{color:lblClr}}>Segment</label>
+                <select className={IC} style={SS} value={form.category} onChange={e=>set('category',e.target.value)}>
+                  {['Mainboard','SME'].map(c=><option key={c} value={c} style={OS}>{c}</option>)}
                 </select>
               </div>
             </div>
-          </div>
+          </section>
 
           {/* Pricing */}
-          <div className="p-4 rounded-xl space-y-3" style={{ background: "rgba(212,168,67,0.05)", border: "1px solid rgba(212,168,67,0.12)" }}>
-            <p className="text-xs font-bold text-[#D4A843] uppercase tracking-wider">Pricing & Size</p>
+          <section className="p-4 rounded-xl space-y-3" style={{background:blockBg,border:`1px solid ${blockBdr}`}}>
+            <p className="text-xs font-bold uppercase tracking-wider" style={{color:bLabel}}>Pricing & Size</p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
-                <label className={lbl}>Price Band *</label>
-                <PriceBandInput className={inp} placeholder="₹475 – ₹500" value={form.priceRange} onChange={v=>set('priceRange',v)} />
-                {errors.priceRange&&<p className={err}>{errors.priceRange}</p>}
+                <label className={LB} style={{color:lblClr}}>Price Band *</label>
+                {/* PriceBandInput: auto ₹ prefix on both numbers */}
+                <PriceBandInput className={IC} style={IS}
+                  value={form.priceRange} onChange={v=>set('priceRange',v)}/>
+                {errors.priceRange&&<p className={ER}>{errors.priceRange}</p>}
               </div>
               <div>
-                <label className={lbl}>Lot Size *</label>
-                <input type="number" className={inp} placeholder="30" min={1} value={form.lotSize||''} onChange={e=>set('lotSize',parseInt(e.target.value)||0)} />
-                {errors.lotSize&&<p className={err}>{errors.lotSize}</p>}
+                <label className={LB} style={{color:lblClr}}>Lot Size (shares) *</label>
+                <input type="number" className={IC} style={IS} placeholder="30" min={1}
+                  value={form.lotSize||''} onChange={e=>set('lotSize',parseInt(e.target.value)||0)}/>
+                {errors.lotSize&&<p className={ER}>{errors.lotSize}</p>}
               </div>
               <div>
-                <label className={lbl}>Min Investment *</label>
-                <RupeeInput className={inp} placeholder="15,000" value={form.minInvestment} onChange={v=>set('minInvestment',v)} />
-                {errors.minInvestment&&<p className={err}>{errors.minInvestment}</p>}
+                <label className={LB} style={{color:lblClr}}>
+                  Min Investment *
+                  {calcMin(form.priceRange,form.lotSize)&&(
+                    <span className="ml-1 font-normal normal-case tracking-normal" style={{color:'#C4941E',fontSize:10}}>
+                      <Calculator className="inline w-3 h-3 mr-0.5"/>auto
+                    </span>
+                  )}
+                </label>
+                <input className={IC}
+                  style={{...IS, ...(calcMin(form.priceRange,form.lotSize)?{borderColor:'rgba(212,168,67,0.55)',color:'#D4A843',fontWeight:600}:{})}}
+                  placeholder="Auto-calculated"
+                  value={form.minInvestment} onChange={e=>set('minInvestment',e.target.value)}/>
+                {/* NO formula hint */}
+                {errors.minInvestment&&<p className={ER}>{errors.minInvestment}</p>}
               </div>
               <div className="sm:col-span-2">
-                <label className={lbl}>Issue Size *</label>
-                <RupeeInput className={inp} placeholder="3,042 Cr" value={form.issueSize} onChange={v=>set('issueSize',v)} />
-                {errors.issueSize&&<p className={err}>{errors.issueSize}</p>}
+                <label className={LB} style={{color:lblClr}}>Issue Size *</label>
+                <input className={IC} style={IS} placeholder="₹3,042 Cr"
+                  value={form.issueSize} onChange={e=>set('issueSize',e.target.value)}/>
+                {errors.issueSize&&<p className={ER}>{errors.issueSize}</p>}
               </div>
               <div>
-                <label className={lbl}>Rating</label>
-                <div className="mt-2"><Stars rating={form.rating} onClick={n=>set('rating',n)} /></div>
+                <label className={LB} style={{color:lblClr}}>Rating (1–5)</label>
+                <div className="flex items-center gap-1 mt-2">
+                  {[1,2,3,4,5].map(n=>(
+                    <button key={n} type="button" onClick={()=>set('rating',n)} className="p-0.5 transition-transform hover:scale-110">
+                      <Star className="w-6 h-6" style={{fill:n<=form.rating?'#F59E0B':'transparent',color:n<=form.rating?'#F59E0B':starOff}}/>
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
+          </section>
 
-          {/* Dates */}
-          <div className="p-4 rounded-xl space-y-3" style={{ background: "rgba(212,168,67,0.05)", border: "1px solid rgba(212,168,67,0.12)" }}>
-            <p className="text-xs font-bold text-[#D4A843] uppercase tracking-wider">Important Dates</p>
+          {/* Important Dates — date picker */}
+          <section className="p-4 rounded-xl space-y-3" style={{background:blockBg,border:`1px solid ${blockBdr}`}}>
+            <p className="text-xs font-bold uppercase tracking-wider" style={{color:bLabel}}>Important Dates</p>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {[
-                {k:'openDate',l:'Open Date *',p:'Jan 29, 2026'},
-                {k:'closeDate',l:'Close Date *',p:'Feb 02, 2026'},
-                {k:'allotmentDate',l:'Allotment',p:'Feb 05, 2026'},
-                {k:'refundDate',l:'Refund/UPI',p:'Feb 06, 2026'},
-                {k:'listingDate',l:'Listing',p:'Feb 07, 2026'},
-              ].map(({k,l,p}) => (
+                {k:'openDate',      l:'Open Date *'},
+                {k:'closeDate',     l:'Close Date *'},
+                {k:'allotmentDate', l:'Allotment Date'},
+                {k:'refundDate',    l:'Refund / UPI Date'},
+                {k:'listingDate',   l:'Listing Date'},
+              ].map(({k,l})=>(
                 <div key={k}>
-                  <label className="block text-xs text-slate-400 mb-1">{l}</label>
-                  <input className={inp} placeholder={p} value={(form as any)[k]||''} onChange={e=>set(k as any,e.target.value)} />
-                  {errors[k]&&<p className={err}>{errors[k]}</p>}
+                  <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{color:lblClr}}>{l}</label>
+                  <input type="date" className={IC} style={DS}
+                    value={toInputDate((form as any)[k]||'')}
+                    onChange={e=>set(k as any, e.target.value)}/>
+                  {errors[k]&&<p className={ER}>{errors[k]}</p>}
                 </div>
               ))}
             </div>
-          </div>
+          </section>
 
           {/* Performance */}
-          <div className="p-4 rounded-xl space-y-3" style={{ background: "rgba(212,168,67,0.05)", border: "1px solid rgba(212,168,67,0.12)" }}>
-            <p className="text-xs font-bold text-[#D4A843] uppercase tracking-wider">
-              Performance <span className="text-slate-400/50 normal-case font-normal">(optional)</span>
-            </p>
+          <section className="p-4 rounded-xl space-y-3" style={{background:blockBg,border:`1px solid ${blockBdr}`}}>
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wider" style={{color:bLabel}}>Performance Data</p>
+              <p className="text-xs mt-0.5" style={{color:hintClr}}>Optional — baad mein bhi update kar sakte ho</p>
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
-                <label className="block text-xs text-slate-400 mb-1">Subscription</label>
-                <input className={inp} placeholder="69.43×" value={form.subscriptionStatus||''} onChange={e=>set('subscriptionStatus',e.target.value)} />
+                <label className="block text-xs mb-1.5" style={{color:lblClr}}>Subscription</label>
+                <input className={IC} style={IS} placeholder="e.g. 69.43×"
+                  value={form.subscriptionStatus||''} onChange={e=>set('subscriptionStatus',e.target.value)}/>
               </div>
               <div>
-                <label className="block text-xs text-slate-400 mb-1">GMP (₹)</label>
-                <RupeeInput className={inp} placeholder="650"
-                  value={form.gmp != null ? `₹${form.gmp}` : ''}
-                  onChange={v => { const n = v.replace(/^₹/,''); set('gmp', n!==''?Number(n):null); }} />
+                <label className="block text-xs mb-1.5" style={{color:lblClr}}>GMP (₹)</label>
+                <input type="number" className={IC} style={IS} placeholder="e.g. 650"
+                  value={form.gmp??''} onChange={e=>set('gmp',e.target.value!==''?Number(e.target.value):null)}/>
               </div>
               <div>
-                <label className="block text-xs text-slate-400 mb-1">Listing Gain (%)</label>
-                <input type="number" className={inp} placeholder="140 or -12" value={form.listingGain??''} onChange={e=>set('listingGain',e.target.value!==''?Number(e.target.value):null)} />
+                <label className="block text-xs mb-1.5" style={{color:lblClr}}>Listing Gain (%)</label>
+                <input type="number" className={IC} style={IS} placeholder="e.g. 140 ya -12"
+                  value={form.listingGain??''} onChange={e=>set('listingGain',e.target.value!==''?Number(e.target.value):null)}/>
               </div>
             </div>
-          </div>
+          </section>
 
+          {/* SWOT Analysis — admin enters bullet points */}
+          <section className="p-4 rounded-xl space-y-3" style={{background:blockBg,border:`1px solid ${blockBdr}`}}>
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wider" style={{color:bLabel}}>SWOT Analysis</p>
+              <p className="text-xs mt-0.5" style={{color:hintClr}}>Har point alag line mein likho (press Enter for next point)</p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {([
+                {k:'strengths',     l:'Strengths',     col:'#22c55e', ph:'e.g. Strong brand presence\nConsistent revenue growth'},
+                {k:'weaknesses',    l:'Weaknesses',    col:'#ef4444', ph:'e.g. High valuation\nClient concentration risk'},
+                {k:'opportunities', l:'Opportunities', col:'#3b82f6', ph:'e.g. Market expansion\nPolicy tailwinds'},
+                {k:'threats',       l:'Threats',       col:'#f59e0b', ph:'e.g. Competition\nMacro sensitivity'},
+              ] as const).map(({k,l,col,ph})=>(
+                <div key={k}>
+                  <label className="block text-xs font-semibold mb-1.5" style={{color:col}}>{l}</label>
+                  <textarea
+                    className={IC}
+                    style={{...IS, minHeight:90, resize:'vertical', lineHeight:1.5}}
+                    placeholder={ph}
+                    value={(form.swot?.[k]||[]).join('\n')}
+                    onChange={e=>set('swot',{
+                      ...form.swot,
+                      [k]: e.target.value.split('\n').map(s=>s.trim()).filter(Boolean),
+                    })}
+                  />
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* RHP */}
           <div>
-            <label className={lbl}>RHP / DRHP Link (optional)</label>
-            <input className={inp} placeholder="https://..." value={form.rhpLink||''} onChange={e=>set('rhpLink',e.target.value)} />
+            <label className={LB} style={{color:lblClr}}>RHP / DRHP Link (optional)</label>
+            <input className={IC} style={IS} placeholder="https://sebi.gov.in/..."
+              value={form.rhpLink||''} onChange={e=>set('rhpLink',e.target.value)}/>
           </div>
         </div>
 
+        {/* Footer */}
         <div className="sticky bottom-0 p-4 flex gap-3 rounded-b-2xl"
-          style={{ background: "linear-gradient(135deg,#0a1628,#0c1a2e)", borderTop: "1px solid rgba(255,255,255,0.08)" }}>
-          <button onClick={onClose} className="flex-1 py-3 rounded-xl text-slate-400 hover:text-white text-sm font-semibold transition-all"
-            style={{ border: "1px solid rgba(255,255,255,0.12)" }}>Cancel</button>
+          style={{background:footBg, borderTop:`1px solid ${footBdr}`}}>
+          <button onClick={onClose} className="flex-1 py-3 rounded-xl text-sm font-semibold transition-all hover:opacity-80"
+            style={{border:`1px solid ${cancelBdr}`, color:cancelClr, background:'transparent'}}>
+            Cancel
+          </button>
           <button onClick={submit} disabled={saving}
             className="flex-1 py-3 rounded-xl text-white text-sm font-bold flex items-center justify-center gap-2 hover:shadow-lg transition-all disabled:opacity-60"
-            style={{ background: "linear-gradient(135deg,#D4A843,#C4941E)" }}>
-            {saving ? <><Loader2 className="w-4 h-4 animate-spin" />Saving...</> : <><Save className="w-4 h-4" />{initial?'Save Changes':'Add IPO'}</>}
+            style={{background:'linear-gradient(135deg,#D4A843,#C4941E)'}}>
+            {saving?<><Loader2 className="w-4 h-4 animate-spin"/>Saving...</>:<><Save className="w-4 h-4"/>{initial?'Save Changes':'Add IPO'}</>}
           </button>
         </div>
       </div>
@@ -315,66 +435,118 @@ function FormModal({ initial, onSave, onClose, saving }: {
   );
 }
 
-// ─── DETAIL MODAL ─────────────────────────────────────────────────────────────
+/* ═══════════════════════════════════════════════════════════════════
+   SWOT ANALYSIS — reads from backend, visible to ALL users
+   Hidden if admin hasn't entered any data yet
+═══════════════════════════════════════════════════════════════════ */
+function SwotAnalysis({ ipo }: { ipo: IPO }) {
+  const swotData = ipo.swot;
+  const hasSwot = swotData && (
+    (swotData.strengths?.length     || 0) +
+    (swotData.weaknesses?.length    || 0) +
+    (swotData.opportunities?.length || 0) +
+    (swotData.threats?.length       || 0)
+  ) > 0;
+
+  if (!hasSwot) return null;
+
+  const rows = [
+    {k:'strengths'     as const, l:'Strengths',     col:'#22c55e', bg:'rgba(34,197,94,0.08)',  bdr:'rgba(34,197,94,0.20)',  Icon:ShieldCheck},
+    {k:'weaknesses'    as const, l:'Weaknesses',    col:'#ef4444', bg:'rgba(239,68,68,0.08)',  bdr:'rgba(239,68,68,0.20)',  Icon:ShieldAlert},
+    {k:'opportunities' as const, l:'Opportunities', col:'#3b82f6', bg:'rgba(59,130,246,0.08)', bdr:'rgba(59,130,246,0.20)', Icon:TrendingUp},
+    {k:'threats'       as const, l:'Threats',       col:'#f59e0b', bg:'rgba(245,158,11,0.08)', bdr:'rgba(245,158,11,0.20)', Icon:AlertTriangle},
+  ];
+  return (
+    <div>
+      <h3 className="text-base font-bold text-white mb-3 flex items-center gap-2">
+        <BarChart3 className="w-4 h-4 text-[#D4A843]"/>SWOT Analysis
+      </h3>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {rows.map(({k,l,col,bg,bdr,Icon})=>{
+          const pts = swotData[k]||[];
+          if(!pts.length) return null;
+          return (
+            <div key={k} className="rounded-xl p-4" style={{background:bg,border:`1px solid ${bdr}`}}>
+              <div className="flex items-center gap-2 mb-3">
+                <Icon className="w-4 h-4" style={{color:col}}/>
+                <span className="text-sm font-bold" style={{color:col}}>{l}</span>
+              </div>
+              <ul className="space-y-1.5">
+                {pts.map((pt,i)=>(
+                  <li key={i} className="flex items-start gap-2 text-xs text-slate-300">
+                    <span className="mt-0.5 w-1.5 h-1.5 rounded-full flex-shrink-0" style={{background:col}}/>
+                    {pt}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   DETAIL MODAL
+═══════════════════════════════════════════════════════════════════ */
 function DetailModal({ ipo, onClose, onEdit, onDelete, deleting, isAdmin }: {
-  ipo: IPO; onClose:()=>void; onEdit:()=>void; onDelete:()=>void; deleting:boolean; isAdmin: boolean;
+  ipo:IPO; onClose:()=>void; onEdit:()=>void; onDelete:()=>void; deleting:boolean; isAdmin:boolean;
 }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" onClick={onClose}>
       <div className="rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
-        style={{ background: "linear-gradient(135deg,#0e2038 0%,#0c1a2e 100%)", border: "1px solid rgba(255,255,255,0.10)" }}
+        style={{background:'linear-gradient(135deg,#0e2038 0%,#0c1a2e 100%)',border:'1px solid rgba(255,255,255,0.10)'}}
         onClick={e=>e.stopPropagation()}>
 
+        {/* header */}
         <div className="sticky top-0 p-5 md:p-6 z-10 rounded-t-2xl"
-          style={{ background: "linear-gradient(135deg,#0a1628,#142640)", borderBottom: "1px solid rgba(212,168,67,0.20)" }}>
+          style={{background:'linear-gradient(135deg,#0a1628,#142640)',borderBottom:'1px solid rgba(212,168,67,0.20)'}}>
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-4">
               <div className="w-14 h-14 rounded-full flex items-center justify-center text-[#D4A843] font-bold text-xl"
-                style={{ background: "rgba(212,168,67,0.15)", border: "2px solid rgba(212,168,67,0.30)" }}>{ipo.logo}</div>
+                style={{background:'rgba(212,168,67,0.15)',border:'2px solid rgba(212,168,67,0.30)'}}>
+                {ipo.logo}
+              </div>
               <div>
                 <h2 className="text-xl font-bold text-white leading-tight">{ipo.companyName}</h2>
                 <p className="text-slate-400 text-sm">{ipo.industry} · {ipo.exchange}</p>
                 <div className="flex items-center gap-2 mt-2">
-                  <StatusBadge status={ipo.status} />
-                  {ipo.category && (
+                  <StatusBadge status={ipo.status}/>
+                  {ipo.category&&(
                     <span className="text-xs text-slate-400 px-2 py-0.5 rounded-full"
-                      style={{ border: "1px solid rgba(255,255,255,0.15)" }}>{ipo.category}</span>
+                      style={{border:'1px solid rgba(255,255,255,0.15)'}}>{ipo.category}</span>
                   )}
-                  <Stars rating={ipo.rating} />
+                  <Stars rating={ipo.rating}/>
                 </div>
               </div>
             </div>
             <div className="flex items-center gap-1.5 flex-shrink-0">
-              {isAdmin && (
+              {isAdmin&&(
                 <>
-                  <button onClick={onEdit} className="text-slate-400 hover:text-white hover:bg-white/10 rounded-lg p-2 transition-colors">
-                    <Edit3 className="w-4 h-4" />
-                  </button>
+                  <button onClick={onEdit} className="text-slate-400 hover:text-white hover:bg-white/10 rounded-lg p-2 transition-colors"><Edit3 className="w-4 h-4"/></button>
                   <button onClick={onDelete} disabled={deleting} className="text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg p-2 transition-colors">
-                    {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                    {deleting?<Loader2 className="w-4 h-4 animate-spin"/>:<Trash2 className="w-4 h-4"/>}
                   </button>
                 </>
               )}
-              <button onClick={onClose} className="text-slate-400 hover:text-white hover:bg-white/10 rounded-full p-2 transition-colors">
-                <X className="w-5 h-5" />
-              </button>
+              <button onClick={onClose} className="text-slate-400 hover:text-white hover:bg-white/10 rounded-full p-2 transition-colors"><X className="w-5 h-5"/></button>
             </div>
           </div>
         </div>
 
         <div className="p-5 md:p-6 space-y-6">
+          {/* Issue Details */}
           <div>
             <h3 className="text-base font-bold text-white mb-3 flex items-center gap-2">
-              <Zap className="w-4 h-4 text-[#D4A843]" />Issue Details
+              <Zap className="w-4 h-4 text-[#D4A843]"/>Issue Details
             </h3>
-            <div className="rounded-xl overflow-hidden" style={{ border: "1px solid rgba(255,255,255,0.08)" }}>
-              {[
-                ['Price Band', ipo.priceRange], ['Issue Size', ipo.issueSize],
-                ['Lot Size', `${ipo.lotSize} shares`], ['Min. Investment', ipo.minInvestment],
-                ['Exchange', ipo.exchange],
-              ].map(([l,v],i) => (
+            <div className="rounded-xl overflow-hidden" style={{border:'1px solid rgba(255,255,255,0.08)'}}>
+              {[['Price Band',ipo.priceRange],['Issue Size',ipo.issueSize],
+                ['Lot Size',`${ipo.lotSize} shares`],['Min. Investment',ipo.minInvestment],
+                ['Exchange',ipo.exchange]].map(([l,v],i)=>(
                 <div key={i} className="flex items-center justify-between px-4 py-3 text-sm"
-                  style={{ background: i%2===0 ? "rgba(255,255,255,0.02)" : "rgba(255,255,255,0.04)" }}>
+                  style={{background:i%2===0?'rgba(255,255,255,0.02)':'rgba(255,255,255,0.04)'}}>
                   <span className="text-slate-400">{l}</span>
                   <span className="font-semibold text-white">{v}</span>
                 </div>
@@ -382,48 +554,50 @@ function DetailModal({ ipo, onClose, onEdit, onDelete, deleting, isAdmin }: {
             </div>
           </div>
 
+          {/* Dates */}
           <div>
             <h3 className="text-base font-bold text-white mb-3 flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-[#D4A843]" />Important Dates
+              <Calendar className="w-4 h-4 text-[#D4A843]"/>Important Dates
             </h3>
-            <div className="rounded-xl overflow-hidden" style={{ border: "1px solid rgba(255,255,255,0.08)" }}>
+            <div className="rounded-xl overflow-hidden" style={{border:'1px solid rgba(255,255,255,0.08)'}}>
               {[
-                ['Open Date', ipo.openDate, 'text-emerald-400'],
-                ['Close Date', ipo.closeDate, 'text-orange-400'],
-                ...(ipo.allotmentDate ? [['Allotment Date', ipo.allotmentDate, 'text-blue-400']] : []),
-                ...(ipo.refundDate    ? [['Refund / UPI',   ipo.refundDate,    'text-slate-400']] : []),
-                ...(ipo.listingDate   ? [['Listing Date',   ipo.listingDate,   'text-purple-400']] : []),
-              ].map(([l,v,cls],i) => (
+                ['Open Date',    ipo.openDate,      'text-emerald-400'],
+                ['Close Date',   ipo.closeDate,     'text-orange-400'],
+                ...(ipo.allotmentDate?[['Allotment',  ipo.allotmentDate,'text-blue-400']]:[]),
+                ...(ipo.refundDate?   [['Refund/UPI', ipo.refundDate,   'text-slate-400']]:[]),
+                ...(ipo.listingDate?  [['Listing',    ipo.listingDate,  'text-purple-400']]:[]),
+              ].map(([l,v,cls],i)=>(
                 <div key={i} className="flex items-center justify-between px-4 py-3 text-sm"
-                  style={{ background: i%2===0 ? "rgba(255,255,255,0.02)" : "rgba(255,255,255,0.04)" }}>
+                  style={{background:i%2===0?'rgba(255,255,255,0.02)':'rgba(255,255,255,0.04)'}}>
                   <span className="text-slate-400">{l}</span>
-                  <span className={`font-semibold ${cls}`}>{v}</span>
+                  <span className={`font-semibold ${cls}`}>{fmtDate(v as string)}</span>
                 </div>
               ))}
             </div>
           </div>
 
-          {(ipo.subscriptionStatus||ipo.gmp||ipo.listingGain!=null) && (
+          {/* Performance */}
+          {(ipo.subscriptionStatus||ipo.gmp||ipo.listingGain!=null)&&(
             <div>
               <h3 className="text-base font-bold text-white mb-3 flex items-center gap-2">
-                <BarChart3 className="w-4 h-4 text-[#D4A843]" />Performance
+                <BarChart3 className="w-4 h-4 text-[#D4A843]"/>Performance
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                {ipo.subscriptionStatus && (
+                {ipo.subscriptionStatus&&(
                   <div className="bg-green-500/10 border border-green-500/20 rounded-xl p-4 text-center">
                     <p className="text-xs text-slate-400 mb-1">Subscription</p>
                     <p className="text-2xl font-bold text-emerald-400">{ipo.subscriptionStatus}</p>
                     <p className="text-xs text-slate-400">times</p>
                   </div>
                 )}
-                {ipo.gmp!=null&&ipo.gmp>0 && (
+                {ipo.gmp!=null&&ipo.gmp>0&&(
                   <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4 text-center">
                     <p className="text-xs text-slate-400 mb-1">GMP</p>
                     <p className="text-2xl font-bold text-blue-400">+₹{ipo.gmp}</p>
                     <p className="text-xs text-slate-400">grey market</p>
                   </div>
                 )}
-                {ipo.listingGain!=null && (
+                {ipo.listingGain!=null&&(
                   <div className={`rounded-xl p-4 text-center border ${ipo.listingGain>=0?'bg-green-500/10 border-green-500/20':'bg-red-500/10 border-red-500/20'}`}>
                     <p className="text-xs text-slate-400 mb-1">Listing Gain</p>
                     <p className={`text-2xl font-bold ${ipo.listingGain>=0?'text-emerald-400':'text-red-400'}`}>
@@ -436,9 +610,10 @@ function DetailModal({ ipo, onClose, onEdit, onDelete, deleting, isAdmin }: {
             </div>
           )}
 
-          <div className="rounded-xl p-4" style={{ background: "rgba(212,168,67,0.05)", border: "1px solid rgba(212,168,67,0.15)" }}>
+          {/* Min Investment summary */}
+          <div className="rounded-xl p-4" style={{background:'rgba(212,168,67,0.05)',border:'1px solid rgba(212,168,67,0.15)'}}>
             <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
-              <IndianRupee className="w-4 h-4 text-[#D4A843]" />Minimum Investment
+              <IndianRupee className="w-4 h-4 text-[#D4A843]"/>Minimum Investment
             </h3>
             <div className="flex items-center justify-between">
               <div><p className="text-xs text-slate-400">Lot Size</p><p className="text-lg font-bold text-white">{ipo.lotSize} shares</p></div>
@@ -446,153 +621,129 @@ function DetailModal({ ipo, onClose, onEdit, onDelete, deleting, isAdmin }: {
             </div>
           </div>
 
-          <div className="flex gap-3">
-            <button
-              onClick={()=>ipo.rhpLink?window.open(ipo.rhpLink,'_blank'):null}
-              className="flex-1 py-3 px-4 text-[#0c1a2e] rounded-lg font-semibold text-sm hover:shadow-lg transition-all flex items-center justify-center gap-2"
-              style={{ background: "linear-gradient(135deg,#D4A843,#C4941E)" }}>
-              <FileText className="w-4 h-4" />View RHP / DRHP
-            </button>
-            <button className="flex-1 py-3 px-4 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white rounded-lg font-semibold text-sm hover:shadow-lg transition-all flex items-center justify-center gap-2">
-              <ExternalLink className="w-4 h-4" />Apply via ASBA
-            </button>
-          </div>
+          {/* SWOT — from backend, visible to everyone */}
+          <SwotAnalysis ipo={ipo}/>
+
+          {/* CTA — ASBA removed, only RHP */}
+          <button
+            onClick={()=>ipo.rhpLink?window.open(ipo.rhpLink,'_blank'):null}
+            disabled={!ipo.rhpLink}
+            className="w-full py-3 px-4 text-[#0c1a2e] rounded-lg font-semibold text-sm hover:shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
+            style={{background:'linear-gradient(135deg,#D4A843,#C4941E)'}}>
+            <FileText className="w-4 h-4"/>View RHP / DRHP
+          </button>
         </div>
       </div>
     </div>
   );
 }
 
-// ─── IPO CARD ─────────────────────────────────────────────────────────────────
+/* ═══════════════════════════════════════════════════════════════════
+   IPO CARD
+═══════════════════════════════════════════════════════════════════ */
 function IPOCard({ ipo, onViewDetail, onEdit, onDelete, isAdmin }: {
-  ipo: IPO; onViewDetail:()=>void; onEdit:()=>void; onDelete:()=>void; isAdmin: boolean;
+  ipo:IPO; onViewDetail:()=>void; onEdit:()=>void; onDelete:()=>void; isAdmin:boolean;
 }) {
   const { theme } = useTheme();
-  const isLight = theme === "light";
+  const isLight = theme === 'light';
   return (
     <div
       className="rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden group hover:-translate-y-0.5 flex flex-col min-h-[360px]"
-      style={{ background: isLight ? "rgba(255,255,255,0.70)" : "rgba(255,255,255,0.04)", border: isLight ? "1px solid rgba(13,37,64,0.12)" : "1px solid rgba(255,255,255,0.08)" }}
-      onMouseEnter={e => (e.currentTarget.style.borderColor = "rgba(212,168,67,0.40)")}
-      onMouseLeave={e => (e.currentTarget.style.borderColor = isLight ? "rgba(13,37,64,0.12)" : "rgba(255,255,255,0.08)")}>
+      style={{background:isLight?'rgba(255,255,255,0.70)':'rgba(255,255,255,0.04)',border:isLight?'1px solid rgba(13,37,64,0.12)':'1px solid rgba(255,255,255,0.08)'}}
+      onMouseEnter={e=>(e.currentTarget.style.borderColor='rgba(212,168,67,0.40)')}
+      onMouseLeave={e=>(e.currentTarget.style.borderColor=isLight?'rgba(13,37,64,0.12)':'rgba(255,255,255,0.08)')}>
 
-      {/* Header */}
-      <div className="px-4 pt-4 pb-3" style={{ borderBottom: isLight ? "1px solid rgba(13,37,64,0.08)" : "1px solid rgba(255,255,255,0.06)" }}>
+      <div className="px-4 pt-4 pb-3" style={{borderBottom:isLight?'1px solid rgba(13,37,64,0.08)':'1px solid rgba(255,255,255,0.06)'}}>
         <div className="flex items-center justify-between mb-2.5">
           <div className="flex items-center gap-2.5 min-w-0">
             <div className="w-10 h-10 rounded-full flex items-center justify-center text-[#D4A843] font-bold text-xs flex-shrink-0"
-              style={{ background: "linear-gradient(135deg,rgba(212,168,67,0.2),rgba(196,148,30,0.1))", border: "1px solid rgba(212,168,67,0.25)" }}>
+              style={{background:'linear-gradient(135deg,rgba(212,168,67,0.2),rgba(196,148,30,0.1))',border:'1px solid rgba(212,168,67,0.25)'}}>
               {ipo.logo}
             </div>
             <div className="min-w-0">
-              <h3 className={`font-bold text-[13px] leading-tight truncate ${isLight ? "text-navy" : "text-white"}`}>{ipo.companyName}</h3>
-              <p className={`text-[11px] mt-0.5 truncate ${isLight ? "text-navy/60" : "text-slate-400"}`}>{ipo.industry||'—'}</p>
+              <h3 className={`font-bold text-[13px] leading-tight truncate ${isLight?'text-navy':'text-white'}`}>{ipo.companyName}</h3>
+              <p className={`text-[11px] mt-0.5 truncate ${isLight?'text-navy/60':'text-slate-400'}`}>{ipo.industry||'—'}</p>
             </div>
           </div>
-          {isAdmin && (
+          {isAdmin&&(
             <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 ml-1">
               <button onClick={e=>{e.stopPropagation();onEdit();}}
-                className="w-6 h-6 rounded-md flex items-center justify-center text-[#D4A843] transition-all"
-                style={{ background: "rgba(212,168,67,0.10)" }}>
-                <Edit3 className="w-3 h-3" />
+                className="w-6 h-6 rounded-md flex items-center justify-center text-[#D4A843]" style={{background:'rgba(212,168,67,0.10)'}}>
+                <Edit3 className="w-3 h-3"/>
               </button>
               <button onClick={e=>{e.stopPropagation();onDelete();}}
-                className="w-6 h-6 rounded-md flex items-center justify-center text-red-400 transition-all"
-                style={{ background: "rgba(239,68,68,0.10)" }}>
-                <Trash2 className="w-3 h-3" />
+                className="w-6 h-6 rounded-md flex items-center justify-center text-red-400" style={{background:'rgba(239,68,68,0.10)'}}>
+                <Trash2 className="w-3 h-3"/>
               </button>
             </div>
           )}
         </div>
         <div className="flex items-center justify-between">
-          <StatusBadge status={ipo.status} />
-          <Stars rating={ipo.rating} />
+          <StatusBadge status={ipo.status}/><Stars rating={ipo.rating}/>
         </div>
       </div>
 
-      {/* Body */}
       <div className="px-4 py-4 flex-1 space-y-3">
         <div className="grid grid-cols-2 gap-x-3 gap-y-3">
-          <div>
-            <p className={`text-[9px] uppercase tracking-wider ${isLight ? "text-navy/50" : "text-slate-500"}`}>Price Band</p>
-            <p className={`text-xs font-bold leading-tight mt-0.5 ${isLight ? "text-navy" : "text-white"}`}>{ipo.priceRange}</p>
-          </div>
-          <div>
-            <p className={`text-[9px] uppercase tracking-wider ${isLight ? "text-navy/50" : "text-slate-500"}`}>Lot Size</p>
-            <p className={`text-xs font-semibold leading-tight mt-0.5 ${isLight ? "text-navy" : "text-white"}`}>{ipo.lotSize} shares</p>
-          </div>
-          <div>
-            <p className={`text-[9px] uppercase tracking-wider ${isLight ? "text-navy/50" : "text-slate-500"}`}>Min. Investment</p>
-            <p className="text-xs font-bold text-[#D4A843] leading-tight mt-0.5">{ipo.minInvestment}</p>
-          </div>
-          <div>
-            <p className={`text-[9px] uppercase tracking-wider ${isLight ? "text-navy/50" : "text-slate-500"}`}>Issue Size</p>
-            <p className={`text-xs font-semibold leading-tight mt-0.5 ${isLight ? "text-navy" : "text-white"}`}>{ipo.issueSize}</p>
-          </div>
+          {[
+            ['Price Band',    ipo.priceRange,    isLight?'text-navy':'text-white',    true],
+            ['Lot Size',      `${ipo.lotSize} shares`, isLight?'text-navy':'text-white', false],
+            ['Min. Investment', ipo.minInvestment, 'text-[#D4A843]',                  true],
+            ['Issue Size',    ipo.issueSize,      isLight?'text-navy':'text-white',    false],
+          ].map(([lbl,val,cls,bold],i)=>(
+            <div key={i}>
+              <p className={`text-[9px] uppercase tracking-wider ${isLight?'text-navy/50':'text-slate-500'}`}>{lbl as string}</p>
+              <p className={`text-xs leading-tight mt-0.5 ${cls} ${bold?'font-bold':'font-semibold'}`}>{val as string}</p>
+            </div>
+          ))}
         </div>
-
-        <div className={`flex items-center gap-1.5 text-[11px] pt-3 ${isLight ? "text-navy/60" : "text-slate-400"}`}
-          style={{ borderTop: isLight ? "1px solid rgba(13,37,64,0.08)" : "1px solid rgba(255,255,255,0.06)" }}>
-          <Calendar className="w-3 h-3 flex-shrink-0" />
-          <span>{ipo.openDate}</span>
+        <div className={`flex items-center gap-1.5 text-[11px] pt-3 ${isLight?'text-navy/60':'text-slate-400'}`}
+          style={{borderTop:isLight?'1px solid rgba(13,37,64,0.08)':'1px solid rgba(255,255,255,0.06)'}}>
+          <Calendar className="w-3 h-3 flex-shrink-0"/>
+          <span>{fmtDate(ipo.openDate)}</span>
           <span>→</span>
-          <span>{ipo.closeDate}</span>
-          {ipo.listingDate && <span className="ml-auto text-purple-400 font-medium text-[10px]">{ipo.listingDate}</span>}
+          <span>{fmtDate(ipo.closeDate)}</span>
+          {ipo.listingDate&&<span className="ml-auto text-purple-400 font-medium text-[10px]">{fmtDate(ipo.listingDate)}</span>}
         </div>
-
-        {(ipo.subscriptionStatus || (ipo.gmp!=null&&ipo.gmp>0) || ipo.listingGain!=null) && (
+        {(ipo.subscriptionStatus||(ipo.gmp!=null&&ipo.gmp>0)||ipo.listingGain!=null)&&(
           <div className="flex flex-wrap gap-1 pt-0.5">
-            {ipo.subscriptionStatus && (
-              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-green-500/10 border border-green-500/20 rounded-full text-[10px] font-bold text-emerald-400">
-                <Users className="w-2.5 h-2.5" />{ipo.subscriptionStatus}
-              </span>
-            )}
-            {ipo.gmp!=null&&ipo.gmp>0 && (
-              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-blue-500/10 border border-blue-500/20 rounded-full text-[10px] font-bold text-blue-400">
-                <Target className="w-2.5 h-2.5" />₹{ipo.gmp}
-              </span>
-            )}
-            {ipo.listingGain!=null && (
-              <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-bold border ${ipo.listingGain>=0?'bg-green-500/10 border-green-500/20 text-emerald-400':'bg-red-500/10 border-red-500/20 text-red-400'}`}>
-                {ipo.listingGain>=0?<TrendingUp className="w-2.5 h-2.5"/>:<TrendingDown className="w-2.5 h-2.5"/>}
-                {ipo.listingGain>=0?'+':''}{ipo.listingGain}%
-              </span>
-            )}
-            <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] ml-auto ${isLight ? "text-navy/60" : "text-slate-400"}`}
-              style={{ background: isLight ? "rgba(13,37,64,0.06)" : "rgba(255,255,255,0.05)" }}>{ipo.exchange}</span>
+            {ipo.subscriptionStatus&&<span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-green-500/10 border border-green-500/20 rounded-full text-[10px] font-bold text-emerald-400"><Users className="w-2.5 h-2.5"/>{ipo.subscriptionStatus}</span>}
+            {ipo.gmp!=null&&ipo.gmp>0&&<span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-blue-500/10 border border-blue-500/20 rounded-full text-[10px] font-bold text-blue-400"><Target className="w-2.5 h-2.5"/>₹{ipo.gmp}</span>}
+            {ipo.listingGain!=null&&<span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-bold border ${ipo.listingGain>=0?'bg-green-500/10 border-green-500/20 text-emerald-400':'bg-red-500/10 border-red-500/20 text-red-400'}`}>{ipo.listingGain>=0?<TrendingUp className="w-2.5 h-2.5"/>:<TrendingDown className="w-2.5 h-2.5"/>}{ipo.listingGain>=0?'+':''}{ipo.listingGain}%</span>}
+            <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] ml-auto ${isLight?'text-navy/60':'text-slate-400'}`} style={{background:isLight?'rgba(13,37,64,0.06)':'rgba(255,255,255,0.05)'}}>{ipo.exchange}</span>
           </div>
         )}
       </div>
 
-      {/* Footer */}
       <div className="px-4 pb-4 pt-2">
         <button onClick={onViewDetail}
           className="w-full py-2 px-3 text-[#0c1a2e] rounded-lg font-semibold text-xs hover:shadow-md transition-all flex items-center justify-center gap-1.5 group/btn"
-          style={{ background: "linear-gradient(135deg,#D4A843,#C4941E)" }}>
-          View Details<ArrowRight className="w-3.5 h-3.5 group-hover/btn:translate-x-0.5 transition-transform" />
+          style={{background:'linear-gradient(135deg,#D4A843,#C4941E)'}}>
+          View Details<ArrowRight className="w-3.5 h-3.5 group-hover/btn:translate-x-0.5 transition-transform"/>
         </button>
       </div>
     </div>
   );
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// MAIN PAGE
-// ═══════════════════════════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════════════════════
+   MAIN PAGE
+═══════════════════════════════════════════════════════════════════ */
 export default function IPOPage() {
-  const navigate = useNavigate();
+  const navigate    = useNavigate();
   const { isAdmin } = useAuth();
-  const { theme } = useTheme();
-  const isLight = theme === "light";
+  const { theme }   = useTheme();
+  const isLight     = theme === 'light';
 
-  const [ipos,      setIpos]      = useState<IPO[]>([]);
-  const [counts,    setCounts]    = useState<Counts>({ open:0, upcoming:0, closed:0, listed:0, total:0 });
-  const [activeTab, setActiveTab] = useState<IPOStatus>('open');
-  const [search,    setSearch]    = useState('');
-  const [sortBy,    setSortBy]    = useState<'default'|'gmp'|'rating'>('default');
-  const [catFilter, setCatFilter] = useState<''|'Mainboard'|'SME'>('');
-  const [loading,   setLoading]   = useState(true);
-  const [error,     setError]     = useState<string|null>(null);
+  const [ipos,       setIpos]      = useState<IPO[]>([]);
+  const [counts,     setCounts]    = useState<Counts>({ open:0, upcoming:0, closed:0, total:0 });
+  const [activeTab,  setActiveTab] = useState<IPOStatus>('open');
+  const [search,     setSearch]    = useState('');
+  const [sortBy,     setSortBy]    = useState<'default'|'gmp'|'rating'>('default');
+  const [catFilter,  setCatFilter] = useState<''|'Mainboard'|'SME'>('');
+  const [loading,    setLoading]   = useState(true);
+  const [error,      setError]     = useState<string|null>(null);
+  const [showAll,    setShowAll]   = useState(false);
 
   const [selectedIPO, setSelectedIPO] = useState<IPO|null>(null);
   const [detailOpen,  setDetailOpen]  = useState(false);
@@ -605,17 +756,17 @@ export default function IPOPage() {
   const timer = useRef<any>(null);
 
   const fetchIPOs = useCallback(async () => {
-    const params = new URLSearchParams();
-    if (!isSearching) params.set('status', activeTab);
-    else              params.set('search', search.trim());
-    if (sortBy !== 'default') params.set('sort', sortBy);
-    if (catFilter)            params.set('category', catFilter);
+    const p = new URLSearchParams();
+    if (!isSearching) p.set('status', activeTab);
+    else              p.set('search', search.trim());
+    if (sortBy !== 'default') p.set('sort', sortBy);
+    if (catFilter)            p.set('category', catFilter);
     setLoading(true); setError(null);
     try {
-      const data = await callAPI(`${IPO_ENDPOINT}?${params}`);
+      const data = await callAPI(`${IPO_ENDPOINT}?${p}`);
       setIpos(data.ipos ?? []);
-      setCounts(data.counts ?? { open:0, upcoming:0, closed:0, listed:0, total:0 });
-    } catch (e: any) { setError(e.message); }
+      setCounts(data.counts ?? { open:0, upcoming:0, closed:0, total:0 });
+    } catch (e:any) { setError(e.message); }
     finally { setLoading(false); }
   }, [activeTab, search, sortBy, catFilter, isSearching]);
 
@@ -624,6 +775,9 @@ export default function IPOPage() {
     timer.current = setTimeout(fetchIPOs, isSearching ? 400 : 0);
     return () => clearTimeout(timer.current);
   }, [fetchIPOs, isSearching]);
+
+  // reset showAll on filter change
+  useEffect(() => { setShowAll(false); }, [activeTab, search, catFilter, sortBy]);
 
   const handleAdd = async (data: Omit<IPO,'_id'>) => {
     setSaving(true);
@@ -638,267 +792,265 @@ export default function IPOPage() {
   };
 
   const handleDelete = async (ipo: IPO) => {
-    if (!confirm(`Are you sure you want to delete "${ipo.companyName}"?`)) return; setDeleting(true);
+    if (!confirm(`Delete "${ipo.companyName}"?`)) return; setDeleting(true);
     try { await callAPI(`${IPO_ENDPOINT}/${ipo._id}`,{method:'DELETE'}); setDetailOpen(false); setSelectedIPO(null); await fetchIPOs(); }
     catch (e:any) { alert('❌ '+e.message); } finally { setDeleting(false); }
   };
 
+  const visibleIpos = showAll ? ipos : ipos.slice(0, 3);
+
+  /* shared dropdown style for filter bar */
+  const fSelBg  = isLight ? '#ffffff' : '#1a2d48';
+  const fSelTxt = isLight ? '#0d1b2a' : '#ffffff';
+  const fBdr    = isLight ? 'rgba(13,37,64,0.15)' : 'rgba(255,255,255,0.10)';
+  const fBg     = isLight ? 'rgba(13,37,64,0.05)' : 'rgba(255,255,255,0.05)';
+
   return (
     <>
-      <Header />
-      <div className="min-h-screen" style={{ background: isLight ? "linear-gradient(160deg,#dce8f7 0%,#e8f2fd 45%,#dce8f7 100%)" : "linear-gradient(160deg,#0c1a2e 0%,#0e2038 45%,#0b1825 100%)" }}>
+      <Header/>
+      <div className="min-h-screen"
+        style={{background:isLight?'linear-gradient(160deg,#dce8f7 0%,#e8f2fd 45%,#dce8f7 100%)':'linear-gradient(160deg,#0c1a2e 0%,#0e2038 45%,#0b1825 100%)'}}>
 
-        {/* ── HERO BANNER ─────────────────────────────────────────────────── */}
+        {/* HERO */}
         <section className="relative overflow-hidden pt-10 pb-6 md:pt-14 md:pb-8"
-          style={{ background: isLight ? "linear-gradient(135deg,#edf5fe 0%,#dce8f7 50%,#e8f2fd 100%)" : "linear-gradient(135deg,#0a1628 0%,#0e2038 50%,#0c1a2e 100%)", borderBottom: isLight ? "1px solid rgba(13,37,64,0.1)" : "1px solid rgba(255,255,255,0.06)" }}>
-          {/* Decorative glows */}
-          <div className="absolute top-0 right-0 w-80 h-80 rounded-full blur-[100px] pointer-events-none"
-            style={{ background: "radial-gradient(circle,rgba(212,168,67,0.10) 0%,transparent 70%)" }} />
-          <div className="absolute bottom-0 left-0 w-64 h-64 rounded-full blur-[80px] pointer-events-none"
-            style={{ background: "radial-gradient(circle,rgba(56,189,248,0.06) 0%,transparent 70%)" }} />
+          style={{background:isLight?'linear-gradient(135deg,#edf5fe,#dce8f7,#e8f2fd)':'linear-gradient(135deg,#0a1628,#0e2038,#0c1a2e)',borderBottom:isLight?'1px solid rgba(13,37,64,0.10)':'1px solid rgba(255,255,255,0.06)'}}>
+          <div className="absolute top-0 right-0 w-80 h-80 rounded-full blur-[100px] pointer-events-none" style={{background:'radial-gradient(circle,rgba(212,168,67,0.10) 0%,transparent 70%)'}}/>
+          <div className="absolute bottom-0 left-0 w-64 h-64 rounded-full blur-[80px] pointer-events-none" style={{background:'radial-gradient(circle,rgba(56,189,248,0.06) 0%,transparent 70%)'}}/>
 
           <div className="container mx-auto px-4 md:px-6 relative z-10 space-y-5">
-
-            {/* Title row */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div>
                 <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-2"
-                  style={{ background: "rgba(212,168,67,0.1)", border: "1px solid rgba(212,168,67,0.2)" }}>
-                  <Zap className="w-3.5 h-3.5 text-[#D4A843]" />
+                  style={{background:'rgba(212,168,67,0.1)',border:'1px solid rgba(212,168,67,0.2)'}}>
+                  <Zap className="w-3.5 h-3.5 text-[#D4A843]"/>
                   <span className="text-xs font-medium text-[#D4A843]">Live IPO Tracker</span>
                 </div>
-                <h1 className={`text-3xl md:text-4xl font-bold ${isLight ? "text-navy" : "text-white"}`}>
+                <h1 className={`text-3xl md:text-4xl font-bold ${isLight?'text-navy':'text-white'}`}>
                   All{' '}
-                  <span style={{ background: "linear-gradient(135deg,#D4A843,#F0C84A)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-                    IPOs
-                  </span>
+                  <span style={{background:'linear-gradient(135deg,#D4A843,#F0C84A)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent'}}>IPOs</span>
                 </h1>
-                <p className={`mt-1 text-sm ${isLight ? "text-navy/60" : "text-slate-400"}`}>
-                  Total <span className={`font-bold ${isLight ? "text-navy" : "text-white"}`}>{counts.total}</span> IPOs — NSE / BSE / SME
+                <p className={`mt-1 text-sm ${isLight?'text-navy/60':'text-slate-400'}`}>
+                  Total <span className={`font-bold ${isLight?'text-navy':'text-white'}`}>{counts.total}</span> IPOs — NSE / BSE / SME
                 </p>
               </div>
             </div>
 
-            {/* ══ CONTROL BAR: [tabs] | [search] | [filters + actions] ════════ */}
+            {/* ── CONTROL BAR ── */}
             <div className="flex flex-col gap-3">
-
-              {/* Row 1 on desktop: tabs + search + actions all in one line */}
               <div className="flex flex-col lg:flex-row gap-3 items-stretch lg:items-center">
 
-                {/* Status tabs */}
+                {/* Status tabs — "listed" tab removed */}
                 <div className="flex flex-wrap gap-2 flex-shrink-0">
-                  {(['open','upcoming','closed','listed'] as IPOStatus[]).map(s => (
-                    <button
-                      key={s}
-                      onClick={() => { setActiveTab(s); setSearch(''); }}
+                  {(['open','upcoming','closed'] as IPOStatus[]).map(s=>(
+                    <button key={s}
+                      onClick={()=>{setActiveTab(s);setSearch('');}}
                       className="px-3 py-2 rounded-xl text-sm font-semibold transition-all whitespace-nowrap"
-                      style={activeTab===s && !isSearching
-                        ? { background: "linear-gradient(135deg,#D4A843,#C4941E)", color: "#0c1a2e" }
-                        : isLight
-                          ? { background: "rgba(13,37,64,0.05)", border: "1px solid rgba(13,37,64,0.15)", color: "rgba(13,37,64,0.70)" }
-                          : { background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.60)" }}>
+                      style={activeTab===s&&!isSearching
+                        ?{background:'linear-gradient(135deg,#D4A843,#C4941E)',color:'#0c1a2e'}
+                        :isLight
+                          ?{background:'rgba(13,37,64,0.05)',border:'1px solid rgba(13,37,64,0.15)',color:'rgba(13,37,64,0.70)'}
+                          :{background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.12)',color:'rgba(255,255,255,0.60)'}}>
                       {STATUS_CFG[s].label}
                       <span className="ml-1.5 text-[11px] opacity-80">({counts[s]})</span>
                     </button>
                   ))}
                 </div>
 
-                {/* ── SEARCH BAR (centre) ── */}
+                {/* Search */}
                 <div className="relative flex-1 min-w-0">
-                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-                  <input
-                    type="text"
-                    placeholder="Search company name or industry… (all statuses)"
-                    value={search}
-                    onChange={e => setSearch(e.target.value)}
-                    className={`w-full rounded-xl pl-10 pr-10 py-2.5 text-sm focus:outline-none transition-all ${isLight ? "text-navy placeholder:text-navy/40" : "text-white placeholder:text-slate-500"}`}
-                    style={{ background: isLight ? "rgba(13,37,64,0.05)" : "rgba(255,255,255,0.06)", border: `1px solid ${isSearching ? 'rgba(212,168,67,0.50)' : (isLight ? 'rgba(13,37,64,0.15)' : 'rgba(255,255,255,0.12)')}` }}
+                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none"/>
+                  <input type="text" placeholder="Search company or industry…"
+                    value={search} onChange={e=>setSearch(e.target.value)}
+                    className={`w-full rounded-xl pl-10 pr-10 py-2.5 text-sm focus:outline-none transition-all ${isLight?'text-navy placeholder:text-navy/40':'text-white placeholder:text-slate-500'}`}
+                    style={{background:isLight?'rgba(13,37,64,0.05)':'rgba(255,255,255,0.06)',border:`1px solid ${isSearching?'rgba(212,168,67,0.50)':isLight?'rgba(13,37,64,0.15)':'rgba(255,255,255,0.12)'}`}}
                   />
-                  {search && (
-                    <button
-                      onClick={() => setSearch('')}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors">
-                      <X className="w-4 h-4" />
-                    </button>
-                  )}
+                  {search&&<button onClick={()=>setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors"><X className="w-4 h-4"/></button>}
                 </div>
 
-                {/* Right-side actions */}
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  {/* Sort */}
+                {/* Right actions */}
+                <div className="flex items-center gap-2 flex-shrink-0 flex-wrap">
+
+                  {/* Sort dropdown */}
                   <div className="relative">
-                    <select
-                      value={sortBy}
-                      onChange={e => setSortBy(e.target.value as any)}
-                      className={`appearance-none rounded-xl pl-3 pr-8 py-2.5 text-sm focus:outline-none cursor-pointer h-full ${isLight ? "text-navy" : "text-white"}`}
-                      style={{ background: isLight ? "rgba(13,37,64,0.05)" : "rgba(255,255,255,0.05)", border: isLight ? "1px solid rgba(13,37,64,0.15)" : "1px solid rgba(255,255,255,0.10)" }}>
-                      <option value="default" className='text-black'>Sort</option>
-                      <option value="gmp"  className='text-black'>GMP ↓</option>
-                      <option value="rating"  className='text-black'>Rating ↓</option>
+                    <select value={sortBy} onChange={e=>setSortBy(e.target.value as any)}
+                      className="appearance-none rounded-xl pl-3 pr-7 py-2.5 text-sm focus:outline-none cursor-pointer"
+                      style={{background:fSelBg,border:`1px solid ${fBdr}`,color:fSelTxt}}>
+                      <option value="default" style={{background:fSelBg,color:fSelTxt}}>Sort: Default</option>
+                      <option value="gmp"     style={{background:fSelBg,color:fSelTxt}}>Sort: GMP ↓</option>
+                      <option value="rating"  style={{background:fSelBg,color:fSelTxt}}>Sort: Rating ↓</option>
                     </select>
-                    <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
+                    <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400 pointer-events-none"/>
                   </div>
 
-                  {/* Category */}
-                  <div className="relative">
-                    <select
-                      value={catFilter}
-                      onChange={e => setCatFilter(e.target.value as any)}
-                      className={`appearance-none rounded-xl pl-3 pr-8 py-2.5 text-sm focus:outline-none cursor-pointer h-full ${isLight ? "text-navy" : "text-white"}`}
-                      style={{ background: isLight ? "rgba(13,37,64,0.05)" : "rgba(255,255,255,0.05)", border: isLight ? "1px solid rgba(13,37,64,0.15)" : "1px solid rgba(255,255,255,0.10)" }}>
-                      <option value="" className='text-black'>All</option>
-                      <option value="Mainboard" className='text-black'>Mainboard</option>
-                      <option value="SME" className='text-black'>SME</option>
+                  {/* ── Segment / Category dropdown (replaces All|Mainboard|SME buttons) ── */}
+                  <div className="relative flex items-center gap-1.5 rounded-xl px-3 py-2.5"
+                    style={{background:fBg,border:`1px solid ${fBdr}`}}>
+                    <Filter className={`w-3.5 h-3.5 flex-shrink-0 ${isLight?'text-navy/50':'text-slate-400'}`}/>
+                    <select value={catFilter} onChange={e=>setCatFilter(e.target.value as any)}
+                      className="text-sm focus:outline-none cursor-pointer bg-transparent pr-5 appearance-none"
+                      style={{color:isLight?'rgba(13,37,64,0.75)':'rgba(255,255,255,0.80)',background:'transparent'}}>
+                      <option value=""          style={{background:fSelBg,color:fSelTxt}}>All Segments</option>
+                      <option value="Mainboard" style={{background:fSelBg,color:fSelTxt}}>Mainboard IPO</option>
+                      <option value="SME"       style={{background:fSelBg,color:fSelTxt}}>SME IPO</option>
                     </select>
-                    <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
+                    <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400 pointer-events-none"/>
                   </div>
 
                   {/* Refresh */}
-                  <button
-                    onClick={fetchIPOs}
-                    disabled={loading}
-                    title="Refresh"
-                    className={`p-2.5 rounded-xl transition-all flex-shrink-0 ${isLight ? "text-navy/50 hover:text-navy" : "text-slate-400 hover:text-white"}`}
-                    style={{ background: isLight ? "rgba(13,37,64,0.05)" : "rgba(255,255,255,0.04)", border: isLight ? "1px solid rgba(13,37,64,0.1)" : "1px solid rgba(255,255,255,0.08)" }}>
-                    <RefreshCw className={`w-4 h-4 ${loading?'animate-spin':''}`} />
+                  <button onClick={fetchIPOs} disabled={loading} title="Refresh"
+                    className={`p-2.5 rounded-xl transition-all flex-shrink-0 ${isLight?'text-navy/50 hover:text-navy':'text-slate-400 hover:text-white'}`}
+                    style={{background:isLight?'rgba(13,37,64,0.05)':'rgba(255,255,255,0.04)',border:isLight?'1px solid rgba(13,37,64,0.10)':'1px solid rgba(255,255,255,0.08)'}}>
+                    <RefreshCw className={`w-4 h-4 ${loading?'animate-spin':''}`}/>
                   </button>
 
-                  {/* Add IPO (admin only) */}
-                  {isAdmin && (
-                    <button
-                      onClick={() => { setEditIPO(null); setFormOpen(true); }}
-                      className="flex items-center gap-2 px-4 py-2.5 text-[#0c1a2e] rounded-xl font-bold text-sm hover:shadow-lg transition-all whitespace-nowrap flex-shrink-0"
-                      style={{ background: "linear-gradient(135deg,#D4A843,#C4941E)" }}>
-                      <Plus className="w-4 h-4" />
+                  {/* Add IPO (admin) */}
+                  {isAdmin&&(
+                    <button onClick={()=>{setEditIPO(null);setFormOpen(true);}}
+                      className="flex items-center gap-2 px-4 py-2.5 text-[#0c1a2e] rounded-xl font-bold text-sm hover:shadow-lg transition-all whitespace-nowrap"
+                      style={{background:'linear-gradient(135deg,#D4A843,#C4941E)'}}>
+                      <Plus className="w-4 h-4"/>
                       <span className="hidden sm:inline">Add IPO</span>
                     </button>
                   )}
                 </div>
               </div>
 
-              {/* Search result hint */}
-              {isSearching && !loading && (
-                <div className={`flex items-center gap-2 text-sm ${isLight ? "text-navy/60" : "text-slate-400"}`}>
-                  <Search className="w-3.5 h-3.5 text-[#D4A843]" />
-                  <span>
-                    Found{' '}
-                    <strong className={isLight ? "text-navy" : "text-white"}>{ipos.length}</strong>{' '}
-                    IPO{ipos.length !== 1 ? 's' : ''} for{' '}
-                    <span className="text-[#D4A843]">"{search}"</span>
-                    {' '}— searching across all statuses
-                  </span>
-                  <button
-                    onClick={() => setSearch('')}
-                    className="ml-auto text-xs text-[#D4A843] hover:underline">
-                    Clear search
-                  </button>
+              {/* Search hint */}
+              {isSearching&&!loading&&(
+                <div className={`flex items-center gap-2 text-sm ${isLight?'text-navy/60':'text-slate-400'}`}>
+                  <Search className="w-3.5 h-3.5 text-[#D4A843]"/>
+                  <span>Found <strong className={isLight?'text-navy':'text-white'}>{ipos.length}</strong> IPO{ipos.length!==1?'s':''} for <span className="text-[#D4A843]">"{search}"</span></span>
+                  <button onClick={()=>setSearch('')} className="ml-auto text-xs text-[#D4A843] hover:underline">Clear</button>
                 </div>
               )}
             </div>
           </div>
         </section>
 
-        {/* ── MAIN CONTENT ────────────────────────────────────────────────── */}
+        {/* CONTENT */}
         <div className="container mx-auto px-4 md:px-6 py-8">
 
-          {/* Loading */}
-          {loading && (
+          {loading&&(
             <div className="flex flex-col items-center justify-center py-24 gap-3">
-              <Loader2 className="w-10 h-10 text-[#D4A843] animate-spin" />
+              <Loader2 className="w-10 h-10 text-[#D4A843] animate-spin"/>
               <p className="text-slate-400 text-sm">Loading IPOs...</p>
             </div>
           )}
 
-          {/* Error */}
-          {error && !loading && (
+          {error&&!loading&&(
             <div className="text-center py-16">
-              <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-              <h3 className={`text-xl font-semibold mb-2 ${isLight ? "text-navy" : "text-white"}`}>Something went wrong</h3>
-              <p className={`text-sm font-mono px-4 py-2 rounded-lg inline-block ${isLight ? "text-navy/70 bg-navy/5" : "text-slate-400 bg-white/5"}`}>{error}</p>
-              <br />
-              <button onClick={fetchIPOs}
-                className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all"
-                style={{ background: "rgba(212,168,67,0.1)", border: "1px solid rgba(212,168,67,0.2)", color: "#D4A843" }}>
-                <RefreshCw className="w-4 h-4" />Try Again
+              <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4"/>
+              <h3 className={`text-xl font-semibold mb-2 ${isLight?'text-navy':'text-white'}`}>Something went wrong</h3>
+              <p className={`text-sm font-mono px-4 py-2 rounded-lg inline-block ${isLight?'text-navy/70 bg-navy/5':'text-slate-400 bg-white/5'}`}>{error}</p>
+              <br/>
+              <button onClick={fetchIPOs} className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold"
+                style={{background:'rgba(212,168,67,0.1)',border:'1px solid rgba(212,168,67,0.2)',color:'#D4A843'}}>
+                <RefreshCw className="w-4 h-4"/>Try Again
               </button>
             </div>
           )}
 
-          {/* Empty state */}
-          {!loading && !error && ipos.length === 0 && (
+          {/* Empty state — fallback to Open/Closed */}
+          {!loading&&!error&&ipos.length===0&&(
             <div className="text-center py-20">
               <div className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-4"
-                style={{ background: "rgba(212,168,67,0.08)", border: "1px solid rgba(212,168,67,0.15)" }}>
-                <Building2 className="w-10 h-10 text-[#D4A843]/40" />
+                style={{background:'rgba(212,168,67,0.08)',border:'1px solid rgba(212,168,67,0.15)'}}>
+                <Building2 className="w-10 h-10 text-[#D4A843]/40"/>
               </div>
-              <h3 className="text-xl font-semibold text-white mb-2">
-                {isSearching
-                  ? `No results for "${search}"`
-                  : `No ${STATUS_CFG[activeTab].label} IPOs yet`}
+              <h3 className={`text-xl font-semibold mb-2 ${isLight?'text-navy':'text-white'}`}>
+                {isSearching?`No results for "${search}"`:`No ${STATUS_CFG[activeTab].label} IPOs right now`}
               </h3>
-              <p className="text-slate-400 mb-5">
-                {isSearching ? 'Try a different company name or industry.' : isAdmin ? 'Add a new IPO to get started!' : 'Check back soon for new IPOs.'}
+              <p className={`text-sm mb-6 ${isLight?'text-navy/60':'text-slate-400'}`}>
+                {isSearching?'Try a different search term.':'Check Open Now or Closed tabs for available IPOs.'}
               </p>
-              {isSearching && (
-                <button onClick={() => setSearch('')}
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold mr-3 transition-all"
-                  style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", color: "#fff" }}>
-                  <X className="w-4 h-4" />Clear Search
-                </button>
-              )}
-              {isAdmin && (
-                <button onClick={() => { setEditIPO(null); setFormOpen(true); }}
-                  className="inline-flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-sm hover:shadow-lg transition-all"
-                  style={{ background: "linear-gradient(135deg,#D4A843,#C4941E)", color: "#0c1a2e" }}>
-                  <Plus className="w-4 h-4" />Add New IPO
-                </button>
-              )}
+              <div className="flex items-center justify-center gap-3 flex-wrap">
+                {!isSearching&&activeTab!=='open'&&(
+                  <button onClick={()=>{setActiveTab('open');setSearch('');}}
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold"
+                    style={{background:'rgba(34,197,94,0.10)',border:'1px solid rgba(34,197,94,0.25)',color:'#22c55e'}}>
+                    <CheckCircle className="w-4 h-4"/>View Open Now
+                  </button>
+                )}
+                {!isSearching&&activeTab!=='closed'&&(
+                  <button onClick={()=>{setActiveTab('closed');setSearch('');}}
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold"
+                    style={{background:'rgba(249,115,22,0.10)',border:'1px solid rgba(249,115,22,0.25)',color:'#f97316'}}>
+                    <AlertCircle className="w-4 h-4"/>View Closed
+                  </button>
+                )}
+                {isSearching&&(
+                  <button onClick={()=>setSearch('')}
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold"
+                    style={{background:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.12)',color:'#fff'}}>
+                    <X className="w-4 h-4"/>Clear Search
+                  </button>
+                )}
+                {isAdmin&&(
+                  <button onClick={()=>{setEditIPO(null);setFormOpen(true);}}
+                    className="inline-flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-sm"
+                    style={{background:'linear-gradient(135deg,#D4A843,#C4941E)',color:'#0c1a2e'}}>
+                    <Plus className="w-4 h-4"/>Add New IPO
+                  </button>
+                )}
+              </div>
             </div>
           )}
 
           {/* IPO Grid */}
-          {!loading && !error && ipos.length > 0 && (
+          {!loading&&!error&&ipos.length>0&&(
             <>
-              <p className="text-sm text-slate-400 mb-4">
-                <span className="text-white font-semibold">{ipos.length}</span> IPO{ipos.length !== 1 ? 's' : ''} showing
-                {!isSearching && (
-                  <span className="ml-1 text-slate-500">
-                    — {STATUS_CFG[activeTab].label}
-                  </span>
-                )}
+              <p className={`text-sm mb-4 ${isLight?'text-navy/60':'text-slate-400'}`}>
+                Showing{' '}
+                <span className={`font-semibold ${isLight?'text-navy':'text-white'}`}>{visibleIpos.length}</span>
+                {!showAll&&ipos.length>3&&<span> of <span className={`font-semibold ${isLight?'text-navy':'text-white'}`}>{ipos.length}</span></span>}
+                {' '}IPO{visibleIpos.length!==1?'s':''}
+                {!isSearching&&<span className={`ml-1 ${isLight?'text-navy/40':'text-slate-500'}`}>— {STATUS_CFG[activeTab].label}</span>}
               </p>
+
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {ipos.map(ipo => (
+                {visibleIpos.map(ipo=>(
                   <IPOCard key={ipo._id} ipo={ipo} isAdmin={isAdmin}
-                    onViewDetail={() => { setSelectedIPO(ipo); setDetailOpen(true); }}
-                    onEdit={() => { setEditIPO(ipo); setFormOpen(true); }}
-                    onDelete={() => handleDelete(ipo)}
+                    onViewDetail={()=>{setSelectedIPO(ipo);setDetailOpen(true);}}
+                    onEdit={()=>{setEditIPO(ipo);setFormOpen(true);}}
+                    onDelete={()=>handleDelete(ipo)}
                   />
                 ))}
               </div>
+
+              {ipos.length>3&&(
+                <div className="flex justify-center mt-8">
+                  <button onClick={()=>setShowAll(v=>!v)}
+                    className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-sm transition-all hover:shadow-lg"
+                    style={showAll
+                      ?{background:isLight?'rgba(13,37,64,0.07)':'rgba(255,255,255,0.06)',border:isLight?'1px solid rgba(13,37,64,0.15)':'1px solid rgba(255,255,255,0.12)',color:isLight?'rgba(13,37,64,0.70)':'rgba(255,255,255,0.70)'}
+                      :{background:'linear-gradient(135deg,rgba(212,168,67,0.15),rgba(196,148,30,0.10))',border:'1px solid rgba(212,168,67,0.30)',color:'#D4A843'}}>
+                    {showAll
+                      ?<><ChevronDown className="w-4 h-4 rotate-180"/>Show Less</>
+                      :<><ChevronDown className="w-4 h-4"/>View All {ipos.length} IPOs</>}
+                  </button>
+                </div>
+              )}
             </>
           )}
         </div>
       </div>
 
-      <Footer />
+      <Footer/>
 
-      {/* Detail Modal */}
-      {detailOpen && selectedIPO && !formOpen && (
+      {detailOpen&&selectedIPO&&!formOpen&&(
         <DetailModal ipo={selectedIPO}
-          onClose={() => { setDetailOpen(false); setSelectedIPO(null); }}
-          onEdit={() => { setEditIPO(selectedIPO); setFormOpen(true); }}
-          onDelete={() => handleDelete(selectedIPO)}
+          onClose={()=>{setDetailOpen(false);setSelectedIPO(null);}}
+          onEdit={()=>{setEditIPO(selectedIPO);setFormOpen(true);}}
+          onDelete={()=>handleDelete(selectedIPO)}
           deleting={deleting} isAdmin={isAdmin}
         />
       )}
 
-      {/* Form Modal */}
-      {formOpen && isAdmin && (
+      {formOpen&&isAdmin&&(
         <FormModal
-          initial={editIPO ?? undefined}
-          onSave={editIPO ? handleEdit : handleAdd}
-          onClose={() => { setFormOpen(false); setEditIPO(null); }}
+          initial={editIPO??undefined}
+          onSave={editIPO?handleEdit:handleAdd}
+          onClose={()=>{setFormOpen(false);setEditIPO(null);}}
           saving={saving}
         />
       )}

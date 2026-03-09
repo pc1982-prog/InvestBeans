@@ -24,7 +24,6 @@ export const createInsight = asyncHandler(async (req, res) => {
     sentiment,
     category,
     marketType,
-    
   } = req.body;
 
   // Validate required fields
@@ -39,6 +38,12 @@ export const createInsight = asyncHandler(async (req, res) => {
     throw new ApiError(400, "All required fields must be provided");
   }
 
+  // ✅ Validate marketType includes commodities
+  const validMarketTypes = ["domestic", "global", "commodities"];
+  if (!validMarketTypes.includes(marketType)) {
+    throw new ApiError(400, `marketType must be one of: ${validMarketTypes.join(", ")}`);
+  }
+
   // Auto-calculate read time
   const readTime = calculateReadTime(description, investBeansInsight);
 
@@ -51,7 +56,6 @@ export const createInsight = asyncHandler(async (req, res) => {
       source: credits.source,
       author: credits.author || "",
       url: credits.url || "",
-      // publishedDate will auto-set to now via model default
     },
     sentiment: sentiment || "neutral",
     category,
@@ -106,21 +110,20 @@ export const getAllInsights = asyncHandler(async (req, res) => {
   const userId = req.user?._id;
   const processedInsights = insights.map((insight) => {
     const insightObj = { ...insight };
-    
+
     if (userId && insightObj.likedBy && Array.isArray(insightObj.likedBy)) {
-      // Check if current user liked this insight
       insightObj.isLiked = insightObj.likedBy.some(
         likedUserId => likedUserId.toString() === userId.toString()
       );
     } else {
       insightObj.isLiked = false;
     }
-    
+
     // Remove likedBy array from response for security
     delete insightObj.likedBy;
     // Remove investBeansInsight from list view
     delete insightObj.investBeansInsight;
-    
+
     return insightObj;
   });
 
@@ -171,7 +174,7 @@ export const getInsightById = asyncHandler(async (req, res) => {
   } else {
     response.isLiked = false;
   }
-  delete response.likedBy; // Don't send likedBy array to client
+  delete response.likedBy;
 
   return res
     .status(200)
@@ -191,17 +194,14 @@ export const toggleLike = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Insight not found");
   }
 
-  // Toggle the like and save
   await insight.toggleLike(userId);
 
-  // Refresh to get the latest data
   const updatedInsight = await Insight.findById(id);
-  
+
   if (!updatedInsight) {
     throw new ApiError(404, "Insight not found after update");
   }
 
-  // Check if user liked this insight
   const isLiked = updatedInsight.likedBy && Array.isArray(updatedInsight.likedBy)
     ? updatedInsight.likedBy.some(
         likedUserId => likedUserId.toString() === userId.toString()
@@ -240,31 +240,36 @@ export const updateInsight = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Insight not found");
   }
 
-  // Update fields
+  // ✅ Validate marketType if provided
+  if (marketType) {
+    const validMarketTypes = ["domestic", "global", "commodities"];
+    if (!validMarketTypes.includes(marketType)) {
+      throw new ApiError(400, `marketType must be one of: ${validMarketTypes.join(", ")}`);
+    }
+  }
+
   if (title) insight.title = title;
   if (description) insight.description = description;
   if (investBeansInsight) insight.investBeansInsight = investBeansInsight;
-  
-  // Recalculate read time if description or insight changed
+
   if (description || investBeansInsight) {
     insight.readTime = calculateReadTime(
       description || insight.description,
       investBeansInsight || insight.investBeansInsight
     );
   }
-  
+
   if (credits) {
     insight.credits = {
       source: credits.source || insight.credits.source,
       author: credits.author || insight.credits.author,
       url: credits.url || insight.credits.url,
-      publishedDate: insight.credits.publishedDate, // Keep original date
+      publishedDate: insight.credits.publishedDate,
     };
   }
   if (sentiment) insight.sentiment = sentiment;
   if (category) insight.category = category;
   if (marketType) insight.marketType = marketType;
- 
 
   await insight.save();
 
@@ -300,24 +305,19 @@ export const getAdminInsights = asyncHandler(async (req, res) => {
     marketType,
     category,
     sentiment,
-    isPublished,
     limit = 20,
     page = 1,
     sort = "-createdAt",
   } = req.query;
 
-  // Build query (no isPublished filter for admin)
   const query = {};
 
   if (marketType) query.marketType = marketType;
   if (category) query.category = category;
   if (sentiment) query.sentiment = sentiment;
 
-
-  // Calculate pagination
   const skip = (parseInt(page) - 1) * parseInt(limit);
 
-  // Execute query
   const insights = await Insight.find(query)
     .sort(sort)
     .limit(parseInt(limit))
@@ -352,35 +352,27 @@ export const getInsightStats = asyncHandler(async (req, res) => {
   const publishedInsights = await Insight.countDocuments({ isPublished: true });
   const draftInsights = await Insight.countDocuments({ isPublished: false });
 
-  const domesticInsights = await Insight.countDocuments({
-    marketType: "domestic",
-    isPublished: true,
-  });
-  const globalInsights = await Insight.countDocuments({
-    marketType: "global",
-    isPublished: true,
-  });
+  const domesticInsights = await Insight.countDocuments({ marketType: "domestic", isPublished: true });
+  const globalInsights = await Insight.countDocuments({ marketType: "global", isPublished: true });
+  // ✅ Added commodities count
+  const commoditiesInsights = await Insight.countDocuments({ marketType: "commodities", isPublished: true });
 
-  // Get total views
   const viewsResult = await Insight.aggregate([
     { $group: { _id: null, totalViews: { $sum: "$views" } } },
   ]);
   const totalViews = viewsResult[0]?.totalViews || 0;
 
-  // Get total likes
   const likesResult = await Insight.aggregate([
     { $group: { _id: null, totalLikes: { $sum: "$likes" } } },
   ]);
   const totalLikes = likesResult[0]?.totalLikes || 0;
 
-  // Get top viewed insights
   const topInsights = await Insight.find({ isPublished: true })
     .sort("-views")
     .limit(5)
     .select("title views likes category marketType")
     .lean();
 
-  // Get category distribution
   const categoryStats = await Insight.aggregate([
     { $match: { isPublished: true } },
     { $group: { _id: "$category", count: { $sum: 1 } } },
@@ -393,6 +385,7 @@ export const getInsightStats = asyncHandler(async (req, res) => {
     drafts: draftInsights,
     domestic: domesticInsights,
     global: globalInsights,
+    commodities: commoditiesInsights, // ✅ new
     totalViews,
     totalLikes,
     topInsights,
@@ -416,7 +409,7 @@ export const togglePublishStatus = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Insight not found");
   }
 
-
+  insight.isPublished = !insight.isPublished;
   await insight.save();
 
   return res

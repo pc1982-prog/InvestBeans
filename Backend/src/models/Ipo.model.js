@@ -5,7 +5,8 @@ const ipoSchema = new mongoose.Schema(
     companyName:        { type: String, required: true, trim: true },
     logo:               { type: String, trim: true, maxlength: 3, default: "" },
     industry:           { type: String, trim: true, default: "" },
-    status:             { type: String, enum: ["upcoming","open","closed","listed"], default: "upcoming" },
+    // "listed" removed — only upcoming | open | closed
+    status:             { type: String, enum: ["upcoming","open","closed"], default: "upcoming" },
     category:           { type: String, enum: ["Mainboard","SME"], default: "Mainboard" },
     exchange:           { type: String, enum: ["NSE / BSE","NSE","BSE","NSE SME","BSE SME"], default: "NSE / BSE" },
     openDate:           { type: String, required: true },
@@ -22,6 +23,13 @@ const ipoSchema = new mongoose.Schema(
     gmp:                { type: Number, default: null },
     rating:             { type: Number, min: 1, max: 5, default: 3 },
     rhpLink:            { type: String, default: "" },
+    // SWOT Analysis — admin-entered arrays of strings
+    swot: {
+      strengths:     { type: [String], default: [] },
+      weaknesses:    { type: [String], default: [] },
+      opportunities: { type: [String], default: [] },
+      threats:       { type: [String], default: [] },
+    },
   },
   { timestamps: true }
 );

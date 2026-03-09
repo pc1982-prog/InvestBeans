@@ -7,13 +7,15 @@ import {
   CheckCircle, Clock, AlertCircle, ArrowRight, Star, Target,
   Award, Shield, Zap, BarChart3, FileText, ExternalLink,
   Search, IndianRupee, ChevronRight, Plus, X, Edit3,
-  Save, Trash2, Loader2, RefreshCw,
+  Save, Trash2, Loader2, RefreshCw, ShieldCheck, ShieldAlert, AlertTriangle, Calculator,
 } from 'lucide-react';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
 const IPO_ENDPOINT = `${API_BASE}/ipo`;
 
-type IPOStatus = 'upcoming' | 'open' | 'closed' | 'listed';
+// "listed" removed from status type
+type IPOStatus = 'upcoming' | 'open' | 'closed';
+
 interface IPO {
   _id: string; companyName: string; logo: string; industry: string;
   status: IPOStatus; openDate: string; closeDate: string;
@@ -21,14 +23,15 @@ interface IPO {
   issueSize: string; minInvestment: string; subscriptionStatus?: string;
   listingGain?: number | null; gmp?: number | null; allotmentDate?: string;
   refundDate?: string; exchange: string; rating: number; rhpLink?: string; category?: string;
+  swot?: { strengths: string[]; weaknesses: string[]; opportunities: string[]; threats: string[]; };
 }
-interface Counts { open: number; upcoming: number; closed: number; listed: number; total: number; }
+// "listed" removed from Counts
+interface Counts { open: number; upcoming: number; closed: number; total: number; }
 
 const STATUS_CFG = {
   upcoming: { bg: 'bg-blue-500/10',   text: 'text-blue-500',   label: 'Upcoming' },
   open:     { bg: 'bg-green-500/10',  text: 'text-green-500',  label: 'Open Now' },
   closed:   { bg: 'bg-orange-500/10', text: 'text-orange-500', label: 'Closed'   },
-  listed:   { bg: 'bg-purple-500/10', text: 'text-purple-500', label: 'Listed'   },
 };
 
 const INDUSTRIES = [
@@ -45,41 +48,53 @@ const BLANK: Omit<IPO, '_id'> = {
   openDate: '', closeDate: '', allotmentDate: '', refundDate: '', listingDate: '',
   priceRange: '', lotSize: 0, issueSize: '', minInvestment: '',
   subscriptionStatus: '', listingGain: null, gmp: null, rating: 3, rhpLink: '',
+  swot: { strengths: [], weaknesses: [], opportunities: [], threats: [] },
 };
 
+// ── helpers ──────────────────────────────────────────────────────────────────
 function autoLogo(name: string) {
   return name.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase().slice(0, 2);
 }
 
-// ─── ₹ prefix for single value fields ─────────────────────────────────────────
-function RupeeInput({ value, onChange, placeholder, className }: {
-  value: string; onChange: (v: string) => void; placeholder?: string; className?: string;
-}) {
-  return (
-    <input
-      className={className}
-      placeholder={placeholder}
-      value={value}
-      onChange={e => {
-        const raw = e.target.value.replace(/^₹\s*/, '');
-        onChange(raw ? `₹${raw}` : '');
-      }}
-    />
-  );
+function toInputDate(s: string): string {
+  if (!s) return '';
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  const d = new Date(s);
+  return isNaN(d.getTime()) ? '' : d.toISOString().slice(0, 10);
 }
 
-// ─── ₹ prefix on BOTH numbers in a price band (e.g. ₹140 – ₹170) ─────────────
-function PriceBandInput({ value, onChange, placeholder, className }: {
-  value: string; onChange: (v: string) => void; placeholder?: string; className?: string;
+function fmtDate(s: string): string {
+  if (!s) return '—';
+  const d = new Date(s);
+  return isNaN(d.getTime())
+    ? s
+    : d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+function parseUpperPrice(pr: string): number | null {
+  const c = pr.replace(/₹/g, '').replace(/,/g, '');
+  const v = parseFloat(c.split(/[-–—]/).pop()!.trim());
+  return isNaN(v) ? null : v;
+}
+
+function calcMin(pr: string, lot: number): string {
+  const upper = parseUpperPrice(pr);
+  if (!upper || !lot || lot < 1) return '';
+  return `₹${(upper * lot).toLocaleString('en-IN')}`;
+}
+
+// ── PriceBandInput — auto ₹ prefix on both numbers ───────────────────────────
+function PriceBandInput({ value, onChange, className, style }: {
+  value: string; onChange: (v: string) => void; className?: string; style?: React.CSSProperties;
 }) {
   return (
     <input
       className={className}
-      placeholder={placeholder}
+      style={style}
+      placeholder="₹475 – ₹500"
       value={value}
       onChange={e => {
-        // Strip all ₹ and normalise separator to '-'
-        const raw = e.target.value.replace(/₹/g, '').replace(/\s*–\s*/g, '-').trim();
+        const raw = e.target.value.replace(/₹/g, '').replace(/\s*[–-]\s*/g, '-').trim();
         const parts = raw.split('-');
         if (parts.length >= 2) {
           const p1 = parts[0].trim();
@@ -93,20 +108,18 @@ function PriceBandInput({ value, onChange, placeholder, className }: {
   );
 }
 
+
+
 async function callAPI(url: string, opts?: RequestInit) {
-  const res = await fetch(url, {
-    headers: { 'Content-Type': 'application/json' },
-    credentials: 'include',
-    ...opts,
-  });
+  const res  = await fetch(url, { headers: { 'Content-Type': 'application/json' }, credentials: 'include', ...opts });
   const json = await res.json();
   if (!res.ok) throw new Error(json.message || `Error ${res.status}`);
   return json.data;
 }
 
 function StatusBadge({ status }: { status: IPOStatus }) {
-  const c = STATUS_CFG[status];
-  const Icon = { upcoming: Clock, open: CheckCircle, closed: AlertCircle, listed: TrendingUp }[status];
+  const c    = STATUS_CFG[status];
+  const Icon = { upcoming: Clock, open: CheckCircle, closed: AlertCircle }[status];
   return (
     <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold ${c.bg} ${c.text}`}>
       <Icon className="w-3 h-3" />{c.label}
@@ -118,17 +131,16 @@ function Stars({ rating, onClick }: { rating: number; onClick?: (n: number) => v
   return (
     <div className="flex items-center gap-0.5">
       {[...Array(5)].map((_, i) => (
-        <Star key={i}
-          onClick={() => onClick?.(i + 1)}
-          className={`w-3.5 h-3.5 ${i < rating ? 'fill-yellow-500 text-yellow-500' : 'text-gray-300'} ${onClick ? 'cursor-pointer hover:scale-110 transition-transform' : ''}`}
-        />
+        <Star key={i} onClick={() => onClick?.(i + 1)}
+          className={`w-3.5 h-3.5 ${i < rating ? 'fill-yellow-500 text-yellow-500' : 'text-gray-300'} ${onClick ? 'cursor-pointer hover:scale-110 transition-transform' : ''}`} />
       ))}
     </div>
   );
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// FORM MODAL
+// FORM MODAL — full dark/light theming, dark-mode dropdown fix, date pickers,
+//              auto min-investment, ₹ prefix on price band, NO formula hint
 // ═══════════════════════════════════════════════════════════════════════════════
 function FormModal({
   initial, onSave, onClose, saving,
@@ -138,25 +150,37 @@ function FormModal({
   onClose: () => void;
   saving: boolean;
 }) {
-  const [form, setForm] = useState<Omit<IPO, '_id'>>(initial ? { ...initial } : { ...BLANK });
+  const { theme } = useTheme();
+  const isDark = theme !== 'light';
+
+  const [form,   setForm]   = useState<Omit<IPO, '_id'>>(initial ? { ...initial } : { ...BLANK });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const set = (key: keyof Omit<IPO, '_id'>, val: any) =>
-    setForm(f => ({
-      ...f,
-      [key]: val,
-      ...(key === 'companyName' && !initial ? { logo: autoLogo(val) } : {}),
-    }));
+    setForm(prev => {
+      const next: Omit<IPO, '_id'> = {
+        ...prev, [key]: val,
+        ...(key === 'companyName' && !initial ? { logo: autoLogo(val) } : {}),
+      };
+      // Auto-calculate minInvestment — silently, no formula hint displayed
+      const pr  = key === 'priceRange' ? val : next.priceRange;
+      const lot = key === 'lotSize'    ? val : next.lotSize;
+      const auto = calcMin(pr, Number(lot));
+      if ((key === 'priceRange' || key === 'lotSize') && auto) {
+        next.minInvestment = auto;
+      }
+      return next;
+    });
 
   const validate = () => {
     const e: Record<string, string> = {};
-    if (!form.companyName.trim()) e.companyName   = 'Company name required';
-    if (!form.openDate.trim())    e.openDate       = 'Open date required';
-    if (!form.closeDate.trim())   e.closeDate      = 'Close date required';
-    if (!form.priceRange.trim())  e.priceRange     = 'Price band required';
-    if (!form.issueSize.trim())   e.issueSize      = 'Issue size required';
+    if (!form.companyName.trim())   e.companyName   = 'Company name required';
+    if (!form.openDate.trim())      e.openDate      = 'Open date required';
+    if (!form.closeDate.trim())     e.closeDate     = 'Close date required';
+    if (!form.priceRange.trim())    e.priceRange    = 'Price band required';
+    if (!form.issueSize.trim())     e.issueSize     = 'Issue size required';
     if (!form.minInvestment.trim()) e.minInvestment = 'Min investment required';
-    if (!form.lotSize || form.lotSize < 1) e.lotSize = 'Lot size must be greater than 0';
+    if (!form.lotSize || form.lotSize < 1) e.lotSize = 'Lot size must be > 0';
     setErrors(e);
     return !Object.keys(e).length;
   };
@@ -166,191 +190,285 @@ function FormModal({
     await onSave({ ...form, logo: form.logo || autoLogo(form.companyName) });
   };
 
-  const inp = 'w-full rounded-lg px-3 py-2.5 text-sm text-white placeholder:text-slate-500 focus:outline-none transition-colors bg-white/[0.06] border border-white/10 focus:border-[rgba(212,168,67,0.5)]';
-  const lbl = 'block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5';
-  const err = 'text-red-400 text-xs mt-1';
+  /* ── Design tokens (dark / light) ── */
+  const modalBg  = isDark ? '#0f1e38'  : '#f0f7fe';
+  const modalBdr = isDark ? 'rgba(255,255,255,0.10)' : 'rgba(13,37,64,0.12)';
+  const blockBg  = isDark ? 'rgba(212,168,67,0.05)'  : 'rgba(212,168,67,0.06)';
+  const blockBdr = isDark ? 'rgba(212,168,67,0.12)'  : 'rgba(212,168,67,0.18)';
+  const bLabel   = isDark ? '#C4941E'  : '#b45309';
+  const footBg   = isDark ? '#0f1e38'  : '#f0f7fe';
+  const footBdr  = isDark ? 'rgba(255,255,255,0.10)' : 'rgba(13,37,64,0.10)';
+  const inBg     = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.90)';
+  const inBdr    = isDark ? 'rgba(255,255,255,0.12)' : 'rgba(13,37,64,0.18)';
+  const inTxt    = isDark ? '#ffffff'  : '#0d1b2a';
+  const lblClr   = isDark ? 'rgba(148,163,184,1)' : 'rgba(13,37,64,0.55)';
+  const hintClr  = isDark ? 'rgba(100,116,139,1)' : 'rgba(13,37,64,0.40)';
+  const starOff  = isDark ? 'rgb(209,213,219)' : 'rgba(13,37,64,0.20)';
+  const cancelClr = isDark ? 'rgba(148,163,184,1)' : 'rgba(13,37,64,0.60)';
+  const cancelBdr = isDark ? 'rgba(255,255,255,0.12)' : 'rgba(13,37,64,0.15)';
+
+  /* CRITICAL: solid backgrounds on selects so option text is always visible */
+  const selBg  = isDark ? '#1a2d48' : '#ffffff';
+  const selTxt = isDark ? '#ffffff' : '#0d1b2a';
+
+  const IC = 'w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none transition-colors';
+  const IS: React.CSSProperties = { background: inBg, border: `1px solid ${inBdr}`, color: inTxt, outline: 'none' };
+  /* Selects: always solid bg so dropdown options are readable */
+  const SS: React.CSSProperties = { background: selBg, border: `1px solid ${inBdr}`, color: selTxt, outline: 'none', cursor: 'pointer' };
+  const OS: React.CSSProperties = { background: selBg, color: selTxt };
+  /* Date inputs */
+  const DS: React.CSSProperties = { ...IS, colorScheme: isDark ? 'dark' : 'light' };
+  const LB = 'block text-xs font-semibold uppercase tracking-wider mb-1.5';
+  const ER = 'text-xs mt-1 text-red-400';
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" onClick={onClose}>
-      <div className="rounded-2xl w-full max-w-2xl max-h-[92vh] overflow-y-auto shadow-2xl" style={{ background: "linear-gradient(135deg,#0e2038 0%,#0c1a2e 100%)", border: "1px solid rgba(255,255,255,0.10)" }} onClick={e => e.stopPropagation()}>
-        <div className="sticky top-0 p-5 flex items-center justify-between z-10 rounded-t-2xl" style={{ background: "linear-gradient(135deg,#0a1628,#142640)", borderBottom: "1px solid rgba(212,168,67,0.20)" }}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/65 backdrop-blur-sm" onClick={onClose}>
+      <div className="rounded-2xl w-full max-w-2xl max-h-[92vh] overflow-y-auto shadow-2xl"
+        style={{ background: modalBg, border: `1px solid ${modalBdr}` }}
+        onClick={e => e.stopPropagation()}>
+
+        {/* Header */}
+        <div className="sticky top-0 p-5 flex items-center justify-between z-10 rounded-t-2xl"
+          style={{ background: 'linear-gradient(90deg,#0d2540,#C4941E)' }}>
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "rgba(212,168,67,0.15)", border: "1px solid rgba(212,168,67,0.25)" }}>
-              {initial ? <Edit3 className="w-4 h-4 text-[#D4A843]" /> : <Plus className="w-4 h-4 text-[#D4A843]" />}
+            <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center">
+              {initial ? <Edit3 className="w-4 h-4 text-white" /> : <Plus className="w-4 h-4 text-white" />}
             </div>
             <div>
               <h2 className="text-lg font-bold text-white">{initial ? 'Edit IPO' : 'Add New IPO'}</h2>
-              <p className="text-slate-400 text-xs">* fields are required</p>
+              <p className="text-white/60 text-xs">* fields are required</p>
             </div>
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-white hover:bg-white/10 rounded-full p-2 transition-all">
+          <button onClick={onClose} className="text-white/70 hover:text-white hover:bg-white/20 rounded-full p-2 transition-all">
             <X className="w-5 h-5" />
           </button>
         </div>
 
         <div className="p-5 space-y-5">
+
           {/* Company Info */}
-          <div className="p-4 rounded-xl space-y-4" style={{ background: "rgba(212,168,67,0.05)", border: "1px solid rgba(212,168,67,0.12)" }}>
-            <p className="text-xs font-bold text-[#D4A843] uppercase tracking-wider">Company Info</p>
+          <section className="p-4 rounded-xl space-y-4" style={{ background: blockBg, border: `1px solid ${blockBdr}` }}>
+            <p className="text-xs font-bold uppercase tracking-wider" style={{ color: bLabel }}>Company Information</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="sm:col-span-2">
-                <label className={lbl}>Company Name *</label>
-                <input className={inp} placeholder="e.g. Tata Technologies Ltd" value={form.companyName}
-                  onChange={e => set('companyName', e.target.value)} />
-                {errors.companyName && <p className={err}>{errors.companyName}</p>}
+                <label className={LB} style={{ color: lblClr }}>Company Name *</label>
+                <input className={IC} style={IS} placeholder="e.g. Tata Technologies Ltd"
+                  value={form.companyName} onChange={e => set('companyName', e.target.value)} />
+                {errors.companyName && <p className={ER}>{errors.companyName}</p>}
               </div>
               <div>
-                <label className={lbl}>Logo (2 chars)</label>
-                <input className={inp} placeholder="e.g. TT" maxLength={2} value={form.logo}
-                  onChange={e => set('logo', e.target.value.toUpperCase())} />
-                <p className="text-xs text-muted-foreground mt-1">Auto-generated from company name</p>
+                <label className={LB} style={{ color: lblClr }}>Logo (2 chars)</label>
+                <input className={IC} style={IS} placeholder="e.g. TT" maxLength={2}
+                  value={form.logo} onChange={e => set('logo', e.target.value.toUpperCase())} />
+                <p className="text-xs mt-1" style={{ color: hintClr }}>Auto-generated from company name</p>
               </div>
               <div>
-                <label className={lbl}>Industry</label>
-                <select className={inp} value={form.industry} onChange={e => set('industry', e.target.value)}>
-                  <option value="">-- Select Industry --</option>
-                  {INDUSTRIES.map(i => <option key={i}>{i}</option>)}
+                <label className={LB} style={{ color: lblClr }}>Industry</label>
+                {/* Solid bg — readable in both modes */}
+                <select className={IC} style={SS}
+                  value={form.industry} onChange={e => set('industry', e.target.value)}>
+                  <option value="" style={OS}>-- Select Industry --</option>
+                  {INDUSTRIES.map(i => <option key={i} value={i} style={OS}>{i}</option>)}
                 </select>
               </div>
             </div>
-          </div>
+          </section>
 
           {/* Classification */}
-          <div className="p-4 rounded-xl space-y-3" style={{ background: "rgba(212,168,67,0.05)", border: "1px solid rgba(212,168,67,0.12)" }}>
-            <p className="text-xs font-bold text-[#D4A843] uppercase tracking-wider">Classification</p>
+          <section className="p-4 rounded-xl space-y-3" style={{ background: blockBg, border: `1px solid ${blockBdr}` }}>
+            <p className="text-xs font-bold uppercase tracking-wider" style={{ color: bLabel }}>Classification</p>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <div className="sm:col-span-2">
-                <label className={lbl}>Status *</label>
-                <select className={inp} value={form.status} onChange={e => set('status', e.target.value as IPOStatus)}>
-                  <option value="upcoming">Upcoming</option>
-                  <option value="open">Open Now</option>
-                  <option value="closed">Closed</option>
-                  <option value="listed">Listed</option>
+                <label className={LB} style={{ color: lblClr }}>Status *</label>
+                <select className={IC} style={SS}
+                  value={form.status} onChange={e => set('status', e.target.value as IPOStatus)}>
+                  {/* "listed" removed */}
+                  <option value="upcoming" style={OS}>Upcoming</option>
+                  <option value="open"     style={OS}>Open Now</option>
+                  <option value="closed"   style={OS}>Closed</option>
                 </select>
               </div>
               <div>
-                <label className={lbl}>Exchange</label>
-                <select className={inp} value={form.exchange} onChange={e => set('exchange', e.target.value)}>
-                  <option>NSE / BSE</option><option>NSE</option><option>BSE</option>
-                  <option>NSE SME</option><option>BSE SME</option>
+                <label className={LB} style={{ color: lblClr }}>Exchange</label>
+                <select className={IC} style={SS}
+                  value={form.exchange} onChange={e => set('exchange', e.target.value)}>
+                  {['NSE / BSE','NSE','BSE','NSE SME','BSE SME'].map(ex => (
+                    <option key={ex} value={ex} style={OS}>{ex}</option>
+                  ))}
                 </select>
               </div>
               <div>
-                <label className={lbl}>Category</label>
-                <select className={inp} value={form.category} onChange={e => set('category', e.target.value)}>
-                  <option>Mainboard</option><option>SME</option>
+                <label className={LB} style={{ color: lblClr }}>Segment</label>
+                <select className={IC} style={SS}
+                  value={form.category} onChange={e => set('category', e.target.value)}>
+                  {['Mainboard','SME'].map(c => <option key={c} value={c} style={OS}>{c}</option>)}
                 </select>
               </div>
             </div>
-          </div>
+          </section>
 
-          {/* Pricing */}
-          <div className="p-4 rounded-xl space-y-3" style={{ background: "rgba(212,168,67,0.05)", border: "1px solid rgba(212,168,67,0.12)" }}>
-            <p className="text-xs font-bold text-[#D4A843] uppercase tracking-wider">Pricing & Size</p>
+          {/* Pricing — auto min investment, ₹ prefix, NO formula hint */}
+          <section className="p-4 rounded-xl space-y-3" style={{ background: blockBg, border: `1px solid ${blockBdr}` }}>
+            <p className="text-xs font-bold uppercase tracking-wider" style={{ color: bLabel }}>Pricing & Size</p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
-                <label className={lbl}>Price Band *</label>
-                {/* ← PriceBandInput: adds ₹ before both numbers */}
-                <PriceBandInput className={inp} placeholder="₹475 – ₹500" value={form.priceRange}
-                  onChange={v => set('priceRange', v)} />
-                {errors.priceRange && <p className={err}>{errors.priceRange}</p>}
+                <label className={LB} style={{ color: lblClr }}>Price Band *</label>
+                {/* PriceBandInput auto-adds ₹ prefix on both numbers */}
+                <PriceBandInput className={IC} style={IS}
+                  value={form.priceRange} onChange={v => set('priceRange', v)} />
+                {errors.priceRange && <p className={ER}>{errors.priceRange}</p>}
               </div>
               <div>
-                <label className={lbl}>Lot Size (shares) *</label>
-                <input type="number" className={inp} placeholder="30" min={1}
+                <label className={LB} style={{ color: lblClr }}>Lot Size (shares) *</label>
+                <input type="number" className={IC} style={IS} placeholder="30" min={1}
                   value={form.lotSize || ''}
                   onChange={e => set('lotSize', parseInt(e.target.value) || 0)} />
-                {errors.lotSize && <p className={err}>{errors.lotSize}</p>}
+                {errors.lotSize && <p className={ER}>{errors.lotSize}</p>}
               </div>
               <div>
-                <label className={lbl}>Min Investment *</label>
-                <RupeeInput className={inp} placeholder="15,000" value={form.minInvestment}
-                  onChange={v => set('minInvestment', v)} />
-                {errors.minInvestment && <p className={err}>{errors.minInvestment}</p>}
+                <label className={LB} style={{ color: lblClr }}>
+                  Min Investment *
+                  {calcMin(form.priceRange, form.lotSize) && (
+                    <span className="ml-1 font-normal normal-case tracking-normal" style={{ color: '#C4941E', fontSize: 10 }}>
+                      <Calculator className="inline w-3 h-3 mr-0.5" />auto
+                    </span>
+                  )}
+                </label>
+                <input className={IC}
+                  style={{
+                    ...IS,
+                    ...(calcMin(form.priceRange, form.lotSize)
+                      ? { borderColor: 'rgba(212,168,67,0.55)', color: '#D4A843', fontWeight: 600 }
+                      : {}),
+                  }}
+                  placeholder="Auto-calculated"
+                  value={form.minInvestment}
+                  onChange={e => set('minInvestment', e.target.value)}
+                />
+                {/* NO formula hint */}
+                {errors.minInvestment && <p className={ER}>{errors.minInvestment}</p>}
               </div>
               <div className="sm:col-span-2">
-                <label className={lbl}>Issue Size *</label>
-                <RupeeInput className={inp} placeholder="3,042 Cr" value={form.issueSize}
-                  onChange={v => set('issueSize', v)} />
-                {errors.issueSize && <p className={err}>{errors.issueSize}</p>}
+                <label className={LB} style={{ color: lblClr }}>Issue Size *</label>
+                <input className={IC} style={IS} placeholder="₹3,042 Cr"
+                  value={form.issueSize} onChange={e => set('issueSize', e.target.value)} />
+                {errors.issueSize && <p className={ER}>{errors.issueSize}</p>}
               </div>
               <div>
-                <label className={lbl}>Rating</label>
-                <div className="mt-2"><Stars rating={form.rating} onClick={n => set('rating', n)} /></div>
+                <label className={LB} style={{ color: lblClr }}>Rating (1–5)</label>
+                <div className="flex items-center gap-1 mt-2">
+                  {[1,2,3,4,5].map(n => (
+                    <button key={n} type="button" onClick={() => set('rating', n)} className="p-0.5 transition-transform hover:scale-110">
+                      <Star className="w-6 h-6"
+                        style={{ fill: n <= form.rating ? '#F59E0B' : 'transparent', color: n <= form.rating ? '#F59E0B' : starOff }} />
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
+          </section>
 
-          {/* Dates */}
-          <div className="p-4 rounded-xl space-y-3" style={{ background: "rgba(212,168,67,0.05)", border: "1px solid rgba(212,168,67,0.12)" }}>
-            <p className="text-xs font-bold text-[#D4A843] uppercase tracking-wider">Important Dates</p>
+          {/* Important Dates — native date picker */}
+          <section className="p-4 rounded-xl space-y-3" style={{ background: blockBg, border: `1px solid ${blockBdr}` }}>
+            <p className="text-xs font-bold uppercase tracking-wider" style={{ color: bLabel }}>Important Dates</p>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {[
-                { k: 'openDate',      l: 'Open Date *',       p: 'Jan 29, 2026' },
-                { k: 'closeDate',     l: 'Close Date *',      p: 'Feb 02, 2026' },
-                { k: 'allotmentDate', l: 'Allotment Date',    p: 'Feb 05, 2026' },
-                { k: 'refundDate',    l: 'Refund / UPI Date', p: 'Feb 06, 2026' },
-                { k: 'listingDate',   l: 'Listing Date',      p: 'Feb 07, 2026' },
-              ].map(({ k, l, p }) => (
+                { k: 'openDate',      l: 'Open Date *'       },
+                { k: 'closeDate',     l: 'Close Date *'      },
+                { k: 'allotmentDate', l: 'Allotment Date'    },
+                { k: 'refundDate',    l: 'Refund / UPI Date' },
+                { k: 'listingDate',   l: 'Listing Date'      },
+              ].map(({ k, l }) => (
                 <div key={k}>
-                  <label className="block text-xs text-slate-400 mb-1">{l}</label>
-                  <input className={inp} placeholder={p}
-                    value={(form as any)[k] || ''}
+                  <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: lblClr }}>{l}</label>
+                  <input type="date" className={IC} style={DS}
+                    value={toInputDate((form as any)[k] || '')}
                     onChange={e => set(k as any, e.target.value)} />
-                  {errors[k] && <p className={err}>{errors[k]}</p>}
+                  {errors[k] && <p className={ER}>{errors[k]}</p>}
                 </div>
               ))}
             </div>
-          </div>
+          </section>
 
-          {/* Performance */}
-          <div className="p-4 rounded-xl space-y-3" style={{ background: "rgba(212,168,67,0.05)", border: "1px solid rgba(212,168,67,0.12)" }}>
+          {/* Performance (optional) */}
+          <section className="p-4 rounded-xl space-y-3" style={{ background: blockBg, border: `1px solid ${blockBdr}` }}>
             <div>
-              <p className="text-xs font-bold text-[#D4A843] uppercase tracking-wider">Performance Data</p>
-              <p className="text-xs text-muted-foreground mt-0.5">Optional — can be updated later</p>
+              <p className="text-xs font-bold uppercase tracking-wider" style={{ color: bLabel }}>Performance Data</p>
+              <p className="text-xs mt-0.5" style={{ color: hintClr }}>Optional — can be updated later</p>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
-                <label className="block text-xs text-slate-400 mb-1">Subscription</label>
-                <input className={inp} placeholder="e.g. 69.43×" value={form.subscriptionStatus || ''}
-                  onChange={e => set('subscriptionStatus', e.target.value)} />
+                <label className="block text-xs mb-1.5" style={{ color: lblClr }}>Subscription</label>
+                <input className={IC} style={IS} placeholder="e.g. 69.43×"
+                  value={form.subscriptionStatus || ''} onChange={e => set('subscriptionStatus', e.target.value)} />
               </div>
               <div>
-                <label className="block text-xs text-slate-400 mb-1">GMP (₹)</label>
-                <RupeeInput className={inp} placeholder="650"
-                  value={form.gmp != null ? `₹${form.gmp}` : ''}
-                  onChange={v => {
-                    const num = v.replace(/^₹/, '');
-                    set('gmp', num !== '' ? Number(num) : null);
-                  }} />
+                <label className="block text-xs mb-1.5" style={{ color: lblClr }}>GMP (₹)</label>
+                <input type="number" className={IC} style={IS} placeholder="e.g. 650"
+                  value={form.gmp ?? ''}
+                  onChange={e => set('gmp', e.target.value !== '' ? Number(e.target.value) : null)} />
               </div>
               <div>
-                <label className="block text-xs text-slate-400 mb-1">Listing Gain (%)</label>
-                <input type="number" className={inp} placeholder="e.g. 140 or -12" value={form.listingGain ?? ''}
+                <label className="block text-xs mb-1.5" style={{ color: lblClr }}>Listing Gain (%)</label>
+                <input type="number" className={IC} style={IS} placeholder="e.g. 140 or -12"
+                  value={form.listingGain ?? ''}
                   onChange={e => set('listingGain', e.target.value !== '' ? Number(e.target.value) : null)} />
               </div>
             </div>
-          </div>
+          </section>
 
+          {/* SWOT Analysis — admin enters bullet points */}
+          <section className="p-4 rounded-xl space-y-3" style={{ background: blockBg, border: `1px solid ${blockBdr}` }}>
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wider" style={{ color: bLabel }}>SWOT Analysis</p>
+              <p className="text-xs mt-0.5" style={{ color: hintClr }}>Har point alag line mein likho (press Enter for next point)</p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {([
+                { k: 'strengths',     l: 'Strengths',     col: '#22c55e', ph: 'e.g. Strong brand presence\nConsistent revenue growth' },
+                { k: 'weaknesses',    l: 'Weaknesses',    col: '#ef4444', ph: 'e.g. High valuation\nClient concentration risk' },
+                { k: 'opportunities', l: 'Opportunities', col: '#3b82f6', ph: 'e.g. Market expansion\nPolicy tailwinds' },
+                { k: 'threats',       l: 'Threats',       col: '#f59e0b', ph: 'e.g. Competition\nMacro sensitivity' },
+              ] as const).map(({ k, l, col, ph }) => (
+                <div key={k}>
+                  <label className="block text-xs font-semibold mb-1.5" style={{ color: col }}>{l}</label>
+                  <textarea
+                    className={IC}
+                    style={{ ...IS, minHeight: 90, resize: 'vertical', lineHeight: 1.5 }}
+                    placeholder={ph}
+                    value={(form.swot?.[k] || []).join('\n')}
+                    onChange={e => set('swot', {
+                      ...form.swot,
+                      [k]: e.target.value.split('\n').map(s => s.trim()).filter(Boolean),
+                    })}
+                  />
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* RHP */}
           <div>
-            <label className={lbl}>RHP / DRHP Link (optional)</label>
-            <input className={inp} placeholder="https://sebi.gov.in/..." value={form.rhpLink || ''}
-              onChange={e => set('rhpLink', e.target.value)} />
+            <label className={LB} style={{ color: lblClr }}>RHP / DRHP Link (optional)</label>
+            <input className={IC} style={IS} placeholder="https://sebi.gov.in/..."
+              value={form.rhpLink || ''} onChange={e => set('rhpLink', e.target.value)} />
           </div>
         </div>
 
-        <div className="sticky bottom-0 p-4 flex gap-3 rounded-b-2xl" style={{ background: "linear-gradient(135deg,#0a1628,#0c1a2e)", borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+        {/* Footer */}
+        <div className="sticky bottom-0 p-4 flex gap-3 rounded-b-2xl"
+          style={{ background: footBg, borderTop: `1px solid ${footBdr}` }}>
           <button onClick={onClose}
-            className="flex-1 py-3 rounded-xl text-slate-400 hover:text-white text-sm font-semibold transition-all" style={{ border: "1px solid rgba(255,255,255,0.12)" }}>
+            className="flex-1 py-3 rounded-xl text-sm font-semibold transition-all hover:opacity-80"
+            style={{ border: `1px solid ${cancelBdr}`, color: cancelClr, background: 'transparent' }}>
             Cancel
           </button>
           <button onClick={submit} disabled={saving}
-            className="flex-1 py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all disabled:opacity-60 disabled:cursor-not-allowed text-[#0c1a2e] hover:shadow-lg"
-            style={{ background: "linear-gradient(135deg,#D4A843,#C4941E)" }}>
+            className="flex-1 py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all disabled:opacity-60 disabled:cursor-not-allowed hover:shadow-lg"
+            style={{ background: 'linear-gradient(135deg,#D4A843,#C4941E)', color: '#0c1a2e' }}>
             {saving
-              ? <><Loader2 className="w-4 h-4 animate-spin text-white" /><span className="text-white">Saving...</span></>
-              : <><Save className="w-4 h-4" />{initial ? 'Save Changes' : 'Add IPO'}</>
-            }
+              ? <><Loader2 className="w-4 h-4 animate-spin" /><span>Saving...</span></>
+              : <><Save className="w-4 h-4" />{initial ? 'Save Changes' : 'Add IPO'}</>}
           </button>
         </div>
       </div>
@@ -359,7 +477,59 @@ function FormModal({
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// DETAIL MODAL
+// SWOT ANALYSIS — reads from backend data, visible to ALL users
+// ═══════════════════════════════════════════════════════════════════════════════
+function SwotAnalysis({ ipo }: { ipo: IPO }) {
+  const swotData = ipo.swot;
+  const hasSwot = swotData && (
+    (swotData.strengths?.length     || 0) +
+    (swotData.weaknesses?.length    || 0) +
+    (swotData.opportunities?.length || 0) +
+    (swotData.threats?.length       || 0)
+  ) > 0;
+
+  if (!hasSwot) return null; // Hide section if admin hasn't entered any SWOT data yet
+
+  const rows = [
+    { k: 'strengths'     as const, l: 'Strengths',     col: '#22c55e', bg: 'rgba(34,197,94,0.08)',  bdr: 'rgba(34,197,94,0.20)',  Icon: ShieldCheck   },
+    { k: 'weaknesses'    as const, l: 'Weaknesses',    col: '#ef4444', bg: 'rgba(239,68,68,0.08)',  bdr: 'rgba(239,68,68,0.20)',  Icon: ShieldAlert   },
+    { k: 'opportunities' as const, l: 'Opportunities', col: '#3b82f6', bg: 'rgba(59,130,246,0.08)', bdr: 'rgba(59,130,246,0.20)', Icon: TrendingUp    },
+    { k: 'threats'       as const, l: 'Threats',       col: '#f59e0b', bg: 'rgba(245,158,11,0.08)', bdr: 'rgba(245,158,11,0.20)', Icon: AlertTriangle },
+  ];
+
+  return (
+    <div>
+      <h3 className="text-base font-bold text-white mb-3 flex items-center gap-2">
+        <BarChart3 className="w-4 h-4 text-[#D4A843]" />SWOT Analysis
+      </h3>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {rows.map(({ k, l, col, bg, bdr, Icon }) => {
+          const pts = swotData[k] || [];
+          if (!pts.length) return null;
+          return (
+            <div key={k} className="rounded-xl p-4" style={{ background: bg, border: `1px solid ${bdr}` }}>
+              <div className="flex items-center gap-2 mb-3">
+                <Icon className="w-4 h-4" style={{ color: col }} />
+                <span className="text-sm font-bold" style={{ color: col }}>{l}</span>
+              </div>
+              <ul className="space-y-1.5">
+                {pts.map((pt, i) => (
+                  <li key={i} className="flex items-start gap-2 text-xs text-slate-300">
+                    <span className="mt-0.5 w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: col }} />
+                    {pt}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// DETAIL MODAL — ASBA button removed, SWOT visible to all
 // ═══════════════════════════════════════════════════════════════════════════════
 function DetailModal({
   ipo, onClose, onEdit, onDelete, deleting, isAdmin,
@@ -368,11 +538,17 @@ function DetailModal({
 }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" onClick={onClose}>
-      <div className="rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto" style={{ background: "linear-gradient(135deg,#0e2038 0%,#0c1a2e 100%)", border: "1px solid rgba(255,255,255,0.10)" }} onClick={e => e.stopPropagation()}>
-        <div className="sticky top-0 p-5 md:p-6 z-10 rounded-t-2xl" style={{ background: "linear-gradient(135deg,#0a1628,#142640)", borderBottom: "1px solid rgba(212,168,67,0.20)" }}>
+      <div className="rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+        style={{ background: 'linear-gradient(135deg,#0e2038 0%,#0c1a2e 100%)', border: '1px solid rgba(255,255,255,0.10)' }}
+        onClick={e => e.stopPropagation()}>
+
+        {/* Header */}
+        <div className="sticky top-0 p-5 md:p-6 z-10 rounded-t-2xl"
+          style={{ background: 'linear-gradient(135deg,#0a1628,#142640)', borderBottom: '1px solid rgba(212,168,67,0.20)' }}>
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-full flex items-center justify-center text-[#D4A843] font-bold text-xl" style={{ background: "rgba(212,168,67,0.15)", border: "2px solid rgba(212,168,67,0.30)" }}>
+              <div className="w-14 h-14 rounded-full flex items-center justify-center text-[#D4A843] font-bold text-xl"
+                style={{ background: 'rgba(212,168,67,0.15)', border: '2px solid rgba(212,168,67,0.30)' }}>
                 {ipo.logo}
               </div>
               <div>
@@ -381,7 +557,8 @@ function DetailModal({
                 <div className="flex items-center gap-2 mt-2">
                   <StatusBadge status={ipo.status} />
                   {ipo.category && (
-                    <span className="text-xs text-slate-400 px-2 py-0.5 rounded-full" style={{ border: "1px solid rgba(255,255,255,0.15)" }}>{ipo.category}</span>
+                    <span className="text-xs text-slate-400 px-2 py-0.5 rounded-full"
+                      style={{ border: '1px solid rgba(255,255,255,0.15)' }}>{ipo.category}</span>
                   )}
                   <Stars rating={ipo.rating} />
                 </div>
@@ -406,11 +583,13 @@ function DetailModal({
         </div>
 
         <div className="p-5 md:p-6 space-y-6">
+
+          {/* Issue Details */}
           <div>
             <h3 className="text-base font-bold text-white mb-3 flex items-center gap-2">
               <Zap className="w-4 h-4 text-[#D4A843]" />Issue Details
             </h3>
-            <div className="rounded-xl overflow-hidden" style={{ border: "1px solid rgba(255,255,255,0.08)" }}>
+            <div className="rounded-xl overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.08)' }}>
               {[
                 ['Price Band',      ipo.priceRange],
                 ['Issue Size',      ipo.issueSize],
@@ -418,7 +597,8 @@ function DetailModal({
                 ['Min. Investment', ipo.minInvestment],
                 ['Exchange',        ipo.exchange],
               ].map(([l, v], i) => (
-                <div key={i} className="flex items-center justify-between px-4 py-3 text-sm" style={{ background: i % 2 === 0 ? "rgba(255,255,255,0.02)" : "rgba(255,255,255,0.04)" }}>
+                <div key={i} className="flex items-center justify-between px-4 py-3 text-sm"
+                  style={{ background: i % 2 === 0 ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.04)' }}>
                   <span className="text-slate-400">{l}</span>
                   <span className="font-semibold text-white">{v}</span>
                 </div>
@@ -426,44 +606,47 @@ function DetailModal({
             </div>
           </div>
 
+          {/* Dates */}
           <div>
             <h3 className="text-base font-bold text-white mb-3 flex items-center gap-2">
               <Calendar className="w-4 h-4 text-[#D4A843]" />Important Dates
             </h3>
-            <div className="rounded-xl overflow-hidden" style={{ border: "1px solid rgba(255,255,255,0.08)" }}>
+            <div className="rounded-xl overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.08)' }}>
               {[
-                ['Open Date',           ipo.openDate,        'text-emerald-400'],
-                ['Close Date',          ipo.closeDate,       'text-orange-400'],
-                ...(ipo.allotmentDate ? [['Allotment Date',       ipo.allotmentDate,   'text-blue-400']] : []),
-                ...(ipo.refundDate    ? [['Refund / UPI Mandate', ipo.refundDate,      'text-slate-400']] : []),
-                ...(ipo.listingDate   ? [['Listing Date',         ipo.listingDate,     'text-purple-400']] : []),
+                ['Open Date',           ipo.openDate,      'text-emerald-400'],
+                ['Close Date',          ipo.closeDate,     'text-orange-400'],
+                ...(ipo.allotmentDate ? [['Allotment Date',    ipo.allotmentDate, 'text-blue-400']]  : []),
+                ...(ipo.refundDate    ? [['Refund / UPI',      ipo.refundDate,    'text-slate-400']] : []),
+                ...(ipo.listingDate   ? [['Listing Date',      ipo.listingDate,   'text-purple-400']] : []),
               ].map(([l, v, cls], i) => (
-                <div key={i} className="flex items-center justify-between px-4 py-3 text-sm" style={{ background: i % 2 === 0 ? "rgba(255,255,255,0.02)" : "rgba(255,255,255,0.04)" }}>
-                  <span className="text-muted-foreground">{l}</span>
-                  <span className={`font-semibold ${cls}`}>{v}</span>
+                <div key={i} className="flex items-center justify-between px-4 py-3 text-sm"
+                  style={{ background: i % 2 === 0 ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.04)' }}>
+                  <span className="text-slate-400">{l}</span>
+                  <span className={`font-semibold ${cls}`}>{fmtDate(v as string)}</span>
                 </div>
               ))}
             </div>
           </div>
 
+          {/* Performance */}
           {(ipo.subscriptionStatus || ipo.gmp || ipo.listingGain != null) && (
             <div>
-              <h3 className="text-base font-bold text-foreground mb-3 flex items-center gap-2">
-                <BarChart3 className="w-4 h-4 text-accent" />Performance
+              <h3 className="text-base font-bold text-white mb-3 flex items-center gap-2">
+                <BarChart3 className="w-4 h-4 text-[#D4A843]" />Performance
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 {ipo.subscriptionStatus && (
                   <div className="bg-green-500/10 border border-green-500/20 rounded-xl p-4 text-center">
-                    <p className="text-xs text-muted-foreground mb-1">Subscription</p>
-                    <p className="text-2xl font-bold text-green-700 dark:text-green-400">{ipo.subscriptionStatus}</p>
-                    <p className="text-xs text-muted-foreground">times</p>
+                    <p className="text-xs text-slate-400 mb-1">Subscription</p>
+                    <p className="text-2xl font-bold text-emerald-400">{ipo.subscriptionStatus}</p>
+                    <p className="text-xs text-slate-400">times</p>
                   </div>
                 )}
                 {ipo.gmp != null && ipo.gmp > 0 && (
                   <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4 text-center">
-                    <p className="text-xs text-muted-foreground mb-1">GMP</p>
-                    <p className="text-2xl font-bold text-blue-700 dark:text-blue-400">+₹{ipo.gmp}</p>
-                    <p className="text-xs text-muted-foreground">grey market</p>
+                    <p className="text-xs text-slate-400 mb-1">GMP</p>
+                    <p className="text-2xl font-bold text-blue-400">+₹{ipo.gmp}</p>
+                    <p className="text-xs text-slate-400">grey market</p>
                   </div>
                 )}
                 {ipo.listingGain != null && (
@@ -479,7 +662,8 @@ function DetailModal({
             </div>
           )}
 
-          <div className="rounded-xl p-4" style={{ background: "rgba(212,168,67,0.05)", border: "1px solid rgba(212,168,67,0.15)" }}>
+          {/* Min Investment */}
+          <div className="rounded-xl p-4" style={{ background: 'rgba(212,168,67,0.05)', border: '1px solid rgba(212,168,67,0.15)' }}>
             <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
               <IndianRupee className="w-4 h-4 text-[#D4A843]" />Minimum Investment Required
             </h3>
@@ -495,17 +679,17 @@ function DetailModal({
             </div>
           </div>
 
-          <div className="flex gap-3">
-            <button
-              onClick={() => ipo.rhpLink ? window.open(ipo.rhpLink, '_blank') : null}
-              className="flex-1 py-3 px-4 text-[#0c1a2e] rounded-lg font-semibold text-sm hover:shadow-lg transition-all flex items-center justify-center gap-2"
-              style={{ background: "linear-gradient(135deg,#D4A843,#C4941E)" }}>
-              <FileText className="w-4 h-4" />View RHP / DRHP
-            </button>
-            <button className="flex-1 py-3 px-4 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white rounded-lg font-semibold text-sm hover:shadow-lg transition-all flex items-center justify-center gap-2">
-              <ExternalLink className="w-4 h-4" />Apply via ASBA
-            </button>
-          </div>
+          {/* SWOT — visible to everyone */}
+          <SwotAnalysis ipo={ipo} />
+
+          {/* CTA — Apply via ASBA removed, only RHP */}
+          <button
+            onClick={() => ipo.rhpLink ? window.open(ipo.rhpLink, '_blank') : null}
+            disabled={!ipo.rhpLink}
+            className="w-full py-3 px-4 text-[#0c1a2e] rounded-lg font-semibold text-sm hover:shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
+            style={{ background: 'linear-gradient(135deg,#D4A843,#C4941E)' }}>
+            <FileText className="w-4 h-4" />View RHP / DRHP
+          </button>
         </div>
       </div>
     </div>
@@ -513,7 +697,7 @@ function DetailModal({
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// IPO CARD  ← taller: min-h-[360px] + increased body padding
+// IPO CARD
 // ═══════════════════════════════════════════════════════════════════════════════
 function IPOCard({
   ipo, onViewDetail, onEdit, onDelete, isAdmin, isLight,
@@ -522,30 +706,33 @@ function IPOCard({
 }) {
   return (
     <div className="rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden group hover:-translate-y-0.5 flex flex-col min-h-[360px]"
-      style={{ background: isLight ? "rgba(255,255,255,0.70)" : "rgba(255,255,255,0.04)", border: isLight ? "1px solid rgba(13,37,64,0.12)" : "1px solid rgba(255,255,255,0.08)" }}
-      onMouseEnter={e => (e.currentTarget.style.borderColor = "rgba(212,168,67,0.40)")}
-      onMouseLeave={e => (e.currentTarget.style.borderColor = isLight ? "rgba(13,37,64,0.12)" : "rgba(255,255,255,0.08)")}>
+      style={{ background: isLight ? 'rgba(255,255,255,0.70)' : 'rgba(255,255,255,0.04)', border: isLight ? '1px solid rgba(13,37,64,0.12)' : '1px solid rgba(255,255,255,0.08)' }}
+      onMouseEnter={e => (e.currentTarget.style.borderColor = 'rgba(212,168,67,0.40)')}
+      onMouseLeave={e => (e.currentTarget.style.borderColor = isLight ? 'rgba(13,37,64,0.12)' : 'rgba(255,255,255,0.08)')}>
 
       {/* Header */}
-      <div className="px-4 pt-4 pb-3" style={{ borderBottom: isLight ? "1px solid rgba(13,37,64,0.08)" : "1px solid rgba(255,255,255,0.06)" }}>
+      <div className="px-4 pt-4 pb-3" style={{ borderBottom: isLight ? '1px solid rgba(13,37,64,0.08)' : '1px solid rgba(255,255,255,0.06)' }}>
         <div className="flex items-center justify-between mb-2.5">
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-10 h-10 rounded-full flex items-center justify-center text-[#D4A843] font-bold text-xs flex-shrink-0" style={{ background: "linear-gradient(135deg,rgba(212,168,67,0.2),rgba(196,148,30,0.1))", border: "1px solid rgba(212,168,67,0.25)" }}>
+            <div className="w-10 h-10 rounded-full flex items-center justify-center text-[#D4A843] font-bold text-xs flex-shrink-0"
+              style={{ background: 'linear-gradient(135deg,rgba(212,168,67,0.2),rgba(196,148,30,0.1))', border: '1px solid rgba(212,168,67,0.25)' }}>
               {ipo.logo}
             </div>
             <div className="min-w-0">
-              <h3 className={`font-bold text-[13px] leading-tight truncate ${isLight ? "text-navy" : "text-white"}`}>{ipo.companyName}</h3>
-              <p className={`text-[11px] mt-0.5 truncate ${isLight ? "text-navy/60" : "text-slate-400"}`}>{ipo.industry || '—'}</p>
+              <h3 className={`font-bold text-[13px] leading-tight truncate ${isLight ? 'text-navy' : 'text-white'}`}>{ipo.companyName}</h3>
+              <p className={`text-[11px] mt-0.5 truncate ${isLight ? 'text-navy/60' : 'text-slate-400'}`}>{ipo.industry || '—'}</p>
             </div>
           </div>
           {isAdmin && (
             <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 ml-1">
               <button onClick={e => { e.stopPropagation(); onEdit(); }}
-                className="w-6 h-6 rounded-md flex items-center justify-center text-[#D4A843] transition-all" style={{ background: "rgba(212,168,67,0.10)" }}>
+                className="w-6 h-6 rounded-md flex items-center justify-center text-[#D4A843]"
+                style={{ background: 'rgba(212,168,67,0.10)' }}>
                 <Edit3 className="w-3 h-3" />
               </button>
               <button onClick={e => { e.stopPropagation(); onDelete(); }}
-                className="w-6 h-6 rounded-md flex items-center justify-center text-red-400 transition-all" style={{ background: "rgba(239,68,68,0.10)" }}>
+                className="w-6 h-6 rounded-md flex items-center justify-center text-red-400"
+                style={{ background: 'rgba(239,68,68,0.10)' }}>
                 <Trash2 className="w-3 h-3" />
               </button>
             </div>
@@ -561,29 +748,30 @@ function IPOCard({
       <div className="px-4 py-4 flex-1 space-y-3">
         <div className="grid grid-cols-2 gap-x-3 gap-y-3">
           <div>
-            <p className={`text-[9px] uppercase tracking-wider ${isLight ? "text-navy/50" : "text-slate-500"}`}>Price Band</p>
-            <p className={`text-xs font-bold leading-tight mt-0.5 ${isLight ? "text-navy" : "text-white"}`}>{ipo.priceRange}</p>
+            <p className={`text-[9px] uppercase tracking-wider ${isLight ? 'text-navy/50' : 'text-slate-500'}`}>Price Band</p>
+            <p className={`text-xs font-bold leading-tight mt-0.5 ${isLight ? 'text-navy' : 'text-white'}`}>{ipo.priceRange}</p>
           </div>
           <div>
-            <p className={`text-[9px] uppercase tracking-wider ${isLight ? "text-navy/50" : "text-slate-500"}`}>Lot Size</p>
-            <p className={`text-xs font-semibold leading-tight mt-0.5 ${isLight ? "text-navy" : "text-white"}`}>{ipo.lotSize} shares</p>
+            <p className={`text-[9px] uppercase tracking-wider ${isLight ? 'text-navy/50' : 'text-slate-500'}`}>Lot Size</p>
+            <p className={`text-xs font-semibold leading-tight mt-0.5 ${isLight ? 'text-navy' : 'text-white'}`}>{ipo.lotSize} shares</p>
           </div>
           <div>
-            <p className={`text-[9px] uppercase tracking-wider ${isLight ? "text-navy/50" : "text-slate-500"}`}>Min. Investment</p>
+            <p className={`text-[9px] uppercase tracking-wider ${isLight ? 'text-navy/50' : 'text-slate-500'}`}>Min. Investment</p>
             <p className="text-xs font-bold text-[#D4A843] leading-tight mt-0.5">{ipo.minInvestment}</p>
           </div>
           <div>
-            <p className={`text-[9px] uppercase tracking-wider ${isLight ? "text-navy/50" : "text-slate-500"}`}>Issue Size</p>
-            <p className={`text-xs font-semibold leading-tight mt-0.5 ${isLight ? "text-navy" : "text-white"}`}>{ipo.issueSize}</p>
+            <p className={`text-[9px] uppercase tracking-wider ${isLight ? 'text-navy/50' : 'text-slate-500'}`}>Issue Size</p>
+            <p className={`text-xs font-semibold leading-tight mt-0.5 ${isLight ? 'text-navy' : 'text-white'}`}>{ipo.issueSize}</p>
           </div>
         </div>
 
-        <div className={`flex items-center gap-1.5 text-[11px] pt-3 ${isLight ? "text-navy/60" : "text-slate-400"}`} style={{ borderTop: isLight ? "1px solid rgba(13,37,64,0.08)" : "1px solid rgba(255,255,255,0.06)" }}>
+        <div className={`flex items-center gap-1.5 text-[11px] pt-3 ${isLight ? 'text-navy/60' : 'text-slate-400'}`}
+          style={{ borderTop: isLight ? '1px solid rgba(13,37,64,0.08)' : '1px solid rgba(255,255,255,0.06)' }}>
           <Calendar className="w-3 h-3 flex-shrink-0" />
-          <span>{ipo.openDate}</span>
+          <span>{fmtDate(ipo.openDate)}</span>
           <span>→</span>
-          <span>{ipo.closeDate}</span>
-          {ipo.listingDate && <span className="ml-auto text-purple-400 font-medium text-[10px]">{ipo.listingDate}</span>}
+          <span>{fmtDate(ipo.closeDate)}</span>
+          {ipo.listingDate && <span className="ml-auto text-purple-400 font-medium text-[10px]">{fmtDate(ipo.listingDate)}</span>}
         </div>
 
         {(ipo.subscriptionStatus || (ipo.gmp != null && ipo.gmp > 0) || ipo.listingGain != null) && (
@@ -604,7 +792,10 @@ function IPOCard({
                 {ipo.listingGain >= 0 ? '+' : ''}{ipo.listingGain}%
               </span>
             )}
-            <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] ml-auto ${isLight ? "text-navy/60" : "text-slate-400"}`} style={{ background: isLight ? "rgba(13,37,64,0.06)" : "rgba(255,255,255,0.05)" }}>{ipo.exchange}</span>
+            <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] ml-auto ${isLight ? 'text-navy/60' : 'text-slate-400'}`}
+              style={{ background: isLight ? 'rgba(13,37,64,0.06)' : 'rgba(255,255,255,0.05)' }}>
+              {ipo.exchange}
+            </span>
           </div>
         )}
       </div>
@@ -613,7 +804,7 @@ function IPOCard({
       <div className="px-4 pb-4 pt-2">
         <button onClick={onViewDetail}
           className="w-full py-2 px-3 text-[#0c1a2e] rounded-lg font-semibold text-xs hover:shadow-md transition-all flex items-center justify-center gap-1.5 group/btn"
-          style={{ background: "linear-gradient(135deg,#D4A843,#C4941E)" }}>
+          style={{ background: 'linear-gradient(135deg,#D4A843,#C4941E)' }}>
           View Details
           <ArrowRight className="w-3.5 h-3.5 group-hover/btn:translate-x-0.5 transition-transform" />
         </button>
@@ -626,17 +817,17 @@ function IPOCard({
 // MAIN COMPONENT
 // ═══════════════════════════════════════════════════════════════════════════════
 const IPOSection = () => {
-  const navigate = useNavigate();
+  const navigate    = useNavigate();
   const { isAdmin } = useAuth();
-  const { theme } = useTheme();
-  const isLight = theme === "light";
+  const { theme }   = useTheme();
+  const isLight     = theme === 'light';
 
-  const [ipos,     setIpos]     = useState<IPO[]>([]);
-  const [counts,   setCounts]   = useState<Counts>({ open:0, upcoming:0, closed:0, listed:0, total:0 });
+  const [ipos,      setIpos]     = useState<IPO[]>([]);
+  const [counts,    setCounts]   = useState<Counts>({ open:0, upcoming:0, closed:0, total:0 });
   const [activeTab, setActiveTab] = useState<IPOStatus>('open');
-  const [loading,  setLoading]  = useState(true);
-  const [error,    setError]    = useState<string | null>(null);
-  const [showAll,  setShowAll]  = useState(false);
+  const [loading,   setLoading]  = useState(true);
+  const [error,     setError]    = useState<string | null>(null);
+  const [showAll,   setShowAll]  = useState(false);
 
   const [selectedIPO, setSelectedIPO] = useState<IPO | null>(null);
   const [detailOpen,  setDetailOpen]  = useState(false);
@@ -652,7 +843,7 @@ const IPOSection = () => {
     try {
       const data = await callAPI(`${IPO_ENDPOINT}?status=${tab}`);
       setIpos(data.ipos ?? []);
-      setCounts(data.counts ?? { open:0, upcoming:0, closed:0, listed:0, total:0 });
+      setCounts(data.counts ?? { open:0, upcoming:0, closed:0, total:0 });
     } catch (e: any) { setError(e.message); }
     finally { setLoading(false); }
   }, []);
@@ -684,40 +875,46 @@ const IPOSection = () => {
 
   return (
     <>
-      <div className="min-h-screen" style={{ background: isLight ? "linear-gradient(160deg,#dce8f7 0%,#e8f2fd 45%,#dce8f7 100%)" : "linear-gradient(160deg,#0c1a2e 0%,#0e2038 45%,#0b1825 100%)" }}>
+      <div className="min-h-screen" style={{ background: isLight ? 'linear-gradient(160deg,#dce8f7 0%,#e8f2fd 45%,#dce8f7 100%)' : 'linear-gradient(160deg,#0c1a2e 0%,#0e2038 45%,#0b1825 100%)' }}>
 
         {/* Hero */}
-        <section className=" relative overflow-hidden py-16 md:py-24" style={{ background: isLight ? "linear-gradient(135deg,#edf5fe 0%,#dce8f7 50%,#e8f2fd 100%)" : "linear-gradient(135deg,#0a1628 0%,#0e2038 50%,#0c1a2e 100%)", borderBottom: isLight ? "1px solid rgba(13,37,64,0.1)" : "1px solid rgba(255,255,255,0.06)" }}>
-          {/* Ambient glows matching DecodeMarket */}
-          <div className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full blur-[130px] pointer-events-none" style={{ background: "radial-gradient(circle,rgba(212,168,67,0.10) 0%,transparent 70%)" }} />
-          <div className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full blur-[100px] pointer-events-none" style={{ background: "radial-gradient(circle,rgba(56,189,248,0.07) 0%,transparent 70%)" }} />
+        <section className="relative overflow-hidden py-16 md:py-24"
+          style={{ background: isLight ? 'linear-gradient(135deg,#edf5fe 0%,#dce8f7 50%,#e8f2fd 100%)' : 'linear-gradient(135deg,#0a1628 0%,#0e2038 50%,#0c1a2e 100%)', borderBottom: isLight ? '1px solid rgba(13,37,64,0.1)' : '1px solid rgba(255,255,255,0.06)' }}>
+          <div className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full blur-[130px] pointer-events-none" style={{ background: 'radial-gradient(circle,rgba(212,168,67,0.10) 0%,transparent 70%)' }} />
+          <div className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full blur-[100px] pointer-events-none"  style={{ background: 'radial-gradient(circle,rgba(56,189,248,0.07) 0%,transparent 70%)' }} />
+
           <div className="container mx-auto px-4 md:px-6 relative z-10">
             <div className="max-w-4xl mx-auto text-center">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-6" style={{ background: "rgba(212,168,67,0.1)", border: "1px solid rgba(212,168,67,0.2)" }}>
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-6"
+                style={{ background: 'rgba(212,168,67,0.1)', border: '1px solid rgba(212,168,67,0.2)' }}>
                 <Zap className="w-4 h-4 text-[#D4A843]" />
                 <span className="text-sm font-medium text-[#D4A843]">Live IPO Updates</span>
               </div>
-              <h1 className={`text-4xl md:text-5xl lg:text-6xl font-bold mb-6 ${isLight ? "text-navy" : "text-white"}`}>
-                Initial Public <span style={{ background: "linear-gradient(135deg,#D4A843,#F0C84A)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Offerings</span>
+              <h1 className={`text-4xl md:text-5xl lg:text-6xl font-bold mb-6 ${isLight ? 'text-navy' : 'text-white'}`}>
+                Initial Public{' '}
+                <span style={{ background: 'linear-gradient(135deg,#D4A843,#F0C84A)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                  Offerings
+                </span>
               </h1>
-              <p className="text-lg md:text-xl mb-8 leading-relaxed" style={{ color: isLight ? "rgba(13,37,64,0.65)" : "rgba(255,255,255,0.70)" }}>
+              <p className="text-lg md:text-xl mb-8 leading-relaxed" style={{ color: isLight ? 'rgba(13,37,64,0.65)' : 'rgba(255,255,255,0.70)' }}>
                 Stay updated with latest IPOs, track subscription status in real-time, and make informed investment decisions with comprehensive IPO analysis.
               </p>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto">
+
+              {/* Hero stat tiles — "listed" removed */}
+              <div className="grid grid-cols-3 gap-4 max-w-2xl mx-auto">
                 {([
                   { s: 'open'     as IPOStatus, icon: <Building2  className="w-8 h-8 text-[#D4A843] mx-auto mb-2" /> },
                   { s: 'upcoming' as IPOStatus, icon: <Clock      className="w-8 h-8 text-blue-400   mx-auto mb-2" /> },
-                  { s: 'listed'   as IPOStatus, icon: <TrendingUp className="w-8 h-8 text-emerald-400 mx-auto mb-2" /> },
                   { s: 'closed'   as IPOStatus, icon: <Award      className="w-8 h-8 text-purple-400 mx-auto mb-2" /> },
                 ]).map(({ s, icon }) => (
                   <button key={s} onClick={() => switchTab(s)}
                     className="rounded-xl p-4 hover:scale-105 transition-all duration-200 cursor-pointer text-center group"
-                    style={{ background: isLight ? "rgba(13,37,64,0.05)" : "rgba(255,255,255,0.04)", border: isLight ? "1px solid rgba(13,37,64,0.12)" : "1px solid rgba(255,255,255,0.08)" }}
-                    onMouseEnter={e => (e.currentTarget.style.borderColor = "rgba(212,168,67,0.30)")}
-                    onMouseLeave={e => (e.currentTarget.style.borderColor = isLight ? "rgba(13,37,64,0.12)" : "rgba(255,255,255,0.08)")}>
+                    style={{ background: isLight ? 'rgba(13,37,64,0.05)' : 'rgba(255,255,255,0.04)', border: isLight ? '1px solid rgba(13,37,64,0.12)' : '1px solid rgba(255,255,255,0.08)' }}
+                    onMouseEnter={e => (e.currentTarget.style.borderColor = 'rgba(212,168,67,0.30)')}
+                    onMouseLeave={e => (e.currentTarget.style.borderColor = isLight ? 'rgba(13,37,64,0.12)' : 'rgba(255,255,255,0.08)')}>
                     {icon}
-                    <div className={`text-2xl font-bold ${isLight ? "text-navy" : "text-white"}`}>{counts[s]}</div>
-                    <div className={`text-sm transition-colors ${isLight ? "text-navy/55 group-hover:text-navy" : "text-slate-400 group-hover:text-white"}`}>{STATUS_CFG[s].label}</div>
+                    <div className={`text-2xl font-bold ${isLight ? 'text-navy' : 'text-white'}`}>{counts[s]}</div>
+                    <div className={`text-sm transition-colors ${isLight ? 'text-navy/55 group-hover:text-navy' : 'text-slate-400 group-hover:text-white'}`}>{STATUS_CFG[s].label}</div>
                   </button>
                 ))}
               </div>
@@ -725,43 +922,47 @@ const IPOSection = () => {
           </div>
         </section>
 
-        {/* List */}
+        {/* List section */}
         <section className="container mx-auto px-4 md:px-6 py-10" id="ipo-list-section">
-          {/* ── Controls: mobile-first, desktop single row ── */}
+          {/* Controls */}
           <div className="mb-6">
             <div className="flex items-center gap-2">
-              {/* Tabs — scrollable on mobile, wrap-free */}
+              {/* Tabs — "listed" removed */}
               <div className="flex gap-1.5 overflow-x-auto flex-1 pb-0.5" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-                {(['open','upcoming','closed','listed'] as IPOStatus[]).map(tab => (
+                {(['open','upcoming','closed'] as IPOStatus[]).map(tab => (
                   <button key={tab} onClick={() => { setActiveTab(tab); setShowAll(false); }}
-                    className={`flex-shrink-0 px-3.5 py-2 rounded-lg font-semibold text-xs sm:text-sm transition-all ${
-                      activeTab === tab
-                        ? 'bg-gradient-to-r from-accent to-accent/80 text-white shadow-lg'
-                        : 'bg-card text-muted-foreground hover:bg-card/80 border border-border'
-                    }`}>
+                    className="flex-shrink-0 px-3.5 py-2 rounded-lg font-semibold text-xs sm:text-sm transition-all"
+                    style={activeTab === tab
+                      ? { background: 'linear-gradient(135deg,#D4A843,#C4941E)', color: '#0c1a2e' }
+                      : isLight
+                        ? { background: 'rgba(13,37,64,0.06)', color: 'rgba(13,37,64,0.65)', border: '1px solid rgba(13,37,64,0.12)' }
+                        : { background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.65)', border: '1px solid rgba(255,255,255,0.10)' }}>
                     {STATUS_CFG[tab].label}
                     <span className="ml-1 opacity-60">({counts[tab]})</span>
                   </button>
                 ))}
               </div>
 
-              {/* Right side: Add IPO (desktop only inline) + Refresh */}
+              {/* Add IPO (desktop) */}
               {isAdmin && (
                 <button onClick={() => { setEditIPO(null); setFormOpen(true); }}
-                  className="hidden sm:flex flex-shrink-0 items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-accent to-accent/80 text-white rounded-xl font-bold text-sm hover:shadow-lg hover:shadow-accent/20 transition-all whitespace-nowrap">
+                  className="hidden sm:flex flex-shrink-0 items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm hover:shadow-lg transition-all whitespace-nowrap"
+                  style={{ background: 'linear-gradient(135deg,#D4A843,#C4941E)', color: '#0c1a2e' }}>
                   <Plus className="w-4 h-4" />Add IPO
                 </button>
               )}
               <button onClick={() => fetchIPOs(activeTab)} disabled={loading}
-                className="flex-shrink-0 flex items-center justify-center w-9 h-9 bg-card border border-border rounded-xl text-muted-foreground hover:text-foreground transition-all">
+                className={`flex-shrink-0 flex items-center justify-center w-9 h-9 rounded-xl transition-all ${isLight ? 'text-navy/50 hover:text-navy' : 'text-slate-400 hover:text-white'}`}
+                style={{ background: isLight ? 'rgba(13,37,64,0.06)' : 'rgba(255,255,255,0.05)', border: isLight ? '1px solid rgba(13,37,64,0.12)' : '1px solid rgba(255,255,255,0.10)' }}>
                 <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
               </button>
             </div>
 
-            {/* Add IPO — full width below tabs on mobile only */}
+            {/* Add IPO (mobile) */}
             {isAdmin && (
               <button onClick={() => { setEditIPO(null); setFormOpen(true); }}
-                className="sm:hidden mt-2 w-full flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-accent to-accent/80 text-white rounded-xl font-bold text-sm hover:shadow-lg hover:shadow-accent/20 transition-all">
+                className="sm:hidden mt-2 w-full flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm hover:shadow-lg transition-all"
+                style={{ background: 'linear-gradient(135deg,#D4A843,#C4941E)', color: '#0c1a2e' }}>
                 <Plus className="w-4 h-4" />Add IPO
               </button>
             )}
@@ -769,19 +970,20 @@ const IPOSection = () => {
 
           {loading && (
             <div className="flex flex-col items-center justify-center py-20 gap-3">
-              <Loader2 className="w-10 h-10 text-accent animate-spin" />
-              <p className="text-muted-foreground text-sm">Loading IPOs...</p>
+              <Loader2 className="w-10 h-10 text-[#D4A843] animate-spin" />
+              <p className={`text-sm ${isLight ? 'text-navy/60' : 'text-slate-400'}`}>Loading IPOs...</p>
             </div>
           )}
 
           {error && !loading && (
             <div className="text-center py-16">
               <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-foreground mb-2">Something went wrong</h3>
-              <p className="text-sm text-muted-foreground font-mono bg-card px-4 py-2 rounded-lg inline-block mb-4">{error}</p>
+              <h3 className={`text-xl font-semibold mb-2 ${isLight ? 'text-navy' : 'text-white'}`}>Something went wrong</h3>
+              <p className={`text-sm font-mono px-4 py-2 rounded-lg inline-block mb-4 ${isLight ? 'text-navy/70 bg-navy/5' : 'text-slate-400 bg-white/5'}`}>{error}</p>
               <br />
               <button onClick={() => fetchIPOs(activeTab)}
-                className="mt-2 inline-flex items-center gap-2 px-5 py-2.5 bg-accent/10 text-accent border border-accent/20 rounded-xl text-sm font-semibold hover:bg-accent/20 transition-all">
+                className="mt-2 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold"
+                style={{ background: 'rgba(212,168,67,0.10)', border: '1px solid rgba(212,168,67,0.20)', color: '#D4A843' }}>
                 <RefreshCw className="w-4 h-4" />Try Again
               </button>
             </div>
@@ -789,17 +991,39 @@ const IPOSection = () => {
 
           {!loading && !error && ipos.length === 0 && (
             <div className="text-center py-16">
-              <div className="w-20 h-20 rounded-2xl bg-accent/10 flex items-center justify-center mx-auto mb-4">
-                <Building2 className="w-10 h-10 text-accent/40" />
+              <div className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-4"
+                style={{ background: 'rgba(212,168,67,0.08)', border: '1px solid rgba(212,168,67,0.15)' }}>
+                <Building2 className="w-10 h-10 text-[#D4A843]/40" />
               </div>
-              <h3 className="text-xl font-semibold text-foreground mb-2">No {STATUS_CFG[activeTab].label} IPOs found</h3>
-              <p className="text-muted-foreground mb-5">{isAdmin ? 'Add your first IPO to get started!' : 'Check back soon for new IPOs.'}</p>
-              {isAdmin && (
-                <button onClick={() => { setEditIPO(null); setFormOpen(true); }}
-                  className="inline-flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-accent to-accent/80 text-white rounded-xl font-bold text-sm hover:shadow-lg transition-all">
-                  <Plus className="w-4 h-4" />Add First IPO
-                </button>
-              )}
+              <h3 className={`text-xl font-semibold mb-2 ${isLight ? 'text-navy' : 'text-white'}`}>
+                No {STATUS_CFG[activeTab].label} IPOs found
+              </h3>
+              <p className={`mb-5 ${isLight ? 'text-navy/60' : 'text-slate-400'}`}>
+                {isAdmin ? 'Add your first IPO to get started!' : 'Check back soon for new IPOs.'}
+              </p>
+              <div className="flex items-center justify-center gap-3 flex-wrap">
+                {activeTab !== 'open' && (
+                  <button onClick={() => setActiveTab('open')}
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold"
+                    style={{ background: 'rgba(34,197,94,0.10)', border: '1px solid rgba(34,197,94,0.25)', color: '#22c55e' }}>
+                    <CheckCircle className="w-4 h-4" />View Open Now
+                  </button>
+                )}
+                {activeTab !== 'closed' && (
+                  <button onClick={() => setActiveTab('closed')}
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold"
+                    style={{ background: 'rgba(249,115,22,0.10)', border: '1px solid rgba(249,115,22,0.25)', color: '#f97316' }}>
+                    <AlertCircle className="w-4 h-4" />View Closed
+                  </button>
+                )}
+                {isAdmin && (
+                  <button onClick={() => { setEditIPO(null); setFormOpen(true); }}
+                    className="inline-flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-sm"
+                    style={{ background: 'linear-gradient(135deg,#D4A843,#C4941E)', color: '#0c1a2e' }}>
+                    <Plus className="w-4 h-4" />Add First IPO
+                  </button>
+                )}
+              </div>
             </div>
           )}
 
@@ -818,18 +1042,20 @@ const IPOSection = () => {
               {ipos.length > 3 && (
                 <div className="mt-8 text-center flex items-center justify-center gap-3">
                   <button onClick={() => setShowAll(p => !p)}
-                    className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-accent/10 to-accent/5 border border-accent/20 hover:border-accent/40 transition-all duration-200 group">
-                    <span className="text-accent font-semibold text-sm">
+                    className="inline-flex items-center gap-2 px-6 py-3 rounded-full transition-all duration-200 group"
+                    style={{ background: 'rgba(212,168,67,0.08)', border: '1px solid rgba(212,168,67,0.20)' }}>
+                    <span className="text-[#D4A843] font-semibold text-sm">
                       {showAll ? 'Show Less' : `View All ${ipos.length} IPOs`}
                     </span>
-                    <ChevronRight className={`w-4 h-4 text-accent transition-transform duration-200 ${showAll ? 'rotate-90' : 'group-hover:translate-x-1'}`} />
+                    <ChevronRight className={`w-4 h-4 text-[#D4A843] transition-transform duration-200 ${showAll ? 'rotate-90' : 'group-hover:translate-x-1'}`} />
                   </button>
                 </div>
               )}
 
               <div className="mt-4 text-center">
                 <button onClick={() => navigate('/ipos')}
-                  className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-gradient-to-r from-accent to-accent/80 text-white font-bold text-sm hover:shadow-lg hover:shadow-accent/20 transition-all group">
+                  className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full font-bold text-sm hover:shadow-lg transition-all group"
+                  style={{ background: 'linear-gradient(135deg,#D4A843,#C4941E)', color: '#0c1a2e' }}>
                   Explore All IPOs
                   <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </button>
@@ -839,20 +1065,20 @@ const IPOSection = () => {
 
           {/* Info Cards */}
           <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="p-6 rounded-2xl" style={{ background: "rgba(56,189,248,0.05)", border: "1px solid rgba(56,189,248,0.15)" }}>
+            <div className="p-6 rounded-2xl" style={{ background: 'rgba(56,189,248,0.05)', border: '1px solid rgba(56,189,248,0.15)' }}>
               <Shield className="w-10 h-10 text-blue-400 mb-4" />
-              <h3 className={`text-lg font-bold mb-2 ${isLight ? "text-navy" : "text-white"}`}>SEBI Regulated</h3>
-              <p className={`text-sm ${isLight ? "text-navy/65" : "text-slate-400"}`}>All IPOs listed are SEBI-regulated with complete RHP transparency for informed decisions.</p>
+              <h3 className={`text-lg font-bold mb-2 ${isLight ? 'text-navy' : 'text-white'}`}>SEBI Regulated</h3>
+              <p className={`text-sm ${isLight ? 'text-navy/65' : 'text-slate-400'}`}>All IPOs listed are SEBI-regulated with complete RHP transparency for informed decisions.</p>
             </div>
-            <div className="p-6 rounded-2xl" style={{ background: "rgba(52,211,153,0.05)", border: "1px solid rgba(52,211,153,0.15)" }}>
+            <div className="p-6 rounded-2xl" style={{ background: 'rgba(52,211,153,0.05)', border: '1px solid rgba(52,211,153,0.15)' }}>
               <BarChart3 className="w-10 h-10 text-emerald-400 mb-4" />
-              <h3 className={`text-lg font-bold mb-2 ${isLight ? "text-navy" : "text-white"}`}>Live GMP & Subscription</h3>
-              <p className={`text-sm ${isLight ? "text-navy/65" : "text-slate-400"}`}>Real-time grey market premium, subscription data, and day-wise allotment tracking.</p>
+              <h3 className={`text-lg font-bold mb-2 ${isLight ? 'text-navy' : 'text-white'}`}>Live GMP & Subscription</h3>
+              <p className={`text-sm ${isLight ? 'text-navy/65' : 'text-slate-400'}`}>Real-time grey market premium, subscription data, and day-wise allotment tracking.</p>
             </div>
-            <div className="p-6 rounded-2xl" style={{ background: "rgba(212,168,67,0.05)", border: "1px solid rgba(212,168,67,0.15)" }}>
+            <div className="p-6 rounded-2xl" style={{ background: 'rgba(212,168,67,0.05)', border: '1px solid rgba(212,168,67,0.15)' }}>
               <FileText className="w-10 h-10 text-[#D4A843] mb-4" />
-              <h3 className={`text-lg font-bold mb-2 ${isLight ? "text-navy" : "text-white"}`}>Expert Analysis</h3>
-              <p className={`text-sm ${isLight ? "text-navy/65" : "text-slate-400"}`}>Detailed IPO reviews, DRHP financials, and apply/avoid recommendations from experts.</p>
+              <h3 className={`text-lg font-bold mb-2 ${isLight ? 'text-navy' : 'text-white'}`}>Expert Analysis</h3>
+              <p className={`text-sm ${isLight ? 'text-navy/65' : 'text-slate-400'}`}>Detailed IPO reviews, DRHP financials, and apply/avoid recommendations from experts.</p>
             </div>
           </div>
         </section>

@@ -103,10 +103,7 @@ const MarketTickerInline = () => {
   if (allMarkets.length === 0) return null;
 
   // Ticker adapts to theme
-  const btnCls =
-    theme === "light"
-      ? "absolute z-10 bg-navy/10 hover:bg-navy/20 text-navy p-1 rounded-full transition-colors"
-      : "absolute z-10 bg-navy/80 hover:bg-navy text-white p-1 rounded-full transition-colors";
+  const btnCls = "absolute z-10 bg-white/10 hover:bg-white/20 text-white/70 hover:text-white p-1 rounded-full transition-colors";
 
   return (
     <div className="relative flex items-center">
@@ -137,22 +134,14 @@ const MarketTickerInline = () => {
               className="flex items-center gap-4 whitespace-nowrap group hover:scale-110 transition-transform cursor-pointer"
             >
               <div className="flex items-center gap-2">
-                <span className={`text-sm font-medium group-hover:transition-colors ${theme === "light" ? "text-navy/70 group-hover:text-navy" : "text-white/80 group-hover:text-white"}`}>
-                  {market.name}
-                </span>
-                <span className={`font-bold text-base ${theme === "light" ? "text-navy" : "text-white"}`}>{market.value}</span>
+                <span className="text-sm font-medium text-white/65 group-hover:text-white/90 transition-colors">{market.name}</span>
+                <span className="font-bold text-sm text-white/90">{market.value}</span>
               </div>
-              <div
-                className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium ${
-                  market.isPositive
-                    ? theme === "light"
-                      ? "bg-green-500/15 text-green-700 border border-green-500/40"
-                      : "bg-green-500/30 text-green-100 border border-green-400/50"
-                    : theme === "light"
-                      ? "bg-red-500/15 text-red-600 border border-red-500/40"
-                      : "bg-red-500/30 text-red-100 border border-red-400/50"
-                }`}
-              >
+              <div className={`flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+                market.isPositive
+                  ? "bg-emerald-500/20 text-emerald-300 border border-emerald-400/30"
+                  : "bg-red-500/20 text-red-300 border border-red-400/30"
+              }`}>
                 {market.isPositive ? (
                   <TrendingUp className="w-3 h-3" />
                 ) : (
@@ -178,13 +167,9 @@ const MarketTickerInline = () => {
 
 // ─── Shared dropdown pieces ────────────────────────────────────────────────────
 const DropSection = ({ label, theme }: { label: string; theme: "dark" | "light" }) => (
-  <p
-    className={`text-[10px] font-bold uppercase tracking-widest px-3 pt-2 pb-0.5 ${
-      theme === "light" ? "text-navy/50" : "text-navy/40"
-    }`}
-  >
-    {label}
-  </p>
+  <p className={`text-[10px] font-bold uppercase tracking-widest px-3 pt-2 pb-0.5 ${
+    theme === "light" ? "text-navy/45" : "text-white/40"
+  }`}>{label}</p>
 );
 
 const DropLink = ({
@@ -202,8 +187,8 @@ const DropLink = ({
     <Link
       to={to}
       onClick={onClick}
-      className={`block px-3 py-2 rounded-md text-sm font-medium hover:bg-accent/10 transition cursor-pointer ${
-        theme === "light" ? "text-navy" : "text-navy"
+      className={`block px-3 py-1.5 rounded-md text-[13px] font-medium hover:bg-accent/10 hover:text-accent transition cursor-pointer ${
+        theme === "light" ? "text-navy/80" : "text-white/80"
       }`}
     >
       {children}
@@ -223,8 +208,8 @@ const DropBtn = ({
   <DropdownMenuItem asChild>
     <button
       onClick={onClick}
-      className={`w-full text-left px-3 py-2 text-sm rounded-md hover:bg-accent/10 transition cursor-pointer ${
-        theme === "light" ? "text-navy" : "text-navy"
+      className={`w-full text-left px-3 py-1.5 text-[13px] rounded-md hover:bg-accent/10 hover:text-accent transition cursor-pointer ${
+        theme === "light" ? "text-navy/80" : "text-white/80"
       }`}
     >
       {children}
@@ -238,43 +223,50 @@ const NavItem = ({
   dd,
   children,
   theme,
+  href,
 }: {
   label: string;
   dd: ReturnType<typeof useHoverDropdown>;
   children: React.ReactNode;
   theme: "dark" | "light";
-}) => (
-  <li onMouseEnter={dd.enter} onMouseLeave={dd.leave}>
-    <DropdownMenu open={dd.open} onOpenChange={dd.setOpen}>
-      <DropdownMenuTrigger asChild>
-        <button
-          className={`font-medium hover:text-accent transition-colors px-2 py-1 rounded-md flex items-center gap-1 focus:outline-none focus:ring-2 focus:ring-accent/40 whitespace-nowrap ${
-            theme === "light" ? "text-navy/90 hover:text-accent" : "text-white hover:text-accent"
-          }`}
-          onClick={dd.toggle}
-        >
-          {label}
-          <ChevronDown
-            className={`w-4 h-4 opacity-80 transition-transform duration-200 ${
-              dd.open ? "rotate-180" : ""
+  href?: string;
+}) => {
+  const navigate = useNavigate();
+  return (
+    <li onMouseEnter={dd.enter} onMouseLeave={dd.leave}>
+      <DropdownMenu open={dd.open} onOpenChange={dd.setOpen}>
+        <DropdownMenuTrigger asChild>
+          <button
+            className={`text-[13.5px] font-medium hover:text-accent transition-colors px-2 py-1 rounded-md flex items-center gap-0.5 focus:outline-none whitespace-nowrap ${
+              theme === "light" ? "text-[#1e3a5f] hover:text-accent" : "text-white hover:text-accent"
             }`}
-          />
-        </button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent
-        align="start"
-        sideOffset={6}
-        className={`p-2 rounded-xl shadow-xl border ${
-          theme === "light"
-            ? "bg-white text-navy ring-1 ring-black/10 border-slate-200"
-            : "bg-white text-navy ring-1 ring-black/10 border-white/10"
-        }`}
-      >
-        {children}
-      </DropdownMenuContent>
-    </DropdownMenu>
-  </li>
-);
+            onClick={() => {
+              if (href) { dd.close(); navigate(href); }
+              else dd.toggle();
+            }}
+          >
+            {label}
+            <ChevronDown
+              className={`w-3.5 h-3.5 opacity-60 transition-transform duration-200 ml-0.5 ${dd.open ? "rotate-180" : ""}`}
+              onMouseDown={(e) => { e.stopPropagation(); dd.toggle(); }}
+            />
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent
+          align="start"
+          sideOffset={5}
+          className={`p-1.5 rounded-xl shadow-lg border backdrop-blur-xl ${
+            theme === "light"
+              ? "bg-white/96 text-navy ring-1 ring-black/[0.07] border-slate-200/80"
+              : "bg-[#0d1f36]/96 text-white ring-1 ring-white/[0.09] border-white/[0.08]"
+          }`}
+        >
+          {children}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </li>
+  );
+};
 
 // ─── Header ───────────────────────────────────────────────────────────────────
 const Header = () => {
@@ -413,12 +405,12 @@ const Header = () => {
 
   // ── Theme-aware class helpers ─────────────────────────────────────────────
   const headerBg = isLight
-    ? "bg-white/95 text-navy shadow-md border-b border-slate-200"
-    : "bg-navy/95 text-white shadow-lg";
+    ? "bg-white text-[#1e3a5f] shadow-sm border-b border-slate-200"
+    : "bg-[#0a1628] text-white shadow-lg border-b border-white/[0.08]";
 
   const tickerBg = isLight
-    ? "bg-white/95 py-3 border-b border-slate-200 shadow-sm"
-    : "bg-gradient-to-r from-navy via-navy/95 to-navy py-3 border-b border-white/10";
+    ? "bg-[#0c1d31] py-2.5 border-b border-white/[0.08]"
+    : "bg-[#060e1c] py-2.5 border-b border-white/[0.06]";
 
   const mobileBg = isLight
     ? "md:hidden bg-white border-t border-slate-200"
@@ -435,8 +427,8 @@ const Header = () => {
   const userIconCls = isLight ? "text-navy" : "text-white";
 
   const dropdownContentCls = isLight
-    ? "min-w-[160px] p-2 bg-white text-navy rounded-xl shadow-xl ring-1 ring-black/10 border border-slate-200"
-    : "min-w-[160px] p-2 bg-white text-navy rounded-xl shadow-xl ring-1 ring-black/10";
+    ? "min-w-[160px] p-2 bg-white/96 text-navy rounded-xl shadow-lg ring-1 ring-black/[0.07] border border-slate-200/80 backdrop-blur-xl"
+    : "min-w-[160px] p-2 bg-[#0d1f36]/96 text-white rounded-xl shadow-lg ring-1 ring-white/[0.09] border border-white/[0.08] backdrop-blur-xl";
 
   return (
     <div className="sticky top-0 z-50">
@@ -446,7 +438,7 @@ const Header = () => {
       </div>
 
       <header className={`${headerBg} backdrop-blur-sm`}>
-        <nav className="container mx-auto px-6 py-3 flex items-center justify-between min-h-[64px]">
+        <nav className="container mx-auto px-6 py-2 flex items-center justify-between min-h-[56px]">
 
           {/* ── Left: logo + nav ──────────────────────────────────────────────── */}
           <div className="flex items-center gap-3 md:gap-5">
@@ -464,7 +456,9 @@ const Header = () => {
               <img
                 src={isLight ? "/images/investbeans logo-03.png" : "/images/Untitled-6-04.png"}
                 alt="InvestBeans Logo"
-                className={`h-7 w-auto max-w-[150px] md:max-w-none object-contain relative -top-1  ${!isLight ? "filter contrast-125 "  : ""}`}
+                className={`h-8 w-auto max-w-[160px] md:max-w-none object-contain relative -top-1 transition-all ${
+                  !isLight ? "brightness-[1.3] contrast-[1.1]" : ""
+                }`}
               />
             </Link>
 
@@ -472,9 +466,9 @@ const Header = () => {
             <ul className="hidden md:flex items-center gap-0.5">
 
               {/* 1. ABOUT */}
-              <NavItem label="About" dd={about} theme={theme}>
+              <NavItem label="About" dd={about} theme={theme} href="/team">
                 <div className="min-w-[260px]">
-                  <DropBtn theme={theme} onClick={() => { scrollToSection("our-story"); about.close(); }}>Our Story & Founder's Journey</DropBtn>
+                  <DropBtn theme={theme} onClick={() => { scrollToSection("our-story"); about.close(); }}>Our Story </DropBtn>
                   <DropBtn theme={theme} onClick={() => { scrollToSection("mission"); about.close(); }}>Mission, Vision & Values</DropBtn>
                   <DropBtn theme={theme} onClick={() => { scrollToSection("team-members"); about.close(); }}>Team</DropBtn>
                   <DropBtn theme={theme} onClick={() => { scrollToSection("why-us"); about.close(); }}>Why Us</DropBtn>
@@ -504,7 +498,7 @@ const Header = () => {
               </NavItem>
 
               {/* 4. LEARN */}
-              <NavItem label="Learn" dd={learn} theme={theme}>
+              <NavItem label="Learn" dd={learn} theme={theme} href="/education">
                 <div className="min-w-[220px]">
                   <DropSection label="Financial" theme={theme} />
                   <DropLink to="/education#financial-ebooks" onClick={learn.close} theme={theme}>E-books</DropLink>
@@ -527,35 +521,25 @@ const Header = () => {
 
               {/* 6. IPO */}
               <li>
-                <Link
-                  to="/ipos"
-                  className={`font-medium hover:text-accent transition-colors px-2 py-1 rounded-md whitespace-nowrap ${
-                    isLight ? "text-navy/90" : "text-white"
-                  }`}
-                >
-                  IPO
-                </Link>
+                <Link to="/ipos" className={`text-[13.5px] font-medium hover:text-accent transition-colors px-2 py-1 rounded-md whitespace-nowrap ${isLight ? "text-[#1e3a5f]" : "text-white"}`}>IPO</Link>
               </li>
 
               {/* 7. BLOGS */}
               <li>
-                <Link
-                  to="/blogs"
-                  className={`font-medium hover:text-accent transition-colors px-2 py-1 rounded-md whitespace-nowrap ${
-                    isLight ? "text-navy/90" : "text-white"
-                  }`}
-                >
-                  Blogs
-                </Link>
+                <Link to="/blogs" className={`text-[13.5px] font-medium hover:text-accent transition-colors px-2 py-1 rounded-md whitespace-nowrap ${isLight ? "text-[#1e3a5f]" : "text-white"}`}>Blogs</Link>
               </li>
 
-              {/* 8. HELP */}
-              <NavItem label="Help" dd={help} theme={theme}>
-                <div className="min-w-[160px]">
-                  <DropLink to="/help-center" onClick={help.close} theme={theme}>FAQs</DropLink>
-                  <DropLink to="/help-center" onClick={help.close} theme={theme}>Contact Us</DropLink>
-                </div>
-              </NavItem>
+              {/* 8. HELP — direct link only */}
+              <li>
+                <Link
+                  to="/help-center"
+                  className={`text-[13.5px] font-medium hover:text-accent transition-colors px-2 py-1 rounded-md whitespace-nowrap ${
+                    isLight ? "text-[#1e3a5f]" : "text-white"
+                  }`}
+                >
+                  Help
+                </Link>
+              </li>
 
             </ul>
           </div>
@@ -721,7 +705,7 @@ const Header = () => {
               <ul className="space-y-1">
 
                 <MobileAccordion label="About" isOpen={mobileAboutOpen} toggle={() => setMobileAboutOpen((s) => !s)}>
-                  <MobileScrollBtn id="our-story">Our Story & Founder's Journey</MobileScrollBtn>
+                  <MobileScrollBtn id="our-story">Our Story </MobileScrollBtn>
                   <MobileScrollBtn id="mission">Mission, Vision & Values</MobileScrollBtn>
                   <MobileScrollBtn id="team-members">Team</MobileScrollBtn>
                   <MobileScrollBtn id="why-us">Why Us</MobileScrollBtn>

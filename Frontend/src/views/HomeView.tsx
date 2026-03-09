@@ -14,6 +14,7 @@ import IPOSection from "./Iposection";
 import TestimonialsPage from "@/components/Testimonials";
 import Subscribeview from "./Subscribeview";
 import PlanCards from "./PlanCards";
+import TVDataStamp from "@/components/Tvdatastamp";
 
 type ActiveTab = "domestic" | "global";
 type HomeViewProps = { activeTab: ActiveTab; onChangeTab: (tab: ActiveTab) => void };
@@ -160,35 +161,45 @@ const HomeView = ({ activeTab, onChangeTab }: HomeViewProps) => {
                 </div>
               </div>
 
-              <div className="w-full mb-8 rounded-2xl overflow-hidden" style={{ border: widgetBorder }}>
+
+
+              <div className="w-full mb-8 overflow-hidden rounded-2xl" style={{ border: widgetBorder }}>
                 <TradingViewWidget mode={activeTab} theme={isLight ? "light" : "dark"} height="600px" />
+                {/* ── Data freshness strip ── */}
+                <TVDataStamp mode={activeTab} type="chart" isLight={isLight} />
               </div>
+
 
               <div className="mb-8">
                 <h3 className={`text-2xl font-bold mb-6 text-center ${headingCls}`}>Market Heatmap</h3>
-                <div className="w-full h-[600px] rounded-2xl overflow-hidden" style={{ border: widgetBorder }}>
-                  <StockHeatmapWidget dataSource={activeTab === "domestic" ? "SENSEX" : "World"} />
+                <div className="w-full rounded-t-2xl overflow-hidden" style={{ border: widgetBorder, borderBottom: "none" }}>
+                  <div className="h-[600px]">
+                    <StockHeatmapWidget dataSource={activeTab === "domestic" ? "SENSEX" : "World"} />
+                  </div>
+                </div>
+                <div className="w-full rounded-b-2xl overflow-hidden" style={{ border: widgetBorder, borderTop: "none" }}>
+                  <TVDataStamp
+                    mode={activeTab}
+                    type="heatmap"
+                    isLight={isLight}
+                  />
                 </div>
               </div>
             </div>
           </section>
-
-          {/* ── IPO Section ─────────────────────────────────────────────── */}
-          <section><IPOSection /></section>
 
           {/* ── Decode Market ────────────────────────────────────────────── */}
           <section className="mt-10">
             <DecodeMarket activeTab={activeTab} />
           </section>
 
+          {/* ── IPO Section ─────────────────────────────────────────────── */}
+          <section><IPOSection /></section>
+
           {/* ── Beans of Wisdom ──────────────────────────────────────────── */}
           <section>
             <BeansOfWisdomView />
           </section>
-
-          {/* ── Testimonials ─────────────────────────────────────────────── */}
-          <TestimonialsPage />
-
           {/* ═══════════════════════════════════════════════════════════════
               PRICING PLANS SECTION
           ═══════════════════════════════════════════════════════════════ */}
@@ -233,6 +244,10 @@ const HomeView = ({ activeTab, onChangeTab }: HomeViewProps) => {
             />
 
           </section>
+
+          {/* ── Testimonials ─────────────────────────────────────────────── */}
+          <TestimonialsPage />
+
 
           {/* ── Newsletter ───────────────────────────────────────────────── */}
           <Subscribeview

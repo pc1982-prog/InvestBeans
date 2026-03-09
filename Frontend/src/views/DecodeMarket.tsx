@@ -7,23 +7,27 @@ import { useAuth } from "@/controllers/AuthContext";
 import api from "@/api/axios";
 import { toggleInsightLike } from "@/services/insightService";
 import { useTheme } from "@/controllers/Themecontext";
+import { useNavigate } from "react-router-dom";
 
-type ActiveTab = "domestic" | "global";
+// ✅ Added "commodities" to the union
+type ActiveTab = "domestic" | "global" | "commodities";
 interface DecodeMarketProps { activeTab: ActiveTab }
 interface InsightData {
   _id: string; title: string; description: string; investBeansInsight: string;
   sentiment: "positive" | "negative" | "neutral"; category: string;
-  marketType: "domestic" | "global"; views: number; likes: number; isLiked: boolean;
+  marketType: "domestic" | "global" | "commodities"; views: number; likes: number; isLiked: boolean;
   readTime: string; isPublished: boolean; publishedAt: string;
   author: { _id: string; name: string; email: string };
   credits: { source: string; author?: string; url?: string; publishedDate?: string };
 }
 
+const INITIAL_VISIBLE = 6;
+
 const DecodeMarket = ({ activeTab }: DecodeMarketProps) => {
   const { isAdmin } = useAuth();
   const { theme } = useTheme();
   const isLight = theme === "light";
-  const INITIAL_VISIBLE = 6, INCREMENT = 4;
+  const navigate = useNavigate();
 
   const [insights, setInsights] = useState<InsightData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -32,7 +36,6 @@ const DecodeMarket = ({ activeTab }: DecodeMarketProps) => {
   const [showAdminForm, setShowAdminForm] = useState(false);
   const [editingInsight, setEditingInsight] = useState<InsightData | null>(null);
   const [loadingInsight, setLoadingInsight] = useState(false);
-  const [visibleCount, setVisibleCount] = useState(INITIAL_VISIBLE);
   const hasFetchedRef = useRef(false);
 
   const fetchInsights = async () => {
@@ -41,11 +44,9 @@ const DecodeMarket = ({ activeTab }: DecodeMarketProps) => {
       const endpoint = isAdmin ? "/insights/admin/all" : "/insights";
       const response = await api.get(endpoint, { params: { marketType: activeTab, limit: 100, page: 1 } });
       if (response.data?.success && response.data?.data) {
-        const fetched = response.data.data.insights || [];
-        setInsights(fetched);
-        setVisibleCount(Math.min(INITIAL_VISIBLE, fetched.length));
-      } else { setInsights([]); setVisibleCount(0); }
-    } catch { setInsights([]); setVisibleCount(0); }
+        setInsights(response.data.data.insights || []);
+      } else { setInsights([]); }
+    } catch { setInsights([]); }
     finally { setLoading(false); }
   };
 
@@ -85,20 +86,38 @@ const DecodeMarket = ({ activeTab }: DecodeMarketProps) => {
   };
   const handleFormSuccess = () => { fetchInsights(); setEditingInsight(null); };
 
-  const visibleInsights = insights.slice(0, visibleCount);
-  const hasMoreThanInitial = insights.length > INITIAL_VISIBLE;
-  const canShowMore = visibleCount < insights.length;
+  // Only show first INITIAL_VISIBLE cards on this page
+  const visibleInsights = insights.slice(0, INITIAL_VISIBLE);
+  const hasMore = insights.length > INITIAL_VISIBLE;
 
-  const showMore = () => { if (!canShowMore) return; setVisibleCount(Math.min(visibleCount + INCREMENT, insights.length)); };
-  const showLess = () => {
-    setVisibleCount(Math.min(INITIAL_VISIBLE, insights.length));
-    setTimeout(() => document.getElementById("decode-markets")?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
+  // ✅ Tab config for the 3 tabs
+  const tabConfig = {
+    domestic: {
+      badge: { color: "#34d399", bg: "rgba(52,211,153,0.07)", border: "rgba(52,211,153,0.18)" },
+      label: "Domestic Market Insights",
+      heading: "Indian Markets",
+      sub: "Analysis of NSE, BSE, and sectoral performance",
+    },
+    global: {
+      badge: { color: "#60a5fa", bg: "rgba(96,165,250,0.07)", border: "rgba(96,165,250,0.18)" },
+      label: "Global Market Insights",
+      heading: "International Markets",
+      sub: "Global economic trends and their impact on investments",
+    },
+    commodities: {
+      badge: { color: "#f59e0b", bg: "rgba(245,158,11,0.07)", border: "rgba(245,158,11,0.18)" },
+      label: "Commodities Insights",
+      heading: "Commodities Markets",
+      sub: "Gold, silver, crude oil, and other commodity trends",
+    },
   };
+
+  const tab = tabConfig[activeTab];
 
   return (
     <section id="decode-markets" className="mb-12 sm:mb-16 md:mb-20 relative overflow-hidden">
 
-      {/* Ambient glows — clamped so never cause horizontal scroll on mobile */}
+      {/* Ambient glows */}
       <div
         className="absolute top-0 right-0 w-[min(450px,80vw)] h-[min(450px,80vw)] rounded-full blur-[80px] sm:blur-[120px] pointer-events-none"
         style={{ background: "radial-gradient(circle,rgba(212,168,67,0.05) 0%,transparent 70%)" }}
@@ -113,7 +132,7 @@ const DecodeMarket = ({ activeTab }: DecodeMarketProps) => {
         {/* ── Section header ─────────────────────────────────────────────── */}
         <div className="text-center mb-8 sm:mb-10 relative px-4 sm:px-6 lg:px-8">
 
-          {/* Desktop only — button floats right, vertically centered */}
+          {/* Desktop only — button floats right */}
           {isAdmin && (
             <div className="hidden sm:flex absolute top-1/2 right-4 sm:right-6 lg:right-8 -translate-y-1/2">
               <button
@@ -168,26 +187,20 @@ const DecodeMarket = ({ activeTab }: DecodeMarketProps) => {
           <div className="flex flex-col items-center gap-2 sm:gap-3 mb-6 sm:mb-8">
             <div
               className="inline-flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-medium"
-              style={activeTab === "domestic"
-                ? { color: "#34d399", background: "rgba(52,211,153,0.07)", border: "1px solid rgba(52,211,153,0.18)" }
-                : { color: "#60a5fa", background: "rgba(96,165,250,0.07)", border: "1px solid rgba(96,165,250,0.18)" }}
+              style={{ color: tab.badge.color, background: tab.badge.bg, border: `1px solid ${tab.badge.border}` }}
             >
               <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              {activeTab === "domestic" ? "Domestic Market Insights" : "Global Market Insights"}
+              {tab.label}
             </div>
             <div className="text-center">
               <h3 className={`text-xl sm:text-2xl font-bold mb-1 ${isLight ? "text-navy" : "text-white"}`}>
-                {activeTab === "domestic" ? "Indian Markets" : "International Markets"}
+                {tab.heading}
               </h3>
-              <p className="text-slate-400 text-xs sm:text-sm">
-                {activeTab === "domestic"
-                  ? "Analysis of NSE, BSE, and sectoral performance"
-                  : "Global economic trends and their impact on investments"}
-              </p>
+              <p className="text-slate-400 text-xs sm:text-sm">{tab.sub}</p>
             </div>
           </div>
 
-          {/* ── Cards / Empty / Loading states ───────────────────────────── */}
+          {/* ── Cards / Empty / Loading ───────────────────────────────── */}
           {loading ? (
             <div className="text-center py-12 sm:py-16">
               <div
@@ -229,27 +242,16 @@ const DecodeMarket = ({ activeTab }: DecodeMarketProps) => {
           )}
         </div>
 
-        {/* ── Show More / Show Less ─────────────────────────────────────── */}
-        {hasMoreThanInitial && insights.length > 0 && (
-          <div className="mt-8 sm:mt-12 text-center px-4 flex flex-wrap gap-3 sm:gap-4 justify-center">
-            {canShowMore && (
-              <button
-                onClick={showMore}
-                className="px-5 sm:px-6 py-2.5 sm:py-3 rounded-full text-sm font-semibold transition-all active:scale-95 text-[#D4A843]"
-                style={{ background: "rgba(212,168,67,0.07)", border: "1px solid rgba(212,168,67,0.22)" }}
-              >
-                Show More
-              </button>
-            )}
-            {visibleCount > INITIAL_VISIBLE && (
-              <button
-                onClick={showLess}
-                className="px-5 sm:px-6 py-2.5 sm:py-3 rounded-full text-sm font-semibold transition-all active:scale-95 text-slate-400"
-                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)" }}
-              >
-                Show Less
-              </button>
-            )}
+        {/* ── Show More → navigate to full page ─────────────────────────── */}
+        {hasMore && insights.length > 0 && (
+          <div className="mt-8 sm:mt-12 text-center px-4">
+            <button
+              onClick={() => navigate(`/insights/${activeTab}`)}
+              className="px-6 sm:px-8 py-2.5 sm:py-3 rounded-full text-sm font-semibold transition-all active:scale-95 text-[#D4A843]"
+              style={{ background: "rgba(212,168,67,0.07)", border: "1px solid rgba(212,168,67,0.22)" }}
+            >
+              Show More
+            </button>
           </div>
         )}
       </div>

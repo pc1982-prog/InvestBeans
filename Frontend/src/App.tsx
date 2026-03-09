@@ -30,6 +30,8 @@ import IPOSection from "./views/Iposection";
 import IPOPage from "./views/Ipopage";
 import { ThemeProvider } from "@/controllers/Themecontext"
 import PricingPlan from "./views/Pricingplan";
+import CurrencyView from "./views/Currencyview";
+import DecodeMarketsPage from "./components/DecodeMarketsPage";
 
 const queryClient = new QueryClient();
 
@@ -48,6 +50,7 @@ const App = () => (
               <Route path="/domestic" element={<DomesticController />} />
               <Route path="/global" element={<GlobalController />} />
               <Route path="/markets" element={<MarketsView />} />
+              <Route path="/currency" element={<CurrencyView />} />
               <Route path="/pricing" element={<PricingPlan />} />
               <Route path="/chart/:symbol" element={<ChartPage />} />
               <Route path="/education" element={<EducationView />} />
@@ -62,6 +65,7 @@ const App = () => (
               <Route path="/ipos" element={<IPOPage />} />
               <Route path="/forgot-password" element={<ForgotPasswordController />} />
               <Route path="/reset-password" element={<ResetPasswordController />} />
+              <Route path="/insights/:tab" element={<DecodeMarketsPage />} />
               <Route
                 path="/dashboard"
                 element={
