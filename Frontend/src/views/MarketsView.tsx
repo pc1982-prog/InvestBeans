@@ -1,127 +1,269 @@
-import React from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import Layout from '@/components/Layout';
+import CommodityCard from '@/components/Commoditycard';
+import { useGlobalMarkets } from '@/hooks/useGlobalMarkets';
+import { Commodity } from '@/services/globalMarkets/types';
+import { useTheme } from '@/controllers/Themecontext';
+import {
+  TrendingUp, TrendingDown, Activity, RefreshCw,
+  BarChart3, DollarSign, Flame, Zap, Clock,
+} from 'lucide-react';
+
+const G = "#2D4A35";
+const O = "#C07A3A";
+
+// ── Market Hours (same as GlobalView) ─────────────────────────────
+interface MarketInfo { name: string; flag: string; tz: string; localTime: string; openUTC: number; closeUTC: number; color: string; }
+const MARKETS: MarketInfo[] = [
+  { name: "Tokyo",    flag: "🇯🇵", tz: "JST",  localTime: "09:00–15:00", openUTC:   0, closeUTC: 360, color: "#e74c3c" },
+  { name: "Shanghai", flag: "🇨🇳", tz: "CST",  localTime: "09:30–15:00", openUTC:  90, closeUTC: 420, color: "#f39c12" },
+  { name: "India",    flag: "🇮🇳", tz: "IST",  localTime: "09:15–15:30", openUTC: 225, closeUTC: 570, color: "#27ae60" },
+  { name: "Frankfurt",flag: "🇩🇪", tz: "CET",  localTime: "09:00–17:30", openUTC: 480, closeUTC: 990, color: "#2980b9" },
+  { name: "London",   flag: "🇬🇧", tz: "GMT",  localTime: "08:00–16:30", openUTC: 480, closeUTC: 990, color: "#8e44ad" },
+  { name: "New York", flag: "🇺🇸", tz: "EST",  localTime: "09:30–16:00", openUTC: 870, closeUTC:1260, color: "#2563eb" },
+];
+function getStatus(m: MarketInfo): "open"|"pre"|"closed" {
+  const now = new Date(); const day = now.getUTCDay();
+  if (day === 0 || day === 6) return "closed";
+  const mins = now.getUTCHours() * 60 + now.getUTCMinutes();
+  if (mins >= m.openUTC && mins < m.closeUTC) return "open";
+  if (mins >= m.openUTC - 30 && mins < m.openUTC) return "pre";
+  return "closed";
+}
+
+function SectionLabel({ icon: Icon, children, isLight }: { icon?: any; children: React.ReactNode; isLight: boolean }) {
+  return (
+    <div className="flex items-center gap-3 mb-6">
+      {Icon && (
+        <div className="w-9 h-9 rounded-xl flex items-center justify-center"
+          style={{ background: `${G}12`, border: `1px solid ${G}25` }}>
+          <Icon className="w-4 h-4" style={{ color: G }} />
+        </div>
+      )}
+      <h2 className={`text-xl font-extrabold tracking-tight ${isLight ? "text-gray-900" : "text-slate-100"}`}>{children}</h2>
+      <div className={`flex-1 h-px ml-2 ${isLight ? "bg-gray-100" : "bg-white/10"}`} />
+    </div>
+  );
+}
 
 const MarketsView = () => {
+  const { theme } = useTheme();
+  const isLight = theme === 'light';
+  const { data, loading, lastUpdated, refresh } = useGlobalMarkets();
+  const [refreshing, setRefreshing] = useState(false);
+  const [, setTick] = useState(0);
+
+  useEffect(() => {
+    const t = setInterval(() => setTick(n => n + 1), 60_000);
+    return () => clearInterval(t);
+  }, []);
+
+  const isLoading = loading === 'idle' || loading === 'loading';
+  const commodities: Commodity[] = useMemo(() => data?.commodities || [], [data?.commodities]);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try { await refresh(); } catch {} finally { setRefreshing(false); }
+  };
+
+  const pageBg    = isLight ? "bg-[#F8F7F4]" : "bg-[#0c1a2e]";
+  const cardBg    = isLight ? "bg-white border-gray-100" : "bg-[#0e2038] border-white/8";
+  const textPrim  = isLight ? "text-gray-900" : "text-slate-100";
+  const textSec   = isLight ? "text-gray-500" : "text-slate-400";
+  const textMuted = isLight ? "text-gray-400" : "text-slate-500";
+
+  // Commodity category icons
+  const categoryIcon: Record<string, React.ReactNode> = {
+    "Gold":          <span className="text-base">🥇</span>,
+    "Silver":        <span className="text-base">🥈</span>,
+    "Crude Oil WTI": <Flame className="w-4 h-4 text-orange-500" />,
+    "Brent Crude":   <Flame className="w-4 h-4 text-red-500" />,
+    "Natural Gas":   <Zap   className="w-4 h-4 text-yellow-500" />,
+  };
+
+  const MARKET_ASSET_CARDS = [
+    { label: "Stock Markets",    icon: <BarChart3    className="w-6 h-6 text-green-600"  />, bg: "bg-green-50",   desc: "Track global equity indices with live data & analysis.",       stat: "View in Global Markets →", href: "/global-markets" },
+    { label: "Forex / Currency", icon: <DollarSign   className="w-6 h-6 text-blue-600"   />, bg: "bg-blue-50",    desc: "Monitor major & exotic currency pairs with live rates.",        stat: "View Currency Page →",     href: "/currency" },
+    { label: "Commodities",      icon: <Flame        className="w-6 h-6 text-orange-600" />, bg: "bg-orange-50",  desc: "Gold, silver, crude oil, natural gas and more.",                stat: "See below ↓",              href: "#section-commodities" },
+  ];
+
   return (
     <Layout>
-      <div className="min-h-screen bg-gray-50 py-8">
-        <div className="container mx-auto px-6">
-          <div className="text-center mb-12">
-            <h1 className="text-4xl font-bold text-navy mb-4">Markets</h1>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Explore global financial markets, track real-time data, and discover investment opportunities across different asset classes.
-            </p>
-          </div>
+      <div className={`min-h-screen ${pageBg}`}>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {/* Stock Markets */}
-            <div className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow">
-              <div className="flex items-center mb-4">
-                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mr-4">
-                  <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                  </svg>
+        {/* ── Hero ──────────────────────────────────────────────── */}
+        <div className={`border-b ${isLight ? "bg-white border-gray-200" : "bg-[#0e2038] border-white/8"}`}>
+          <div className="h-0.5" style={{ background: `linear-gradient(to right, ${G}, ${O})` }} />
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl py-8">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div>
+                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold mb-3"
+                  style={{ background: `${G}12`, color: G, border: `1px solid ${G}25` }}>
+                  <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: G }} />
+                  LIVE MARKETS
                 </div>
-                <h3 className="text-xl font-semibold text-navy">Stock Markets</h3>
+                <h1 className={`text-4xl sm:text-5xl font-black tracking-tight leading-none mb-2 ${textPrim}`}>
+                  Markets
+                  <span className="block" style={{ color: G }}>Overview</span>
+                </h1>
+                <p className={`text-sm ${textSec}`}>
+                  Stocks · Commodities · Currencies — all in one place
+                </p>
               </div>
-              <p className="text-gray-600 mb-4">Track equity markets worldwide with real-time data and analysis.</p>
-              <div className="text-sm text-gray-500">
-                <span className="text-green-600 font-semibold">+2.4%</span> Today
-              </div>
-            </div>
-
-            {/* Forex Markets */}
-            <div className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow">
-              <div className="flex items-center mb-4">
-                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mr-4">
-                  <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-                  </svg>
-                </div>
-                <h3 className="text-xl font-semibold text-navy">Forex Markets</h3>
-              </div>
-              <p className="text-gray-600 mb-4">Monitor currency pairs and exchange rates across global markets.</p>
-              <div className="text-sm text-gray-500">
-                <span className="text-blue-600 font-semibold">USD/EUR</span> 0.85
-              </div>
-            </div>
-
-            {/* Crypto Markets */}
-            <div className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow">
-              <div className="flex items-center mb-4">
-                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mr-4">
-                  <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                  </svg>
-                </div>
-                <h3 className="text-xl font-semibold text-navy">Crypto Markets</h3>
-              </div>
-              <p className="text-gray-600 mb-4">Stay updated with cryptocurrency prices and market trends.</p>
-              <div className="text-sm text-gray-500">
-                <span className="text-purple-600 font-semibold">BTC</span> $43,250
-              </div>
-            </div>
-
-            {/* Commodities */}
-            <div className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow">
-              <div className="flex items-center mb-4">
-                <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center mr-4">
-                  <svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z" />
-                  </svg>
-                </div>
-                <h3 className="text-xl font-semibold text-navy">Commodities</h3>
-              </div>
-              <p className="text-gray-600 mb-4">Track precious metals, energy, and agricultural commodities.</p>
-              <div className="text-sm text-gray-500">
-                <span className="text-yellow-600 font-semibold">Gold</span> $1,950/oz
-              </div>
-            </div>
-
-            {/* Bonds */}
-            <div className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow">
-              <div className="flex items-center mb-4">
-                <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center mr-4">
-                  <svg className="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-                <h3 className="text-xl font-semibold text-navy">Bonds</h3>
-              </div>
-              <p className="text-gray-600 mb-4">Monitor government and corporate bond yields and prices.</p>
-              <div className="text-sm text-gray-500">
-                <span className="text-indigo-600 font-semibold">10Y Treasury</span> 4.2%
-              </div>
-            </div>
-
-            {/* Market News */}
-            <div className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow">
-              <div className="flex items-center mb-4">
-                <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mr-4">
-                  <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
-                  </svg>
-                </div>
-                <h3 className="text-xl font-semibold text-navy">Market News</h3>
-              </div>
-              <p className="text-gray-600 mb-4">Latest financial news and market analysis from experts.</p>
-              <div className="text-sm text-gray-500">
-                <span className="text-red-600 font-semibold">Breaking</span> Fed Rate Decision
+              <div className="flex items-center gap-3">
+                {lastUpdated && (
+                  <div className={`flex items-center gap-1.5 text-xs ${textMuted}`}>
+                    <Clock className="w-3.5 h-3.5" />
+                    <span>Updated {Math.floor((Date.now() - lastUpdated) / 60000)}m ago</span>
+                  </div>
+                )}
+                <button onClick={handleRefresh} disabled={refreshing || isLoading}
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white transition-all disabled:opacity-50 shadow-md"
+                  style={{ background: G }}>
+                  <RefreshCw className={`w-4 h-4 ${refreshing ? "animate-spin" : ""}`} />
+                  Refresh
+                </button>
               </div>
             </div>
           </div>
+        </div>
 
-          <div className="mt-12 text-center">
-            <div className="bg-navy text-white rounded-lg p-8">
-              <h2 className="text-2xl font-bold mb-4">Real-Time Market Data</h2>
-              <p className="text-lg mb-6 opacity-90">
-                Access live market data, advanced charts, and professional analysis tools.
-              </p>
-              <button className="bg-accent text-white px-8 py-3 rounded-lg font-semibold hover:bg-accent/90 transition-colors">
-                Explore Markets
-              </button>
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-10 max-w-7xl">
+
+          {/* ── Asset Category Cards ──────────────────────────────── */}
+          <section className="mb-12">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              {MARKET_ASSET_CARDS.map(c => (
+                <a key={c.label} href={c.href}
+                  className={`rounded-2xl border p-6 flex items-start gap-4 hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 cursor-pointer ${cardBg}`}>
+                  <div className={`w-12 h-12 ${c.bg} rounded-xl flex items-center justify-center shrink-0`}>
+                    {c.icon}
+                  </div>
+                  <div>
+                    <h3 className={`font-extrabold text-base mb-1 ${textPrim}`}>{c.label}</h3>
+                    <p className={`text-sm leading-relaxed mb-2 ${textSec}`}>{c.desc}</p>
+                    <span className="text-xs font-bold" style={{ color: G }}>{c.stat}</span>
+                  </div>
+                </a>
+              ))}
             </div>
-          </div>
+          </section>
+
+          {/* ── Market Hours ─────────────────────────────────────── */}
+          <section className="mb-12">
+            <SectionLabel icon={Clock} isLight={isLight}>Market Hours — Open Now</SectionLabel>
+            <div className={`rounded-2xl border shadow-sm overflow-hidden ${cardBg}`}>
+              <div className={`grid grid-cols-3 sm:grid-cols-6 divide-x ${isLight ? "divide-gray-100" : "divide-white/5"}`}>
+                {MARKETS.map(m => {
+                  const s = getStatus(m);
+                  return (
+                    <div key={m.name} className={`p-4 text-center ${
+                      s === 'open'   ? (isLight ? "bg-emerald-50/60" : "bg-emerald-900/10") :
+                      s === 'pre'    ? (isLight ? "bg-amber-50/60"   : "bg-amber-900/10")   : ""
+                    }`}>
+                      <div className="text-2xl mb-1">{m.flag}</div>
+                      <p className={`text-[10px] font-bold ${textPrim}`}>{m.name}</p>
+                      <p className={`text-[9px] mb-2 ${textMuted}`}>{m.tz}</p>
+                      <span className={`text-[9px] font-black px-2 py-0.5 rounded-full uppercase ${
+                        s === 'open' ? "bg-emerald-100 text-emerald-700" :
+                        s === 'pre'  ? "bg-amber-100 text-amber-700" :
+                        isLight      ? "bg-gray-100 text-gray-400" : "bg-white/5 text-slate-500"
+                      }`}>{s === 'open' ? "OPEN" : s === 'pre' ? "PRE" : "CLOSED"}</span>
+                      <div className="h-0.5 rounded-full mt-2" style={{
+                        background: s === 'open' ? m.color : s === 'pre' ? '#f59e0b' : isLight ? '#e5e7eb' : 'rgba(255,255,255,0.08)',
+                        opacity: s === 'open' ? 1 : 0.3,
+                      }} />
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </section>
+
+          {/* ── Commodities ───────────────────────────────────────── */}
+          <section id="section-commodities" className="mb-12 scroll-mt-20">
+            <SectionLabel icon={Flame} isLight={isLight}>Commodities</SectionLabel>
+
+            {isLoading ? (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <div key={i} className={`h-52 rounded-2xl animate-pulse border ${isLight ? "bg-gray-50 border-gray-100" : "bg-white/5 border-white/8"}`} />
+                ))}
+              </div>
+            ) : commodities.length > 0 ? (
+              <>
+                {/* Summary row */}
+                <div className={`flex items-center gap-4 mb-4 px-4 py-3 rounded-xl border text-xs ${
+                  isLight ? "bg-white border-gray-100 text-gray-500" : "bg-[#0e2038] border-white/8 text-slate-400"
+                }`}>
+                  <span className="font-semibold">Snapshot:</span>
+                  {commodities.map(c => (
+                    <span key={c.symbol} className="flex items-center gap-1">
+                      {categoryIcon[c.name] ?? <Activity className="w-3 h-3" />}
+                      <span className={`font-bold ${isLight ? "text-gray-700" : "text-slate-300"}`}>{c.name}</span>
+                      <span className={c.changePercent >= 0 ? "text-emerald-600 font-bold" : "text-red-500 font-bold"}>
+                        {c.changePercent >= 0 ? "▲" : "▼"}{Math.abs(c.changePercent).toFixed(2)}%
+                      </span>
+                    </span>
+                  ))}
+                  {lastUpdated && (
+                    <span className="ml-auto flex items-center gap-1">
+                      <Clock className="w-3 h-3" />
+                      {Math.floor((Date.now() - lastUpdated) / 60000)}m ago · ~15min delayed
+                    </span>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                  {commodities.map(c => (
+                    <CommodityCard
+                      key={c.symbol}
+                      name={c.name} price={c.price} change={c.change}
+                      changePercent={c.changePercent} unit={c.unit}
+                      isPositive={c.changePercent >= 0}
+                      candles={c.candles}
+                      lastUpdated={lastUpdated ?? undefined}
+                      isLight={isLight}
+                    />
+                  ))}
+                </div>
+              </>
+            ) : (
+              <div className={`rounded-2xl border py-16 flex flex-col items-center gap-3 ${isLight ? "bg-white border-gray-100" : "bg-[#0e2038] border-white/8"}`}>
+                <Activity className={`w-10 h-10 ${textMuted}`} />
+                <p className={`text-sm font-semibold ${textSec}`}>Commodity data unavailable</p>
+                <button onClick={handleRefresh} className="text-xs font-bold px-3 py-1.5 rounded-lg"
+                  style={{ background: `${G}12`, color: G }}>
+                  Retry
+                </button>
+              </div>
+            )}
+          </section>
+
+          {/* ── Navigate to other pages ──────────────────────────── */}
+          <section className="mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <a href="/global-markets" className={`rounded-2xl border p-6 flex items-center gap-5 hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 ${cardBg}`}>
+                <div className="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center shrink-0">
+                  <TrendingUp className="w-6 h-6 text-emerald-600" />
+                </div>
+                <div>
+                  <h3 className={`font-extrabold text-lg mb-1 ${textPrim}`}>Global Markets</h3>
+                  <p className={`text-sm ${textSec}`}>US, Europe & Asia indices with live charts, bonds, VIX & events</p>
+                </div>
+              </a>
+              <a href="/currency" className={`rounded-2xl border p-6 flex items-center gap-5 hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 ${cardBg}`}>
+                <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center shrink-0">
+                  <DollarSign className="w-6 h-6 text-blue-600" />
+                </div>
+                <div>
+                  <h3 className={`font-extrabold text-lg mb-1 ${textPrim}`}>Currency / Forex</h3>
+                  <p className={`text-sm ${textSec}`}>Live currency pairs, exchange rates, candlestick charts & more</p>
+                </div>
+              </a>
+            </div>
+          </section>
+
         </div>
       </div>
     </Layout>
