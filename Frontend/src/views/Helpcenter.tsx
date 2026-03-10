@@ -1,405 +1,468 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import Layout from '@/components/Layout';
 
+/* ─────────────────────────────────────────────
+   Reveal helper (matches TeamView pattern)
+───────────────────────────────────────────── */
+const useReveal = () => {
+  const ref = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    if (!ref.current) return;
+    const el = ref.current;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => { if (e.isIntersecting) { el.classList.add('ib-revealed'); observer.unobserve(el); } });
+      },
+      { threshold: 0.1 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+  return ref;
+};
+
+const Reveal: React.FC<{ className?: string; delay?: number } & React.HTMLAttributes<HTMLDivElement>> = ({ className = '', delay = 0, children, ...rest }) => {
+  const ref = useReveal();
+  return (
+    <div ref={ref} style={{ transitionDelay: `${delay}ms` }} className={`opacity-0 translate-y-6 ib-reveal will-change-transform ${className}`} {...rest}>
+      {children}
+    </div>
+  );
+};
+
+const GlobalStyles = () => (
+  <style>{`
+    .ib-reveal { transition: opacity 700ms ease, transform 700ms ease; }
+    .ib-revealed { opacity: 1 !important; transform: translateY(0) !important; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    header, nav.site-header, .site-header { display: none !important; }
+    @media (prefers-reduced-motion: reduce) {
+      .ib-reveal { opacity: 1 !important; transform: none !important; }
+    }
+  `}</style>
+);
+
+/* ─────────────────────────────────────────────
+   DATA — from FAQs document
+───────────────────────────────────────────── */
+const categories = [
+  { id: 'org',      label: 'Organisation & Regulatory', icon: 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4' },
+  { id: 'research', label: 'Research & Advisory',        icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z' },
+  { id: 'risk',     label: 'Risk Management',            icon: 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z' },
+  { id: 'data',     label: 'Data & Technology',          icon: 'M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4' },
+  { id: 'insights', label: 'Portfolio & Insights',       icon: 'M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z' },
+  { id: 'edu',      label: 'Education',                  icon: 'M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253' },
+  { id: 'payment',  label: 'Payment & Subscriptions',    icon: 'M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z' },
+  { id: 'privacy',  label: 'Privacy & Security',         icon: 'M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z' },
+  { id: 'reg',      label: 'Regulatory Disclosures',     icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2' },
+];
+
+const faqs: Record<string, { id: string; q: string; a: string; disclaimer?: string }[]> = {
+  org: [
+    { id: 'o1', q: 'What is the legal status of InvestBeans?', a: 'InvestBeans operates as a registered proprietorship in India, offering research insights and educational content with full compliance to regulatory standards.', disclaimer: 'This does not constitute a registered investment advisory service.' },
+    { id: 'o2', q: 'Is InvestBeans SEBI registered?', a: 'We are currently in the process of obtaining SEBI Research Analyst registration. Until approval, all content is strictly educational and informational in nature.', disclaimer: 'No activity is conducted that requires SEBI registration until approval is granted.' },
+    { id: 'o3', q: 'What is your compliance framework?', a: 'Our compliance policies include ethical communication, transparent disclosures, conflict management, and avoidance of misleading or unverified claims.', disclaimer: 'Compliance procedures are aligned with industry guidelines and do not replace regulatory requirements.' },
+  ],
+  research: [
+    { id: 'r1', q: 'What type of research does InvestBeans provide?', a: 'We offer technical, sectoral, and behavioural research insights based on structured analysis and risk-modelling frameworks.', disclaimer: 'Research insights are not investment guarantees.' },
+    { id: 'r2', q: 'Do you provide buy/sell/hold recommendations?', a: 'Yes — only as research insights, including entry ranges, risk parameters, and exit triggers. Final decisions rest fully with the investor.', disclaimer: 'Past performance does not guarantee future results.' },
+    { id: 'r3', q: 'Do you offer derivatives insights?', a: 'Yes, but only for users with appropriate risk profiles, focusing on risk-defined strategies.', disclaimer: 'Derivatives involve substantial risk and may lead to capital loss.' },
+  ],
+  risk: [
+    { id: 'ri1', q: 'How does InvestBeans manage risk in research insights?', a: 'We incorporate stop-loss levels, volatility checks, sector diversification, and event-based adjustments into all research outputs.', disclaimer: 'Risk controls reduce risk but cannot eliminate it.' },
+    { id: 'ri2', q: 'Do you guarantee profits?', a: 'No. We do not offer guaranteed, assured, or fixed returns under any circumstances whatsoever.', disclaimer: 'All market investments are subject to market risks.' },
+    { id: 'ri3', q: 'Do you manage client funds?', a: 'No. InvestBeans does not offer PMS, fund management, or execute trades on behalf of clients.', disclaimer: 'The user retains full control of trading and financial decisions.' },
+  ],
+  data: [
+    { id: 'd1', q: 'What data sources do you use?', a: 'We use industry-standard data feeds, global indicators, charting systems, and market screening tools to power our research.', disclaimer: 'Data may have delays as per exchange guidelines.' },
+    { id: 'd2', q: 'Is the Beans Dashboard real-time?', a: 'The dashboard uses delayed feeds suitable for analysis but not for rapid trading decisions. It is designed as a research and learning tool.', disclaimer: 'Dashboard content is for informational purposes only.' },
+  ],
+  insights: [
+    { id: 'i1', q: 'Do you offer personalised portfolio reviews?', a: 'Yes. Reviews include risk exposure, sector balance, allocation structure, and corrective recommendations tailored to your goals.', disclaimer: 'Portfolio views are educational and not personalised investment advice.' },
+    { id: 'i2', q: 'How are insights delivered?', a: 'Insights are shared through email, WhatsApp (registered users), dashboard alerts, or website panels depending on your subscription.', disclaimer: 'Users must verify information before acting on it.' },
+  ],
+  edu: [
+    { id: 'e1', q: 'What educational modules do you offer?', a: 'We provide structured learning covering trading psychology, finance basics, commodities, forex, and technical analysis — from beginner to advanced.', disclaimer: 'Educational content does not constitute market advice.' },
+    { id: 'e2', q: 'Are advanced programs paid?', a: 'Yes. Some modules fall under paid learning offerings with detailed curriculum, live sessions, and downloadable resources.', disclaimer: 'Purchasing educational content does not assure profitability.' },
+  ],
+  payment: [
+    { id: 'p1', q: 'What are the payment modes?', a: 'We accept UPI, bank transfers, and verified online payment gateways. All transactions are processed securely.', disclaimer: 'Payments do not guarantee returns or profits.' },
+    { id: 'p2', q: 'Do you offer refunds?', a: 'Refunds are handled in accordance with our documented Refund & Cancellation Policy available on the website.', disclaimer: 'Refund approval is not guaranteed in all cases.' },
+  ],
+  privacy: [
+    { id: 'pr1', q: 'How do you protect client data?', a: 'We employ encrypted systems, secure servers, and restricted-access protocols to safeguard all user information and account data.', disclaimer: 'No digital system is completely risk-free.' },
+  ],
+  reg: [
+    { id: 're1', q: 'Do you disclose conflicts of interest?', a: 'Yes. Any equity positions or potential conflicts are disclosed as required to maintain full transparency with our users.', disclaimer: 'Disclosures aim to maintain transparency but do not eliminate all risks.' },
+    { id: 're2', q: 'Do you earn brokerage or commissions?', a: 'No. InvestBeans does not accept rebates or commissions from brokers or third parties. We maintain an independent research model.', disclaimer: 'We maintain an independent research model.' },
+  ],
+};
+
+/* ─────────────────────────────────────────────
+   COMPONENT
+───────────────────────────────────────────── */
 export default function HelpCenter() {
-  const [activeCategory, setActiveCategory] = useState('getting-started');
+  const [activeCategory, setActiveCategory] = useState('org');
   const [searchQuery, setSearchQuery] = useState('');
   const [openFaq, setOpenFaq] = useState<string | null>(null);
 
-  const categories = [
-    { id: 'getting-started', name: 'Getting Started', icon: '🚀' },
-    { id: 'account', name: 'Account & Billing', icon: '💳' },
-    { id: 'learning', name: 'Learning & Content', icon: '📚' },
-    { id: 'trading', name: 'Trading & Markets', icon: '📈' },
-    { id: 'technical', name: 'Technical Support', icon: '⚙️' },
-    { id: 'security', name: 'Security & Privacy', icon: '🔒' },
-  ];
+  // Flatten all FAQs for search
+  const allFaqs = Object.entries(faqs).flatMap(([catId, items]) =>
+    items.map((f) => ({ ...f, catId }))
+  );
 
-  const faqs = {
-    'getting-started': [
-      {
-        id: 'gs1',
-        question: 'What is InvestBeans and how does it work?',
-        answer: 'InvestBeans is a people-powered learning platform for thoughtful traders and investors. We blend research-driven insights, ethical practices, and human mentorship to help you navigate both national and international markets with clarity, calm, and conviction. Our platform offers structured courses, live mentorship sessions, market analysis, and a supportive community of learners.'
-      },
-      {
-        id: 'gs2',
-        question: 'How do I create an account?',
-        answer: 'Creating an account is simple! Click the "Sign Up" button in the top right corner of our homepage. Enter your name, email address, and create a secure password. You\'ll receive a verification email to confirm your account. Once verified, you can start exploring our free content and consider upgrading to access premium features and mentorship programs.'
-      },
-      {
-        id: 'gs3',
-        question: 'What knowledge level do I need to join?',
-        answer: 'InvestBeans welcomes learners at all levels! Whether you\'re a complete beginner with no trading experience or an intermediate investor looking to refine your strategies, we have content tailored for you. Our courses start with fundamentals and progressively advance to more complex topics. We recommend starting with our "Investing Basics" module if you\'re new to markets.'
-      },
-      {
-        id: 'gs4',
-        question: 'What markets do you cover?',
-        answer: 'We provide comprehensive education on both national (Indian) and international markets. This includes equity markets (stocks), derivatives (futures and options), commodities, currencies (forex), and global indices. Our content covers market fundamentals, technical and fundamental analysis, risk management, and trading psychology applicable across all these markets.'
-      },
-    ],
-    'account': [
-      {
-        id: 'acc1',
-        question: 'What subscription plans do you offer?',
-        answer: 'We offer three subscription tiers: Free (access to basic content and community), Premium (₹2,999/month - includes all courses, weekly market insights, and community access), and Pro (₹4,999/month - everything in Premium plus 1-on-1 mentorship sessions, portfolio reviews, and priority support). Annual plans are available with a 20% discount.'
-      },
-      {
-        id: 'acc2',
-        question: 'How do I upgrade or downgrade my subscription?',
-        answer: 'To manage your subscription, log into your account and go to Settings > Subscription. From there, you can upgrade to a higher tier (effective immediately) or downgrade (effective at the end of your current billing cycle). If you upgrade mid-cycle, you\'ll only pay the prorated difference for the remaining period.'
-      },
-      {
-        id: 'acc3',
-        question: 'What is your refund policy?',
-        answer: 'We offer a 7-day money-back guarantee on all paid subscriptions. If you\'re not satisfied within the first 7 days of your subscription, contact our support team for a full refund. After 7 days, subscriptions are non-refundable, but you can cancel at any time to prevent future charges.'
-      },
-      {
-        id: 'acc4',
-        question: 'Can I share my account with others?',
-        answer: 'Each subscription is for individual use only and tied to a single user account. Account sharing violates our Terms of Service and may result in suspension. However, we do offer family and team plans at discounted rates if you\'d like to provide access to multiple people in your household or organization.'
-      },
-    ],
-    'learning': [
-      {
-        id: 'learn1',
-        question: 'How are your courses structured?',
-        answer: 'Our courses follow a progressive learning path with video lessons, reading materials, practical exercises, and quizzes. Each course is divided into modules covering specific topics. You can learn at your own pace, and all content remains accessible as long as your subscription is active. Most courses include downloadable resources and templates you can use in your own trading.'
-      },
-      {
-        id: 'learn2',
-        question: 'Do I get certificates upon course completion?',
-        answer: 'Yes! Upon completing any course with a passing score on the final assessment, you\'ll receive a digital certificate of completion. This certificate includes your name, course title, completion date, and a unique verification code. You can share these certificates on LinkedIn or include them in your resume.'
-      },
-      {
-        id: 'learn3',
-        question: 'How do mentorship sessions work?',
-        answer: 'Pro subscribers get access to 1-on-1 mentorship sessions with our experienced trading mentors. You can book sessions through your dashboard based on mentor availability. Sessions are typically 45-60 minutes via video call and can cover portfolio review, trading strategy, risk management, or any specific questions you have. We recommend preparing questions in advance to maximize the value.'
-      },
-      {
-        id: 'learn4',
-        question: 'Are your market insights and recommendations guaranteed to be profitable?',
-        answer: 'NO. This is extremely important to understand: InvestBeans provides educational content only. We do NOT provide guaranteed returns or specific buy/sell recommendations. All market insights and analysis are for educational purposes to help you develop your own analytical skills. Past performance does not guarantee future results. All investment decisions are solely your responsibility.'
-      },
-    ],
-    'trading': [
-      {
-        id: 'trade1',
-        question: 'Do you provide stock tips or trading signals?',
-        answer: 'No, we do not provide stock tips or trading signals. InvestBeans is an educational platform focused on teaching you the skills and knowledge to make informed decisions independently. We teach you analysis methods, risk management principles, and trading psychology so you can develop your own strategy and make your own decisions based on your research.'
-      },
-      {
-        id: 'trade2',
-        question: 'How do I open a trading account?',
-        answer: 'InvestBeans is an educational platform and does not provide trading accounts. To start trading, you\'ll need to open an account with a registered stockbroker (like Zerodha, Upstox, ICICI Direct, etc. in India, or Interactive Brokers, TD Ameritrade for international markets). We provide guidance on how to choose a broker and what to look for, but you\'ll need to complete the account opening process with your chosen broker.'
-      },
-      {
-        id: 'trade3',
-        question: 'What is your approach to risk management?',
-        answer: 'Risk management is a core focus at InvestBeans. We teach systematic position sizing, stop-loss strategies, portfolio diversification, and the importance of never risking more than you can afford to lose. Our courses emphasize that protecting capital is more important than making profits. We encourage paper trading (simulation) before risking real money, especially for beginners.'
-      },
-      {
-        id: 'trade4',
-        question: 'Can you help me with tax implications of trading?',
-        answer: 'While we provide general educational content on tax considerations for traders (like short-term vs long-term capital gains, TDS, etc.), we are not tax advisors. Tax laws are complex and vary based on individual circumstances. We strongly recommend consulting with a qualified chartered accountant or tax professional for personalized advice regarding your specific tax situation.'
-      },
-    ],
-    'technical': [
-      {
-        id: 'tech1',
-        question: 'What devices and browsers are supported?',
-        answer: 'InvestBeans works on all modern devices including desktop computers (Windows, Mac, Linux), tablets, and smartphones (iOS and Android). We recommend using the latest versions of Chrome, Firefox, Safari, or Edge browsers for the best experience. Our platform is fully responsive and optimized for mobile learning.'
-      },
-      {
-        id: 'tech2',
-        question: 'I\'m having trouble accessing video content. What should I do?',
-        answer: 'If videos aren\'t playing, first try refreshing the page and clearing your browser cache. Ensure you have a stable internet connection (we recommend at least 5 Mbps for HD video). Check if your browser allows autoplay and has the latest updates installed. If problems persist, try a different browser or device. You can also download videos for offline viewing (available for Premium and Pro members).'
-      },
-      {
-        id: 'tech3',
-        question: 'Can I download course materials for offline access?',
-        answer: 'Yes! Premium and Pro subscribers can download video lessons, PDF resources, and worksheets for offline access through our mobile app. Simply tap the download icon next to any content. Downloaded content remains accessible offline but requires periodic connection to verify your active subscription.'
-      },
-      {
-        id: 'tech4',
-        question: 'How do I reset my password?',
-        answer: 'Click "Forgot Password" on the login page. Enter your registered email address, and we\'ll send you a password reset link. The link is valid for 24 hours. If you don\'t receive the email within a few minutes, check your spam folder. For security reasons, we cannot reset passwords via phone or chat - you must have access to your registered email address.'
-      },
-    ],
-    'security': [
-      {
-        id: 'sec1',
-        question: 'How is my personal information protected?',
-        answer: 'We take security seriously. All data transmission is encrypted using SSL/TLS protocols. Your passwords are hashed and never stored in plain text. We use secure servers with regular security audits and backups. Payment information is processed through PCI-compliant payment gateways and never stored on our servers. See our Privacy Policy for complete details on data protection.'
-      },
-      {
-        id: 'sec2',
-        question: 'Do you sell my data to third parties?',
-        answer: 'Absolutely not. We never sell, rent, or trade your personal information to third parties for marketing purposes. We only share data with trusted service providers who help us operate the platform (like payment processors and email services), and they are bound by strict confidentiality agreements. Your privacy is paramount to us.'
-      },
-      {
-        id: 'sec3',
-        question: 'Can I delete my account and data?',
-        answer: 'Yes, you have the right to delete your account at any time. Go to Settings > Account > Delete Account. This will permanently remove your personal information from our active databases (though we may retain some data for legal or regulatory requirements for up to 7 years). Please note that account deletion is irreversible and you\'ll lose access to all content, certifications, and purchase history.'
-      },
-      {
-        id: 'sec4',
-        question: 'How do I enable two-factor authentication?',
-        answer: 'We highly recommend enabling two-factor authentication (2FA) for added security. Go to Settings > Security > Two-Factor Authentication. You can choose SMS-based or app-based (Google Authenticator, Authy) 2FA. Once enabled, you\'ll need to enter a code from your phone in addition to your password when logging in.'
-      },
-    ],
-  };
+  const searchResults = searchQuery.trim().length > 1
+    ? allFaqs.filter(
+        (f) =>
+          f.q.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          f.a.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : null;
 
-  const toggleFaq = (id: string) => {
-    setOpenFaq(openFaq === id ? null : id);
-  };
+  const activeFaqs = searchResults ?? faqs[activeCategory] ?? [];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50/30 to-cyan-50">
-      {/* Header */}
-      <header className="border-b border-slate-200 bg-white/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto px-6 py-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-slate-900" style={{ fontFamily: 'Georgia, serif' }}>
-                InvestBeans Help Center
-              </h1>
-              <p className="text-sm text-slate-600 mt-1">We're here to help you succeed</p>
-            </div>
-            <a 
-              href="/" 
-              className="text-sm text-teal-600 hover:text-teal-700 transition-colors font-medium"
-            >
-              ← Back to Home
-            </a>
-          </div>
-        </div>
-      </header>
+    <Layout>
+      <GlobalStyles />
+      <div className="min-h-screen bg-slate-950 text-white">
 
-      {/* Hero Section */}
-      <section className="bg-gradient-to-r from-teal-600 to-emerald-600 text-white py-20">
-        <div className="max-w-4xl mx-auto px-6 text-center">
-          <h1 className="text-5xl font-bold mb-6" style={{ fontFamily: 'Georgia, serif' }}>
-            How can we help you today?
-          </h1>
-          <p className="text-xl text-teal-50 mb-8">
-            Search our knowledge base or browse categories below
-          </p>
-          
-          {/* Search Bar */}
-          <div className="relative max-w-2xl mx-auto">
-            <input
-              type="text"
-              placeholder="Search for answers..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-6 py-4 pr-12 rounded-xl text-slate-900 text-lg border-2 border-white/20 focus:border-white focus:outline-none shadow-lg"
-            />
-            <svg 
-              className="absolute right-4 top-1/2 -translate-y-1/2 w-6 h-6 text-slate-400"
-              fill="none" 
-              stroke="currentColor" 
-              viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
+        {/* ── HERO ─────────────────────────────────────── */}
+        <div className="relative overflow-hidden bg-[radial-gradient(circle_at_top,_rgba(81,140,255,0.20),_transparent_55%)]">
+          <div className="absolute inset-0 pointer-events-none">
+            <div className="absolute inset-x-0 top-0 h-64 bg-gradient-to-b from-blue-500/10 via-transparent to-transparent blur-3xl" />
+            <div className="absolute -top-20 right-10 w-72 h-72 bg-purple-500/10 blur-[120px] rounded-full" />
+            <div className="absolute top-10 left-1/3 w-80 h-80 bg-cyan-400/15 blur-[140px] rounded-full" />
           </div>
-        </div>
-      </section>
 
-      {/* Main Content */}
-      <main className="max-w-6xl mx-auto px-6 py-12">
-        {/* Quick Actions */}
-        <section className="mb-16">
-          <h2 className="text-2xl font-bold text-slate-900 mb-6" style={{ fontFamily: 'Georgia, serif' }}>
-            Quick Actions
-          </h2>
-          <div className="grid md:grid-cols-3 gap-6">
-            <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200 hover:shadow-md transition-shadow cursor-pointer">
-              <div className="text-4xl mb-3">📧</div>
-              <h3 className="text-lg font-bold text-slate-900 mb-2">Email Support</h3>
-              <p className="text-slate-600 text-sm mb-4">Get help via email within 24 hours</p>
-              <a href="mailto:support@investbeans.com" className="text-teal-600 hover:text-teal-700 font-medium text-sm">
-                support@investbeans.com →
-              </a>
-            </div>
-            
-            <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200 hover:shadow-md transition-shadow cursor-pointer">
-              <div className="text-4xl mb-3">💬</div>
-              <h3 className="text-lg font-bold text-slate-900 mb-2">Live Chat</h3>
-              <p className="text-slate-600 text-sm mb-4">Chat with us (Mon-Fri, 9 AM - 6 PM IST)</p>
-              <button className="text-teal-600 hover:text-teal-700 font-medium text-sm">
-                Start Chat →
-              </button>
-            </div>
-            
-            <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200 hover:shadow-md transition-shadow cursor-pointer">
-              <div className="text-4xl mb-3">👥</div>
-              <h3 className="text-lg font-bold text-slate-900 mb-2">Community Forum</h3>
-              <p className="text-slate-600 text-sm mb-4">Ask questions and learn from peers</p>
-              <a href="/community" className="text-teal-600 hover:text-teal-700 font-medium text-sm">
-                Visit Forum →
-              </a>
-            </div>
-          </div>
-        </section>
-
-        {/* Categories */}
-        <section className="mb-12">
-          <h2 className="text-2xl font-bold text-slate-900 mb-6" style={{ fontFamily: 'Georgia, serif' }}>
-            Browse by Category
-          </h2>
-          <div className="flex flex-wrap gap-3 mb-8">
-            {categories.map((category) => (
+          <div className="relative z-10 container mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 pt-8 pb-12 sm:pt-12 sm:pb-16">
+            {/* Back */}
+            <div className="mb-8">
               <button
-                key={category.id}
-                onClick={() => setActiveCategory(category.id)}
-                className={`px-5 py-3 rounded-lg font-medium transition-all ${
-                  activeCategory === category.id
-                    ? 'bg-teal-600 text-white shadow-lg scale-105'
-                    : 'bg-white text-slate-700 hover:bg-slate-50 border border-slate-200'
-                }`}
+                type="button"
+                onClick={() => window.history.back()}
+                className="inline-flex items-center gap-1.5 text-sm font-medium text-white/50 hover:text-white/90 transition-colors"
               >
-                <span className="mr-2">{category.icon}</span>
-                {category.name}
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+                Back
               </button>
-            ))}
-          </div>
-
-          {/* FAQs for Selected Category */}
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-8">
-            <h3 className="text-xl font-bold text-slate-900 mb-6">
-              {categories.find(c => c.id === activeCategory)?.name} FAQs
-            </h3>
-            <div className="space-y-4">
-              {faqs[activeCategory as keyof typeof faqs].map((faq) => (
-                <div key={faq.id} className="border-b border-slate-200 last:border-0">
-                  <button
-                    onClick={() => toggleFaq(faq.id)}
-                    className="w-full text-left py-4 flex items-center justify-between hover:text-teal-600 transition-colors group"
-                  >
-                    <span className="font-semibold text-slate-900 group-hover:text-teal-600 pr-4">
-                      {faq.question}
-                    </span>
-                    <svg
-                      className={`w-5 h-5 text-slate-400 flex-shrink-0 transition-transform ${
-                        openFaq === faq.id ? 'rotate-180' : ''
-                      }`}
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </button>
-                  {openFaq === faq.id && (
-                    <div className="pb-6 text-slate-700 leading-relaxed animate-fadeIn">
-                      {faq.answer}
-                    </div>
-                  )}
-                </div>
-              ))}
             </div>
-          </div>
-        </section>
 
-        {/* Contact Section */}
-        <section className="bg-gradient-to-r from-teal-600 to-emerald-600 rounded-2xl p-12 text-white text-center">
-          <h2 className="text-3xl font-bold mb-4" style={{ fontFamily: 'Georgia, serif' }}>
-            Still need help?
-          </h2>
-          <p className="text-xl text-teal-50 mb-8 max-w-2xl mx-auto">
-            Can't find what you're looking for? Our support team is ready to assist you.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <a
-              href="mailto:support@investbeans.com"
-              className="px-8 py-4 bg-white text-teal-600 font-bold rounded-lg hover:bg-teal-50 transition-colors shadow-lg"
-            >
-              Email Us
-            </a>
-            <button className="px-8 py-4 bg-teal-700 text-white font-bold rounded-lg hover:bg-teal-800 transition-colors border-2 border-white/20">
-              Schedule a Call
-            </button>
-          </div>
-          <div className="mt-8 pt-8 border-t border-white/20">
-            <p className="text-teal-100 mb-2">
-              <strong>Support Hours:</strong> Monday - Friday, 9:00 AM - 6:00 PM IST
-            </p>
-            <p className="text-teal-100">
-              <strong>Average Response Time:</strong> 6-12 hours
-            </p>
-          </div>
-        </section>
-
-        {/* Additional Resources */}
-        <section className="mt-16">
-          <h2 className="text-2xl font-bold text-slate-900 mb-6" style={{ fontFamily: 'Georgia, serif' }}>
-            Additional Resources
-          </h2>
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
-              <h3 className="text-lg font-bold text-slate-900 mb-3 flex items-center">
-                <span className="text-2xl mr-3">📖</span>
-                Video Tutorials
-              </h3>
-              <p className="text-slate-600 mb-4">
-                Watch step-by-step guides on using InvestBeans features and getting started with trading education.
+            <div className="text-center space-y-4 mb-10">
+              <span className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.5em] text-blue-200/80">
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
+                Support
+              </span>
+              <h1 className="text-3xl sm:text-5xl font-black text-white leading-tight">
+                How can we help you?
+              </h1>
+              <p className="text-sm sm:text-base text-blue-100/70 max-w-xl mx-auto">
+                Browse categories or search our knowledge base for answers.
               </p>
-              <a href="/tutorials" className="text-teal-600 hover:text-teal-700 font-medium">
-                Watch Tutorials →
-              </a>
             </div>
-            
-            <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
-              <h3 className="text-lg font-bold text-slate-900 mb-3 flex items-center">
-                <span className="text-2xl mr-3">📝</span>
-                Blog & Articles
-              </h3>
-              <p className="text-slate-600 mb-4">
-                Read insights, tips, and educational content from our team of experienced traders and mentors.
-              </p>
-              <a href="/blogs" className="text-teal-600 hover:text-teal-700 font-medium">
-                Read Blog →
-              </a>
+
+            {/* Search bar */}
+            <div className="relative max-w-xl mx-auto">
+              <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => { setSearchQuery(e.target.value); setOpenFaq(null); }}
+                placeholder="Search questions..."
+                className="w-full pl-12 pr-4 py-3.5 rounded-2xl bg-white/8 border border-white/15 text-white placeholder-white/40 focus:outline-none focus:border-blue-400/60 focus:bg-white/10 transition-all text-sm sm:text-base backdrop-blur-xl"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/80 transition-colors"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              )}
             </div>
           </div>
-        </section>
-      </main>
+        </div>
 
-      {/* Footer */}
-      <footer className="border-t border-slate-200 bg-white mt-24">
-        <div className="max-w-6xl mx-auto px-6 py-8">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-sm text-slate-600">
-              © 2026 InvestBeans. All rights reserved.
-            </p>
-            <div className="flex gap-6 text-sm">
-              <a href="/terms-of-service" className="text-slate-600 hover:text-teal-600 transition-colors">
-                Terms of Service
-              </a>
-              <a href="/privacy-policy" className="text-slate-600 hover:text-teal-600 transition-colors">
-                Privacy Policy
+        {/* ── QUICK CONTACT STRIP ──────────────────────── */}
+        <div className="border-y border-white/8 bg-white/3 backdrop-blur-sm">
+          <div className="container mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-4">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-sm">
+              <div className="flex flex-wrap justify-center sm:justify-start items-center gap-4 sm:gap-6 text-white/60">
+                <span className="flex items-center gap-1.5">
+                  <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                  support@investbeans.com
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <svg className="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Mon–Fri, 9 AM – 6 PM IST
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <svg className="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                  Response within 6–12 hrs
+                </span>
+              </div>
+              <a
+                href="mailto:support@investbeans.com"
+                className="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-500 text-white text-sm font-semibold hover:scale-[1.02] transition-all shadow-lg shadow-blue-900/30 whitespace-nowrap"
+              >
+                Email Support
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                </svg>
               </a>
             </div>
           </div>
         </div>
-      </footer>
 
-      <style jsx>{`
-        @keyframes fadeIn {
-          from {
-            opacity: 0;
-            transform: translateY(-10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        .animate-fadeIn {
-          animation: fadeIn 0.3s ease-out;
-        }
-      `}</style>
-    </div>
+        {/* ── MAIN ─────────────────────────────────────── */}
+        <div className="container mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
+
+          {/* Search results badge */}
+          {searchResults !== null && (
+            <Reveal className="mb-6">
+              <p className="text-sm text-white/50">
+                {searchResults.length > 0
+                  ? `${searchResults.length} result${searchResults.length !== 1 ? 's' : ''} for "${searchQuery}"`
+                  : `No results found for "${searchQuery}" — try a different keyword.`}
+              </p>
+            </Reveal>
+          )}
+
+          <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
+
+            {/* ── SIDEBAR CATEGORIES ── */}
+            {!searchResults && (
+              <aside className="lg:w-64 flex-shrink-0">
+                <Reveal>
+                  <div className="lg:sticky lg:top-6">
+                    <p className="text-xs uppercase tracking-[0.4em] text-white/40 mb-3 px-1">Categories</p>
+
+                    {/* Mobile: horizontal scroll */}
+                    <div className="flex lg:hidden overflow-x-auto no-scrollbar gap-2 pb-1">
+                      {categories.map((cat) => (
+                        <button
+                          key={cat.id}
+                          type="button"
+                          onClick={() => { setActiveCategory(cat.id); setOpenFaq(null); }}
+                          className={`flex-shrink-0 flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium transition-all ${
+                            activeCategory === cat.id
+                              ? 'bg-blue-500/20 border border-blue-400/40 text-blue-300'
+                              : 'bg-white/5 border border-white/10 text-white/60 hover:text-white/90 hover:bg-white/8'
+                          }`}
+                        >
+                          <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={cat.icon} />
+                          </svg>
+                          {cat.label}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Desktop: vertical list */}
+                    <div className="hidden lg:flex flex-col gap-1">
+                      {categories.map((cat) => (
+                        <button
+                          key={cat.id}
+                          type="button"
+                          onClick={() => { setActiveCategory(cat.id); setOpenFaq(null); }}
+                          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-left ${
+                            activeCategory === cat.id
+                              ? 'bg-blue-500/20 border border-blue-400/30 text-blue-300'
+                              : 'text-white/55 hover:text-white/90 hover:bg-white/5'
+                          }`}
+                        >
+                          <svg className={`w-4 h-4 flex-shrink-0 ${activeCategory === cat.id ? 'text-blue-400' : 'text-white/30'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={cat.icon} />
+                          </svg>
+                          <span className="leading-snug">{cat.label}</span>
+                          {activeCategory === cat.id && (
+                            <span className="ml-auto w-1.5 h-1.5 rounded-full bg-blue-400 flex-shrink-0" />
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </Reveal>
+              </aside>
+            )}
+
+            {/* ── FAQ PANEL ── */}
+            <div className={`flex-1 min-w-0 ${searchResults ? 'lg:col-span-full' : ''}`}>
+              {!searchResults && (
+                <Reveal className="mb-5">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-blue-500/20 border border-blue-400/30 flex items-center justify-center flex-shrink-0">
+                      <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={categories.find(c => c.id === activeCategory)?.icon || ''} />
+                      </svg>
+                    </div>
+                    <div>
+                      <h2 className="text-lg font-bold text-white leading-tight">
+                        {categories.find(c => c.id === activeCategory)?.label}
+                      </h2>
+                      <p className="text-xs text-white/40">{activeFaqs.length} question{activeFaqs.length !== 1 ? 's' : ''}</p>
+                    </div>
+                  </div>
+                </Reveal>
+              )}
+
+              <div className="space-y-3">
+                {(activeFaqs as any[]).map((faq, idx) => (
+                  <Reveal key={faq.id} delay={idx * 60}>
+                    <div className={`rounded-2xl border transition-all duration-300 overflow-hidden ${
+                      openFaq === faq.id
+                        ? 'border-blue-400/30 bg-white/7'
+                        : 'border-white/10 bg-white/4 hover:border-white/20 hover:bg-white/6'
+                    }`}>
+                      <button
+                        type="button"
+                        onClick={() => setOpenFaq(openFaq === faq.id ? null : faq.id)}
+                        className="w-full flex items-start justify-between gap-3 px-5 py-4 text-left"
+                      >
+                        <span className={`text-sm sm:text-base font-medium leading-snug transition-colors ${openFaq === faq.id ? 'text-white' : 'text-white/80'}`}>
+                          {faq.q}
+                        </span>
+                        <span className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center transition-all mt-0.5 ${
+                          openFaq === faq.id ? 'bg-blue-500/30 rotate-180' : 'bg-white/8'
+                        }`}>
+                          <svg className="w-3.5 h-3.5 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </span>
+                      </button>
+
+                      {openFaq === faq.id && (
+                        <div className="px-5 pb-5 space-y-3 border-t border-white/8 pt-4">
+                          <p className="text-sm text-white/70 leading-relaxed">{faq.a}</p>
+                          {faq.disclaimer && (
+                            <div className="flex items-start gap-2 rounded-xl bg-amber-500/8 border border-amber-400/20 px-3 py-2.5">
+                              <svg className="w-3.5 h-3.5 text-amber-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                              </svg>
+                              <p className="text-xs text-amber-300/80 italic leading-relaxed">Disclaimer: {faq.disclaimer}</p>
+                            </div>
+                          )}
+                          {/* Show category if in search mode */}
+                          {searchResults && (
+                            <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-blue-500/10 border border-blue-400/20">
+                              <svg className="w-3 h-3 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={categories.find(c => c.id === (faq as any).catId)?.icon || ''} />
+                              </svg>
+                              <span className="text-[10px] text-blue-300 uppercase tracking-wider">
+                                {categories.find(c => c.id === (faq as any).catId)?.label}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </Reveal>
+                ))}
+
+                {activeFaqs.length === 0 && searchResults !== null && (
+                  <Reveal>
+                    <div className="text-center py-16 space-y-3">
+                      <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mx-auto">
+                        <svg className="w-7 h-7 text-white/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                      </div>
+                      <p className="text-white/50 text-sm">No results found. Try different keywords or email us directly.</p>
+                    </div>
+                  </Reveal>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* ── RISK DISCLOSURE SUMMARY ────────────────── */}
+          <Reveal className="mt-14">
+            <div className="relative overflow-hidden rounded-[28px] border border-amber-400/20 bg-gradient-to-br from-amber-500/8 to-orange-500/5 p-6 sm:p-8">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(245,158,11,0.08),_transparent_60%)] pointer-events-none" />
+              <div className="relative">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-9 h-9 rounded-xl bg-amber-500/20 border border-amber-400/30 flex items-center justify-center flex-shrink-0">
+                    <svg className="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.4em] text-amber-300/70">Important</p>
+                    <h3 className="text-base font-bold text-white">Key Risk Disclosures</h3>
+                  </div>
+                </div>
+                <div className="grid sm:grid-cols-2 gap-3 text-xs text-white/60 leading-relaxed">
+                  {[
+                    'InvestBeans does not guarantee profits, minimum returns, or capital safety.',
+                    'All content is strictly educational and informational in nature.',
+                    'InvestBeans is in the process of obtaining SEBI Research Analyst registration.',
+                    'Past performance does not guarantee future results.',
+                    'Users are solely responsible for their investment decisions.',
+                    'InvestBeans does not manage funds, execute trades, or offer PMS services.',
+                  ].map((item, i) => (
+                    <div key={i} className="flex items-start gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-400/60 flex-shrink-0 mt-1.5" />
+                      <span>{item}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </Reveal>
+
+          {/* ── STILL NEED HELP CTA ────────────────────── */}
+          <Reveal className="mt-8">
+            <div className="relative overflow-hidden rounded-[28px] border border-white/10 bg-gradient-to-br from-blue-600/30 to-indigo-600/20 p-6 sm:p-10 text-center">
+              <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_top,_rgba(99,102,241,0.4),_transparent_60%)] pointer-events-none" />
+              <div className="relative space-y-4">
+                <p className="text-xs uppercase tracking-[0.5em] text-blue-200/60">Need more help?</p>
+                <h2 className="text-2xl sm:text-3xl font-bold text-white">Still have questions?</h2>
+                <p className="text-sm text-white/60 max-w-md mx-auto">
+                  Can't find what you're looking for? Our support team is ready to assist you personally.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
+                  <a
+                    href="mailto:support@investbeans.com"
+                    className="inline-flex items-center justify-center gap-2 px-7 py-3 rounded-2xl bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-semibold text-sm hover:scale-[1.02] transition-all shadow-lg shadow-blue-900/40"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                    Email Us
+                  </a>
+                  <a
+                    href="https://wa.me/91XXXXXXXXXX"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center gap-2 px-7 py-3 rounded-2xl bg-white/8 border border-white/15 text-white font-semibold text-sm hover:bg-white/12 transition-all"
+                  >
+                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+                    </svg>
+                    WhatsApp Us
+                  </a>
+                </div>
+                <p className="text-xs text-white/35 pt-1">Average response time: 6–12 hours</p>
+              </div>
+            </div>
+          </Reveal>
+
+
+        </div>
+      </div>
+    </Layout>
   );
 }

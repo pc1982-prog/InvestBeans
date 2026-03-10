@@ -484,7 +484,7 @@ const Header = () => {
                   <DropLink to="/domestic" onClick={segments.close} theme={theme}>Domestic</DropLink>
                   <DropLink to="/global" onClick={segments.close} theme={theme}>Global</DropLink>
                   <DropLink to="/markets" onClick={segments.close} theme={theme}>Commodities</DropLink>
-                  <DropLink to="/markets" onClick={segments.close} theme={theme}>Currency</DropLink>
+                  <DropLink to="/currency" onClick={segments.close} theme={theme}>Currency</DropLink>
                 </div>
               </NavItem>
 
@@ -718,7 +718,7 @@ const Header = () => {
                   <MobileLink to="/domestic">Domestic</MobileLink>
                   <MobileLink to="/global">Global</MobileLink>
                   <MobileLink to="/markets">Commodities</MobileLink>
-                  <MobileLink to="/markets">Currency</MobileLink>
+                  <MobileLink to="/currency">Currency</MobileLink>
                 </MobileAccordion>
 
                 <MobileAccordion label="Dashboards" isOpen={mobileDashboardsOpen} toggle={() => setMobileDashboardsOpen((s) => !s)}>

@@ -187,14 +187,14 @@ const HomeView = ({ activeTab, onChangeTab }: HomeViewProps) => {
               </div>
             </div>
           </section>
+          {/* ── IPO Section ─────────────────────────────────────────────── */}
+          <section><IPOSection /></section>
 
           {/* ── Decode Market ────────────────────────────────────────────── */}
           <section className="mt-10">
             <DecodeMarket activeTab={activeTab} />
           </section>
 
-          {/* ── IPO Section ─────────────────────────────────────────────── */}
-          <section><IPOSection /></section>
 
           {/* ── Beans of Wisdom ──────────────────────────────────────────── */}
           <section>

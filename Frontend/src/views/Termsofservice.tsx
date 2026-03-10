@@ -1,329 +1,493 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import Layout from '@/components/Layout';
 
-export default function TermsOfService() {
+/* ─────────────────────────────────────────────
+   Reveal helper
+───────────────────────────────────────────── */
+const useReveal = () => {
+  const ref = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    if (!ref.current) return;
+    const el = ref.current;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => { if (e.isIntersecting) { el.classList.add('ib-revealed'); observer.unobserve(el); } });
+      },
+      { threshold: 0.08 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+  return ref;
+};
+
+const Reveal: React.FC<{ className?: string; delay?: number } & React.HTMLAttributes<HTMLDivElement>> = ({
+  className = '', delay = 0, children, ...rest
+}) => {
+  const ref = useReveal();
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50">
-      {/* Header */}
-      <header className="border-b border-slate-200 bg-white/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="max-w-4xl mx-auto px-6 py-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-slate-900" style={{ fontFamily: 'Georgia, serif' }}>
-                InvestBeans
-              </h1>
-              <p className="text-sm text-slate-600 mt-1">People-powered learning for thoughtful traders</p>
+    <div ref={ref} style={{ transitionDelay: `${delay}ms` }}
+      className={`opacity-0 translate-y-6 ib-reveal will-change-transform ${className}`} {...rest}>
+      {children}
+    </div>
+  );
+};
+
+const GlobalStyles = () => (
+  <style>{`
+    .ib-reveal { transition: opacity 700ms ease, transform 700ms ease; }
+    .ib-revealed { opacity: 1 !important; transform: translateY(0) !important; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    header, nav.site-header, .site-header { display: none !important; }
+    @media (prefers-reduced-motion: reduce) {
+      .ib-reveal { opacity: 1 !important; transform: none !important; }
+    }
+  `}</style>
+);
+
+/* ─────────────────────────────────────────────
+   DATA
+───────────────────────────────────────────── */
+const tabs = [
+  { id: 'terms', label: 'Terms & Conditions', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2' },
+  { id: 'risk',  label: 'Risk Disclosure',    icon: 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z' },
+];
+
+const termsSections = [
+  {
+    num: '1',
+    title: 'General Terms',
+    gradient: 'from-blue-500 to-indigo-600',
+    points: [
+      'By accessing InvestBeans ("the Platform"), you agree to abide by these Terms & Conditions.',
+      'InvestBeans provides research insights, market commentary, dashboards, and educational content.',
+      'InvestBeans is currently in the process of obtaining SEBI Research Analyst registration. Until registration is granted, all content remains informational and educational in nature.',
+    ],
+  },
+  {
+    num: '2',
+    title: 'Nature of Services',
+    gradient: 'from-purple-500 to-violet-600',
+    highlight: {
+      color: 'amber',
+      text: 'InvestBeans does NOT handle client funds, execute trades, provide Portfolio Management Services (PMS), or guarantee or assure returns in any form.',
+    },
+    points: [
+      'All communications are research-driven insights — not personalised investment advice.',
+    ],
+  },
+  {
+    num: '3',
+    title: 'User Responsibility',
+    gradient: 'from-cyan-500 to-blue-600',
+    points: [
+      'Users are solely responsible for evaluating risks, making final investment decisions, and ensuring their actions comply with applicable laws.',
+      'Users must verify the accuracy of any data before acting on it.',
+      'Subscription plans are non-transferable and for individual use only.',
+    ],
+  },
+  {
+    num: '4',
+    title: 'Subscriptions & Payments',
+    gradient: 'from-emerald-500 to-teal-600',
+    points: [
+      'Subscription plans are non-transferable.',
+      'Prices are subject to change without prior notice.',
+      'Refunds, if applicable, will follow the Refund & Cancellation Policy available on the website.',
+      'Accepted modes: UPI, bank transfers, and verified online payment gateways.',
+    ],
+  },
+  {
+    num: '5',
+    title: 'Data & Privacy',
+    gradient: 'from-pink-500 to-rose-600',
+    points: [
+      'InvestBeans collects only essential user information required to operate the platform.',
+      'Data is stored securely using encryption and access controls.',
+      'We do not sell or share personal information without explicit user consent.',
+    ],
+  },
+  {
+    num: '6',
+    title: 'Restrictions',
+    gradient: 'from-amber-500 to-orange-600',
+    points: [
+      'Misuse the platform or attempt to breach system security.',
+      'Copy, distribute, or resell proprietary research or dashboards.',
+      'Use insights for unauthorised commercial activity.',
+      'Share account access with any third party.',
+    ],
+    listPrefix: 'Users must not:',
+  },
+  {
+    num: '7',
+    title: 'Intellectual Property',
+    gradient: 'from-blue-500 to-cyan-600',
+    points: [
+      'All content, tools, graphics, brand names, and dashboards on InvestBeans remain the intellectual property of the platform.',
+      'Unauthorised copying, scraping, or distribution is strictly prohibited.',
+      'You may use content for personal, non-commercial educational purposes only.',
+    ],
+  },
+  {
+    num: '8',
+    title: 'Limitation of Liability',
+    gradient: 'from-slate-500 to-slate-600',
+    highlight: {
+      color: 'red',
+      text: 'Total liability under any circumstance shall not exceed the subscription amount paid by the user.',
+    },
+    points: [
+      'InvestBeans shall not be liable for trading losses, market disruptions, data delays or inaccuracies, third-party system failures, or force majeure events.',
+    ],
+  },
+  {
+    num: '9',
+    title: 'Modifications',
+    gradient: 'from-violet-500 to-purple-600',
+    points: [
+      'We reserve the right to modify these Terms at any time without prior notice.',
+      'Continued usage of the platform implies acceptance of any updated terms.',
+    ],
+  },
+  {
+    num: '10',
+    title: 'Governing Law',
+    gradient: 'from-indigo-500 to-blue-600',
+    points: [
+      'These Terms are governed by the laws of India.',
+      'Any disputes shall be handled under the exclusive jurisdiction of courts in the applicable city.',
+    ],
+  },
+];
+
+const riskSections = [
+  {
+    num: '1',
+    title: 'Market Risk',
+    gradient: 'from-red-500 to-rose-600',
+    icon: 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6',
+    text: 'Financial markets involve volatility and uncertainty. Prices can move unfavorably, resulting in partial or complete loss of invested capital.',
+  },
+  {
+    num: '2',
+    title: 'No Guarantee of Returns',
+    gradient: 'from-amber-500 to-orange-600',
+    icon: 'M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636',
+    text: 'InvestBeans does not guarantee profit, minimum returns, capital safety, or accuracy of forecasts. Past performance does not guarantee future results.',
+    bullets: ['Profit', 'Minimum returns', 'Capital safety', 'Accuracy of forecasts'],
+  },
+  {
+    num: '3',
+    title: 'Derivatives Risk',
+    gradient: 'from-purple-500 to-violet-600',
+    icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z',
+    text: 'Trading in futures and options carries high leverage and risk. Losses may exceed initial capital in extreme market conditions.',
+  },
+  {
+    num: '4',
+    title: 'Data & System Risk',
+    gradient: 'from-cyan-500 to-blue-600',
+    icon: 'M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4',
+    text: 'Market data may experience delays, interruptions, inaccuracies, or network failures that may impact the applicability of insights.',
+  },
+  {
+    num: '5',
+    title: 'Educational Nature of Content',
+    gradient: 'from-emerald-500 to-teal-600',
+    icon: 'M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253',
+    text: 'All content is intended for educational and informational purposes only. Users must consult certified financial professionals before making any investment decisions.',
+  },
+  {
+    num: '6',
+    title: 'Personal Risk Profile',
+    gradient: 'from-blue-500 to-indigo-600',
+    icon: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z',
+    text: 'InvestBeans insights may not be suitable for all investors. Users must assess their risk tolerance, investment horizon, financial goals, and capital allocation strategy before acting.',
+  },
+  {
+    num: '7',
+    title: 'Third-Party Tools',
+    gradient: 'from-slate-500 to-slate-600',
+    icon: 'M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14',
+    text: 'InvestBeans is not responsible for losses arising from third-party tools, platforms, or brokers accessed through or alongside our platform.',
+  },
+  {
+    num: '8',
+    title: 'Regulatory Compliance',
+    gradient: 'from-violet-500 to-purple-600',
+    icon: 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z',
+    text: 'InvestBeans adheres to compliance best practices. However, regulatory guidelines may evolve, requiring process updates without prior notice.',
+  },
+];
+
+/* ─────────────────────────────────────────────
+   COMPONENT
+───────────────────────────────────────────── */
+export default function TermsOfService() {
+  const [activeTab, setActiveTab] = useState<'terms' | 'risk'>('terms');
+
+  return (
+    <Layout>
+      <GlobalStyles />
+      <div className="min-h-screen bg-slate-950 text-white">
+
+        {/* ── HERO ─────────────────────────────────────── */}
+        <div className="relative overflow-hidden bg-[radial-gradient(circle_at_top,_rgba(81,140,255,0.18),_transparent_55%)]">
+          <div className="absolute inset-0 pointer-events-none">
+            <div className="absolute inset-x-0 top-0 h-64 bg-gradient-to-b from-blue-500/10 via-transparent to-transparent blur-3xl" />
+            <div className="absolute -top-20 right-10 w-72 h-72 bg-purple-500/10 blur-[120px] rounded-full" />
+            <div className="absolute top-10 left-1/3 w-80 h-80 bg-cyan-400/12 blur-[140px] rounded-full" />
+          </div>
+
+          <div className="relative z-10 container mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 pt-8 pb-12 sm:pt-12 sm:pb-16">
+            {/* Back */}
+            <div className="mb-8">
+              <button
+                type="button"
+                onClick={() => window.history.back()}
+                className="inline-flex items-center gap-1.5 text-sm font-medium text-white/50 hover:text-white/90 transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+                Back
+              </button>
             </div>
-            <a 
-              href="/" 
-              className="text-sm text-blue-600 hover:text-blue-700 transition-colors font-medium"
-            >
-              ← Back to Home
-            </a>
+
+            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6">
+              <div className="space-y-3">
+                <span className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.5em] text-blue-200/80">
+                  <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
+                  Legal
+                </span>
+                <h1 className="text-3xl sm:text-5xl font-black text-white leading-tight">
+                  Legal Documents
+                </h1>
+                <p className="text-sm text-blue-100/60 max-w-md">
+                  Effective Date: February 5, 2026 &nbsp;·&nbsp; Entity: InvestBeans (Registered Proprietorship)
+                </p>
+              </div>
+              {/* Tab switcher */}
+              <div className="flex gap-2 p-1 rounded-2xl bg-white/5 border border-white/10 self-start sm:self-auto flex-shrink-0">
+                {tabs.map((tab) => (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => setActiveTab(tab.id as 'terms' | 'risk')}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all whitespace-nowrap ${
+                      activeTab === tab.id
+                        ? 'bg-blue-500 text-white shadow-lg shadow-blue-900/40'
+                        : 'text-white/50 hover:text-white/80'
+                    }`}
+                  >
+                    <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={tab.icon} />
+                    </svg>
+                    <span className="hidden sm:inline">{tab.label}</span>
+                    <span className="sm:hidden">{tab.id === 'terms' ? 'T&C' : 'Risk'}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
-      </header>
 
-      {/* Main Content */}
-      <main className="max-w-4xl mx-auto px-6 py-16">
-        {/* Title Section */}
-        <div className="mb-16">
-          <h1 className="text-5xl font-bold text-slate-900 mb-4" style={{ fontFamily: 'Georgia, serif' }}>
-            Terms of Service
-          </h1>
-          <p className="text-lg text-slate-600">
-            Last Updated: February 5, 2026
-          </p>
-          <div className="mt-6 h-1 w-24 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full"></div>
-        </div>
+        {/* ── MAIN CONTENT ─────────────────────────────── */}
+        <div className="container mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
 
-        {/* Introduction */}
-        <section className="mb-12 bg-white rounded-xl p-8 shadow-sm border border-slate-100">
-          <p className="text-lg text-slate-700 leading-relaxed">
-            Welcome to InvestBeans. By accessing or using our platform, you agree to be bound by these Terms of Service. 
-            Please read them carefully. These terms govern your use of our educational services, research insights, and 
-            mentorship programs designed to help you navigate financial markets with clarity and conviction.
-          </p>
-        </section>
-
-        {/* Terms Sections */}
-        <div className="space-y-10">
-          {/* Section 1 */}
-          <section className="group">
-            <div className="flex items-start gap-4">
-              <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center text-blue-700 font-bold text-xl group-hover:bg-blue-600 group-hover:text-white transition-colors duration-300">
-                1
-              </div>
-              <div className="flex-1">
-                <h2 className="text-2xl font-bold text-slate-900 mb-4" style={{ fontFamily: 'Georgia, serif' }}>
-                  Acceptance of Terms
-                </h2>
-                <div className="prose prose-slate max-w-none text-slate-700 leading-relaxed space-y-4">
-                  <p>
-                    By creating an account, accessing our content, or using any of our services, you acknowledge that you 
-                    have read, understood, and agree to be bound by these Terms of Service and our Privacy Policy.
-                  </p>
-                  <p>
-                    If you do not agree with any part of these terms, you must not use our services. We reserve the right 
-                    to modify these terms at any time, and your continued use of InvestBeans constitutes acceptance of 
-                    those changes.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* Section 2 */}
-          <section className="group">
-            <div className="flex items-start gap-4">
-              <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center text-blue-700 font-bold text-xl group-hover:bg-blue-600 group-hover:text-white transition-colors duration-300">
-                2
-              </div>
-              <div className="flex-1">
-                <h2 className="text-2xl font-bold text-slate-900 mb-4" style={{ fontFamily: 'Georgia, serif' }}>
-                  Educational Services
-                </h2>
-                <div className="prose prose-slate max-w-none text-slate-700 leading-relaxed space-y-4">
-                  <p>
-                    InvestBeans provides educational content, research insights, and mentorship programs related to trading 
-                    and investing in national and international markets. Our services are designed for educational purposes only.
-                  </p>
-                  <p className="font-semibold text-slate-900 bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r">
-                    <strong>Important Disclaimer:</strong> We do not provide financial advice, investment recommendations, 
-                    or guarantees of returns. All content is for informational and educational purposes. You are solely 
-                    responsible for your investment decisions.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* Section 3 */}
-          <section className="group">
-            <div className="flex items-start gap-4">
-              <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center text-blue-700 font-bold text-xl group-hover:bg-blue-600 group-hover:text-white transition-colors duration-300">
-                3
-              </div>
-              <div className="flex-1">
-                <h2 className="text-2xl font-bold text-slate-900 mb-4" style={{ fontFamily: 'Georgia, serif' }}>
-                  User Responsibilities
-                </h2>
-                <div className="prose prose-slate max-w-none text-slate-700 leading-relaxed space-y-4">
-                  <p>As a user of InvestBeans, you agree to:</p>
-                  <ul className="list-disc pl-6 space-y-2">
-                    <li>Provide accurate and complete information during registration</li>
-                    <li>Maintain the confidentiality of your account credentials</li>
-                    <li>Use our services in compliance with all applicable laws and regulations</li>
-                    <li>Not share your account access with others</li>
-                    <li>Conduct your own due diligence before making any investment decisions</li>
-                    <li>Not use our platform for any illegal or unauthorized purposes</li>
-                    <li>Respect intellectual property rights of all content provided</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* Section 4 */}
-          <section className="group">
-            <div className="flex items-start gap-4">
-              <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center text-blue-700 font-bold text-xl group-hover:bg-blue-600 group-hover:text-white transition-colors duration-300">
-                4
-              </div>
-              <div className="flex-1">
-                <h2 className="text-2xl font-bold text-slate-900 mb-4" style={{ fontFamily: 'Georgia, serif' }}>
-                  Risk Disclosure
-                </h2>
-                <div className="prose prose-slate max-w-none text-slate-700 leading-relaxed space-y-4">
-                  <p className="bg-red-50 border-l-4 border-red-500 p-4 rounded-r">
-                    <strong>Trading and investing in financial markets carries significant risk.</strong> Past performance 
-                    does not guarantee future results. You may lose some or all of your invested capital. Never invest money 
-                    you cannot afford to lose.
-                  </p>
-                  <p>
-                    InvestBeans does not guarantee any specific outcomes from using our educational materials or mentorship 
-                    programs. Market conditions are unpredictable, and all investments carry inherent risks.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* Section 5 */}
-          <section className="group">
-            <div className="flex items-start gap-4">
-              <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center text-blue-700 font-bold text-xl group-hover:bg-blue-600 group-hover:text-white transition-colors duration-300">
-                5
-              </div>
-              <div className="flex-1">
-                <h2 className="text-2xl font-bold text-slate-900 mb-4" style={{ fontFamily: 'Georgia, serif' }}>
-                  Intellectual Property
-                </h2>
-                <div className="prose prose-slate max-w-none text-slate-700 leading-relaxed space-y-4">
-                  <p>
-                    All content on InvestBeans, including but not limited to text, graphics, logos, videos, research reports, 
-                    and software, is the property of InvestBeans or its content suppliers and is protected by copyright, 
-                    trademark, and other intellectual property laws.
-                  </p>
-                  <p>
-                    You may access and use our content for personal, non-commercial educational purposes only. You may not 
-                    reproduce, distribute, modify, or create derivative works without our express written permission.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* Section 6 */}
-          <section className="group">
-            <div className="flex items-start gap-4">
-              <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center text-blue-700 font-bold text-xl group-hover:bg-blue-600 group-hover:text-white transition-colors duration-300">
-                6
-              </div>
-              <div className="flex-1">
-                <h2 className="text-2xl font-bold text-slate-900 mb-4" style={{ fontFamily: 'Georgia, serif' }}>
-                  Payment and Subscriptions
-                </h2>
-                <div className="prose prose-slate max-w-none text-slate-700 leading-relaxed space-y-4">
-                  <p>
-                    Certain services on InvestBeans may require payment. By subscribing to paid services, you agree to pay 
-                    all applicable fees and charges. Subscription fees are billed in advance and are non-refundable except 
-                    as required by law or as explicitly stated in our refund policy.
-                  </p>
-                  <p>
-                    You may cancel your subscription at any time, but you will continue to have access until the end of 
-                    your current billing period. No refunds will be provided for partial subscription periods.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* Section 7 */}
-          <section className="group">
-            <div className="flex items-start gap-4">
-              <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center text-blue-700 font-bold text-xl group-hover:bg-blue-600 group-hover:text-white transition-colors duration-300">
-                7
-              </div>
-              <div className="flex-1">
-                <h2 className="text-2xl font-bold text-slate-900 mb-4" style={{ fontFamily: 'Georgia, serif' }}>
-                  Limitation of Liability
-                </h2>
-                <div className="prose prose-slate max-w-none text-slate-700 leading-relaxed space-y-4">
-                  <p>
-                    To the maximum extent permitted by law, InvestBeans and its directors, employees, partners, and affiliates 
-                    shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including 
-                    loss of profits, data, or other intangible losses resulting from:
-                  </p>
-                  <ul className="list-disc pl-6 space-y-2">
-                    <li>Your use or inability to use our services</li>
-                    <li>Any investment decisions made based on our educational content</li>
-                    <li>Unauthorized access to or alteration of your data</li>
-                    <li>Any other matter relating to our services</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* Section 8 */}
-          <section className="group">
-            <div className="flex items-start gap-4">
-              <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center text-blue-700 font-bold text-xl group-hover:bg-blue-600 group-hover:text-white transition-colors duration-300">
-                8
-              </div>
-              <div className="flex-1">
-                <h2 className="text-2xl font-bold text-slate-900 mb-4" style={{ fontFamily: 'Georgia, serif' }}>
-                  Termination
-                </h2>
-                <div className="prose prose-slate max-w-none text-slate-700 leading-relaxed space-y-4">
-                  <p>
-                    We reserve the right to suspend or terminate your access to InvestBeans at any time, without notice, 
-                    for conduct that we believe violates these Terms of Service, is harmful to other users, or is otherwise 
-                    objectionable.
-                  </p>
-                  <p>
-                    Upon termination, your right to use our services will immediately cease. All provisions of these Terms 
-                    which by their nature should survive termination shall survive, including ownership provisions, warranty 
-                    disclaimers, and limitations of liability.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* Section 9 */}
-          <section className="group">
-            <div className="flex items-start gap-4">
-              <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center text-blue-700 font-bold text-xl group-hover:bg-blue-600 group-hover:text-white transition-colors duration-300">
-                9
-              </div>
-              <div className="flex-1">
-                <h2 className="text-2xl font-bold text-slate-900 mb-4" style={{ fontFamily: 'Georgia, serif' }}>
-                  Governing Law
-                </h2>
-                <div className="prose prose-slate max-w-none text-slate-700 leading-relaxed space-y-4">
-                  <p>
-                    These Terms of Service shall be governed by and construed in accordance with the laws of India, without 
-                    regard to its conflict of law provisions. Any disputes arising from these terms shall be subject to the 
-                    exclusive jurisdiction of the courts in [Your City, State].
-                  </p>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* Section 10 */}
-          <section className="group">
-            <div className="flex items-start gap-4">
-              <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center text-blue-700 font-bold text-xl group-hover:bg-blue-600 group-hover:text-white transition-colors duration-300">
-                10
-              </div>
-              <div className="flex-1">
-                <h2 className="text-2xl font-bold text-slate-900 mb-4" style={{ fontFamily: 'Georgia, serif' }}>
-                  Contact Information
-                </h2>
-                <div className="prose prose-slate max-w-none text-slate-700 leading-relaxed space-y-4">
-                  <p>
-                    If you have any questions about these Terms of Service, please contact us at:
-                  </p>
-                  <div className="bg-slate-50 rounded-lg p-6 border border-slate-200">
-                    <p className="font-semibold text-slate-900 mb-2">InvestBeans</p>
-                    <p className="text-slate-700">Email: legal@investbeans.com</p>
-                    <p className="text-slate-700">Support: support@investbeans.com</p>
+          {/* ══ TERMS & CONDITIONS ══ */}
+          {activeTab === 'terms' && (
+            <div className="space-y-5">
+              {/* Intro banner */}
+              <Reveal>
+                <div className="relative overflow-hidden rounded-[24px] border border-blue-400/20 bg-gradient-to-br from-blue-600/15 to-indigo-600/10 p-5 sm:p-7">
+                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(99,102,241,0.12),_transparent_60%)] pointer-events-none" />
+                  <div className="relative flex items-start gap-4">
+                    <div className="w-9 h-9 rounded-xl bg-blue-500/20 border border-blue-400/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <p className="text-sm text-white/70 leading-relaxed">
+                      By accessing InvestBeans, you agree to abide by these Terms & Conditions. InvestBeans provides research insights, market commentary, dashboards, and educational content. All use of the platform is governed by the terms below.
+                    </p>
                   </div>
                 </div>
+              </Reveal>
+
+              {termsSections.map((sec, idx) => (
+                <Reveal key={sec.num} delay={idx * 50}>
+                  <div className="relative overflow-hidden rounded-[24px] border border-white/10 bg-white/4 hover:bg-white/6 hover:border-white/18 transition-all duration-300 p-5 sm:p-7">
+                    <div className="flex items-start gap-4">
+                      {/* Number badge */}
+                      <div className={`flex-shrink-0 w-9 h-9 rounded-xl bg-gradient-to-br ${sec.gradient} flex items-center justify-center text-white text-sm font-bold shadow-lg`}>
+                        {sec.num}
+                      </div>
+                      <div className="flex-1 min-w-0 space-y-3">
+                        <h2 className="text-base sm:text-lg font-bold text-white">{sec.title}</h2>
+
+                        {sec.listPrefix && (
+                          <p className="text-sm text-white/55">{sec.listPrefix}</p>
+                        )}
+
+                        {sec.highlight && (
+                          <div className={`flex items-start gap-2.5 rounded-xl px-4 py-3 ${
+                            sec.highlight.color === 'amber'
+                              ? 'bg-amber-500/10 border border-amber-400/25'
+                              : 'bg-red-500/10 border border-red-400/25'
+                          }`}>
+                            <svg className={`w-4 h-4 flex-shrink-0 mt-0.5 ${sec.highlight.color === 'amber' ? 'text-amber-400' : 'text-red-400'}`}
+                              fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                            <p className={`text-xs leading-relaxed ${sec.highlight.color === 'amber' ? 'text-amber-300/80' : 'text-red-300/80'}`}>
+                              {sec.highlight.text}
+                            </p>
+                          </div>
+                        )}
+
+                        <ul className="space-y-2">
+                          {sec.points.map((pt, pi) => (
+                            <li key={pi} className="flex items-start gap-2.5 text-sm text-white/60 leading-relaxed">
+                              <span className={`w-1.5 h-1.5 rounded-full bg-gradient-to-br ${sec.gradient} flex-shrink-0 mt-2`} />
+                              {pt}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </Reveal>
+              ))}
+
+              {/* Contact card */}
+              <Reveal delay={termsSections.length * 50}>
+                <div className="rounded-[24px] border border-white/10 bg-white/4 p-5 sm:p-7">
+                  <div className="flex items-start gap-4">
+                    <div className="flex-shrink-0 w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                      </svg>
+                    </div>
+                    <div className="space-y-2">
+                      <h2 className="text-base sm:text-lg font-bold text-white">Contact Information</h2>
+                      <p className="text-sm text-white/55">For questions about these Terms, reach us at:</p>
+                      <div className="flex flex-col sm:flex-row gap-3 pt-1">
+                        <a href="mailto:legal@investbeans.com"
+                          className="inline-flex items-center gap-2 text-sm text-blue-300 hover:text-blue-200 transition-colors">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                          </svg>
+                          legal@investbeans.com
+                        </a>
+                        <a href="mailto:support@investbeans.com"
+                          className="inline-flex items-center gap-2 text-sm text-blue-300 hover:text-blue-200 transition-colors">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
+                          </svg>
+                          support@investbeans.com
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </Reveal>
+            </div>
+          )}
+
+          {/* ══ RISK DISCLOSURE ══ */}
+          {activeTab === 'risk' && (
+            <div className="space-y-5">
+              {/* Intro banner */}
+              <Reveal>
+                <div className="relative overflow-hidden rounded-[24px] border border-amber-400/25 bg-gradient-to-br from-amber-500/10 to-orange-500/5 p-5 sm:p-7">
+                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(245,158,11,0.08),_transparent_60%)] pointer-events-none" />
+                  <div className="relative flex items-start gap-4">
+                    <div className="w-9 h-9 rounded-xl bg-amber-500/20 border border-amber-400/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <svg className="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                      </svg>
+                    </div>
+                    <p className="text-sm text-amber-200/70 leading-relaxed">
+                      This Risk Disclosure is an integral part of the Terms & Conditions. Please read it carefully before using InvestBeans. All market activity carries inherent risk — understanding these risks is essential to responsible participation.
+                    </p>
+                  </div>
+                </div>
+              </Reveal>
+
+              <div className="grid sm:grid-cols-2 gap-4">
+                {riskSections.map((sec, idx) => (
+                  <Reveal key={sec.num} delay={idx * 60}>
+                    <div className="relative overflow-hidden rounded-[24px] border border-white/10 bg-white/4 hover:bg-white/6 hover:border-white/18 transition-all duration-300 p-5 h-full">
+                      {/* top accent line */}
+                      <div className={`absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r ${sec.gradient} rounded-t-[24px]`} />
+                      <div className="flex items-start gap-3 mb-3">
+                        <div className={`flex-shrink-0 w-9 h-9 rounded-xl bg-gradient-to-br ${sec.gradient} flex items-center justify-center shadow-lg`}>
+                          <svg className="w-4.5 h-4.5 text-white w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={sec.icon} />
+                          </svg>
+                        </div>
+                        <div>
+                          <span className={`text-[10px] uppercase tracking-[0.35em] bg-gradient-to-r ${sec.gradient} bg-clip-text text-transparent font-semibold`}>
+                            {String(idx + 1).padStart(2, '0')}
+                          </span>
+                          <h3 className="text-sm sm:text-base font-bold text-white leading-tight">{sec.title}</h3>
+                        </div>
+                      </div>
+                      <p className="text-xs sm:text-sm text-white/60 leading-relaxed">{sec.text}</p>
+                      {sec.bullets && (
+                        <div className="mt-3 grid grid-cols-2 gap-1.5">
+                          {sec.bullets.map((b, bi) => (
+                            <div key={bi} className="flex items-center gap-1.5">
+                              <svg className="w-3 h-3 text-red-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                              <span className="text-xs text-white/50">{b}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </Reveal>
+                ))}
               </div>
             </div>
-          </section>
-        </div>
+          )}
 
-        {/* Footer Notice */}
-        <div className="mt-16 p-6 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl text-white">
-          <p className="text-sm leading-relaxed">
-            By using InvestBeans, you acknowledge that you have read, understood, and agree to be bound by these Terms 
-            of Service. We recommend printing or saving a copy of these terms for your records.
-          </p>
-        </div>
-      </main>
-
-      {/* Footer */}
-      <footer className="border-t border-slate-200 bg-white mt-24">
-        <div className="max-w-4xl mx-auto px-6 py-8">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-sm text-slate-600">
-              © 2026 InvestBeans. All rights reserved.
-            </p>
-            <div className="flex gap-6 text-sm">
-              <a href="/privacy-policy" className="text-slate-600 hover:text-blue-600 transition-colors">
-                Privacy Policy
-              </a>
-              <a href="/help-center" className="text-slate-600 hover:text-blue-600 transition-colors">
-                Help Center
-              </a>
+          {/* ── FOOTER ACKNOWLEDGMENT ───────────────────── */}
+          <Reveal className="mt-10">
+            <div className="relative overflow-hidden rounded-[28px] border border-white/10 bg-gradient-to-br from-blue-600/25 to-indigo-600/15 p-6 sm:p-8 text-center">
+              <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_top,_rgba(99,102,241,0.35),_transparent_60%)] pointer-events-none" />
+              <div className="relative space-y-3">
+                <p className="text-xs uppercase tracking-[0.5em] text-blue-200/60">Acknowledgment</p>
+                <p className="text-sm text-white/65 max-w-2xl mx-auto leading-relaxed">
+                  By using InvestBeans, you acknowledge that you have read, understood, and agree to be bound by these Terms of Service and Risk Disclosure. We recommend saving a copy of these documents for your records.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
+                  <a href="/help-center"
+                    className="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl bg-white/8 border border-white/15 text-white/80 text-sm font-medium hover:bg-white/12 transition-all">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Help Center
+                  </a>
+                  <a href="mailto:legal@investbeans.com"
+                    className="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-500 text-white text-sm font-semibold hover:scale-[1.02] transition-all shadow-lg shadow-blue-900/30">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                    Legal Queries
+                  </a>
+                </div>
+              </div>
             </div>
-          </div>
+          </Reveal>
+
+
         </div>
-      </footer>
-    </div>
+      </div>
+    </Layout>
   );
 }

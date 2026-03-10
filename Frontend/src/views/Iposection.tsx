@@ -1078,7 +1078,7 @@ const IPOSection = () => {
             <div className="p-6 rounded-2xl" style={{ background: 'rgba(212,168,67,0.05)', border: '1px solid rgba(212,168,67,0.15)' }}>
               <FileText className="w-10 h-10 text-[#D4A843] mb-4" />
               <h3 className={`text-lg font-bold mb-2 ${isLight ? 'text-navy' : 'text-white'}`}>Expert Analysis</h3>
-              <p className={`text-sm ${isLight ? 'text-navy/65' : 'text-slate-400'}`}>Detailed IPO reviews, DRHP financials, and apply/avoid recommendations from experts.</p>
+              <p className={`text-sm ${isLight ? 'text-navy/65' : 'text-slate-400'}`}>Detailed IPO reviews, DRHP financials, and exclusive investbeans insight analysis by a certified experts.</p>
             </div>
           </div>
         </section>

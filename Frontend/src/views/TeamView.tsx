@@ -53,6 +53,8 @@ const TeamView = () => {
       html { scroll-behavior: smooth; }
       .no-scrollbar::-webkit-scrollbar { display: none; }
       .no-scrollbar { scrollbar-width: none; }
+      header, nav.site-header, .site-header { display: none !important; }
+      .line-clamp-2 { overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
     `}</style>
   );
 
@@ -61,6 +63,8 @@ const TeamView = () => {
   const [showAllValues, setShowAllValues] = useState(false);
   const [readMoreStory, setReadMoreStory] = useState(false);
   const [readMoreFounder, setReadMoreFounder] = useState(false);
+  const [expandedMission, setExpandedMission] = useState(false);
+  const [expandedVision, setExpandedVision] = useState(false);
   const [activeSection, setActiveSection] = useState('our-story');
   const pageRef = useRef<HTMLDivElement | null>(null);
 
@@ -68,7 +72,6 @@ const TeamView = () => {
   useEffect(() => {
     const ids = [
       'our-story',
-      'founder-journey',
       'team-members',
       'mission',
       'core-values',
@@ -210,12 +213,12 @@ const TeamView = () => {
   ];
 
   const whyUsPoints = [
-    { title: 'Research-Grade Insights', desc: 'Every learning path comes with structured research, not speculative calls.' },
-    { title: 'Ethics-First Advisory', desc: 'No unrealistic returns—just disciplined processes and transparent communication.' },
-    { title: 'Human Support System', desc: 'Community, mentorship, and real conversations instead of generic FAQs.' },
-    { title: 'Multi-Asset Literacy', desc: 'We cover equities, commodities, currency and risk so you build true versatility.' },
-    { title: 'Women & Youth Focus', desc: 'Financial literacy tracks created for underrepresented groups.' },
-    { title: 'Practical Trading Routines', desc: 'Frameworks rooted in risk awareness, journaling and capital preservation.' },
+    { title: 'Research, Not Noise', desc: 'Structured research and market context that supports informed decision-making.' },
+    { title: 'Integrity by Design', desc: 'Transparent communication, realistic framing, and ethics as a non-negotiable.' },
+    { title: 'Framework-Driven Learning', desc: 'A consistent system built around market regime, sector leadership, and stock structure.' },
+    { title: 'Cross-Market Perspective', desc: 'Equities, commodities, and forex — taught with a unified risk-first approach.' },
+    { title: 'Built for Real People', desc: 'Learning tracks built for students, women, self-employed individuals, and working professionals.' },
+    { title: 'Discipline That Compounds', desc: 'Practical skill-building in risk management, journaling, and capital protection principles.' },
   ];
 
   return (
@@ -229,44 +232,44 @@ const TeamView = () => {
             <div className="absolute -bottom-10 right-10 w-72 h-72 bg-purple-500/10 blur-[120px] rounded-full"></div>
             <div className="absolute -top-24 left-1/3 w-80 h-80 bg-cyan-400/20 blur-[140px] rounded-full"></div>
           </div>
-          <div className="relative z-10 container mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-14 sm:py-20 lg:py-24">
-            <div className="grid lg:grid-cols-12 gap-10 items-center">
-              <div className="lg:col-span-7 space-y-6 text-center lg:text-left gsap-hero-title">
+          <div className="relative z-10 container mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 pt-6 pb-14 sm:pb-20 lg:pb-24">
+            {/* Back Button */}
+            <div className="mb-6">
+              <button
+                type="button"
+                onClick={() => window.history.back()}
+                className="inline-flex items-center gap-1.5 text-sm font-medium text-white/50 hover:text-white/90 transition-colors duration-200"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+                Back
+              </button>
+            </div>
+            <div className="grid lg:grid-cols-12 gap-6 items-start">
+              <div className="lg:col-span-6 space-y-6 text-center lg:text-left gsap-hero-title">
                 <span className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.5em] text-blue-200/80">
                   <span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
                   InvestBeans DNA
                 </span>
                 <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black leading-tight text-white">
-                  People-powered learning for thoughtful traders & investors.
+                We don’t sell calls. We build decision-makers.
+                </h1>
+                <h1 className="text-[18px] sm:text-2xl lg:text-3xl font-black leading-tight text-white">
+                “ Baazigar Banein… Sattebaaz Nahi ” 
                 </h1>
                 <p className="text-sm sm:text-base lg:text-lg text-blue-100/90 max-w-2xl mx-auto lg:mx-0">
                   We blend research-driven insights, ethical practices, and human mentorship so you can navigate markets with clarity, calm, and conviction.
                 </p>
-                <div className="flex flex-wrap justify-center lg:justify-start gap-3 text-[12px] uppercase tracking-[0.3em] text-white/70">
-                  <span className="gsap-floating-pill rounded-full border border-white/25 px-4 py-1.5 bg-white/5">Education-first</span>
-                  <span className="gsap-floating-pill rounded-full border border-white/25 px-4 py-1.5 bg-white/5">Risk aware</span>
-                  <span className="gsap-floating-pill rounded-full border border-white/25 px-4 py-1.5 bg-white/5">Ethical research</span>
+                <div className="flex flex-wrap lg:flex-nowrap justify-center lg:justify-start gap-2 text-[11px] uppercase tracking-[0.2em] text-white/70">
+                  <span className="gsap-floating-pill rounded-full border border-white/25 px-4 py-1.5 bg-white/5">Clarity Over Noise</span>
+                  <span className="gsap-floating-pill rounded-full border border-white/25 px-4 py-1.5 bg-white/5">Discipline Over Emotion</span>
+                  <span className="gsap-floating-pill rounded-full border border-white/25 px-4 py-1.5 bg-white/5">Process Over Predictions</span>
                 </div>
-                <div className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
-                  <button
-                    type="button"
-                    className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-500 to-indigo-500 px-6 py-3 font-semibold shadow-lg shadow-blue-900/50 hover:scale-[1.01] transition-all"
-                  >
-                    Join the Community
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                    </svg>
-                  </button>
-                  <button
-                    type="button"
-                    className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/30 px-6 py-3 font-semibold text-white/80 hover:text-white transition-colors"
-                  >
-                    View Advisory Charter
-                  </button>
-                </div>
+
               </div>
 
-              <div className="lg:col-span-5">
+              <div className="lg:col-span-6 lg:pt-8">
                 <div className="gsap-hero-panel relative rounded-[32px] border border-white/10 bg-white/5 p-6 sm:p-7 backdrop-blur-2xl shadow-[0_20px_80px_-40px_rgba(15,23,42,0.8)]">
                   <div className="absolute -top-6 -right-6 w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-2xl blur-2xl opacity-30"></div>
                   <div className="relative space-y-5">
@@ -279,22 +282,29 @@ const TeamView = () => {
                       <div>
                         <p className="text-xs uppercase tracking-[0.4em] text-white/60">Founded 2024</p>
                         <p className="text-base font-semibold text-white">Education & Research Collective</p>
+                        <p className="text-xs text-white/60 mt-0.5">NISM-certified Research Analyst</p>
                       </div>
                     </div>
                     <div className="rounded-2xl border border-white/15 bg-white/5 p-4">
                       <p className="text-xs text-white/60 uppercase tracking-[0.3em] mb-1">Focus</p>
                       <div className="flex flex-wrap gap-2 text-sm font-semibold text-white">
-                        {['Equities', 'Commodities', 'Forex', 'Ethics'].map((item) => (
+                        {['Equities', 'Commodities', 'Forex', 'Learn'].map((item) => (
                           <span key={item} className="px-3 py-1 rounded-full bg-white/10 border border-white/10">
                             {item}
                           </span>
                         ))}
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 text-xs font-semibold">
+                          <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                          Ethics-first
+                        </span>
                       </div>
                     </div>
                     <div className="rounded-2xl border border-white/20 bg-gradient-to-br from-blue-600/20 to-purple-600/10 p-5">
                       <p className="text-xs uppercase tracking-[0.4em] text-white/60">Promise</p>
                       <p className="mt-2 text-sm text-blue-100/90">
-                        We do not sell shortcuts. We coach you to build judgement, rhythm, and resilience so the numbers finally make sense.
+                        No shortcuts. No noise. Just research-led judgment and disciplined risk thinking.
                       </p>
                     </div>
                   </div>
@@ -302,6 +312,7 @@ const TeamView = () => {
               </div>
             </div>
 
+            {/* Stats hidden for now
             <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {heroStats.map((stat) => (
                 <div
@@ -314,6 +325,25 @@ const TeamView = () => {
                 </div>
               ))}
             </div>
+            */}
+          </div>
+        </div>
+
+        {/* Join CTA strip */}
+        <div className="">
+          <div className="container mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p className="text-sm text-white/60 text-center sm:text-left">
+              Ready to navigate markets with clarity and conviction?
+            </p>
+            <button
+              type="button"
+              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-500 to-indigo-500 px-7 py-3 font-semibold text-white shadow-lg shadow-blue-900/40 hover:scale-[1.02] transition-all whitespace-nowrap"
+            >
+              Join the Community
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+              </svg>
+            </button>
           </div>
         </div>
 
@@ -362,39 +392,21 @@ const TeamView = () => {
                   </div>
                   <div>
                     <p className="text-xs uppercase tracking-[0.4em] text-slate-500">Origin story</p>
-                    <h2 className="text-2xl sm:text-3xl font-bold text-slate-900">From voice notes to a research desk</h2>
+                    <h2 className="text-2xl sm:text-3xl font-bold text-slate-900">From one trader's journey to a trusted research desk</h2>
                   </div>
                 </div>
 
-                <div className="grid gap-8 lg:grid-cols-[1.3fr_0.7fr]">
+                <div className="grid gap-8 lg:grid-cols-[1fr_1fr]">
                   <div className="space-y-4 text-slate-600 text-sm sm:text-base leading-relaxed">
                     <p>
-                      InvestBeans sprouted in 2023 as a WhatsApp circle where a handful of friends swapped voice notes, trade ideas, and end-of-day reflections. By 2024, that rhythm
-                      evolved into a structured research desk and learning collective focused on building confidence—not noise—in financial decisions.
+                      InvestBeans began with the founder’s trading journey — built through self-learning, discipline, and consistent results. As friends and peers started seeking guidance, a small WhatsApp circle formed around market discussions, structured methods, and responsible risk thinking.
                     </p>
-                    {readMoreStory && (
-                      <>
-                        <p>
-                          The name “InvestBeans” comes from tending to the slow, methodical process of sowing knowledge. We believe compounding trust, discipline, and awareness yields
-                          more than chasing quick wins. The community now spans students, working professionals, women entrepreneurs, and creators seeking real-world literacy.
-                        </p>
-                        <p>
-                          Every cohort receives market structure primers, journaling techniques, and risk frameworks that emphasize judgement over gut feel. We obsess over context,
-                          ethics, and sustainability so that every learner can read markets with calm clarity.
-                        </p>
-                      </>
-                    )}
-
-                    <button
-                      onClick={() => setReadMoreStory(!readMoreStory)}
-                      type="button"
-                      className="inline-flex items-center gap-2 text-sm font-semibold text-blue-600 hover:text-blue-700"
-                    >
-                      {readMoreStory ? 'Show Less' : 'Read More'}
-                      <svg className={`w-4 h-4 transition-transform ${readMoreStory ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </button>
+                    <p>
+                      What started informally soon became a trusted space for tailored strategies and clearer decision-making. Over time, that trust evolved into InvestBeans — an education and research collective designed to help traders and investors navigate markets with confidence, clarity, and conviction.
+                    </p>
+                    <p>
+                      Every cohort receives market structure primers, journaling techniques, and risk frameworks that emphasize judgement over gut feel. We obsess over context, ethics, and sustainability so that every learner can read markets with calm clarity.
+                    </p>
                   </div>
 
                   <div className="space-y-4">
@@ -403,24 +415,24 @@ const TeamView = () => {
                       <ul className="mt-4 space-y-3 text-sm text-blue-900">
                         <li className="flex items-start gap-2">
                           <span className="mt-1 w-1.5 h-1.5 rounded-full bg-blue-600"></span>
-                          Education over speculation
+                          Education before execution
                         </li>
                         <li className="flex items-start gap-2">
                           <span className="mt-1 w-1.5 h-1.5 rounded-full bg-blue-600"></span>
-                          Transparency in every advisory note
+                          Transparency in research and process
                         </li>
                         <li className="flex items-start gap-2">
                           <span className="mt-1 w-1.5 h-1.5 rounded-full bg-blue-600"></span>
-                          Inclusive programs for underserved groups
+                          Risk management as a non-negotiable
                         </li>
                       </ul>
                     </div>
                     <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-inner shadow-slate-100">
                       <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Quick facts</p>
                       <ul className="mt-3 space-y-2 text-sm text-slate-600">
-                        <li>Born from community voice notes</li>
-                        <li>Multi-asset literacy (equity, commodity, forex)</li>
-                        <li>Structured mentorship pods & rituals</li>
+                        <li>Founded in 2024 as a research-led learning collective</li>
+                        <li>Built for all but especially for students, women, self-employed & private sector professionals</li>
+                        <li>Multi-asset literacy: Equities • Commodities • Forex</li>
                       </ul>
                     </div>
                   </div>
@@ -435,13 +447,13 @@ const TeamView = () => {
           <div id="team-members" className="scroll-mt-24 mb-12">
             <div className="text-center mb-10">
               <p className="text-xs uppercase tracking-[0.5em] text-white/60">Team</p>
-              <h2 className="text-3xl sm:text-4xl font-bold text-white">The guides behind InvestBeans</h2>
-              <p className="text-sm sm:text-base text-white/70 mt-2">Operators, researchers, and educators who obsess over real human outcomes.</p>
+              <h2 className="text-3xl sm:text-4xl font-bold text-white">The minds behind InvestBeans</h2>
+              <p className="text-sm sm:text-base text-white/70 mt-2">Research-led mentors and market practitioners focused on clarity, discipline and structured learning.</p>
             </div>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
               {teamMembers.map((member, idx) => (
                 <Reveal key={member.id} delay={idx * 80} className="gsap-section-card">
-                  <div className="relative overflow-hidden rounded-[28px] border border-white/10 bg-white/5 backdrop-blur-xl p-6">
+                  <div className="relative overflow-hidden rounded-[28px] border border-white/10 bg-white/5 backdrop-blur-xl p-6 h-full">
                     <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-blue-500/10 pointer-events-none"></div>
                     <div className="relative flex flex-col gap-5">
                       <div className="flex gap-4 items-center">
@@ -504,56 +516,38 @@ const TeamView = () => {
 
 
           {/* Mission & Vision */}
-          <div id="mission" className="scroll-mt-24 grid grid-cols-1 lg:grid-cols-2 gap-6 mb-12">
-            <Reveal className="gsap-section-card">
-              <div className="relative overflow-hidden rounded-[30px] border border-white/10 bg-gradient-to-br from-blue-600/70 to-blue-800/80 p-6 sm:p-8 text-white shadow-[0_25px_80px_-40px_rgba(37,99,235,0.9)]">
+          <div id="mission" className="scroll-mt-24 grid grid-cols-1 lg:grid-cols-2 gap-6 mb-12 lg:items-stretch">
+            <Reveal className="gsap-section-card h-full">
+              <div className="relative overflow-hidden rounded-[30px] border border-white/10 bg-gradient-to-br from-blue-600/70 to-blue-800/80 p-6 sm:p-8 text-white shadow-[0_25px_80px_-40px_rgba(37,99,235,0.9)] h-full">
                 <div className="absolute inset-0 opacity-40 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.3),_transparent_60%)]"></div>
                 <div className="relative space-y-4">
                   <p className="text-xs uppercase tracking-[0.5em] text-white/70">Mission</p>
-                  <h2 className="text-2xl font-semibold">Turn market complexity into clarity.</h2>
-                  <p className="text-sm text-white/85">
-                    We architect programs that decode noise, translate research into plain language, and build patient confidence through practice.
+                  <h2 className="text-2xl font-semibold">Empower financial security through clarity and education.</h2>
+                  <p className="text-sm text-white/85 leading-relaxed">
+                    We help individuals build confidence in the markets through structured learning and research-led frameworks — designed to support disciplined decision-making and sustainable long-term growth at every stage of the journey.
                   </p>
                   <ul className="space-y-2 text-sm text-white/80">
-                    <li className="flex gap-2">
-                      <span className="mt-1 w-1.5 h-1.5 rounded-full bg-white"></span>
-                      Structure learning journeys for every risk profile.
-                    </li>
-                    <li className="flex gap-2">
-                      <span className="mt-1 w-1.5 h-1.5 rounded-full bg-white"></span>
-                      Coach capital protection and risk journaling.
-                    </li>
-                    <li className="flex gap-2">
-                      <span className="mt-1 w-1.5 h-1.5 rounded-full bg-white"></span>
-                      Deliver mentorship that sticks beyond a webinar.
-                    </li>
+                    <li className="flex gap-2"><span className="mt-1 w-1.5 h-1.5 rounded-full bg-white flex-shrink-0"></span>Structure learning journeys for every risk profile.</li>
+                    <li className="flex gap-2"><span className="mt-1 w-1.5 h-1.5 rounded-full bg-white flex-shrink-0"></span>Coach capital protection and risk journaling.</li>
+                    <li className="flex gap-2"><span className="mt-1 w-1.5 h-1.5 rounded-full bg-white flex-shrink-0"></span>Deliver mentorship that sticks beyond a webinar.</li>
                   </ul>
                 </div>
               </div>
             </Reveal>
 
-            <Reveal id="vision" className="gsap-section-card">
-              <div className="relative overflow-hidden rounded-[30px] border border-white/10 bg-gradient-to-br from-emerald-600/70 to-cyan-600/70 p-6 sm:p-8 text-white shadow-[0_25px_80px_-40px_rgba(16,185,129,0.9)]">
+            <Reveal id="vision" className="gsap-section-card h-full">
+              <div className="relative overflow-hidden rounded-[30px] border border-white/10 bg-gradient-to-br from-emerald-600/70 to-cyan-600/70 p-6 sm:p-8 text-white shadow-[0_25px_80px_-40px_rgba(16,185,129,0.9)] h-full">
                 <div className="absolute inset-0 opacity-40 bg-[radial-gradient(circle_at_bottom,_rgba(255,255,255,0.25),_transparent_50%)]"></div>
                 <div className="relative space-y-4">
                   <p className="text-xs uppercase tracking-[0.5em] text-white/70">Vision</p>
-                  <h2 className="text-2xl font-semibold">Financial literacy that feels human.</h2>
-                  <p className="text-sm text-white/85">
-                    We want disciplined finance to be as natural as fitness—accessible, inclusive, and rooted in long-term wellbeing.
+                  <h2 className="text-2xl font-semibold">Make ethical wealth-building accessible to all.</h2>
+                  <p className="text-sm text-white/85 leading-relaxed">
+                    We aspire to lead in generational wealth creation through financial literacy, confidence, and long-term resilience — especially for women, youth, and underserved communities.
                   </p>
                   <ul className="space-y-2 text-sm text-white/80">
-                    <li className="flex gap-2">
-                      <span className="mt-1 w-1.5 h-1.5 rounded-full bg-white"></span>
-                      Champion women, youth, and self-employed cohorts.
-                    </li>
-                    <li className="flex gap-2">
-                      <span className="mt-1 w-1.5 h-1.5 rounded-full bg-white"></span>
-                      Build communities that keep each other accountable.
-                    </li>
-                    <li className="flex gap-2">
-                      <span className="mt-1 w-1.5 h-1.5 rounded-full bg-white"></span>
-                      Model ethics and empathy as core trading skills.
-                    </li>
+                    <li className="flex gap-2"><span className="mt-1 w-1.5 h-1.5 rounded-full bg-white flex-shrink-0"></span>Empower women through financial confidence.</li>
+                    <li className="flex gap-2"><span className="mt-1 w-1.5 h-1.5 rounded-full bg-white flex-shrink-0"></span>Build financial literacy for the next generation.</li>
+                    <li className="flex gap-2"><span className="mt-1 w-1.5 h-1.5 rounded-full bg-white flex-shrink-0"></span>Strengthen resilience against economic shocks.</li>
                   </ul>
                 </div>
               </div>
@@ -563,7 +557,7 @@ const TeamView = () => {
           {/* Company Values (unchanged content) */}
           {/* Company Values - Connected Circles Design */}
           <Reveal id="core-values" className="scroll-mt-24 mb-8">
-            <div className="text-center mb-12">
+            <div className="text-center mb-4">
               <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-4">Our Core Values</h2>
               <div className="w-20 h-1 bg-gradient-to-r from-blue-600 to-purple-600 mx-auto rounded-full"></div>
             </div>
@@ -605,12 +599,12 @@ const TeamView = () => {
 
             {/* Desktop View - Connected Circles */}
             <div className="hidden lg:block">
-              <div className="relative max-w-6xl mx-auto py-12">
-                <div className="flex justify-center items-center gap-8 mb-8">
+              <div className="relative max-w-6xl mx-auto py-6">
+                <div className="flex justify-center items-center gap-8 mb-4">
                   {allValues.slice(0, 5).map((value, idx) => (
                     <div key={idx} className="relative group">
                       {idx < 5 && (
-                        <div className="absolute left-1/2 top-full w-0.5 h-16 bg-gradient-to-b from-gray-300 to-transparent -ml-px"></div>
+                        <div className="absolute left-1/2 top-full w-0.5 h-12 bg-gradient-to-b from-gray-300 to-transparent -ml-px"></div>
                       )}
 
                       <div className="flex flex-col items-center">
@@ -630,7 +624,7 @@ const TeamView = () => {
 
                         <div className={`w-4 h-4 rounded-full bg-gradient-to-br ${value.gradient} shadow-md mt-3`}></div>
 
-                        <h3 className="mt-4 text-sm font-bold text-white text-center max-w-[120px] group-hover:text-blue-600 transition-colors">
+                        <h3 className="mt-3 text-sm font-bold text-white text-center max-w-[120px] group-hover:text-blue-600 transition-colors">
                           {value.title}
                         </h3>
 
@@ -642,9 +636,9 @@ const TeamView = () => {
                   ))}
                 </div>
 
-                <div className="relative h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent mb-8"></div>
+                <div className="relative h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent mb-6"></div>
 
-                <div className="flex justify-center items-center gap-12">
+                <div className="flex justify-center items-center gap-8">
                   {allValues.slice(5, 9).map((value, idx) => (
                     <div key={idx + 5} className="relative group">
                       <div className="flex flex-col items-center">
@@ -664,7 +658,7 @@ const TeamView = () => {
                           </div>
                         </div>
 
-                        <h3 className="mt-4 text-sm font-bold text-white text-center max-w-[120px] group-hover:text-blue-600 transition-colors">
+                        <h3 className="mt-3 text-sm font-bold text-white text-center max-w-[120px] group-hover:text-blue-600 transition-colors">
                           {value.title}
                         </h3>
 
@@ -688,7 +682,7 @@ const TeamView = () => {
                   <p className="text-xs uppercase tracking-[0.5em] text-white/60">Why us</p>
                   <h2 className="text-3xl font-bold text-white">Designed for clarity, not hype.</h2>
                   <p className="text-sm text-white/70 max-w-3xl mx-auto">
-                    We don't do blind tips. We help you build systems, awareness, and ethical foundations that compound over years.
+                    Research-led education and structured frameworks to help you navigate markets with discipline and confidence.
                   </p>
                 </div>
                 <div className="grid gap-4 sm:grid-cols-2">

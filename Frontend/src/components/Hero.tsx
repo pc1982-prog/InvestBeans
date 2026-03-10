@@ -68,40 +68,110 @@ const Sparkline = ({ positive, color }: { positive: boolean; color: string }) =>
   );
 };
 
+// ─── 3D Gold Brick SVG Icon ──────────────────────────────────────────────────
+const GoldBrickIcon = ({ size = 36 }: { size?: number }) => (
+  <svg width={size} height={Math.round(size * 0.75)} viewBox="0 0 48 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="goldTop" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stopColor="#f5d978" />
+        <stop offset="100%" stopColor="#d4a017" />
+      </linearGradient>
+      <linearGradient id="goldFront" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stopColor="#e8b820" />
+        <stop offset="100%" stopColor="#9a6e00" />
+      </linearGradient>
+      <linearGradient id="goldSide" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%" stopColor="#c49a10" />
+        <stop offset="100%" stopColor="#7a5200" />
+      </linearGradient>
+    </defs>
+    {/* Top face */}
+    <polygon points="6,8 42,8 46,2 10,2" fill="url(#goldTop)" />
+    {/* Front face */}
+    <polygon points="6,8 42,8 42,30 6,30" fill="url(#goldFront)" />
+    {/* Right side face */}
+    <polygon points="42,8 46,2 46,24 42,30" fill="url(#goldSide)" />
+    {/* Top edge highlight */}
+    <polygon points="6,8 42,8 46,2 10,2" fill="none" stroke="#f7e080" strokeWidth="0.6" opacity="0.7" />
+    {/* Front shine */}
+    <rect x="10" y="11" width="18" height="3" rx="1.5" fill="white" opacity="0.18" />
+    {/* Front border lines */}
+    <line x1="10" y1="19" x2="38" y2="19" stroke="#7a5200" strokeWidth="0.7" opacity="0.5" />
+    <line x1="10" y1="24" x2="38" y2="24" stroke="#7a5200" strokeWidth="0.7" opacity="0.35" />
+    {/* Outer stroke */}
+    <polygon points="6,8 42,8 42,30 6,30" fill="none" stroke="#9a6e00" strokeWidth="0.8" />
+    <polygon points="42,8 46,2 46,24 42,30" fill="none" stroke="#7a5200" strokeWidth="0.8" />
+    <polygon points="6,8 42,8 46,2 10,2" fill="none" stroke="#c49a10" strokeWidth="0.8" />
+  </svg>
+);
+
+// ─── 3D Silver Brick SVG Icon ────────────────────────────────────────────────
+const SilverBrickIcon = ({ size = 36 }: { size?: number }) => (
+  <svg width={size} height={Math.round(size * 0.75)} viewBox="0 0 48 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="silverTop" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stopColor="#e8eef4" />
+        <stop offset="100%" stopColor="#9db0c0" />
+      </linearGradient>
+      <linearGradient id="silverFront" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stopColor="#c8d8e4" />
+        <stop offset="100%" stopColor="#607080" />
+      </linearGradient>
+      <linearGradient id="silverSide" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%" stopColor="#8090a0" />
+        <stop offset="100%" stopColor="#445060" />
+      </linearGradient>
+    </defs>
+    {/* Top face */}
+    <polygon points="6,8 42,8 46,2 10,2" fill="url(#silverTop)" />
+    {/* Front face */}
+    <polygon points="6,8 42,8 42,30 6,30" fill="url(#silverFront)" />
+    {/* Right side face */}
+    <polygon points="42,8 46,2 46,24 42,30" fill="url(#silverSide)" />
+    {/* Top edge highlight */}
+    <polygon points="6,8 42,8 46,2 10,2" fill="none" stroke="#ddeaf2" strokeWidth="0.6" opacity="0.8" />
+    {/* Front shine */}
+    <rect x="10" y="11" width="18" height="3" rx="1.5" fill="white" opacity="0.28" />
+    {/* Front border lines */}
+    <line x1="10" y1="19" x2="38" y2="19" stroke="#445060" strokeWidth="0.7" opacity="0.5" />
+    <line x1="10" y1="24" x2="38" y2="24" stroke="#445060" strokeWidth="0.7" opacity="0.35" />
+    {/* Outer stroke */}
+    <polygon points="6,8 42,8 42,30 6,30" fill="none" stroke="#607080" strokeWidth="0.8" />
+    <polygon points="42,8 46,2 46,24 42,30" fill="none" stroke="#445060" strokeWidth="0.8" />
+    <polygon points="6,8 42,8 46,2 10,2" fill="none" stroke="#8090a0" strokeWidth="0.8" />
+  </svg>
+);
+
 // ─── SENSEX vs NIFTY Card ───────────────────────────────────────────────────────
-const SensexNiftyCard = ({ cardBg, cardBorder, isLight }: any) => {
-  const sensexPositive = true;
-  const niftyPositive = true;
-  return (
-    <div style={{ background: cardBg, border: cardBorder }} className="rounded-2xl p-5 relative overflow-hidden group hover:scale-[1.02] transition-all duration-300 cursor-pointer">
-      <div className="flex items-center gap-1.5 mb-3">
-        <span style={{ width: 8, height: 8, borderRadius: 2, background: "#C9A84C", display: "inline-block" }} />
-        <span className={`text-[11px] font-bold uppercase tracking-widest ${isLight ? "text-navy/60" : "text-white/50"}`}>SENSEX vs NIFTY 50</span>
-      </div>
-      <div className="space-y-2 mb-3">
-        <div className="flex items-center justify-between">
-          <span className={`text-sm font-medium ${isLight ? "text-navy/70" : "text-white/70"}`}>Sensex</span>
-          <div className="flex items-center gap-2">
-            <span className={`text-lg font-bold ${isLight ? "text-navy" : "text-white"}`}>81,250</span>
-            <span className="flex items-center gap-0.5 text-emerald-400 text-sm font-semibold">
-              <TrendingUp className="w-3.5 h-3.5" /> +0.42%
-            </span>
-          </div>
-        </div>
-        <div className="flex items-center justify-between">
-          <span className={`text-sm font-medium ${isLight ? "text-navy/70" : "text-white/70"}`}>Nifty 50</span>
-          <div className="flex items-center gap-2">
-            <span className={`text-lg font-bold ${isLight ? "text-navy" : "text-white"}`}>24,720</span>
-            <span className="flex items-center gap-0.5 text-emerald-400 text-sm font-semibold">
-              <TrendingUp className="w-3.5 h-3.5" /> +0.39%
-            </span>
-          </div>
-        </div>
-      </div>
-      <Sparkline positive={true} color="#22c55e" />
+const SensexNiftyCard = ({ cardBg, cardBorder, isLight }: any) => (
+  <div style={{ background: cardBg, border: cardBorder }} className="rounded-2xl p-4 md:p-5 relative overflow-hidden group hover:scale-[1.02] transition-all duration-300 cursor-pointer">
+    <div className="flex items-center gap-1.5 mb-3">
+      <span style={{ width: 8, height: 8, borderRadius: 2, background: "#C9A84C", display: "inline-block", flexShrink: 0 }} />
+      <span style={{ fontSize: "11px", fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.12em", color: isLight ? "#1e3a5f" : "#ffffff" }}>SENSEX vs NIFTY 50</span>
     </div>
-  );
-};
+    <div className="space-y-2 mb-3">
+      <div className="flex items-center justify-between">
+        <span className={`text-sm font-medium ${isLight ? "text-navy/70" : "text-white/70"}`}>Sensex</span>
+        <div className="flex items-center gap-1.5">
+          <span className={`text-base md:text-lg font-bold ${isLight ? "text-navy" : "text-white"}`}>81,250</span>
+          <span className="flex items-center gap-0.5 text-emerald-400 text-xs font-semibold whitespace-nowrap">
+            <TrendingUp className="w-3 h-3" /> +0.42%
+          </span>
+        </div>
+      </div>
+      <div className="flex items-center justify-between">
+        <span className={`text-sm font-medium ${isLight ? "text-navy/70" : "text-white/70"}`}>Nifty 50</span>
+        <div className="flex items-center gap-1.5">
+          <span className={`text-base md:text-lg font-bold ${isLight ? "text-navy" : "text-white"}`}>24,720</span>
+          <span className="flex items-center gap-0.5 text-emerald-400 text-xs font-semibold whitespace-nowrap">
+            <TrendingUp className="w-3 h-3" /> +0.39%
+          </span>
+        </div>
+      </div>
+    </div>
+    <Sparkline positive={true} color="#22c55e" />
+  </div>
+);
 
 // ─── FII vs DII Card ────────────────────────────────────────────────────────────
 const FiiDiiCard = ({ cardBg, cardBorder, isLight }: any) => {
@@ -111,22 +181,21 @@ const FiiDiiCard = ({ cardBg, cardBorder, isLight }: any) => {
   const fiiPct = Math.round((Math.abs(fiiVal) / total) * 100);
   const diiPct = 100 - fiiPct;
   return (
-    <div style={{ background: cardBg, border: cardBorder }} className="rounded-2xl p-5 relative overflow-hidden group hover:scale-[1.02] transition-all duration-300 cursor-pointer">
+    <div style={{ background: cardBg, border: cardBorder }} className="rounded-2xl p-4 md:p-5 relative overflow-hidden group hover:scale-[1.02] transition-all duration-300 cursor-pointer">
       <div className="flex items-center gap-1.5 mb-3">
-        <span style={{ width: 8, height: 8, borderRadius: 2, background: "#C9A84C", display: "inline-block" }} />
-        <span className={`text-[11px] font-bold uppercase tracking-widest ${isLight ? "text-navy/60" : "text-white/50"}`}>FII vs DII</span>
+        <span style={{ width: 8, height: 8, borderRadius: 2, background: "#C9A84C", display: "inline-block", flexShrink: 0 }} />
+        <span style={{ fontSize: "11px", fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.12em", color: isLight ? "#1e3a5f" : "#ffffff" }}>FII vs DII</span>
       </div>
       <div className="flex justify-between items-end mb-4">
         <div>
           <div className={`text-[11px] font-semibold mb-1 ${isLight ? "text-navy/50" : "text-white/40"}`}>FII</div>
-          <div className="text-xl font-bold text-red-400">−₹1,240 Cr</div>
+          <div className="text-lg md:text-xl font-bold text-red-400">−₹1,240 Cr</div>
         </div>
         <div className="text-right">
           <div className={`text-[11px] font-semibold mb-1 ${isLight ? "text-navy/50" : "text-white/40"}`}>DII</div>
-          <div className="text-xl font-bold text-emerald-400">+₹1,980 Cr</div>
+          <div className="text-lg md:text-xl font-bold text-emerald-400">+₹1,980 Cr</div>
         </div>
       </div>
-      {/* Progress bar */}
       <div className="h-2.5 rounded-full overflow-hidden flex" style={{ background: isLight ? "rgba(0,0,0,0.08)" : "rgba(255,255,255,0.08)" }}>
         <div style={{ width: `${fiiPct}%`, background: "linear-gradient(90deg,#ef4444,#f87171)", borderRadius: "999px 0 0 999px", transition: "width 1s ease" }} />
         <div style={{ width: `${diiPct}%`, background: "linear-gradient(90deg,#a855f7,#22c55e)", borderRadius: "0 999px 999px 0", transition: "width 1s ease" }} />
@@ -143,28 +212,26 @@ const FiiDiiCard = ({ cardBg, cardBorder, isLight }: any) => {
 const IndiaVixCard = ({ cardBg, cardBorder, isLight }: any) => {
   const vix = 13.42;
   const vixChange = -3.10;
-  // VIX slider: 0=10, 100=40; fear level
-  const sliderPct = Math.min(100, Math.max(0, ((vix - 10) / 30) * 100)); // 11.4%
+  const sliderPct = Math.min(100, Math.max(0, ((vix - 10) / 30) * 100));
   const fearLabel = vix < 15 ? "Low" : vix < 20 ? "Moderate" : "High";
   const fearColor = vix < 15 ? "#22c55e" : vix < 20 ? "#f59e0b" : "#ef4444";
   return (
-    <div style={{ background: cardBg, border: cardBorder }} className="rounded-2xl p-5 relative overflow-hidden group hover:scale-[1.02] transition-all duration-300 cursor-pointer">
+    <div style={{ background: cardBg, border: cardBorder }} className="rounded-2xl p-4 md:p-5 relative overflow-hidden group hover:scale-[1.02] transition-all duration-300 cursor-pointer">
       <div className="flex items-center gap-1.5 mb-3">
-        <span style={{ width: 8, height: 8, borderRadius: 2, background: "#C9A84C", display: "inline-block" }} />
-        <span className={`text-[11px] font-bold uppercase tracking-widest ${isLight ? "text-navy/60" : "text-white/50"}`}>INDIA VIX</span>
+        <span style={{ width: 8, height: 8, borderRadius: 2, background: "#C9A84C", display: "inline-block", flexShrink: 0 }} />
+        <span style={{ fontSize: "11px", fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.12em", color: isLight ? "#1e3a5f" : "#ffffff" }}>INDIA VIX</span>
       </div>
       <div className="flex items-end justify-between mb-3">
-        <span className={`text-4xl font-extrabold tracking-tight ${isLight ? "text-navy" : "text-white"}`}>{vix}</span>
+        <span className={`text-3xl md:text-4xl font-extrabold tracking-tight ${isLight ? "text-navy" : "text-white"}`}>{vix}</span>
         <div className="flex flex-col items-end gap-1">
           <span className="flex items-center gap-1 text-red-400 font-bold text-sm">
             <TrendingDown className="w-3.5 h-3.5" /> {vixChange}%
           </span>
-          <span className="text-[11px] font-bold px-2 py-0.5 rounded-full" style={{ background: `${fearColor}22`, color: fearColor, border: `1px solid ${fearColor}44` }}>
+          <span className="text-[10px] md:text-[11px] font-bold px-2 py-0.5 rounded-full" style={{ background: `${fearColor}22`, color: fearColor, border: `1px solid ${fearColor}44` }}>
             Market Fear: {fearLabel}
           </span>
         </div>
       </div>
-      {/* VIX slider — green to red */}
       <div className="relative h-2.5 rounded-full overflow-hidden" style={{ background: "linear-gradient(90deg,#22c55e,#84cc16,#f59e0b,#ef4444)" }}>
         <div className="absolute top-1/2 -translate-y-1/2 w-4 h-4 bg-white rounded-full shadow-md border-2 border-slate-300 transition-all duration-700"
           style={{ left: `calc(${sliderPct}% - 8px)` }} />
@@ -179,14 +246,14 @@ const IndiaVixCard = ({ cardBg, cardBorder, isLight }: any) => {
 
 // ─── GIFT NIFTY Card ────────────────────────────────────────────────────────────
 const GiftNiftyCard = ({ cardBg, cardBorder, isLight }: any) => (
-  <div style={{ background: cardBg, border: cardBorder }} className="rounded-2xl p-5 relative overflow-hidden group hover:scale-[1.02] transition-all duration-300 cursor-pointer">
+  <div style={{ background: cardBg, border: cardBorder }} className="rounded-2xl p-4 md:p-5 relative overflow-hidden group hover:scale-[1.02] transition-all duration-300 cursor-pointer">
     <div className="flex items-center gap-1.5 mb-3">
-      <span style={{ width: 8, height: 8, borderRadius: 2, background: "#C9A84C", display: "inline-block" }} />
-      <span className={`text-[11px] font-bold uppercase tracking-widest ${isLight ? "text-navy/60" : "text-white/50"}`}>GIFT NIFTY</span>
+      <span style={{ width: 8, height: 8, borderRadius: 2, background: "#C9A84C", display: "inline-block", flexShrink: 0 }} />
+      <span style={{ fontSize: "11px", fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.12em", color: isLight ? "#1e3a5f" : "#ffffff" }}>GIFT NIFTY</span>
     </div>
     <div className="flex items-end justify-between mb-1">
       <div>
-        <div className={`text-3xl font-extrabold tracking-tight ${isLight ? "text-navy" : "text-white"}`}>24,760</div>
+        <div className={`text-2xl md:text-3xl font-extrabold tracking-tight ${isLight ? "text-navy" : "text-white"}`}>24,760</div>
         <div className="flex items-center gap-1 mt-1">
           <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
           <span className="text-emerald-400 font-bold text-sm">+0.32%</span>
@@ -202,18 +269,16 @@ const GiftNiftyCard = ({ cardBg, cardBorder, isLight }: any) => (
 const UsdInrCard = ({ cardBg, cardBorder, isLight, liveValue }: any) => {
   const rate = liveValue || 82.94;
   const changeVal = -0.12;
-  const positive = changeVal >= 0;
-  // slider: 80 to 86 range
   const sliderPct = Math.min(100, Math.max(0, ((rate - 80) / 6) * 100));
   return (
-    <div style={{ background: cardBg, border: cardBorder }} className="rounded-2xl p-5 relative overflow-hidden group hover:scale-[1.02] transition-all duration-300 cursor-pointer">
+    <div style={{ background: cardBg, border: cardBorder }} className="rounded-2xl p-4 md:p-5 relative overflow-hidden group hover:scale-[1.02] transition-all duration-300 cursor-pointer">
       <div className="flex items-center gap-1.5 mb-3">
-        <span style={{ width: 8, height: 8, borderRadius: 2, background: "#C9A84C", display: "inline-block" }} />
-        <span className={`text-[11px] font-bold uppercase tracking-widest ${isLight ? "text-navy/60" : "text-white/50"}`}>USD / INR</span>
+        <span style={{ width: 8, height: 8, borderRadius: 2, background: "#C9A84C", display: "inline-block", flexShrink: 0 }} />
+        <span style={{ fontSize: "11px", fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.12em", color: isLight ? "#1e3a5f" : "#ffffff" }}>USD / INR</span>
       </div>
       <div className="flex items-end justify-between mb-2">
         <div>
-          <div className={`text-3xl font-extrabold tracking-tight ${isLight ? "text-navy" : "text-white"}`}>₹{rate.toFixed ? rate.toFixed(2) : rate}</div>
+          <div className={`text-2xl md:text-3xl font-extrabold tracking-tight ${isLight ? "text-navy" : "text-white"}`}>₹{rate.toFixed ? rate.toFixed(2) : rate}</div>
           <div className="flex items-center gap-1 mt-1">
             <TrendingDown className="w-3.5 h-3.5 text-red-400" />
             <span className="text-red-400 font-bold text-sm">{changeVal}%</span>
@@ -221,7 +286,6 @@ const UsdInrCard = ({ cardBg, cardBorder, isLight, liveValue }: any) => {
         </div>
       </div>
       <div className={`text-[11px] font-medium mb-2 ${isLight ? "text-navy/50" : "text-white/40"}`}>Rupee Strengthening</div>
-      {/* Slider — blue to red (weak to strong rupee means USD goes down = blue) */}
       <div className="relative h-2.5 rounded-full overflow-hidden" style={{ background: "linear-gradient(90deg,#3b82f6,#06b6d4,#f59e0b,#ef4444)" }}>
         <div className="absolute top-1/2 -translate-y-1/2 w-4 h-4 bg-white rounded-full shadow-md border-2 border-slate-300 transition-all duration-700"
           style={{ left: `calc(${sliderPct}% - 8px)` }} />
@@ -238,40 +302,40 @@ const UsdInrCard = ({ cardBg, cardBorder, isLight, liveValue }: any) => {
 const GoldSilverCard = ({ cardBg, cardBorder, isLight, liveGold, liveSilver }: any) => {
   const gold = liveGold || 74200;
   const silver = liveSilver || 83900;
-  const goldUp = true;
-  const silverDown = true;
   return (
-    <div style={{ background: cardBg, border: cardBorder }} className="rounded-2xl p-5 relative overflow-hidden group hover:scale-[1.02] transition-all duration-300 cursor-pointer">
+    <div style={{ background: cardBg, border: cardBorder }} className="rounded-2xl p-4 md:p-5 relative overflow-hidden group hover:scale-[1.02] transition-all duration-300 cursor-pointer">
       <div className="flex items-center gap-1.5 mb-4">
-        <span style={{ width: 8, height: 8, borderRadius: 2, background: "#C9A84C", display: "inline-block" }} />
-        <span className={`text-[11px] font-bold uppercase tracking-widest ${isLight ? "text-navy/60" : "text-white/50"}`}>GOLD vs SILVER</span>
+        <span style={{ width: 8, height: 8, borderRadius: 2, background: "#C9A84C", display: "inline-block", flexShrink: 0 }} />
+        <span style={{ fontSize: "11px", fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.12em", color: isLight ? "#1e3a5f" : "#ffffff" }}>GOLD vs SILVER</span>
       </div>
       <div className="space-y-3">
+        {/* Gold row */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="text-lg">🪙</span>
+            <GoldBrickIcon size={40} />
             <span className={`font-semibold text-sm ${isLight ? "text-navy/80" : "text-white/80"}`}>Gold</span>
           </div>
-          <div className="flex items-center gap-2">
-            <span className={`text-lg font-bold ${isLight ? "text-navy" : "text-white"}`}>₹{gold.toLocaleString()}</span>
-            <TrendingUp className="w-4 h-4 text-emerald-400" />
+          <div className="flex items-center gap-1.5">
+            <span className={`text-base md:text-lg font-bold ${isLight ? "text-navy" : "text-white"}`}>₹{gold.toLocaleString()}</span>
+            <TrendingUp className="w-4 h-4 text-emerald-400 flex-shrink-0" />
           </div>
         </div>
-        {/* Gold mini bar */}
+        {/* Gold bar */}
         <div className="h-1.5 rounded-full overflow-hidden" style={{ background: isLight ? "rgba(0,0,0,0.08)" : "rgba(255,255,255,0.08)" }}>
           <div style={{ width: "72%", background: "linear-gradient(90deg,#C9A84C,#f5d78e)", borderRadius: 999, height: "100%", transition: "width 1s ease" }} />
         </div>
+        {/* Silver row */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="text-lg">🥈</span>
+            <SilverBrickIcon size={40} />
             <span className={`font-semibold text-sm ${isLight ? "text-navy/80" : "text-white/80"}`}>Silver</span>
           </div>
-          <div className="flex items-center gap-2">
-            <span className={`text-lg font-bold ${isLight ? "text-navy" : "text-white"}`}>₹{silver.toLocaleString()}</span>
-            <TrendingDown className="w-4 h-4 text-red-400" />
+          <div className="flex items-center gap-1.5">
+            <span className={`text-base md:text-lg font-bold ${isLight ? "text-navy" : "text-white"}`}>₹{silver.toLocaleString()}</span>
+            <TrendingDown className="w-4 h-4 text-red-400 flex-shrink-0" />
           </div>
         </div>
-        {/* Silver mini bar */}
+        {/* Silver bar */}
         <div className="h-1.5 rounded-full overflow-hidden" style={{ background: isLight ? "rgba(0,0,0,0.08)" : "rgba(255,255,255,0.08)" }}>
           <div style={{ width: "58%", background: "linear-gradient(90deg,#94a3b8,#cbd5e1)", borderRadius: 999, height: "100%", transition: "width 1s ease" }} />
         </div>
@@ -296,7 +360,7 @@ const USStatCard = ({ label, value, positive, cardBg, cardBorder, isLight, path,
     >
       <div className="flex items-center gap-1.5 mb-3">
         <span style={{ width: 8, height: 8, borderRadius: 2, background: "#C9A84C", display: "inline-block" }} />
-        <span className={`text-[11px] font-bold uppercase tracking-widest ${isLight ? "text-navy/60" : "text-white/50"}`}>{label}</span>
+        <span style={{ fontSize: "11px", fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.12em", color: isLight ? "#1e3a5f" : "#ffffff" }}>{label}</span>
       </div>
       <div className="mb-3">
         <div className="text-3xl font-extrabold tracking-tight" style={{ color: loading ? (isLight ? "#64748b" : "#94a3b8") : color }}>
@@ -356,8 +420,8 @@ const Hero = () => {
     ? { background: "linear-gradient(135deg,#dbe9f9 0%,#e8f2fd 30%,#edf5fe 60%,#dce8f7 100%)" }
     : {};
   const sectionCls = isLight
-    ? "text-navy py-20 relative overflow-hidden"
-    : "gradient-hero text-white py-20 relative overflow-hidden";
+    ? "text-navy py-10 md:py-16 lg:py-20 relative overflow-hidden"
+    : "gradient-hero text-white py-10 md:py-16 lg:py-20 relative overflow-hidden";
 
   const gridOpacity = isLight ? "opacity-[0.04]" : "opacity-[0.06]";
   const gridColor   = isLight ? "#0d2540" : "white";
@@ -394,52 +458,49 @@ const Hero = () => {
       <div className={`absolute inset-0 pointer-events-none ${gridOpacity}`}
         style={{ backgroundImage: `linear-gradient(${gridColor} 1px,transparent 1px),linear-gradient(90deg,${gridColor} 1px,transparent 1px)`, backgroundSize:"40px 40px" }} />
 
-      <div className="container mx-auto px-6 relative z-10">
+      <div className="container mx-auto px-4 sm:px-6 relative z-10">
         <div className="max-w-5xl mx-auto text-center animate-fade-in">
 
           {/* 3 Icons */}
-          <div className="flex justify-center items-end gap-6 mb-8">
-            <PieChartIcon className={`w-9 h-9 ${isLight ? "text-amber-500" : "text-accent"}`} style={iconGlow} />
-            <GrowthPlantIcon className={`w-11 h-11 ${isLight ? "text-amber-500" : "text-accent"}`} style={iconGlow} />
-            <IndexChartIcon className={`w-9 h-9 ${isLight ? "text-amber-500" : "text-accent"}`} style={iconGlow} />
+          <div className="flex justify-center items-end gap-4 md:gap-6 mb-5 md:mb-8">
+            <PieChartIcon className={`w-7 h-7 md:w-9 md:h-9 ${isLight ? "text-amber-500" : "text-accent"}`} style={iconGlow} />
+            <GrowthPlantIcon className={`w-9 h-9 md:w-11 md:h-11 ${isLight ? "text-amber-500" : "text-accent"}`} style={iconGlow} />
+            <IndexChartIcon className={`w-7 h-7 md:w-9 md:h-9 ${isLight ? "text-amber-500" : "text-accent"}`} style={iconGlow} />
           </div>
 
           {/* Punchline */}
-          <div className="flex justify-center items-center gap-3 mb-4">
-  <span className="w-10 h-[2px] bg-[#FFA726]" />
-
-  <p
-    className="text-xs md:text-sm font-extrabold tracking-[0.2em] uppercase"
-    style={{ color: "#FFA726" }}
-  >
-    Baazigar Banein… Sattebaaz Nahi
-  </p>
-
-  <span className="w-10 h-[2px] bg-[#FFA726]" />
-</div>
+          <div className="flex justify-center items-center gap-2 md:gap-3 mb-3 md:mb-4">
+            <span className={lineCls} />
+            <p className="text-[10px] md:text-xs lg:text-sm font-bold tracking-[0.15em] md:tracking-[0.2em] uppercase"
+              style={{ color:"#D4A843", textShadow: isLight ? "0 0 16px rgba(212,168,67,0.6),0 0 32px rgba(212,168,67,0.3)" : "0 0 20px rgba(212,168,67,0.85),0 0 40px rgba(212,168,67,0.5)" }}>
+              Baazigar Banein… Sattebaaz Nahi
+            </p>
+            <span className={lineCls} />
+          </div>
 
           {/* Heading */}
-          <h1 className={`text-6xl md:text-7xl lg:text-8xl font-extrabold mb-4 leading-none tracking-tight ${isLight ? "text-navy" : "text-white"}`}>
+          <h1 className={`text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold mb-3 md:mb-4 leading-none tracking-tight ${isLight ? "text-navy" : "text-white"}`}>
             Beans<span className="text-accent">Index</span>
           </h1>
 
           {/* Subheading */}
-          <p className={`text-lg md:text-xl mb-10 leading-relaxed max-w-2xl mx-auto ${isLight ? "text-navy/70" : "text-white/80"}`}>
+          <p className={`text-base md:text-lg lg:text-xl mb-7 md:mb-10 leading-relaxed max-w-2xl mx-auto px-2 md:px-0 ${isLight ? "text-navy/70" : "text-white/80"}`}>
             Daily research-backed stock insights — where every pick is powered by analysis, not assumptions.
           </p>
 
           {/* Tab Switcher */}
-          <div style={tabWrapStyle}>
+          <div style={tabWrapStyle} className="flex-wrap justify-center">
             {(["bharat", "us"] as const).map((key) => {
               const active = activeTab === key;
               return (
                 <button key={key} onClick={() => setActiveTab(key)}
-                  style={{ ...(active ? activeTabStyle : inactiveTabStyle), display:"flex", alignItems:"center", gap:8, padding:"10px 22px", borderRadius:12, fontSize:14, cursor:"pointer", transition:"all 0.2s ease", outline:"none", transform: active ? "scale(1.02)" : "scale(1)" }}
+                  style={{ ...(active ? activeTabStyle : inactiveTabStyle), display:"flex", alignItems:"center", gap:6, padding:"8px 14px", borderRadius:12, fontSize:13, cursor:"pointer", transition:"all 0.2s ease", outline:"none", transform: active ? "scale(1.02)" : "scale(1)" }}
+                  className="sm:!px-[22px] sm:!py-[10px] sm:!text-[14px] sm:gap-[8px]"
                   onMouseEnter={(e) => { if (!active) Object.assign((e.currentTarget as HTMLButtonElement).style, inactiveHoverStyle); }}
                   onMouseLeave={(e) => { if (!active) Object.assign((e.currentTarget as HTMLButtonElement).style, inactiveTabStyle); }}
                 >
-                  {active && <Sparkles style={{ width:14, height:14 }} strokeWidth={2.5} />}
-                  <span style={{ fontSize:16 }}>{key === "bharat" ? "🇮🇳" : "🇺🇸"}</span>
+                  {active && <Sparkles style={{ width:13, height:13 }} strokeWidth={2.5} />}
+                  <span style={{ fontSize:15 }}>{key === "bharat" ? "🇮🇳" : "🇺🇸"}</span>
                   <span>{key === "bharat" ? "Bharat BeansIndex" : "US BeansIndex"}</span>
                 </button>
               );
@@ -448,7 +509,7 @@ const Hero = () => {
 
           {/* ── BHARAT Stats Grid ── */}
           {activeTab === "bharat" && (
-            <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-5xl mx-auto">
+            <div className="mt-6 md:mt-10 grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 max-w-5xl mx-auto pb-4 md:pb-0">
               <SensexNiftyCard cardBg={cardBg} cardBorder={cardBorder} isLight={isLight} />
               <FiiDiiCard cardBg={cardBg} cardBorder={cardBorder} isLight={isLight} />
               <IndiaVixCard cardBg={cardBg} cardBorder={cardBorder} isLight={isLight} />
@@ -460,7 +521,7 @@ const Hero = () => {
 
           {/* ── US Stats Grid ── */}
           {activeTab === "us" && (
-            <div className="mt-10 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-5xl mx-auto">
+            <div className="mt-6 md:mt-10 grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 max-w-5xl mx-auto pb-4 md:pb-0">
               <USStatCard label="NASDAQ" value={usData.nasdaq} positive={usData.nasdaqPos} cardBg={cardBg} cardBorder={cardBorder} isLight={isLight}
                 path="/global" section="section-us" onNavigate={(p, s) => navigate(`${p}?scrollTo=${s}`)} />
               <USStatCard label="USD / INR" value={usData.usdInr} positive={usData.usdInrPos} cardBg={cardBg} cardBorder={cardBorder} isLight={isLight}

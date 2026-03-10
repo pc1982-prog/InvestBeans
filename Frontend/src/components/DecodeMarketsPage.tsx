@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Sparkles, TrendingUp, Plus } from "lucide-react";
+import { Sparkles, TrendingUp, Plus, ArrowLeft } from "lucide-react";
 import InsightCard from "@/components/InsightCard";
 import AdminInsightForm from "@/components/AdminInsightForm";
 import InsightModal from "@/components/InsightModal";
@@ -9,7 +9,7 @@ import { useAuth } from "@/controllers/AuthContext";
 import api from "@/api/axios";
 import { toggleInsightLike } from "@/services/insightService";
 import { useTheme } from "@/controllers/Themecontext";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 type ActiveTab = "domestic" | "global" | "commodities";
 
@@ -50,6 +50,7 @@ const DecodeMarketsPage = () => {
   const { isAdmin } = useAuth();
   const { theme } = useTheme();
   const isLight = theme === "light";
+  const navigate = useNavigate();
 
   const [insights, setInsights] = useState<InsightData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -127,9 +128,26 @@ const DecodeMarketsPage = () => {
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-12">
 
-        {/* ── Admin button ───────────────────────────────────────────────── */}
-        {isAdmin && (
-          <div className="flex justify-end mb-6">
+        {/* ── Top bar: Back + Admin ──────────────────────────────────────── */}
+        <div className="flex items-center justify-between mb-6">
+          <button
+            onClick={() => {
+              navigate("/");
+              setTimeout(() => {
+                document.getElementById("decode-markets")?.scrollIntoView({ behavior: "smooth", block: "start" });
+              }, 100);
+            }}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all hover:opacity-80"
+            style={{
+              background: isLight ? "rgba(13,37,64,0.06)" : "rgba(255,255,255,0.06)",
+              border: isLight ? "1px solid rgba(13,37,64,0.12)" : "1px solid rgba(255,255,255,0.1)",
+              color: isLight ? "rgba(13,37,64,0.7)" : "rgba(203,213,225,1)",
+            }}
+          >
+            <ArrowLeft className="w-4 h-4" /> Back
+          </button>
+
+          {isAdmin && (
             <button
               onClick={() => { setEditingInsight(null); setShowAdminForm(true); }}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90 shadow-lg"
@@ -137,11 +155,11 @@ const DecodeMarketsPage = () => {
             >
               <Plus className="w-4 h-4" /> Create Insight
             </button>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* ── Page header ─────────────────────────────────────────────────── */}
-        <div className="text-center mb-8 sm:mb-18">
+        <div className="text-center mb-8 sm:mb-12">
           <div
             className="inline-flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full mb-4 sm:mb-5"
             style={{ background: "rgba(212,168,67,0.1)", border: "1px solid rgba(212,168,67,0.2)" }}
