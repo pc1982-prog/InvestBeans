@@ -409,8 +409,8 @@ const Header = () => {
     : "bg-[#0a1628] text-white shadow-lg border-b border-white/[0.08]";
 
   const tickerBg = isLight
-    ? "bg-[#0c1d31] py-2.5 border-b border-white/[0.08]"
-    : "bg-[#060e1c] py-2.5 border-b border-white/[0.06]";
+    ? "bg-[#0c1d31] py-1.5 sm:py-2.5 border-b border-white/[0.08]"
+    : "bg-[#060e1c] py-1.5 sm:py-2.5 border-b border-white/[0.06]";
 
   const mobileBg = isLight
     ? "md:hidden bg-white border-t border-slate-200"
@@ -438,13 +438,13 @@ const Header = () => {
       </div>
 
       <header className={`${headerBg} backdrop-blur-sm`}>
-        <nav className="container mx-auto px-6 py-2 flex items-center justify-between min-h-[56px]">
+        <nav className="container mx-auto px-3 sm:px-4 md:px-6 py-2 flex items-center justify-between min-h-[52px] sm:min-h-[56px]">
 
           {/* ── Left: logo + nav ──────────────────────────────────────────────── */}
-          <div className="flex items-center gap-3 md:gap-5">
+          <div className="flex items-center gap-1.5 sm:gap-3 md:gap-5">
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className={`md:hidden hover:text-accent transition-colors p-2 rounded-md ${
+              className={`md:hidden hover:text-accent transition-colors p-1.5 sm:p-2 rounded-md ${
                 isLight ? "text-navy" : "text-white"
               }`}
               aria-label="Toggle menu"
@@ -456,7 +456,7 @@ const Header = () => {
               <img
                 src={isLight ? "/images/investbeans logo-03.png" : "/images/Untitled-6-04.png"}
                 alt="InvestBeans Logo"
-                className={`h-8 w-auto max-w-[160px] md:max-w-none object-contain relative -top-1 transition-all ${
+                className={`h-9 sm:h-9 w-auto max-w-[168px] sm:max-w-[180px] md:max-w-none object-contain relative -top-0.5 transition-all ${
                   !isLight ? "brightness-[1.3] contrast-[1.1]" : ""
                 }`}
               />
@@ -545,13 +545,13 @@ const Header = () => {
           </div>
 
           {/* ── Right: theme toggle + user menu ──────────────────────────── */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3">
 
             {/* ── Dark / Light Toggle Button ─────────────────────────────── */}
             <button
               onClick={toggleTheme}
               aria-label={isLight ? "Switch to dark mode" : "Switch to light mode"}
-              className={`relative flex items-center justify-center w-10 h-10 rounded-full transition-all duration-300 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-accent/40 ${
+              className={`relative flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full transition-all duration-300 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-accent/40 ${
                 isLight
                   ? "bg-slate-100 hover:bg-slate-200 text-navy shadow-sm border border-slate-300"
                   : "bg-white/10 hover:bg-white/20 text-white"

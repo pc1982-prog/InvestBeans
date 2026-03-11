@@ -144,32 +144,61 @@ const SilverBrickIcon = ({ size = 36 }: { size?: number }) => (
 
 // ─── SENSEX vs NIFTY Card ───────────────────────────────────────────────────────
 const SensexNiftyCard = ({ cardBg, cardBorder, isLight }: any) => (
-  <div style={{ background: cardBg, border: cardBorder }} className="rounded-2xl p-4 md:p-5 relative overflow-hidden group hover:scale-[1.02] transition-all duration-300 cursor-pointer">
-    <div className="flex items-center gap-1.5 mb-3">
-      <span style={{ width: 8, height: 8, borderRadius: 2, background: "#C9A84C", display: "inline-block", flexShrink: 0 }} />
-      <span style={{ fontSize: "11px", fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.12em", color: isLight ? "#1e3a5f" : "#ffffff" }}>SENSEX vs NIFTY 50</span>
-    </div>
-    <div className="space-y-2 mb-3">
-      <div className="flex items-center justify-between">
-        <span className={`text-sm font-medium ${isLight ? "text-navy/70" : "text-white/70"}`}>Sensex</span>
-        <div className="flex items-center gap-1.5">
-          <span className={`text-base md:text-lg font-bold ${isLight ? "text-navy" : "text-white"}`}>81,250</span>
-          <span className="flex items-center gap-0.5 text-emerald-400 text-xs font-semibold whitespace-nowrap">
-            <TrendingUp className="w-3 h-3" /> +0.42%
-          </span>
+  <div style={{ background: cardBg, border: cardBorder }} className="rounded-2xl relative overflow-hidden group hover:scale-[1.02] transition-all duration-300 cursor-pointer md:p-5">
+    {/* ── MOBILE layout ── */}
+    <div className="md:hidden">
+      {/* Gold left accent bar */}
+      <div style={{ position:"absolute", left:0, top:0, bottom:0, width:3, background:"linear-gradient(180deg,#C9A84C,#e8c96a)", borderRadius:"12px 0 0 12px" }} />
+      <div style={{ padding:"10px 10px 10px 14px" }}>
+        {/* Header */}
+        <div style={{ fontSize:"8px", fontWeight:900, letterSpacing:"0.12em", textTransform:"uppercase", color:"#C9A84C", marginBottom:8 }}>SENSEX · NIFTY 50</div>
+        {/* Two rows: index name | value pill */}
+        {[
+          { label:"SENSEX", val:"81,250", chg:"+0.42%", pos:true },
+          { label:"NIFTY 50", val:"24,720", chg:"+0.39%", pos:true },
+        ].map(row => (
+          <div key={row.label} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:5 }}>
+            <span style={{ fontSize:"10px", fontWeight:700, letterSpacing:"0.05em", color: isLight ? "#1e3a5f" : "rgba(255,255,255,0.6)" }}>{row.label}</span>
+            <div style={{ display:"flex", alignItems:"center", gap:5 }}>
+              <span style={{ fontSize:"14px", fontWeight:800, color: isLight ? "#0d1b2a" : "#fff", letterSpacing:"-0.02em" }}>{row.val}</span>
+              <span style={{ fontSize:"9px", fontWeight:700, color:"#22c55e", background:"rgba(34,197,94,0.12)", border:"1px solid rgba(34,197,94,0.25)", borderRadius:4, padding:"1px 5px" }}>{row.chg}</span>
+            </div>
+          </div>
+        ))}
+        {/* Mini dual progress bars */}
+        <div style={{ marginTop:6, display:"flex", flexDirection:"column", gap:3 }}>
+          {[72, 68].map((w, i) => (
+            <div key={i} style={{ height:3, borderRadius:99, background: isLight ? "rgba(0,0,0,0.08)" : "rgba(255,255,255,0.08)", overflow:"hidden" }}>
+              <div style={{ width:`${w}%`, height:"100%", borderRadius:99, background:"linear-gradient(90deg,#22c55e,#86efac)" }} />
+            </div>
+          ))}
         </div>
       </div>
-      <div className="flex items-center justify-between">
-        <span className={`text-sm font-medium ${isLight ? "text-navy/70" : "text-white/70"}`}>Nifty 50</span>
-        <div className="flex items-center gap-1.5">
-          <span className={`text-base md:text-lg font-bold ${isLight ? "text-navy" : "text-white"}`}>24,720</span>
-          <span className="flex items-center gap-0.5 text-emerald-400 text-xs font-semibold whitespace-nowrap">
-            <TrendingUp className="w-3 h-3" /> +0.39%
-          </span>
+    </div>
+    {/* ── DESKTOP layout (original) ── */}
+    <div className="hidden md:block">
+      <div className="flex items-center gap-1.5 mb-3">
+        <span style={{ width: 8, height: 8, borderRadius: 2, background: "#C9A84C", display: "inline-block", flexShrink: 0 }} />
+        <span style={{ fontSize: "11px", fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.12em", color: isLight ? "#1e3a5f" : "#ffffff" }}>SENSEX vs NIFTY 50</span>
+      </div>
+      <div className="space-y-2 mb-3">
+        <div className="flex items-center justify-between">
+          <span className={`text-sm font-medium ${isLight ? "text-navy/70" : "text-white/70"}`}>Sensex</span>
+          <div className="flex items-center gap-1.5">
+            <span className={`text-base md:text-lg font-bold ${isLight ? "text-navy" : "text-white"}`}>81,250</span>
+            <span className="flex items-center gap-0.5 text-emerald-400 text-xs font-semibold whitespace-nowrap"><TrendingUp className="w-3 h-3" /> +0.42%</span>
+          </div>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className={`text-sm font-medium ${isLight ? "text-navy/70" : "text-white/70"}`}>Nifty 50</span>
+          <div className="flex items-center gap-1.5">
+            <span className={`text-base md:text-lg font-bold ${isLight ? "text-navy" : "text-white"}`}>24,720</span>
+            <span className="flex items-center gap-0.5 text-emerald-400 text-xs font-semibold whitespace-nowrap"><TrendingUp className="w-3 h-3" /> +0.39%</span>
+          </div>
         </div>
       </div>
+      <Sparkline positive={true} color="#22c55e" />
     </div>
-    <Sparkline positive={true} color="#22c55e" />
   </div>
 );
 
@@ -181,28 +210,58 @@ const FiiDiiCard = ({ cardBg, cardBorder, isLight }: any) => {
   const fiiPct = Math.round((Math.abs(fiiVal) / total) * 100);
   const diiPct = 100 - fiiPct;
   return (
-    <div style={{ background: cardBg, border: cardBorder }} className="rounded-2xl p-4 md:p-5 relative overflow-hidden group hover:scale-[1.02] transition-all duration-300 cursor-pointer">
-      <div className="flex items-center gap-1.5 mb-3">
-        <span style={{ width: 8, height: 8, borderRadius: 2, background: "#C9A84C", display: "inline-block", flexShrink: 0 }} />
-        <span style={{ fontSize: "11px", fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.12em", color: isLight ? "#1e3a5f" : "#ffffff" }}>FII vs DII</span>
-      </div>
-      <div className="flex justify-between items-end mb-4">
-        <div>
-          <div className={`text-[11px] font-semibold mb-1 ${isLight ? "text-navy/50" : "text-white/40"}`}>FII</div>
-          <div className="text-lg md:text-xl font-bold text-red-400">−₹1,240 Cr</div>
+    <div style={{ background: cardBg, border: cardBorder }} className="rounded-2xl relative overflow-hidden group hover:scale-[1.02] transition-all duration-300 cursor-pointer md:p-5">
+      {/* ── MOBILE layout ── */}
+      <div className="md:hidden" style={{ padding:"10px 10px 10px 14px", position:"relative" }}>
+        <div style={{ position:"absolute", left:0, top:0, bottom:0, width:3, background:"linear-gradient(180deg,#ef4444,#a855f7,#22c55e)", borderRadius:"12px 0 0 12px" }} />
+        <div style={{ fontSize:"8px", fontWeight:900, letterSpacing:"0.12em", textTransform:"uppercase", color:"#C9A84C", marginBottom:8 }}>FII · DII FLOW</div>
+        {/* Two value blocks side by side */}
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:6, marginBottom:8 }}>
+          <div style={{ background:"rgba(239,68,68,0.08)", border:"1px solid rgba(239,68,68,0.2)", borderRadius:8, padding:"6px 8px" }}>
+            <div style={{ fontSize:"8px", fontWeight:700, color:"rgba(239,68,68,0.7)", marginBottom:2 }}>FII SELL</div>
+            <div style={{ fontSize:"15px", fontWeight:800, color:"#f87171", letterSpacing:"-0.02em", lineHeight:1 }}>₹1,240</div>
+            <div style={{ fontSize:"8px", color:"rgba(239,68,68,0.6)", marginTop:2 }}>Cr outflow</div>
+          </div>
+          <div style={{ background:"rgba(34,197,94,0.08)", border:"1px solid rgba(34,197,94,0.2)", borderRadius:8, padding:"6px 8px" }}>
+            <div style={{ fontSize:"8px", fontWeight:700, color:"rgba(34,197,94,0.7)", marginBottom:2 }}>DII BUY</div>
+            <div style={{ fontSize:"15px", fontWeight:800, color:"#4ade80", letterSpacing:"-0.02em", lineHeight:1 }}>₹1,980</div>
+            <div style={{ fontSize:"8px", color:"rgba(34,197,94,0.6)", marginTop:2 }}>Cr inflow</div>
+          </div>
         </div>
-        <div className="text-right">
-          <div className={`text-[11px] font-semibold mb-1 ${isLight ? "text-navy/50" : "text-white/40"}`}>DII</div>
-          <div className="text-lg md:text-xl font-bold text-emerald-400">+₹1,980 Cr</div>
+        {/* Segmented bar */}
+        <div style={{ height:5, borderRadius:99, overflow:"hidden", display:"flex", gap:2 }}>
+          <div style={{ width:`${fiiPct}%`, background:"linear-gradient(90deg,#ef4444,#f87171)", borderRadius:99 }} />
+          <div style={{ flex:1, background:"linear-gradient(90deg,#a855f7,#22c55e)", borderRadius:99 }} />
+        </div>
+        <div style={{ display:"flex", justifyContent:"space-between", marginTop:4 }}>
+          <span style={{ fontSize:"8px", color:"rgba(248,113,113,0.8)", fontWeight:600 }}>{fiiPct}% selling</span>
+          <span style={{ fontSize:"8px", color:"rgba(74,222,128,0.8)", fontWeight:600 }}>{diiPct}% buying</span>
         </div>
       </div>
-      <div className="h-2.5 rounded-full overflow-hidden flex" style={{ background: isLight ? "rgba(0,0,0,0.08)" : "rgba(255,255,255,0.08)" }}>
-        <div style={{ width: `${fiiPct}%`, background: "linear-gradient(90deg,#ef4444,#f87171)", borderRadius: "999px 0 0 999px", transition: "width 1s ease" }} />
-        <div style={{ width: `${diiPct}%`, background: "linear-gradient(90deg,#a855f7,#22c55e)", borderRadius: "0 999px 999px 0", transition: "width 1s ease" }} />
-      </div>
-      <div className="flex justify-between mt-1.5">
-        <span className="text-[10px] text-red-400/80">{fiiPct}% selling</span>
-        <span className="text-[10px] text-emerald-400/80">{diiPct}% buying</span>
+      {/* ── DESKTOP layout (original) ── */}
+      <div className="hidden md:block">
+        <div className="flex items-center gap-1.5 mb-3">
+          <span style={{ width: 8, height: 8, borderRadius: 2, background: "#C9A84C", display: "inline-block", flexShrink: 0 }} />
+          <span style={{ fontSize: "11px", fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.12em", color: isLight ? "#1e3a5f" : "#ffffff" }}>FII vs DII</span>
+        </div>
+        <div className="flex justify-between items-end mb-4">
+          <div>
+            <div className={`text-[11px] font-semibold mb-1 ${isLight ? "text-navy/50" : "text-white/40"}`}>FII</div>
+            <div className="text-lg md:text-xl font-bold text-red-400">−₹1,240 Cr</div>
+          </div>
+          <div className="text-right">
+            <div className={`text-[11px] font-semibold mb-1 ${isLight ? "text-navy/50" : "text-white/40"}`}>DII</div>
+            <div className="text-lg md:text-xl font-bold text-emerald-400">+₹1,980 Cr</div>
+          </div>
+        </div>
+        <div className="h-2.5 rounded-full overflow-hidden flex" style={{ background: isLight ? "rgba(0,0,0,0.08)" : "rgba(255,255,255,0.08)" }}>
+          <div style={{ width: `${fiiPct}%`, background: "linear-gradient(90deg,#ef4444,#f87171)", borderRadius: "999px 0 0 999px", transition: "width 1s ease" }} />
+          <div style={{ width: `${diiPct}%`, background: "linear-gradient(90deg,#a855f7,#22c55e)", borderRadius: "0 999px 999px 0", transition: "width 1s ease" }} />
+        </div>
+        <div className="flex justify-between mt-1.5">
+          <span className="text-[10px] text-red-400/80">{fiiPct}% selling</span>
+          <span className="text-[10px] text-emerald-400/80">{diiPct}% buying</span>
+        </div>
       </div>
     </div>
   );
@@ -216,29 +275,54 @@ const IndiaVixCard = ({ cardBg, cardBorder, isLight }: any) => {
   const fearLabel = vix < 15 ? "Low" : vix < 20 ? "Moderate" : "High";
   const fearColor = vix < 15 ? "#22c55e" : vix < 20 ? "#f59e0b" : "#ef4444";
   return (
-    <div style={{ background: cardBg, border: cardBorder }} className="rounded-2xl p-4 md:p-5 relative overflow-hidden group hover:scale-[1.02] transition-all duration-300 cursor-pointer">
-      <div className="flex items-center gap-1.5 mb-3">
-        <span style={{ width: 8, height: 8, borderRadius: 2, background: "#C9A84C", display: "inline-block", flexShrink: 0 }} />
-        <span style={{ fontSize: "11px", fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.12em", color: isLight ? "#1e3a5f" : "#ffffff" }}>INDIA VIX</span>
-      </div>
-      <div className="flex items-end justify-between mb-3">
-        <span className={`text-3xl md:text-4xl font-extrabold tracking-tight ${isLight ? "text-navy" : "text-white"}`}>{vix}</span>
-        <div className="flex flex-col items-end gap-1">
-          <span className="flex items-center gap-1 text-red-400 font-bold text-sm">
-            <TrendingDown className="w-3.5 h-3.5" /> {vixChange}%
-          </span>
-          <span className="text-[10px] md:text-[11px] font-bold px-2 py-0.5 rounded-full" style={{ background: `${fearColor}22`, color: fearColor, border: `1px solid ${fearColor}44` }}>
-            Market Fear: {fearLabel}
-          </span>
+    <div style={{ background: cardBg, border: cardBorder }} className="rounded-2xl relative overflow-hidden group hover:scale-[1.02] transition-all duration-300 cursor-pointer md:p-5">
+      {/* ── MOBILE layout ── */}
+      <div className="md:hidden" style={{ padding:"10px 10px 10px 14px", position:"relative" }}>
+        <div style={{ position:"absolute", left:0, top:0, bottom:0, width:3, background:`linear-gradient(180deg,${fearColor},${fearColor}44)`, borderRadius:"12px 0 0 12px" }} />
+        <div style={{ fontSize:"8px", fontWeight:900, letterSpacing:"0.12em", textTransform:"uppercase", color:"#C9A84C", marginBottom:6 }}>INDIA VIX</div>
+        {/* Big number + change badge inline */}
+        <div style={{ display:"flex", alignItems:"flex-end", justifyContent:"space-between", marginBottom:8 }}>
+          <div>
+            <span style={{ fontSize:"32px", fontWeight:900, color: isLight ? "#0d1b2a" : "#fff", letterSpacing:"-0.04em", lineHeight:1 }}>{vix}</span>
+          </div>
+          <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", gap:4 }}>
+            <span style={{ fontSize:"10px", fontWeight:700, color:"#f87171", display:"flex", alignItems:"center", gap:2 }}>
+              ▼ {Math.abs(vixChange)}%
+            </span>
+            <span style={{ fontSize:"8px", fontWeight:800, padding:"2px 6px", borderRadius:4, background:`${fearColor}20`, color:fearColor, border:`1px solid ${fearColor}40`, whiteSpace:"nowrap" }}>
+              Fear: {fearLabel}
+            </span>
+          </div>
+        </div>
+        {/* Gradient gauge bar */}
+        <div style={{ position:"relative", height:6, borderRadius:99, overflow:"hidden", background:"linear-gradient(90deg,#22c55e,#84cc16,#f59e0b,#ef4444)" }}>
+          <div style={{ position:"absolute", top:"50%", transform:"translateY(-50%)", left:`calc(${sliderPct}% - 5px)`, width:10, height:10, background:"#fff", borderRadius:"50%", boxShadow:"0 0 0 2px rgba(0,0,0,0.2)" }} />
+        </div>
+        <div style={{ display:"flex", justifyContent:"space-between", marginTop:3 }}>
+          <span style={{ fontSize:"8px", color:"rgba(34,197,94,0.7)", fontWeight:600 }}>Low Fear</span>
+          <span style={{ fontSize:"8px", color:"rgba(239,68,68,0.7)", fontWeight:600 }}>High Fear</span>
         </div>
       </div>
-      <div className="relative h-2.5 rounded-full overflow-hidden" style={{ background: "linear-gradient(90deg,#22c55e,#84cc16,#f59e0b,#ef4444)" }}>
-        <div className="absolute top-1/2 -translate-y-1/2 w-4 h-4 bg-white rounded-full shadow-md border-2 border-slate-300 transition-all duration-700"
-          style={{ left: `calc(${sliderPct}% - 8px)` }} />
-      </div>
-      <div className="flex justify-between mt-1">
-        <span className="text-[9px] text-emerald-400/70">Low Fear</span>
-        <span className="text-[9px] text-red-400/70">High Fear</span>
+      {/* ── DESKTOP layout (original) ── */}
+      <div className="hidden md:block">
+        <div className="flex items-center gap-1.5 mb-3">
+          <span style={{ width: 8, height: 8, borderRadius: 2, background: "#C9A84C", display: "inline-block", flexShrink: 0 }} />
+          <span style={{ fontSize: "11px", fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.12em", color: isLight ? "#1e3a5f" : "#ffffff" }}>INDIA VIX</span>
+        </div>
+        <div className="flex items-end justify-between mb-3">
+          <span className={`text-3xl md:text-4xl font-extrabold tracking-tight ${isLight ? "text-navy" : "text-white"}`}>{vix}</span>
+          <div className="flex flex-col items-end gap-1">
+            <span className="flex items-center gap-1 text-red-400 font-bold text-sm"><TrendingDown className="w-3.5 h-3.5" /> {vixChange}%</span>
+            <span className="text-[10px] md:text-[11px] font-bold px-2 py-0.5 rounded-full" style={{ background: `${fearColor}22`, color: fearColor, border: `1px solid ${fearColor}44` }}>Market Fear: {fearLabel}</span>
+          </div>
+        </div>
+        <div className="relative h-2.5 rounded-full overflow-hidden" style={{ background: "linear-gradient(90deg,#22c55e,#84cc16,#f59e0b,#ef4444)" }}>
+          <div className="absolute top-1/2 -translate-y-1/2 w-4 h-4 bg-white rounded-full shadow-md border-2 border-slate-300 transition-all duration-700" style={{ left: `calc(${sliderPct}% - 8px)` }} />
+        </div>
+        <div className="flex justify-between mt-1">
+          <span className="text-[9px] text-emerald-400/70">Low Fear</span>
+          <span className="text-[9px] text-red-400/70">High Fear</span>
+        </div>
       </div>
     </div>
   );
@@ -246,22 +330,37 @@ const IndiaVixCard = ({ cardBg, cardBorder, isLight }: any) => {
 
 // ─── GIFT NIFTY Card ────────────────────────────────────────────────────────────
 const GiftNiftyCard = ({ cardBg, cardBorder, isLight }: any) => (
-  <div style={{ background: cardBg, border: cardBorder }} className="rounded-2xl p-4 md:p-5 relative overflow-hidden group hover:scale-[1.02] transition-all duration-300 cursor-pointer">
-    <div className="flex items-center gap-1.5 mb-3">
-      <span style={{ width: 8, height: 8, borderRadius: 2, background: "#C9A84C", display: "inline-block", flexShrink: 0 }} />
-      <span style={{ fontSize: "11px", fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.12em", color: isLight ? "#1e3a5f" : "#ffffff" }}>GIFT NIFTY</span>
-    </div>
-    <div className="flex items-end justify-between mb-1">
-      <div>
-        <div className={`text-2xl md:text-3xl font-extrabold tracking-tight ${isLight ? "text-navy" : "text-white"}`}>24,760</div>
-        <div className="flex items-center gap-1 mt-1">
-          <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
-          <span className="text-emerald-400 font-bold text-sm">+0.32%</span>
+  <div style={{ background: cardBg, border: cardBorder }} className="rounded-2xl relative overflow-hidden group hover:scale-[1.02] transition-all duration-300 cursor-pointer md:p-5">
+    {/* ── MOBILE layout ── */}
+    <div className="md:hidden" style={{ position:"relative" }}>
+      {/* Top gold accent strip */}
+      <div style={{ height:3, background:"linear-gradient(90deg,#C9A84C,#e8c96a,transparent)", borderRadius:"12px 12px 0 0" }} />
+      <div style={{ padding:"8px 10px 0 10px" }}>
+        <div style={{ fontSize:"8px", fontWeight:900, letterSpacing:"0.12em", textTransform:"uppercase", color:"#C9A84C", marginBottom:4 }}>GIFT NIFTY</div>
+        {/* Big value */}
+        <div style={{ fontSize:"28px", fontWeight:900, color: isLight ? "#0d1b2a" : "#fff", letterSpacing:"-0.03em", lineHeight:1 }}>24,760</div>
+        <div style={{ display:"flex", alignItems:"center", gap:4, marginTop:4, marginBottom:2 }}>
+          <span style={{ fontSize:"9px", fontWeight:700, color:"#4ade80" }}>▲ +0.32%</span>
+          <span style={{ fontSize:"8px", color: isLight ? "rgba(13,37,64,0.45)" : "rgba(255,255,255,0.4)", fontWeight:500 }}>Positive Opening</span>
         </div>
       </div>
+      <Sparkline positive={true} color="#C9A84C" />
     </div>
-    <div className={`text-[11px] font-medium mb-2 ${isLight ? "text-navy/50" : "text-white/40"}`}>Positive Opening Indicated</div>
-    <Sparkline positive={true} color="#C9A84C" />
+    {/* ── DESKTOP layout (original) ── */}
+    <div className="hidden md:block">
+      <div className="flex items-center gap-1.5 mb-3">
+        <span style={{ width: 8, height: 8, borderRadius: 2, background: "#C9A84C", display: "inline-block", flexShrink: 0 }} />
+        <span style={{ fontSize: "11px", fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.12em", color: isLight ? "#1e3a5f" : "#ffffff" }}>GIFT NIFTY</span>
+      </div>
+      <div className="flex items-end justify-between mb-1">
+        <div>
+          <div className={`text-2xl md:text-3xl font-extrabold tracking-tight ${isLight ? "text-navy" : "text-white"}`}>24,760</div>
+          <div className="flex items-center gap-1 mt-1"><TrendingUp className="w-3.5 h-3.5 text-emerald-400" /><span className="text-emerald-400 font-bold text-sm">+0.32%</span></div>
+        </div>
+      </div>
+      <div className={`text-[11px] font-medium mb-2 ${isLight ? "text-navy/50" : "text-white/40"}`}>Positive Opening Indicated</div>
+      <Sparkline positive={true} color="#C9A84C" />
+    </div>
   </div>
 );
 
@@ -271,28 +370,47 @@ const UsdInrCard = ({ cardBg, cardBorder, isLight, liveValue }: any) => {
   const changeVal = -0.12;
   const sliderPct = Math.min(100, Math.max(0, ((rate - 80) / 6) * 100));
   return (
-    <div style={{ background: cardBg, border: cardBorder }} className="rounded-2xl p-4 md:p-5 relative overflow-hidden group hover:scale-[1.02] transition-all duration-300 cursor-pointer">
-      <div className="flex items-center gap-1.5 mb-3">
-        <span style={{ width: 8, height: 8, borderRadius: 2, background: "#C9A84C", display: "inline-block", flexShrink: 0 }} />
-        <span style={{ fontSize: "11px", fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.12em", color: isLight ? "#1e3a5f" : "#ffffff" }}>USD / INR</span>
-      </div>
-      <div className="flex items-end justify-between mb-2">
-        <div>
-          <div className={`text-2xl md:text-3xl font-extrabold tracking-tight ${isLight ? "text-navy" : "text-white"}`}>₹{rate.toFixed ? rate.toFixed(2) : rate}</div>
-          <div className="flex items-center gap-1 mt-1">
-            <TrendingDown className="w-3.5 h-3.5 text-red-400" />
-            <span className="text-red-400 font-bold text-sm">{changeVal}%</span>
-          </div>
+    <div style={{ background: cardBg, border: cardBorder }} className="rounded-2xl relative overflow-hidden group hover:scale-[1.02] transition-all duration-300 cursor-pointer md:p-5">
+      {/* ── MOBILE layout ── */}
+      <div className="md:hidden" style={{ padding:"10px 10px 10px 14px", position:"relative" }}>
+        <div style={{ position:"absolute", left:0, top:0, bottom:0, width:3, background:"linear-gradient(180deg,#3b82f6,#06b6d4)", borderRadius:"12px 0 0 12px" }} />
+        <div style={{ fontSize:"8px", fontWeight:900, letterSpacing:"0.12em", textTransform:"uppercase", color:"#C9A84C", marginBottom:5 }}>USD / INR</div>
+        <div style={{ display:"flex", alignItems:"baseline", gap:3, marginBottom:4 }}>
+          <span style={{ fontSize:"11px", fontWeight:700, color: isLight ? "rgba(13,37,64,0.5)" : "rgba(255,255,255,0.4)" }}>₹</span>
+          <span style={{ fontSize:"28px", fontWeight:900, color: isLight ? "#0d1b2a" : "#fff", letterSpacing:"-0.03em", lineHeight:1 }}>{rate.toFixed ? rate.toFixed(2) : rate}</span>
+        </div>
+        <div style={{ display:"flex", alignItems:"center", gap:5, marginBottom:8 }}>
+          <span style={{ fontSize:"9px", fontWeight:700, color:"#f87171" }}>▼ {Math.abs(changeVal)}%</span>
+          <span style={{ fontSize:"8px", fontWeight:600, color:"#06b6d4", background:"rgba(6,182,212,0.1)", border:"1px solid rgba(6,182,212,0.25)", borderRadius:3, padding:"1px 5px" }}>Rupee Strengthening</span>
+        </div>
+        <div style={{ position:"relative", height:5, borderRadius:99, overflow:"hidden", background:"linear-gradient(90deg,#3b82f6,#06b6d4,#f59e0b,#ef4444)" }}>
+          <div style={{ position:"absolute", top:"50%", transform:"translateY(-50%)", left:`calc(${sliderPct}% - 5px)`, width:10, height:10, background:"#fff", borderRadius:"50%", boxShadow:"0 0 0 2px rgba(0,0,0,0.2)" }} />
+        </div>
+        <div style={{ display:"flex", justifyContent:"space-between", marginTop:3 }}>
+          <span style={{ fontSize:"8px", color:"rgba(59,130,246,0.7)", fontWeight:600 }}>₹80</span>
+          <span style={{ fontSize:"8px", color:"rgba(239,68,68,0.7)", fontWeight:600 }}>₹86</span>
         </div>
       </div>
-      <div className={`text-[11px] font-medium mb-2 ${isLight ? "text-navy/50" : "text-white/40"}`}>Rupee Strengthening</div>
-      <div className="relative h-2.5 rounded-full overflow-hidden" style={{ background: "linear-gradient(90deg,#3b82f6,#06b6d4,#f59e0b,#ef4444)" }}>
-        <div className="absolute top-1/2 -translate-y-1/2 w-4 h-4 bg-white rounded-full shadow-md border-2 border-slate-300 transition-all duration-700"
-          style={{ left: `calc(${sliderPct}% - 8px)` }} />
-      </div>
-      <div className="flex justify-between mt-1">
-        <span className="text-[9px] text-blue-400/70">₹80</span>
-        <span className="text-[9px] text-red-400/70">₹86</span>
+      {/* ── DESKTOP layout (original) ── */}
+      <div className="hidden md:block">
+        <div className="flex items-center gap-1.5 mb-3">
+          <span style={{ width: 8, height: 8, borderRadius: 2, background: "#C9A84C", display: "inline-block", flexShrink: 0 }} />
+          <span style={{ fontSize: "11px", fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.12em", color: isLight ? "#1e3a5f" : "#ffffff" }}>USD / INR</span>
+        </div>
+        <div className="flex items-end justify-between mb-2">
+          <div>
+            <div className={`text-2xl md:text-3xl font-extrabold tracking-tight ${isLight ? "text-navy" : "text-white"}`}>₹{rate.toFixed ? rate.toFixed(2) : rate}</div>
+            <div className="flex items-center gap-1 mt-1"><TrendingDown className="w-3.5 h-3.5 text-red-400" /><span className="text-red-400 font-bold text-sm">{changeVal}%</span></div>
+          </div>
+        </div>
+        <div className={`text-[11px] font-medium mb-2 ${isLight ? "text-navy/50" : "text-white/40"}`}>Rupee Strengthening</div>
+        <div className="relative h-2.5 rounded-full overflow-hidden" style={{ background: "linear-gradient(90deg,#3b82f6,#06b6d4,#f59e0b,#ef4444)" }}>
+          <div className="absolute top-1/2 -translate-y-1/2 w-4 h-4 bg-white rounded-full shadow-md border-2 border-slate-300 transition-all duration-700" style={{ left: `calc(${sliderPct}% - 8px)` }} />
+        </div>
+        <div className="flex justify-between mt-1">
+          <span className="text-[9px] text-blue-400/70">₹80</span>
+          <span className="text-[9px] text-red-400/70">₹86</span>
+        </div>
       </div>
     </div>
   );
@@ -303,41 +421,62 @@ const GoldSilverCard = ({ cardBg, cardBorder, isLight, liveGold, liveSilver }: a
   const gold = liveGold || 74200;
   const silver = liveSilver || 83900;
   return (
-    <div style={{ background: cardBg, border: cardBorder }} className="rounded-2xl p-4 md:p-5 relative overflow-hidden group hover:scale-[1.02] transition-all duration-300 cursor-pointer">
-      <div className="flex items-center gap-1.5 mb-4">
-        <span style={{ width: 8, height: 8, borderRadius: 2, background: "#C9A84C", display: "inline-block", flexShrink: 0 }} />
-        <span style={{ fontSize: "11px", fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.12em", color: isLight ? "#1e3a5f" : "#ffffff" }}>GOLD vs SILVER</span>
-      </div>
-      <div className="space-y-3">
+    <div style={{ background: cardBg, border: cardBorder }} className="rounded-2xl relative overflow-hidden group hover:scale-[1.02] transition-all duration-300 cursor-pointer md:p-5">
+      {/* ── MOBILE layout ── */}
+      <div className="md:hidden" style={{ padding:"10px", position:"relative" }}>
+        {/* Diagonal gold/silver split background accent */}
+        <div style={{ position:"absolute", top:0, right:0, width:40, height:40, background:"linear-gradient(135deg,#C9A84C22,transparent)", borderRadius:"0 12px 0 40px" }} />
+        <div style={{ fontSize:"8px", fontWeight:900, letterSpacing:"0.12em", textTransform:"uppercase", color:"#C9A84C", marginBottom:7 }}>GOLD · SILVER</div>
         {/* Gold row */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <GoldBrickIcon size={40} />
-            <span className={`font-semibold text-sm ${isLight ? "text-navy/80" : "text-white/80"}`}>Gold</span>
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:4 }}>
+          <div style={{ display:"flex", alignItems:"center", gap:5 }}>
+            <GoldBrickIcon size={20} />
+            <span style={{ fontSize:"10px", fontWeight:700, color: isLight ? "#1e3a5f" : "rgba(255,255,255,0.7)" }}>Gold</span>
           </div>
-          <div className="flex items-center gap-1.5">
-            <span className={`text-base md:text-lg font-bold ${isLight ? "text-navy" : "text-white"}`}>₹{gold.toLocaleString()}</span>
-            <TrendingUp className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+          <div style={{ textAlign:"right" }}>
+            <div style={{ fontSize:"13px", fontWeight:800, color: isLight ? "#0d1b2a" : "#fff", letterSpacing:"-0.02em" }}>₹{gold.toLocaleString()}</div>
+            <div style={{ fontSize:"8px", fontWeight:700, color:"#4ade80" }}>▲ +0.4%</div>
           </div>
         </div>
-        {/* Gold bar */}
-        <div className="h-1.5 rounded-full overflow-hidden" style={{ background: isLight ? "rgba(0,0,0,0.08)" : "rgba(255,255,255,0.08)" }}>
-          <div style={{ width: "72%", background: "linear-gradient(90deg,#C9A84C,#f5d78e)", borderRadius: 999, height: "100%", transition: "width 1s ease" }} />
+        <div style={{ height:3, borderRadius:99, overflow:"hidden", marginBottom:6, background: isLight ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.06)" }}>
+          <div style={{ width:"72%", height:"100%", borderRadius:99, background:"linear-gradient(90deg,#C9A84C,#f5d78e)" }} />
         </div>
         {/* Silver row */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <SilverBrickIcon size={40} />
-            <span className={`font-semibold text-sm ${isLight ? "text-navy/80" : "text-white/80"}`}>Silver</span>
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:4 }}>
+          <div style={{ display:"flex", alignItems:"center", gap:5 }}>
+            <SilverBrickIcon size={20} />
+            <span style={{ fontSize:"10px", fontWeight:700, color: isLight ? "#1e3a5f" : "rgba(255,255,255,0.7)" }}>Silver</span>
           </div>
-          <div className="flex items-center gap-1.5">
-            <span className={`text-base md:text-lg font-bold ${isLight ? "text-navy" : "text-white"}`}>₹{silver.toLocaleString()}</span>
-            <TrendingDown className="w-4 h-4 text-red-400 flex-shrink-0" />
+          <div style={{ textAlign:"right" }}>
+            <div style={{ fontSize:"13px", fontWeight:800, color: isLight ? "#0d1b2a" : "#fff", letterSpacing:"-0.02em" }}>₹{silver.toLocaleString()}</div>
+            <div style={{ fontSize:"8px", fontWeight:700, color:"#f87171" }}>▼ -0.2%</div>
           </div>
         </div>
-        {/* Silver bar */}
-        <div className="h-1.5 rounded-full overflow-hidden" style={{ background: isLight ? "rgba(0,0,0,0.08)" : "rgba(255,255,255,0.08)" }}>
-          <div style={{ width: "58%", background: "linear-gradient(90deg,#94a3b8,#cbd5e1)", borderRadius: 999, height: "100%", transition: "width 1s ease" }} />
+        <div style={{ height:3, borderRadius:99, overflow:"hidden", background: isLight ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.06)" }}>
+          <div style={{ width:"58%", height:"100%", borderRadius:99, background:"linear-gradient(90deg,#94a3b8,#cbd5e1)" }} />
+        </div>
+      </div>
+      {/* ── DESKTOP layout (original) ── */}
+      <div className="hidden md:block">
+        <div className="flex items-center gap-1.5 mb-4">
+          <span style={{ width: 8, height: 8, borderRadius: 2, background: "#C9A84C", display: "inline-block", flexShrink: 0 }} />
+          <span style={{ fontSize: "11px", fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.12em", color: isLight ? "#1e3a5f" : "#ffffff" }}>GOLD vs SILVER</span>
+        </div>
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2"><GoldBrickIcon size={40} /><span className={`font-semibold text-sm ${isLight ? "text-navy/80" : "text-white/80"}`}>Gold</span></div>
+            <div className="flex items-center gap-1.5"><span className={`text-base md:text-lg font-bold ${isLight ? "text-navy" : "text-white"}`}>₹{gold.toLocaleString()}</span><TrendingUp className="w-4 h-4 text-emerald-400 flex-shrink-0" /></div>
+          </div>
+          <div className="h-1.5 rounded-full overflow-hidden" style={{ background: isLight ? "rgba(0,0,0,0.08)" : "rgba(255,255,255,0.08)" }}>
+            <div style={{ width: "72%", background: "linear-gradient(90deg,#C9A84C,#f5d78e)", borderRadius: 999, height: "100%", transition: "width 1s ease" }} />
+          </div>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2"><SilverBrickIcon size={40} /><span className={`font-semibold text-sm ${isLight ? "text-navy/80" : "text-white/80"}`}>Silver</span></div>
+            <div className="flex items-center gap-1.5"><span className={`text-base md:text-lg font-bold ${isLight ? "text-navy" : "text-white"}`}>₹{silver.toLocaleString()}</span><TrendingDown className="w-4 h-4 text-red-400 flex-shrink-0" /></div>
+          </div>
+          <div className="h-1.5 rounded-full overflow-hidden" style={{ background: isLight ? "rgba(0,0,0,0.08)" : "rgba(255,255,255,0.08)" }}>
+            <div style={{ width: "58%", background: "linear-gradient(90deg,#94a3b8,#cbd5e1)", borderRadius: 999, height: "100%", transition: "width 1s ease" }} />
+          </div>
         </div>
       </div>
     </div>
@@ -355,18 +494,18 @@ const USStatCard = ({ label, value, positive, cardBg, cardBorder, isLight, path,
   return (
     <div
       style={{ background: cardBg, border: cardBorder }}
-      className={`rounded-2xl p-5 relative overflow-hidden group hover:scale-[1.02] transition-all duration-300 ${clickable ? "cursor-pointer hover:border-accent/40" : ""}`}
+      className={`rounded-2xl p-3 sm:p-5 relative overflow-hidden group hover:scale-[1.02] transition-all duration-300 ${clickable ? "cursor-pointer hover:border-accent/40" : ""}`}
       onClick={() => clickable && onNavigate?.(path!, section!)}
     >
       <div className="flex items-center gap-1.5 mb-3">
         <span style={{ width: 8, height: 8, borderRadius: 2, background: "#C9A84C", display: "inline-block" }} />
-        <span style={{ fontSize: "11px", fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.12em", color: isLight ? "#1e3a5f" : "#ffffff" }}>{label}</span>
+        <span style={{ fontSize: "10px", fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.10em", color: isLight ? "#1e3a5f" : "#ffffff" }}>{label}</span>
       </div>
       <div className="mb-3">
-        <div className="text-3xl font-extrabold tracking-tight" style={{ color: loading ? (isLight ? "#64748b" : "#94a3b8") : color }}>
+        <div className="text-2xl sm:text-3xl font-extrabold tracking-tight" style={{ color: loading ? (isLight ? "#64748b" : "#94a3b8") : color }}>
           {loading ? "—" : value}
         </div>
-        <div className={`text-[11px] mt-1 ${isLight ? "text-navy/40" : "text-white/35"}`}>Today's change</div>
+        <div className={`text-[10px] sm:text-[11px] mt-1 ${isLight ? "text-navy/40" : "text-white/35"}`}>Today's change</div>
       </div>
       <Sparkline positive={isUp} color={color} />
       {clickable && (
@@ -438,8 +577,8 @@ const Hero = () => {
     : "h-px w-10 bg-accent rounded-full shadow-[0_0_10px_rgba(212,168,67,0.85)]";
 
   const tabWrapStyle: React.CSSProperties = isLight
-    ? { display:"inline-flex", alignItems:"center", gap:6, background:"#fff", border:"1.5px solid #CBD5E1", borderRadius:18, padding:6, boxShadow:"0 4px 24px rgba(13,27,64,0.10)" }
-    : { display:"inline-flex", alignItems:"center", gap:6, background:"#1E293B", border:"1.5px solid #334155", borderRadius:18, padding:6, boxShadow:"0 4px 24px rgba(0,0,0,0.40)" };
+    ? { display:"flex", alignItems:"center", gap:6, background:"#fff", border:"1.5px solid #CBD5E1", borderRadius:18, padding:6, boxShadow:"0 4px 24px rgba(13,27,64,0.10)" }
+    : { display:"flex", alignItems:"center", gap:6, background:"#1E293B", border:"1.5px solid #334155", borderRadius:18, padding:6, boxShadow:"0 4px 24px rgba(0,0,0,0.40)" };
 
   const activeTabStyle: React.CSSProperties = { background:"linear-gradient(135deg,#C9A84C,#e8c96a)", color:"#0D1117", fontWeight:700, boxShadow:"0 4px 16px rgba(201,168,76,0.40)", border:"none" };
   const inactiveTabStyle: React.CSSProperties = isLight
@@ -469,9 +608,9 @@ const Hero = () => {
           </div>
 
           {/* Punchline */}
-          <div className="flex justify-center items-center gap-2 md:gap-3 mb-3 md:mb-4">
+          <div className="flex justify-center items-center gap-1.5 sm:gap-2 md:gap-3 mb-3 md:mb-4">
             <span className={lineCls} />
-            <p className="text-[10px] md:text-xs lg:text-sm font-bold tracking-[0.15em] md:tracking-[0.2em] uppercase"
+            <p className="text-[9px] sm:text-[10px] md:text-xs lg:text-sm font-bold tracking-[0.08em] sm:tracking-[0.15em] md:tracking-[0.2em] uppercase whitespace-nowrap"
               style={{ color:"#D4A843", textShadow: isLight ? "0 0 16px rgba(212,168,67,0.6),0 0 32px rgba(212,168,67,0.3)" : "0 0 20px rgba(212,168,67,0.85),0 0 40px rgba(212,168,67,0.5)" }}>
               Baazigar Banein… Sattebaaz Nahi
             </p>
@@ -479,7 +618,7 @@ const Hero = () => {
           </div>
 
           {/* Heading */}
-          <h1 className={`text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold mb-3 md:mb-4 leading-none tracking-tight ${isLight ? "text-navy" : "text-white"}`}>
+          <h1 className={`text-[2.8rem] xs:text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold mb-3 md:mb-4 leading-none tracking-tight ${isLight ? "text-navy" : "text-white"}`}>
             Beans<span className="text-accent">Index</span>
           </h1>
 
@@ -489,19 +628,18 @@ const Hero = () => {
           </p>
 
           {/* Tab Switcher */}
-          <div style={tabWrapStyle} className="flex-wrap justify-center">
+          <div style={{ ...tabWrapStyle, display:"inline-flex", width:"auto" }} className="mx-auto">
             {(["bharat", "us"] as const).map((key) => {
               const active = activeTab === key;
               return (
                 <button key={key} onClick={() => setActiveTab(key)}
-                  style={{ ...(active ? activeTabStyle : inactiveTabStyle), display:"flex", alignItems:"center", gap:6, padding:"8px 14px", borderRadius:12, fontSize:13, cursor:"pointer", transition:"all 0.2s ease", outline:"none", transform: active ? "scale(1.02)" : "scale(1)" }}
-                  className="sm:!px-[22px] sm:!py-[10px] sm:!text-[14px] sm:gap-[8px]"
+                  style={{ ...(active ? activeTabStyle : inactiveTabStyle), display:"flex", flexDirection:"row", alignItems:"center", justifyContent:"center", gap:6, padding:"9px 16px", borderRadius:12, cursor:"pointer", transition:"all 0.2s ease", outline:"none", transform: active ? "scale(1.02)" : "scale(1)", whiteSpace:"nowrap" }}
                   onMouseEnter={(e) => { if (!active) Object.assign((e.currentTarget as HTMLButtonElement).style, inactiveHoverStyle); }}
                   onMouseLeave={(e) => { if (!active) Object.assign((e.currentTarget as HTMLButtonElement).style, inactiveTabStyle); }}
                 >
-                  {active && <Sparkles style={{ width:13, height:13 }} strokeWidth={2.5} />}
-                  <span style={{ fontSize:15 }}>{key === "bharat" ? "🇮🇳" : "🇺🇸"}</span>
-                  <span>{key === "bharat" ? "Bharat BeansIndex" : "US BeansIndex"}</span>
+                  {active && <Sparkles style={{ width:12, height:12, flexShrink:0 }} strokeWidth={2.5} />}
+                  <span style={{ fontSize:14, lineHeight:1, flexShrink:0 }}>{key === "bharat" ? "🇮🇳" : "🇺🇸"}</span>
+                  <span style={{ fontSize:13, lineHeight:1, fontWeight:600 }}>{key === "bharat" ? "Bharat BeansIndex" : "US BeansIndex"}</span>
                 </button>
               );
             })}
@@ -509,7 +647,7 @@ const Hero = () => {
 
           {/* ── BHARAT Stats Grid ── */}
           {activeTab === "bharat" && (
-            <div className="mt-6 md:mt-10 grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 max-w-5xl mx-auto pb-4 md:pb-0">
+            <div className="mt-6 md:mt-10 grid grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 md:gap-4 max-w-5xl mx-auto pb-4 md:pb-0 px-1 sm:px-0">
               <SensexNiftyCard cardBg={cardBg} cardBorder={cardBorder} isLight={isLight} />
               <FiiDiiCard cardBg={cardBg} cardBorder={cardBorder} isLight={isLight} />
               <IndiaVixCard cardBg={cardBg} cardBorder={cardBorder} isLight={isLight} />
@@ -521,7 +659,7 @@ const Hero = () => {
 
           {/* ── US Stats Grid ── */}
           {activeTab === "us" && (
-            <div className="mt-6 md:mt-10 grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 max-w-5xl mx-auto pb-4 md:pb-0">
+            <div className="mt-6 md:mt-10 grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 md:gap-4 max-w-5xl mx-auto pb-4 md:pb-0 px-1 sm:px-0">
               <USStatCard label="NASDAQ" value={usData.nasdaq} positive={usData.nasdaqPos} cardBg={cardBg} cardBorder={cardBorder} isLight={isLight}
                 path="/global" section="section-us" onNavigate={(p, s) => navigate(`${p}?scrollTo=${s}`)} />
               <USStatCard label="USD / INR" value={usData.usdInr} positive={usData.usdInrPos} cardBg={cardBg} cardBorder={cardBorder} isLight={isLight}
