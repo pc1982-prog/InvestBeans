@@ -341,14 +341,6 @@ function SideNav({ active, onSelect, ticks, connected }: {
   const sensex = ticks["BSE:SENSEX"]    as KiteTick|undefined;
   return (
     <div className="flex flex-col h-full py-3">
-      <div className={`mx-3 mb-3 px-3 py-1.5 rounded-lg border text-[10px] font-bold flex items-center gap-1.5 ${
-        connected
-          ? l?"bg-emerald-50 border-emerald-100 text-emerald-700":"bg-emerald-900/15 border-emerald-800/30 text-emerald-400"
-          : l?"bg-red-50 border-red-100 text-red-600":"bg-red-900/15 border-red-800/30 text-red-400"
-      }`}>
-        <span className={`w-1.5 h-1.5 rounded-full ${connected?"bg-emerald-500 animate-pulse":"bg-red-500"}`}/>
-        {connected?"WebSocket Connected":"Disconnected"}
-      </div>
       {nifty && (
         <div className={`mx-3 mb-2 rounded-lg border px-3 py-2 ${l?"bg-gray-50 border-gray-100":"bg-[#0a1826] border-[#1a2d3f]"}`}>
           <div className="flex items-center justify-between mb-0.5">
@@ -383,12 +375,6 @@ function SideNav({ active, onSelect, ticks, connected }: {
           </button>
         ))}
       </nav>
-      <div className="mx-3 mt-3">
-        <a href={`${ROOT}/api/v1/kite/login`}
-          className="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold bg-[#16a34a] text-white hover:bg-[#15803d] transition-colors">
-          <Wifi className="w-3.5 h-3.5"/>Kite Login
-        </a>
-      </div>
     </div>
   );
 }
@@ -401,7 +387,7 @@ type Period = "1D"|"1W"|"1M"|"3M"|"1Y";
 const PERIODS: Period[] = ["1D","1W","1M","3M","1Y"];
 const P_INTERVAL: Record<Period,string> = { "1D":"5minute","1W":"30minute","1M":"day","3M":"day","1Y":"day" };
 const P_DAYS:     Record<Period,number> = { "1D":1,"1W":7,"1M":30,"3M":90,"1Y":365 };
-const P_LABEL:    Record<Period,string> = { "1D":"~15min delayed · 5m candles","1W":"~15min delayed · 30m candles","1M":"EOD · daily candles","3M":"EOD · daily candles","1Y":"EOD · daily candles" };
+const P_LABEL:    Record<Period,string> = { "1D":"5m candles","1W":"30m candles","1M":"EOD · daily candles","3M":"EOD · daily candles","1Y":"EOD · daily candles" };
 
 function CandleChart({ token, height=300, showControls=true, defaultPeriod="1D", liveTick }: {
   token:number; height?:number; showControls?:boolean; defaultPeriod?:Period; liveTick?:KiteTick;
@@ -541,7 +527,16 @@ function CandleChart({ token, height=300, showControls=true, defaultPeriod="1D",
           </div>
           {loading && <RefreshCw className="w-3.5 h-3.5 animate-spin text-[#16a34a] ml-1"/>}
           {error && <span className="text-[10px] text-red-500 ml-1">⚠ {error}</span>}
-          {lastFetch && !error && <span className={`text-[10px] ml-auto hidden sm:block ${l?"text-gray-400":"text-[#3d5f78]"}`}>{P_LABEL[period]}</span>}
+          {lastFetch && !error && (() => {
+            const now = new Date();
+            const mins = now.getHours() * 60 + now.getMinutes();
+            const mktOpen = mins >= 555 && mins < 930; // 9:15 AM to 3:30 PM
+            if (mktOpen) {
+              return <span className={`text-[10px] ml-auto hidden sm:block ${l?"text-gray-400":"text-[#3d5f78]"}`}>{P_LABEL[period]} · Updated {lastFetch.toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit",hour12:true})}</span>;
+            } else {
+              return <span className={`text-[10px] ml-auto hidden sm:block ${l?"text-gray-400":"text-[#3d5f78]"}`}>{P_LABEL[period]} · <span className={l?"text-amber-500":"text-amber-400"}>Market closed</span> · Data as of {lastFetch.toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit",hour12:true})}</span>;
+            }
+          })()}
         </div>
       )}
       <div className={`relative transition-opacity ${loading?"opacity-40":"opacity-100"}`} style={{ height:showControls?height-80:height }}>
