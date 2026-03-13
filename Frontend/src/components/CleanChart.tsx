@@ -35,7 +35,9 @@ const DELAY_LABEL: Record<Period, string> = {
   '3M': 'End-of-day · daily bars',
   '1Y': 'End-of-day · weekly bars',
 };
-const API_BASE = (import.meta as any).env?.VITE_API_URL || 'http://localhost:8000';
+// VITE_API_URL is like http://localhost:8000/api/v1 — strip /api/v1 for root, add back for kite routes
+const _BASE_RAW = (import.meta as any).env?.VITE_API_URL || 'http://localhost:8000/api/v1';
+const API_BASE  = _BASE_RAW.replace(/\/api\/v1\/?$/, '');
 
 // ── Helpers ───────────────────────────────────────────────────────
 function calcChange(candles: CandlePoint[]) {
@@ -136,7 +138,7 @@ const CleanChart = ({
   const fetch_ = useCallback(async (p: Period) => {
     setLoading(true);
     try {
-      const r = await fetch(`${API_BASE}/markets/history/${encodeURIComponent(symbol)}?period=${p}`);
+      const r = await fetch(`${API_BASE}/kite/markets/history/${encodeURIComponent(symbol)}?period=${p}`);
       if (!r.ok) throw new Error(`${r.status}`);
       const d = await r.json();
       const c: CandlePoint[] = d.candles || [];

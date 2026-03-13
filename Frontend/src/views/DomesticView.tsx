@@ -1,478 +1,2487 @@
+// Frontend/src/views/DomesticView.tsx
+// Production · Zerodha/Groww style · All real Kite Connect data · No sample data
+
 import Layout from "@/components/Layout";
+import { useKiteTicks, type KiteTick } from "@/hooks/useKiteTicks";
 import {
-  TrendingUp, TrendingDown, Activity, Globe,
-  Clock, RefreshCw, BarChart3, LineChart, Percent,
-  Layers, ArrowUpDown, DollarSign, Briefcase, Building2,
-  CalendarDays, Info,
+  TrendingUp, TrendingDown, RefreshCw, BarChart3,
+  LineChart, Percent, ArrowUpDown, Info, Wifi,
+  WifiOff, BookOpen, PieChart, Building2, ExternalLink,
+  Package, ChevronRight, Home, Menu, X, AlertCircle,
+  Clock, Activity, FileText, Calculator, DollarSign,
+  ShieldCheck, Layers, Send, ChevronDown, ChevronUp,
+  Search, Star,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useTheme } from "@/controllers/Themecontext";
+import {
+  createChart, CandlestickSeries, ColorType, HistogramSeries,
+  type IChartApi, type ISeriesApi,
+} from "lightweight-charts";
 
-// ── Brand colours (same as GlobalView) ──────────────────────────
-const G = "#2D4A35";
-const O = "#C07A3A";
+// ── Constants ────────────────────────────────────────────────────
+const BASE = import.meta.env.VITE_API_URL || "http://localhost:8000/api/v1";
+const ROOT = BASE.replace(/\/api\/v1\/?$/, "");
 
-// ── Placeholder helpers ──────────────────────────────────────────
-function SectionLabel({ icon: Icon, children, isLight }: { icon?: any; children: React.ReactNode; isLight?: boolean }) {
+// ── Instruments ──────────────────────────────────────────────────
+const INDICES = [
+  { name:"Nifty 50",     key:"NSE:NIFTY 50",    sym:"NIFTY 50",    ex:"NSE", token:256265 },
+  { name:"Sensex",       key:"BSE:SENSEX",       sym:"SENSEX",       ex:"BSE", token:265    },
+  { name:"Bank Nifty",   key:"NSE:NIFTY BANK",   sym:"NIFTY BANK",   ex:"NSE", token:260105 },
+  { name:"Nifty Auto",   key:"NSE:NIFTY AUTO",   sym:"NIFTY AUTO",   ex:"NSE", token:258049 },
+  { name:"Nifty Pharma", key:"NSE:NIFTY PHARMA", sym:"NIFTY PHARMA", ex:"NSE", token:259849 },
+];
+const STOCKS = [
+  { key:"NSE:RELIANCE",   sym:"RELIANCE",   name:"Reliance Industries", token:738561   },
+  { key:"NSE:TCS",        sym:"TCS",        name:"Tata Consultancy",    token:2953217  },
+  { key:"NSE:HDFCBANK",   sym:"HDFCBANK",   name:"HDFC Bank",           token:341249   },
+  { key:"NSE:INFY",       sym:"INFY",       name:"Infosys",             token:408065   },
+  { key:"NSE:ICICIBANK",  sym:"ICICIBANK",  name:"ICICI Bank",          token:1270529  },
+  { key:"NSE:WIPRO",      sym:"WIPRO",      name:"Wipro",               token:969473   },
+  { key:"NSE:HINDUNILVR", sym:"HINDUNILVR", name:"HUL",                 token:356865   },
+  { key:"NSE:ITC",        sym:"ITC",        name:"ITC Ltd",             token:424961   },
+];
+// ── Search catalogue (top NSE stocks for autocomplete) ──────────
+const SEARCH_CATALOGUE = [
+  // Nifty 50 majors
+  { sym:"RELIANCE",   name:"Reliance Industries",         token:738561,   ex:"NSE" },
+  { sym:"TCS",        name:"Tata Consultancy Services",   token:2953217,  ex:"NSE" },
+  { sym:"HDFCBANK",   name:"HDFC Bank",                   token:341249,   ex:"NSE" },
+  { sym:"INFY",       name:"Infosys",                     token:408065,   ex:"NSE" },
+  { sym:"ICICIBANK",  name:"ICICI Bank",                  token:1270529,  ex:"NSE" },
+  { sym:"WIPRO",      name:"Wipro",                       token:969473,   ex:"NSE" },
+  { sym:"HINDUNILVR", name:"Hindustan Unilever",          token:356865,   ex:"NSE" },
+  { sym:"ITC",        name:"ITC Ltd",                     token:424961,   ex:"NSE" },
+  { sym:"SBIN",       name:"State Bank of India",         token:779521,   ex:"NSE" },
+  { sym:"BAJFINANCE", name:"Bajaj Finance",               token:81153,    ex:"NSE" },
+  { sym:"KOTAKBANK",  name:"Kotak Mahindra Bank",         token:492033,   ex:"NSE" },
+  { sym:"AXISBANK",   name:"Axis Bank",                   token:1510401,  ex:"NSE" },
+  { sym:"LT",         name:"Larsen & Toubro",             token:2939649,  ex:"NSE" },
+  { sym:"ASIANPAINT", name:"Asian Paints",                token:60417,    ex:"NSE" },
+  { sym:"MARUTI",     name:"Maruti Suzuki",               token:2815745,  ex:"NSE" },
+  { sym:"SUNPHARMA",  name:"Sun Pharmaceutical",          token:857857,   ex:"NSE" },
+  { sym:"TATAMOTORS", name:"Tata Motors",                 token:884737,   ex:"NSE" },
+  { sym:"TITAN",      name:"Titan Company",               token:897537,   ex:"NSE" },
+  { sym:"NESTLEIND",  name:"Nestle India",                token:4598529,  ex:"NSE" },
+  { sym:"ULTRACEMCO", name:"UltraTech Cement",            token:2952193,  ex:"NSE" },
+  { sym:"POWERGRID",  name:"Power Grid Corp",             token:3834113,  ex:"NSE" },
+  { sym:"NTPC",       name:"NTPC",                        token:2977281,  ex:"NSE" },
+  { sym:"ONGC",       name:"Oil & Natural Gas Corp",      token:633601,   ex:"NSE" },
+  { sym:"COALINDIA",  name:"Coal India",                  token:5215745,  ex:"NSE" },
+  { sym:"ADANIENT",   name:"Adani Enterprises",           token:25,       ex:"NSE" },
+  { sym:"ADANIPORTS", name:"Adani Ports",                 token:3861249,  ex:"NSE" },
+  { sym:"JSWSTEEL",   name:"JSW Steel",                   token:3001089,  ex:"NSE" },
+  { sym:"TATASTEEL",  name:"Tata Steel",                  token:895745,   ex:"NSE" },
+  { sym:"HINDALCO",   name:"Hindalco Industries",         token:348929,   ex:"NSE" },
+  { sym:"BAJAJFINSV", name:"Bajaj Finserv",               token:4268801,  ex:"NSE" },
+  { sym:"DRREDDY",    name:"Dr. Reddy's Laboratories",    token:225537,   ex:"NSE" },
+  { sym:"CIPLA",      name:"Cipla",                       token:177665,   ex:"NSE" },
+  { sym:"DIVISLAB",   name:"Divi's Laboratories",         token:2800641,  ex:"NSE" },
+  { sym:"APOLLOHOSP", name:"Apollo Hospitals",            token:157441,   ex:"NSE" },
+  { sym:"HEROMOTOCO", name:"Hero MotoCorp",               token:345089,   ex:"NSE" },
+  { sym:"EICHERMOT",  name:"Eicher Motors",               token:232961,   ex:"NSE" },
+  { sym:"TECHM",      name:"Tech Mahindra",               token:3465729,  ex:"NSE" },
+  { sym:"HCLTECH",    name:"HCL Technologies",            token:1850625,  ex:"NSE" },
+  { sym:"INDUSINDBK", name:"IndusInd Bank",               token:1346049,  ex:"NSE" },
+  { sym:"M&M",        name:"Mahindra & Mahindra",         token:519937,   ex:"NSE" },
+  { sym:"GRASIM",     name:"Grasim Industries",           token:315394,   ex:"NSE" },
+  { sym:"BRITANNIA",  name:"Britannia Industries",        token:140033,   ex:"NSE" },
+  { sym:"SHREECEM",   name:"Shree Cement",                token:3566337,  ex:"NSE" },
+  { sym:"BPCL",       name:"BPCL",                        token:134657,   ex:"NSE" },
+  { sym:"IOC",        name:"Indian Oil Corp",             token:415745,   ex:"NSE" },
+  { sym:"TATACONSUM", name:"Tata Consumer Products",      token:878593,   ex:"NSE" },
+  { sym:"BAJAJ-AUTO", name:"Bajaj Auto",                  token:4267265,  ex:"NSE" },
+  { sym:"VEDL",       name:"Vedanta",                     token:784129,   ex:"NSE" },
+  { sym:"ZOMATO",     name:"Zomato",                      token:5215745,  ex:"NSE" },
+  { sym:"PAYTM",      name:"One97 Comm (Paytm)",          token:5552641,  ex:"NSE" },
+  { sym:"NYKAA",      name:"FSN E-Commerce (Nykaa)",      token:7458561,  ex:"NSE" },
+  { sym:"DMART",      name:"Avenue Supermarts",           token:4598529,  ex:"NSE" },
+  { sym:"IRFC",       name:"IRFC",                        token:2675713,  ex:"NSE" },
+  { sym:"IRCTC",      name:"IRCTC",                       token:3484417,  ex:"NSE" },
+  { sym:"HAL",        name:"Hindustan Aeronautics",       token:2513665,  ex:"NSE" },
+  { sym:"BEL",        name:"Bharat Electronics",          token:212865,   ex:"NSE" },
+  { sym:"YESBANK",    name:"Yes Bank",                    token:3050241,  ex:"NSE" },
+  { sym:"PNB",        name:"Punjab National Bank",        token:2730497,  ex:"NSE" },
+  // Indices
+  { sym:"NIFTY 50",   name:"Nifty 50 Index",             token:256265,   ex:"NSE" },
+  { sym:"SENSEX",     name:"BSE Sensex",                  token:265,      ex:"BSE" },
+  { sym:"NIFTY BANK", name:"Bank Nifty Index",            token:260105,   ex:"NSE" },
+  { sym:"NIFTY AUTO", name:"Nifty Auto Index",            token:258049,   ex:"NSE" },
+  { sym:"NIFTY PHARMA",name:"Nifty Pharma Index",         token:259849,   ex:"NSE" },
+];
+
+const ALL_INSTR = [
+  ...INDICES.map(i => ({ key:i.key, sym:i.sym, token:i.token })),
+  ...STOCKS.map(s => ({ key:s.key, sym:s.sym, token:s.token })),
+];
+const NAV_SECTIONS = [
+  { id:"overview",   label:"Overview",         icon: Home        },
+  { id:"indices",    label:"Major Indices",     icon: BarChart3   },
+  { id:"stocks",     label:"Top Stocks",        icon: TrendingUp  },
+  { id:"depth",      label:"Market Depth",      icon: ArrowUpDown },
+  { id:"options",    label:"F&O Instruments",   icon: Layers      },
+  { id:"historical", label:"Historical Data",   icon: BookOpen    },
+  { id:"corporate",  label:"Corporate Actions", icon: Building2   },
+  { id:"portfolio",  label:"Portfolio",         icon: PieChart    },
+  { id:"mf",         label:"Mutual Funds",      icon: Package     },
+  { id:"orders",     label:"Orders",            icon: FileText    },
+  { id:"margins",    label:"Margin Calculator", icon: Calculator  },
+];
+
+// ── Helpers ───────────────────────────────────────────────────────
+const fmt  = (n?: number | null, d = 2) =>
+  n != null ? n.toLocaleString("en-IN", { minimumFractionDigits: d, maximumFractionDigits: d }) : "—";
+const fmtV = (v?: number | null) => {
+  if (v == null || v === 0) return "—";
+  if (v >= 1e7) return `${(v/1e7).toFixed(2)} Cr`;
+  if (v >= 1e5) return `${(v/1e5).toFixed(2)} L`;
+  if (v >= 1e3) return `${(v/1e3).toFixed(1)}K`;
+  return v.toFixed(0);
+};
+const getPct = (t?: KiteTick | null) =>
+  t?.ohlc?.close && t.last_price
+    ? ((t.last_price - t.ohlc.close) / t.ohlc.close) * 100 : null;
+const getChg = (t?: KiteTick | null) =>
+  t?.ohlc?.close && t.last_price ? t.last_price - t.ohlc.close : null;
+const up = (v?: number | null) => (v ?? 0) >= 0;
+
+// ── Theme helpers ─────────────────────────────────────────────────
+const useIL = () => { const { theme } = useTheme(); return theme === "light"; };
+
+const tx = {
+  bg:      (l:boolean) => l ? "bg-[#f5f4f0]"   : "bg-[#07111b]",
+  card:    (l:boolean) => l ? "bg-white border border-gray-100 shadow-sm" : "bg-[#0c1821] border border-[#1a2d3f]",
+  header:  (l:boolean) => l ? "bg-gray-50 border-b border-gray-100"       : "bg-[#081017] border-b border-[#1a2d3f]",
+  row:     (l:boolean) => l ? "hover:bg-gray-50/60 border-b border-gray-50" : "hover:bg-white/[0.02] border-b border-[#111e28]",
+  sidebar: (l:boolean) => l ? "bg-white border-r border-gray-100" : "bg-[#07111b] border-r border-[#1a2d3f]",
+  topbar:  (l:boolean) => l ? "bg-white/95 border-b border-gray-100 backdrop-blur-sm" : "bg-[#07111b]/95 border-b border-[#1a2d3f] backdrop-blur-sm",
+  t1:      (l:boolean) => l ? "text-gray-900"   : "text-[#e2ecf4]",
+  t2:      (l:boolean) => l ? "text-gray-500"   : "text-[#5a7a92]",
+  t3:      (l:boolean) => l ? "text-gray-400"   : "text-[#3d5f78]",
+  tab:     (l:boolean, active:boolean) => active
+    ? "bg-[#16a34a] text-white border-transparent"
+    : l ? "bg-white text-gray-600 border-gray-200 hover:border-gray-300"
+        : "bg-[#0a1826] text-[#5a7a92] border-[#1a2d3f] hover:border-[#2a4a62] hover:text-[#c0d8ea]",
+  pill:    (l:boolean, g:boolean) => g
+    ? l ? "bg-emerald-50 text-emerald-700" : "bg-emerald-900/20 text-emerald-400"
+    :     l ? "bg-red-50 text-red-600"     : "bg-red-900/20 text-red-400",
+};
+
+// ── Hooks ──────────────────────────────────────────────────────────
+function useThrottledTicks(raw: Record<string,KiteTick>, ms = 2000) {
+  const [disp, setDisp] = useState<Record<string,KiteTick>>({});
+  const buf = useRef<Record<string,KiteTick>>({});
+  useEffect(() => { buf.current = { ...buf.current, ...raw }; }, [raw]);
+  useEffect(() => {
+    const id = setInterval(() => setDisp(p => ({ ...p, ...buf.current })), ms);
+    return () => clearInterval(id);
+  }, [ms]);
+  return disp;
+}
+
+// Fast 400ms throttle — for ticker bar only (needs to feel live)
+function useFastTicks(raw: Record<string,KiteTick>) {
+  return useThrottledTicks(raw, 400);
+}
+
+function useFlash(val?: number | null) {
+  const [f, setF] = useState<"up"|"dn"|null>(null);
+  const prev = useRef<number|undefined>(undefined);
+  useEffect(() => {
+    if (val == null || prev.current == null) { prev.current = val ?? undefined; return; }
+    if (val > prev.current) { setF("up"); setTimeout(()=>setF(null),700); }
+    if (val < prev.current) { setF("dn"); setTimeout(()=>setF(null),700); }
+    prev.current = val;
+  }, [val]);
+  return f;
+}
+
+function useAPI<T>(url: string, deps: any[] = []) {
+  const [data,    setData]    = useState<T|null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error,   setError]   = useState<string|null>(null);
+  const [meta,    setMeta]    = useState<any>(null);   // full raw JSON response
+  const load = useCallback(async () => {
+    setLoading(true); setError(null);
+    try {
+      const r = await fetch(`${BASE}${url}`);
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const j = await r.json();
+      if (j.status === "error") throw new Error(j.message ?? "API error");
+      setData(j.data ?? j);   // data = j.data (array/object) or full j
+      setMeta(j);             // meta = full raw response (has j.meta, j.source etc.)
+    } catch (e:any) { setError(e.message); }
+    finally { setLoading(false); }
+  }, [url]);
+  useEffect(() => { load(); }, deps);
+  return { data, loading, error, meta, refresh: load };
+}
+
+// ── Primitives ────────────────────────────────────────────────────
+function Card({ children, className="" }: { children:React.ReactNode; className?:string }) {
+  const l = useIL();
+  return <div className={`rounded-xl ${tx.card(l)} ${className}`}>{children}</div>;
+}
+
+function Skel({ h="h-8", w="w-full" }: { h?:string; w?:string }) {
+  const l = useIL();
+  return <div className={`${h} ${w} rounded-lg animate-pulse ${l?"bg-gray-100":"bg-[#1a2d3f]/60"}`}/>;
+}
+
+function PctTag({ p, sm=false }: { p?:number|null; sm?:boolean }) {
+  const l = useIL();
+  if (p==null) return <span className={`text-xs ${tx.t3(l)}`}>—</span>;
+  const g = p>=0;
   return (
-    <div className="flex items-center gap-3 mb-6">
-      {Icon && (
-        <div
-          className="w-9 h-9 rounded-xl flex items-center justify-center"
-          style={{ background: `${G}12`, border: `1px solid ${G}25` }}
-        >
-          <Icon className="w-4 h-4" style={{ color: G }} />
-        </div>
-      )}
-      <h2 className={`text-xl font-extrabold tracking-tight ${isLight ? "text-gray-900" : "text-slate-100"}`}>{children}</h2>
-      <div className={`flex-1 h-px ml-2 ${isLight ? "bg-gray-100" : "bg-white/10"}`} />
+    <span className={`inline-flex items-center gap-0.5 font-bold rounded-md ${sm?"text-[10px] px-1 py-0.5":"text-xs px-1.5 py-1"} ${tx.pill(l,g)}`}>
+      {g?<TrendingUp className="w-2.5 h-2.5"/>:<TrendingDown className="w-2.5 h-2.5"/>}
+      {g?"+":""}{p.toFixed(2)}%
+    </span>
+  );
+}
+
+function FlashPrice({ val, cls="" }: { val?:number|null; cls?:string }) {
+  const f = useFlash(val);
+  const l = useIL();
+  if (val==null) return <span className={`${tx.t3(l)} ${cls}`}>—</span>;
+  return (
+    <span className={`transition-colors duration-500 ${cls} ${f==="up"?"text-emerald-500":f==="dn"?"text-red-500":tx.t1(l)}`}>
+      ₹{fmt(val)}
+    </span>
+  );
+}
+
+function SecHead({ id, icon:Icon, title, sub, live=false }: {
+  id:string; icon:any; title:string; sub?:string; live?:boolean;
+}) {
+  const l = useIL();
+  return (
+    <div id={id} className="flex items-center gap-3 mb-5 scroll-mt-24">
+      <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 bg-[#16a34a]/10">
+        <Icon className="w-4 h-4 text-[#16a34a]"/>
+      </div>
+      <div className="flex items-center gap-2 flex-1 min-w-0">
+        <h2 className={`font-black text-base tracking-tight ${tx.t1(l)}`}>{title}</h2>
+        {live && (
+          <span className="flex items-center gap-1 text-[9px] font-black px-1.5 py-0.5 rounded bg-emerald-500 text-white tracking-wider">
+            <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse"/>LIVE
+          </span>
+        )}
+        {sub && <span className={`text-[11px] truncate hidden sm:block ${tx.t3(l)}`}>{sub}</span>}
+      </div>
+      <div className={`h-px flex-1 max-w-24 ${l?"bg-gray-100":"bg-[#1a2d3f]"}`}/>
     </div>
   );
 }
 
-// Shimmering skeleton block
-function Skeleton({ h = "h-80", className = "" }: { h?: string; className?: string }) {
+function KiteBanner({ msg }: { msg:string }) {
+  const l = useIL();
   return (
-    <div
-      className={`${h} rounded-2xl border ${className}`}
-      style={{ background: "linear-gradient(90deg,#f3f4f6 25%,#e5e7eb 50%,#f3f4f6 75%)", backgroundSize: "400% 100%", animation: "shimmer 1.6s infinite", borderColor: "#e5e7eb" }}
-    />
+    <div className={`mb-4 px-4 py-3 rounded-xl border flex flex-col sm:flex-row sm:items-center gap-3 ${l?"bg-amber-50 border-amber-200":"bg-amber-900/10 border-amber-800/30"}`}>
+      <div className="flex items-center gap-2 flex-1">
+        <Info className={`w-4 h-4 shrink-0 ${l?"text-amber-600":"text-amber-400"}`}/>
+        <p className={`text-xs font-medium ${l?"text-amber-700":"text-amber-300"}`}>{msg}</p>
+      </div>
+      <a href={`${ROOT}/api/v1/kite/login`}
+        className="shrink-0 flex items-center gap-1.5 text-xs font-bold px-4 py-2 rounded-lg bg-[#16a34a] text-white hover:bg-[#15803d] transition-colors">
+        <Wifi className="w-3.5 h-3.5"/>Login with Kite
+      </a>
+    </div>
   );
 }
 
-// ── Static placeholder data (replace with API later) ─────────────
-
-const INDICES = [
-  { name: "Nifty 50",     symbol: "NIFTY",     price: "22,142.30", change: "−72.10",  pct: "−0.33%", pos: false },
-  { name: "Sensex",       symbol: "SENSEX",    price: "73,276.64", change: "+394.25", pct: "+0.54%", pos: true  },
-  { name: "Bank Nifty",   symbol: "BANKNIFTY", price: "47,852.15", change: "+215.40", pct: "+0.45%", pos: true  },
-  { name: "Nifty IT",     symbol: "CNXIT",     price: "34,128.90", change: "−189.70", pct: "−0.55%", pos: false },
-  { name: "Nifty Auto",   symbol: "CNXAUTO",   price: "21,340.60", change: "+98.50",  pct: "+0.46%", pos: true  },
-  { name: "Nifty Pharma", symbol: "CNXPHARMA", price: "18,965.40", change: "−55.30",  pct: "−0.29%", pos: false },
-];
-
-const TOP_STOCKS = [
-  { name: "RELIANCE",  price: "2,847.50", open: "2,810.00", high: "2,860.20", low: "2,798.50", vol: "4.2M", chg: "+1.61%", pos: true  },
-  { name: "TCS",       price: "3,456.80", open: "3,480.00", high: "3,495.00", low: "3,440.00", vol: "2.1M", chg: "−0.67%", pos: false },
-  { name: "HDFCBANK",  price: "1,234.60", open: "1,222.00", high: "1,240.00", low: "1,218.00", vol: "5.8M", chg: "+1.05%", pos: true  },
-  { name: "INFY",      price: "1,567.90", open: "1,560.00", high: "1,575.00", low: "1,552.00", vol: "3.3M", chg: "+0.55%", pos: true  },
-  { name: "ICICIBANK", price: "1,102.40", open: "1,095.00", high: "1,110.00", low: "1,090.00", vol: "6.1M", chg: "+0.68%", pos: true  },
-  { name: "WIPRO",     price: "487.30",   open: "492.00",   high: "493.50",   low: "483.00",   vol: "2.7M", chg: "−0.96%", pos: false },
-  { name: "HINDUNILVR",price: "2,345.20", open: "2,361.00", high: "2,365.00", low: "2,330.00", vol: "1.2M", chg: "−0.65%", pos: false },
-  { name: "ITC",       price: "456.70",   open: "453.00",   high: "459.00",   low: "451.00",   vol: "8.4M", chg: "+0.71%", pos: true  },
-];
-
-const SECTORS = [
-  { name: "Banking & Finance", chg: "+0.82%", pos: true,  top: "HDFCBANK +1.05%", bot: "KOTAKBANK −0.38%" },
-  { name: "Information Tech",  chg: "−0.55%", pos: false, top: "INFY +0.55%",     bot: "TCS −0.67%"      },
-  { name: "FMCG",              chg: "−0.12%", pos: false, top: "ITC +0.71%",      bot: "HUL −0.65%"      },
-  { name: "Auto",              chg: "+0.46%", pos: true,  top: "MARUTI +0.90%",   bot: "TATAMOTORS −0.20%" },
-  { name: "Pharma",            chg: "−0.29%", pos: false, top: "SUNPHARMA +0.15%",bot: "DRREDDY −0.72%"  },
-  { name: "Energy & Oil",      chg: "+0.44%", pos: true,  top: "RELIANCE +1.61%", bot: "BPCL −0.33%"     },
-];
-
-const FNO_OI = [
-  { name: "Nifty 50 Futures",   expiry: "25 Apr 2024", oi: "1,24,56,500",  chgOI: "+4.2%",  ltp: "22,160.00", pos: true  },
-  { name: "Bank Nifty Futures", expiry: "25 Apr 2024", oi: "48,23,750",    chgOI: "+2.8%",  ltp: "47,880.00", pos: true  },
-  { name: "Nifty 22000 CE",     expiry: "25 Apr 2024", oi: "2,10,45,000",  chgOI: "−6.1%",  ltp: "245.50",    pos: false },
-  { name: "Nifty 22200 PE",     expiry: "25 Apr 2024", oi: "1,85,60,000",  chgOI: "+9.3%",  ltp: "182.00",    pos: true  },
-  { name: "BankNifty 48000 CE", expiry: "25 Apr 2024", oi: "98,40,000",    chgOI: "+3.5%",  ltp: "112.75",    pos: true  },
-  { name: "BankNifty 47500 PE", expiry: "25 Apr 2024", oi: "1,02,15,000",  chgOI: "−2.4%",  ltp: "135.20",    pos: false },
-];
-
-const MARKET_DEPTH = [
-  { stock: "RELIANCE", bids: [{ p: "2,846.00", q: "342" }, { p: "2,845.50", q: "218" }, { p: "2,845.00", q: "615" }, { p: "2,844.50", q: "430" }, { p: "2,844.00", q: "124" }], asks: [{ p: "2,847.50", q: "285" }, { p: "2,848.00", q: "190" }, { p: "2,848.50", q: "520" }, { p: "2,849.00", q: "375" }, { p: "2,849.50", q: "210" }] },
-  { stock: "TCS",      bids: [{ p: "3,455.00", q: "115" }, { p: "3,454.50", q: "88"  }, { p: "3,454.00", q: "320" }, { p: "3,453.50", q: "240" }, { p: "3,453.00", q: "160" }], asks: [{ p: "3,456.80", q: "200" }, { p: "3,457.00", q: "145" }, { p: "3,457.50", q: "310" }, { p: "3,458.00", q: "175" }, { p: "3,458.50", q: "95"  }] },
-];
-
-const CORP_ACTIONS = [
-  { name: "TCS",         action: "Dividend", detail: "₹28 per share",     exDate: "19 Apr 2024", status: "Upcoming" },
-  { name: "HDFCBANK",    action: "Dividend", detail: "₹19.50 per share",   exDate: "22 Apr 2024", status: "Upcoming" },
-  { name: "INFY",        action: "Buyback",  detail: "₹1,750 buyback price",exDate: "26 Apr 2024", status: "Upcoming" },
-  { name: "HINDUNILVR",  action: "Bonus",    detail: "1:1 Bonus Issue",    exDate: "30 Apr 2024", status: "Upcoming" },
-  { name: "ITC",         action: "Dividend", detail: "₹6.75 per share",    exDate: "05 May 2024", status: "Upcoming" },
-  { name: "WIPRO",       action: "Split",    detail: "1:1 Stock Split",    exDate: "10 May 2024", status: "Upcoming" },
-];
-
-const FOREX_PAIRS = [
-  { pair: "USD/INR", rate: "83.47", chg: "+0.12", pct: "+0.14%", pos: true  },
-  { pair: "EUR/INR", rate: "89.62", chg: "−0.22", pct: "−0.25%", pos: false },
-  { pair: "GBP/INR", rate: "104.85", chg: "+0.38", pct: "+0.36%", pos: true  },
-  { pair: "JPY/INR", rate: "0.5521", chg: "+0.002", pct: "+0.36%", pos: true  },
-];
-
-// ── Mini sparkline (pure CSS bars, no lib needed) ────────────────
-const SPARKLINE_DATA: Record<string, number[]> = {
-  NIFTY:     [65, 70, 68, 72, 69, 67, 65, 64, 66, 65],
-  SENSEX:    [60, 62, 65, 64, 67, 70, 72, 71, 74, 73],
-  BANKNIFTY: [50, 54, 52, 56, 58, 55, 59, 61, 60, 62],
-  CNXIT:     [70, 68, 66, 65, 64, 63, 62, 61, 61, 60],
-  CNXAUTO:   [55, 57, 56, 58, 60, 59, 61, 62, 62, 63],
-  CNXPHARMA: [62, 60, 61, 59, 58, 57, 58, 57, 56, 57],
-};
-
-function MiniSparkline({ symbol, pos }: { symbol: string; pos: boolean }) {
-  const pts = SPARKLINE_DATA[symbol] || [50, 50, 50, 50, 50, 50, 50, 50, 50, 50];
-  const max = Math.max(...pts), min = Math.min(...pts), range = max - min || 1;
-  const W = 96, H = 36;
-  const xs = pts.map((_, i) => (i / (pts.length - 1)) * W);
-  const ys = pts.map(v => H - ((v - min) / range) * (H - 4) - 2);
-  const d = xs.map((x, i) => `${i === 0 ? "M" : "L"}${x.toFixed(1)},${ys[i].toFixed(1)}`).join(" ");
-  const fill = `${d} L${W},${H} L0,${H} Z`;
-  const stroke = pos ? "#16a34a" : "#dc2626";
-  const bg = pos ? "#16a34a18" : "#dc262618";
+// ══════════════════════════════════════════════════════════════════
+// TICKER BAR
+// ══════════════════════════════════════════════════════════════════
+function TickerItem({ tick, sym }: { tick?:KiteTick; sym:string }) {
+  const f = useFlash(tick?.last_price);
+  const l = useIL();
+  const p = getPct(tick);
   return (
-    <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} className="overflow-visible">
-      <path d={fill} fill={bg} />
-      <path d={d} fill="none" stroke={stroke} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
+    <div className={`flex items-center gap-2 px-4 h-full border-r shrink-0 ${l?"border-gray-100":"border-[#1a2d3f]"}`}>
+      <span className={`text-[10px] font-black tracking-wider ${tx.t3(l)}`}>{sym}</span>
+      <span className={`text-[11px] font-bold tabular-nums transition-colors duration-400 ${f==="up"?"text-emerald-500":f==="dn"?"text-red-500":tx.t1(l)}`}>
+        {tick?.last_price!=null ? fmt(tick.last_price) : "···"}
+      </span>
+      {p!=null && <span className={`text-[10px] font-bold ${p>=0?"text-emerald-500":"text-red-500"}`}>{p>=0?"▲":"▼"}{Math.abs(p).toFixed(2)}%</span>}
+    </div>
   );
 }
 
-// ── Index selector card (mirrors GlobalView MarketSelector) ───────
-function IndexSelector({ isLight }: { isLight?: boolean }) {
-  const [sel, setSel] = useState(0);
-  const idx = INDICES[sel];
+function TickerBar({ rawTicks }: { rawTicks:any }) {
+  const l    = useIL();
+  // Use fast 400ms throttle so prices update visually without animation stutter
+  const ticks = useFastTicks(rawTicks);
+  const live  = ALL_INSTR.filter(i => ticks[i.key]?.last_price!=null);
+  if (!live.length) return null;
+  // Build items list once (stable for animation), updates come via tick props
+  const items = [...live, ...live];
   return (
-    <section className="mb-12">
-      <SectionLabel icon={BarChart3} isLight={isLight}>Major Indices</SectionLabel>
+    <div className={`overflow-hidden border-b select-none ${l?"bg-white border-gray-100":"bg-[#060e16] border-[#1a2d3f]"}`} style={{ height:34 }}>
+      <style>{`@keyframes tkS{from{transform:translateX(0)}to{transform:translateX(-50%)}}.tk-s{display:flex;width:max-content;animation:tkS 55s linear infinite;align-items:center;height:100%}.tk-s:hover{animation-play-state:paused}`}</style>
+      <div className="tk-s">{items.map((it,i) => <TickerItem key={i} tick={ticks[it.key]} sym={it.sym}/>)}</div>
+    </div>
+  );
+}
 
-      {/* Tab pills */}
-      <div className="flex items-center gap-2.5 mb-5 flex-wrap">
-        {INDICES.map((m, i) => (
-          <button
-            key={m.symbol}
-            onClick={() => setSel(i)}
-            className="px-4 py-2 rounded-xl text-sm font-bold transition-all duration-150 border"
-            style={
-              sel === i
-                ? { background: G, color: "#fff", borderColor: G, boxShadow: `0 4px 12px ${G}30` }
-                : isLight
-                  ? { background: "#fff", color: "#374151", borderColor: "#e5e7eb" }
-                  : { background: "rgba(255,255,255,0.05)", color: "#94a3b8", borderColor: "rgba(255,255,255,0.1)" }
-            }
-          >
-            <span className="flex items-center gap-2">
-              {m.name}
-              <span style={{ color: sel === i ? "rgba(255,255,255,0.85)" : m.pos ? "#16a34a" : "#dc2626" }}
-                className="text-xs font-bold">{m.pct}</span>
-            </span>
+// ══════════════════════════════════════════════════════════════════
+// SIDEBAR
+// ══════════════════════════════════════════════════════════════════
+function NiftyMini({ tick }: { tick:KiteTick }) {
+  const f = useFlash(tick.last_price);
+  const p = getPct(tick);
+  return <p className={`text-base font-black tabular-nums transition-colors duration-500 ${f==="up"?"text-emerald-500":f==="dn"?"text-red-500":up(p)?"text-emerald-600":"text-red-500"}`}>{fmt(tick.last_price)}</p>;
+}
+
+function SideNav({ active, onSelect, ticks, connected }: {
+  active:string; onSelect:(id:string)=>void; ticks:any; connected:boolean;
+}) {
+  const l      = useIL();
+  const nifty  = ticks["NSE:NIFTY 50"]  as KiteTick|undefined;
+  const sensex = ticks["BSE:SENSEX"]    as KiteTick|undefined;
+  return (
+    <div className="flex flex-col h-full py-3">
+      <div className={`mx-3 mb-3 px-3 py-1.5 rounded-lg border text-[10px] font-bold flex items-center gap-1.5 ${
+        connected
+          ? l?"bg-emerald-50 border-emerald-100 text-emerald-700":"bg-emerald-900/15 border-emerald-800/30 text-emerald-400"
+          : l?"bg-red-50 border-red-100 text-red-600":"bg-red-900/15 border-red-800/30 text-red-400"
+      }`}>
+        <span className={`w-1.5 h-1.5 rounded-full ${connected?"bg-emerald-500 animate-pulse":"bg-red-500"}`}/>
+        {connected?"WebSocket Connected":"Disconnected"}
+      </div>
+      {nifty && (
+        <div className={`mx-3 mb-2 rounded-lg border px-3 py-2 ${l?"bg-gray-50 border-gray-100":"bg-[#0a1826] border-[#1a2d3f]"}`}>
+          <div className="flex items-center justify-between mb-0.5">
+            <span className={`text-[9px] font-black uppercase tracking-widest ${tx.t3(l)}`}>Nifty 50</span>
+            <PctTag p={getPct(nifty)} sm/>
+          </div>
+          <NiftyMini tick={nifty}/>
+        </div>
+      )}
+      {sensex && (
+        <div className={`mx-3 mb-3 rounded-lg border px-3 py-2 ${l?"bg-gray-50 border-gray-100":"bg-[#0a1826] border-[#1a2d3f]"}`}>
+          <div className="flex items-center justify-between mb-0.5">
+            <span className={`text-[9px] font-black uppercase tracking-widest ${tx.t3(l)}`}>Sensex</span>
+            <PctTag p={getPct(sensex)} sm/>
+          </div>
+          <NiftyMini tick={sensex}/>
+        </div>
+      )}
+      <p className={`text-[9px] font-black uppercase tracking-widest px-4 mb-1 ${tx.t3(l)}`}>Navigate</p>
+      <nav className="flex-1 space-y-px px-2 overflow-y-auto">
+        {NAV_SECTIONS.map(s => (
+          <button key={s.id}
+            onClick={() => { onSelect(s.id); document.getElementById(s.id)?.scrollIntoView({ behavior:"smooth", block:"start" }); }}
+            className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold transition-all text-left ${
+              active===s.id
+                ? l?"bg-[#16a34a]/10 text-[#16a34a] border-l-2 border-[#16a34a] font-bold":"bg-[#16a34a]/10 text-emerald-400 border-l-2 border-emerald-600"
+                : l?"text-gray-500 hover:bg-gray-50 hover:text-gray-800":"text-[#5a7a92] hover:bg-white/[0.03] hover:text-[#c0d8ea]"
+            }`}>
+            <s.icon className="w-3.5 h-3.5 shrink-0"/>
+            <span className="truncate">{s.label}</span>
+            {active===s.id && <ChevronRight className="w-3 h-3 ml-auto shrink-0"/>}
           </button>
         ))}
+      </nav>
+      <div className="mx-3 mt-3">
+        <a href={`${ROOT}/api/v1/kite/login`}
+          className="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold bg-[#16a34a] text-white hover:bg-[#15803d] transition-colors">
+          <Wifi className="w-3.5 h-3.5"/>Kite Login
+        </a>
       </div>
+    </div>
+  );
+}
 
-      {/* Chart placeholder panel */}
-      <div className={`rounded-2xl border shadow-sm overflow-hidden ${isLight ? "bg-white border-gray-100" : "bg-[#0e2038] border-white/8"}`}>
-        <div className="h-0.5" style={{ background: idx.pos ? "linear-gradient(to right,#16a34a,transparent)" : "linear-gradient(to right,#dc2626,transparent)" }} />
-        <div className="p-6">
-          <div className="flex items-start justify-between mb-4">
-            <div>
-              <p className={`text-xs font-bold tracking-widest uppercase ${isLight ? "text-gray-400" : "text-slate-500"}`}>{idx.symbol} · NSE</p>
-              <p className={`text-4xl font-black leading-none mt-1 ${isLight ? "text-gray-900" : "text-slate-100"}`}>{idx.price}</p>
-              <div className="flex items-center gap-2 mt-2">
-                <span className="text-sm font-bold" style={{ color: idx.pos ? "#16a34a" : "#dc2626" }}>
-                  {idx.change}&nbsp;({idx.pct})
-                </span>
-                {idx.pos ? <TrendingUp className="w-4 h-4 text-emerald-500" /> : <TrendingDown className="w-4 h-4 text-red-500" />}
-              </div>
-            </div>
-            <div className={`text-right text-xs flex flex-col items-end gap-1 ${isLight ? "text-gray-300" : "text-slate-600"}`}>
-              <span>Intraday data available via API</span>
-              <span>1 min / 3 min / 5 min / 15 min</span>
-            </div>
-          </div>
+// ══════════════════════════════════════════════════════════════════
+// CANDLESTICK CHART COMPONENT
+// ══════════════════════════════════════════════════════════════════
+interface Candle { x:number; y:[number,number,number,number]; volume?:number }
+type Period = "1D"|"1W"|"1M"|"3M"|"1Y";
+const PERIODS: Period[] = ["1D","1W","1M","3M","1Y"];
+const P_INTERVAL: Record<Period,string> = { "1D":"5minute","1W":"30minute","1M":"day","3M":"day","1Y":"day" };
+const P_DAYS:     Record<Period,number> = { "1D":1,"1W":7,"1M":30,"3M":90,"1Y":365 };
+const P_LABEL:    Record<Period,string> = { "1D":"~15min delayed · 5m candles","1W":"~15min delayed · 30m candles","1M":"EOD · daily candles","3M":"EOD · daily candles","1Y":"EOD · daily candles" };
 
-          {/* Big chart placeholder with shimmer + label */}
-          <div className={`relative h-64 rounded-2xl overflow-hidden border border-dashed flex flex-col items-center justify-center gap-3 ${isLight ? "border-gray-200 bg-gray-50" : "border-white/10 bg-white/5"}`}>
-            <div className="absolute inset-0 opacity-20"
-              style={{ background: `repeating-linear-gradient(0deg,transparent,transparent 39px,${idx.pos ? "#16a34a" : "#dc2626"}22 39px,${idx.pos ? "#16a34a" : "#dc2626"}22 40px),repeating-linear-gradient(90deg,transparent,transparent 79px,#e5e7eb 79px,#e5e7eb 80px)` }}
-            />
-            <LineChart className={`w-10 h-10 ${isLight ? "text-gray-300" : "text-slate-600"}`} />
-            <p className={`text-sm font-bold ${isLight ? "text-gray-400" : "text-slate-500"}`}>Intraday Candle Chart</p>
-            <p className={`text-xs text-center px-8 ${isLight ? "text-gray-300" : "text-slate-600"}`}>Live OHLCV data available after Zerodha Kite Connect API integration</p>
-            <span className="px-3 py-1 rounded-full text-xs font-extrabold tracking-widest border"
-              style={{ background: `${G}10`, color: G, borderColor: `${G}25` }}>
-              API READY · ₹500/month
-            </span>
-          </div>
+function CandleChart({ token, height=300, showControls=true, defaultPeriod="1D", liveTick }: {
+  token:number; height?:number; showControls?:boolean; defaultPeriod?:Period; liveTick?:KiteTick;
+}) {
+  const [period, setPeriod] = useState<Period>(defaultPeriod);
+  const [candles, setCandles] = useState<Candle[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error,   setError]   = useState<string|null>(null);
+  const [lastFetch, setLastFetch] = useState<Date|null>(null);
 
-          {/* Quick stats row */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
-            {[
-              { label: "Open",   val: "—" },
-              { label: "High",   val: "—" },
-              { label: "Low",    val: "—" },
-              { label: "Volume", val: "—" },
-            ].map(s => (
-              <div key={s.label} className={`rounded-xl border px-4 py-3 text-center ${isLight ? "bg-gray-50 border-gray-100" : "bg-white/5 border-white/8"}`}>
-                <p className={`text-xs font-semibold ${isLight ? "text-gray-400" : "text-slate-500"}`}>{s.label}</p>
-                <p className={`text-base font-black mt-0.5 ${isLight ? "text-gray-300" : "text-slate-600"}`}>{s.val}</p>
-              </div>
+  const containerRef = useRef<HTMLDivElement>(null);
+  const chartRef     = useRef<IChartApi|null>(null);
+  const cSerRef      = useRef<ISeriesApi<"Candlestick">|null>(null);
+  const vSerRef      = useRef<ISeriesApi<"Histogram">|null>(null);
+
+  const { theme } = useTheme();
+  const dark = theme !== "light";
+  const l    = !dark;
+
+  const fetchData = useCallback(async (p:Period) => {
+    setLoading(true); setError(null);
+    try {
+      const to   = new Date().toISOString().split("T")[0];
+      const from = (() => { const d=new Date(); d.setDate(d.getDate()-P_DAYS[p]); return d.toISOString().split("T")[0]; })();
+      const res  = await fetch(`${BASE}/kite/historical?token=${token}&interval=${P_INTERVAL[p]}&from=${from}&to=${to}`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const j   = await res.json();
+      const cs: Candle[] = j.candles || [];
+      if (!cs.length) throw new Error("No data");
+      setCandles(cs); setLastFetch(new Date());
+    } catch(e:any) { setError(e.message); setCandles([]); }
+    finally { setLoading(false); }
+  }, [token]);
+
+  useEffect(() => { fetchData(period); }, [period, fetchData]);
+
+  // Create chart
+  useEffect(() => {
+    if (!containerRef.current) return;
+    if (chartRef.current) { chartRef.current.remove(); chartRef.current=null; cSerRef.current=null; vSerRef.current=null; }
+
+    const bg   = dark ? "#0c1821" : "#ffffff";
+    const grid = dark ? "rgba(255,255,255,0.035)" : "rgba(0,0,0,0.04)";
+    const text = dark ? "rgba(144,164,184,0.7)"  : "rgba(80,100,120,0.9)";
+    const chartH = showControls ? height - 80 : height;
+
+    const chart = createChart(containerRef.current, {
+      autoSize: false,
+      width:  containerRef.current.clientWidth || 600,
+      height: chartH,
+      layout: { background:{ type:ColorType.Solid, color:bg }, textColor:text, fontFamily:"'JetBrains Mono',monospace", fontSize:10, attributionLogo:false },
+      grid:   { vertLines:{ visible:false }, horzLines:{ color:grid, style:1 } },
+      crosshair: {
+        mode:1,
+        vertLine:{ color:"rgba(144,164,184,0.25)", labelBackgroundColor:dark?"#1a3050":"#d1dce8", width:1, style:1 },
+        horzLine:{ color:"rgba(144,164,184,0.25)", labelBackgroundColor:dark?"#1a3050":"#d1dce8", width:1, style:1 },
+      },
+      rightPriceScale: { borderVisible:false, scaleMargins:{ top:0.06, bottom:0.18 }, minimumWidth:70 },
+      timeScale: { borderVisible:false, timeVisible:period==="1D"||period==="1W", secondsVisible:false, fixLeftEdge:true, fixRightEdge:true, barSpacing:9, rightOffset:4 },
+      handleScroll: { mouseWheel:false, pressedMouseMove:true, horzTouchDrag:true },
+      handleScale:  { mouseWheel:false, pinch:false },
+    });
+
+    const cSer = chart.addSeries(CandlestickSeries, {
+      upColor:"#16a34a", downColor:"#dc2626", borderVisible:false, wickUpColor:"#16a34a", wickDownColor:"#dc2626",
+    });
+    const vSer = chart.addSeries(HistogramSeries, { priceFormat:{ type:"volume" }, priceScaleId:"vol" });
+    chart.priceScale("vol").applyOptions({ scaleMargins:{ top:0.85, bottom:0 } });
+
+    chartRef.current  = chart;
+    cSerRef.current   = cSer;
+    vSerRef.current   = vSer;
+
+    const ro = new ResizeObserver(() => {
+      if (containerRef.current && chartRef.current) {
+        chartRef.current.applyOptions({ autoSize:false, width:containerRef.current.clientWidth });
+      }
+    });
+    ro.observe(containerRef.current);
+    return () => { ro.disconnect(); try { chart.remove(); } catch(_){} chartRef.current=null; cSerRef.current=null; vSerRef.current=null; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dark]);
+
+  // ── Live tick update: update last candle close on every WebSocket tick (1D only) ──
+  useEffect(() => {
+    if (!liveTick?.last_price || !cSerRef.current || period !== "1D" || candles.length === 0) return;
+    const last = candles[candles.length - 1];
+    if (!last) return;
+    const t = Math.floor(last.x / 1000) as any;
+    try {
+      cSerRef.current.update({
+        time:  t,
+        open:  last.y[0],
+        high:  Math.max(last.y[1], liveTick.last_price),
+        low:   Math.min(last.y[2], liveTick.last_price),
+        close: liveTick.last_price,
+      });
+      // Also update volume bar colour
+      if (vSerRef.current && last.volume != null) {
+        vSerRef.current.update({
+          time:  t,
+          value: last.volume,
+          color: liveTick.last_price >= last.y[0] ? "rgba(22,163,74,0.35)" : "rgba(220,38,38,0.35)",
+        });
+      }
+    } catch (_) {}
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [liveTick?.last_price]);
+
+  // Push candles
+  useEffect(() => {
+    if (!cSerRef.current || !vSerRef.current || !candles.length) return;
+    const seen = new Set<number>();
+    const rows = candles
+      .map(c => ({ time:Math.floor(c.x/1000) as any, o:c.y[0], h:c.y[1], l:c.y[2], cl:c.y[3], v:c.volume??0 }))
+      .filter(c => { const tt=c.time as number; if(seen.has(tt)) return false; seen.add(tt); return true; })
+      .sort((a,b) => (a.time as number)-(b.time as number));
+    cSerRef.current.setData(rows.map(r => ({ time:r.time, open:r.o, high:r.h, low:r.l, close:r.cl })));
+    vSerRef.current.setData(rows.map(r => ({ time:r.time, value:r.v, color:r.cl>=r.o?"rgba(22,163,74,0.35)":"rgba(220,38,38,0.35)" })));
+    chartRef.current?.timeScale().fitContent();
+    chartRef.current?.applyOptions({ timeScale:{ timeVisible:period==="1D"||period==="1W" } });
+  }, [candles, period]);
+
+  return (
+    <div>
+      {showControls && (
+        <div className={`flex items-center gap-2 px-4 py-3 border-b ${l?"border-gray-100":"border-[#1a2d3f]"}`}>
+          <div className="flex gap-1.5">
+            {PERIODS.map(p => (
+              <button key={p} onClick={() => setPeriod(p)} disabled={loading}
+                className={`px-2.5 py-1 rounded-md text-[11px] font-bold border transition-all disabled:opacity-60 ${
+                  period===p
+                    ? "bg-[#16a34a] text-white border-transparent"
+                    : l?"bg-white text-gray-500 border-gray-200 hover:border-gray-300":"bg-[#0a1826] text-[#5a7a92] border-[#1a2d3f] hover:border-[#2a4a62]"
+                }`}>{p}</button>
             ))}
           </div>
+          {loading && <RefreshCw className="w-3.5 h-3.5 animate-spin text-[#16a34a] ml-1"/>}
+          {error && <span className="text-[10px] text-red-500 ml-1">⚠ {error}</span>}
+          {lastFetch && !error && <span className={`text-[10px] ml-auto hidden sm:block ${l?"text-gray-400":"text-[#3d5f78]"}`}>{P_LABEL[period]}</span>}
         </div>
+      )}
+      <div className={`relative transition-opacity ${loading?"opacity-40":"opacity-100"}`} style={{ height:showControls?height-80:height }}>
+        <div ref={containerRef} style={{ width:"100%", height:"100%" }}/>
+        {!candles.length && !loading && (
+          <div className={`absolute inset-0 flex items-center justify-center text-sm ${l?"text-gray-400":"text-[#5a7a92]"}`}>
+            {error ? "⚠ Could not load chart" : "Fetching chart data…"}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+
+// ══════════════════════════════════════════════════════════════════
+// SEARCH — Search any NSE/BSE stock or index
+// ══════════════════════════════════════════════════════════════════
+function SearchResultCard({ item, onClose, rawTicks }: {
+  item: typeof SEARCH_CATALOGUE[0];
+  onClose: () => void;
+  rawTicks: Record<string, KiteTick>;
+}) {
+  const l    = useIL();
+  const ticks = useFastTicks(rawTicks);
+  const key  = item.ex + ":" + item.sym;
+  const tick = ticks[key] as KiteTick | undefined;
+  const f    = useFlash(tick?.last_price);
+  const p    = getPct(tick);
+  const c    = getChg(tick);
+
+  // Fetch live quote if no WebSocket tick
+  const [quote, setQuote] = useState<any>(null);
+  useEffect(() => {
+    if (tick?.last_price) return;
+    fetch(BASE + "/kite/quote?i=" + encodeURIComponent(key))
+      .then(r => r.json())
+      .then(j => { if (j.status === "success") setQuote(j.data?.[key]); })
+      .catch(() => {});
+  }, [key, !!tick?.last_price]);
+
+  const livePrice = tick?.last_price ?? quote?.last_price ?? 0;
+  const ohlc      = tick?.ohlc ?? quote?.ohlc ?? null;
+  const pct       = tick ? p : (ohlc?.close && livePrice ? ((livePrice - ohlc.close) / ohlc.close) * 100 : null);
+  const chg       = tick ? c : (ohlc?.close && livePrice ? livePrice - ohlc.close : null);
+  const isPos     = (pct ?? 0) >= 0;
+
+  return (
+    <div className={`rounded-2xl border shadow-lg overflow-hidden mb-6 ${tx.card(l)}`}>
+      {/* Header */}
+      <div className={`flex items-start justify-between px-5 pt-4 pb-3 border-b ${l?"border-gray-100":"border-[#1a2d3f]"}`}>
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <span className={`text-[9px] font-black uppercase tracking-widest ${tx.t3(l)}`}>{item.sym} · {item.ex}</span>
+            <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${l?"bg-blue-50 text-blue-600 border-blue-200":"bg-blue-900/20 text-blue-400 border-blue-800/30"}`}>SEARCH RESULT</span>
+          </div>
+          <p className={`text-sm font-bold mb-2 ${tx.t2(l)}`}>{item.name}</p>
+          {livePrice > 0 ? (
+            <>
+              <p className={`text-4xl font-black tabular-nums leading-none transition-colors duration-500 ${f==="up"?"text-emerald-500":f==="dn"?"text-red-500":tx.t1(l)}`}>
+                ₹{fmt(livePrice)}
+              </p>
+              {chg != null && pct != null && (
+                <div className={`flex items-center gap-2 mt-1.5`}>
+                  {isPos ? <TrendingUp className="w-4 h-4 text-emerald-500"/> : <TrendingDown className="w-4 h-4 text-red-500"/>}
+                  <span className={`text-sm font-bold tabular-nums ${isPos?"text-emerald-600":"text-red-500"}`}>
+                    {chg >= 0 ? "+" : ""}{fmt(chg)}  ({pct >= 0 ? "+" : ""}{pct.toFixed(2)}%)
+                  </span>
+                </div>
+              )}
+            </>
+          ) : (
+            <><Skel h="h-10" w="w-48"/><div className="mt-2"><Skel h="h-5" w="w-36"/></div></>
+          )}
+        </div>
+        <div className="flex flex-col items-end gap-2">
+          {ohlc && (
+            <div className="flex flex-col gap-1">
+              <div className={`flex items-center gap-2 px-2.5 py-1 rounded-lg border text-xs ${l?"bg-emerald-50 border-emerald-100":"bg-emerald-900/15 border-emerald-800/30"}`}>
+                <span className={tx.t3(l)}>H</span><span className="font-bold text-emerald-600 tabular-nums">₹{fmt(ohlc.high)}</span>
+              </div>
+              <div className={`flex items-center gap-2 px-2.5 py-1 rounded-lg border text-xs ${l?"bg-red-50 border-red-100":"bg-red-900/15 border-red-800/30"}`}>
+                <span className={tx.t3(l)}>L</span><span className="font-bold text-red-600 tabular-nums">₹{fmt(ohlc.low)}</span>
+              </div>
+            </div>
+          )}
+          <button onClick={onClose}
+            className={`p-1.5 rounded-lg border transition-colors ${l?"bg-white border-gray-200 hover:bg-gray-50":"bg-[#0a1826] border-[#1a2d3f] hover:bg-[#0c1e2d]"}`}>
+            <X className={`w-4 h-4 ${tx.t2(l)}`}/>
+          </button>
+        </div>
+      </div>
+
+      {/* Chart — same CandleChart as Major Indices */}
+      <CandleChart key={item.token} token={item.token} height={320} liveTick={tick}/>
+
+      {/* OHLCV row */}
+      {ohlc && (
+        <div className={`grid grid-cols-3 sm:grid-cols-6 border-t ${l?"border-gray-100":"border-[#1a2d3f]"}`}>
+          {[
+            { label:"Open",   val:ohlc.open,       cls:tx.t1(l) },
+            { label:"High",   val:ohlc.high,       cls:"text-emerald-600" },
+            { label:"Low",    val:ohlc.low,        cls:"text-red-500" },
+            { label:"Close",  val:ohlc.close,      cls:tx.t1(l) },
+            { label:"LTP",    val:livePrice,       cls:"text-blue-600" },
+            { label:"Volume", raw:fmtV(tick?.volume ?? quote?.volume) },
+          ].map((s, i) => (
+            <div key={s.label} className={`text-center py-3 ${i>0?(l?"border-l border-gray-100":"border-l border-[#1a2d3f]"):""} ${l?"bg-gray-50":"bg-[#081017]"}`}>
+              <p className={`text-[9px] font-black uppercase tracking-widest mb-1 ${tx.t3(l)}`}>{s.label}</p>
+              <p className={`text-xs font-black tabular-nums ${s.cls ?? tx.t1(l)}`}>
+                {s.raw ?? (s.val!=null && s.val > 0 ? "₹"+fmt(s.val) : "—")}
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SearchBar({ rawTicks, onResult }: {
+  rawTicks: Record<string, KiteTick>;
+  onResult: (item: typeof SEARCH_CATALOGUE[0] | null) => void;
+}) {
+  const l = useIL();
+  const [query, setQuery]         = useState("");
+  const [open,  setOpen]          = useState(false);
+  const [searching, setSearching] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const dropRef  = useRef<HTMLDivElement>(null);
+
+  // Filter from catalogue
+  const suggestions = useMemo(() => {
+    if (query.length < 1) return [];
+    const q = query.toUpperCase();
+    return SEARCH_CATALOGUE.filter(s =>
+      s.sym.toUpperCase().includes(q) || s.name.toUpperCase().includes(q)
+    ).slice(0, 8);
+  }, [query]);
+
+  // Close on outside click
+  useEffect(() => {
+    const h = (e: MouseEvent) => {
+      if (dropRef.current && !dropRef.current.contains(e.target as Node) &&
+          inputRef.current && !inputRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", h);
+    return () => document.removeEventListener("mousedown", h);
+  }, []);
+
+  const handleSelect = (item: typeof SEARCH_CATALOGUE[0]) => {
+    setQuery(item.sym);
+    setOpen(false);
+    onResult(item);
+  };
+
+  // Try unknown symbol via API if not in catalogue
+  const handleSearch = async () => {
+    if (!query.trim()) { onResult(null); return; }
+    const exactMatch = SEARCH_CATALOGUE.find(s => s.sym.toUpperCase() === query.toUpperCase().trim());
+    if (exactMatch) { handleSelect(exactMatch); return; }
+    // Try live quote for unknown symbol
+    setSearching(true);
+    try {
+      const sym = query.toUpperCase().trim();
+      const r   = await fetch(BASE + "/kite/quote?i=" + encodeURIComponent("NSE:" + sym));
+      const j   = await r.json();
+      if (j.status === "success" && j.data?.["NSE:" + sym]) {
+        onResult({ sym, name: sym, token: j.data["NSE:" + sym].instrument_token ?? 0, ex: "NSE" });
+        setOpen(false);
+      } else {
+        alert("Symbol not found: " + sym);
+      }
+    } catch { alert("Could not search. Check connection."); }
+    finally { setSearching(false); }
+  };
+
+  return (
+    <div className="relative flex-1 max-w-xs" ref={dropRef as any}>
+      <div className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border transition-all ${
+        l ? "bg-gray-50 border-gray-200 focus-within:border-[#16a34a] focus-within:bg-white"
+          : "bg-[#0c1821] border-[#1a2d3f] focus-within:border-[#16a34a] focus-within:bg-[#0e2235]"
+      }`}>
+        <Search className={`w-3.5 h-3.5 shrink-0 ${tx.t3(l)}`}/>
+        <input
+          ref={inputRef}
+          value={query}
+          onChange={e => { setQuery(e.target.value); setOpen(true); }}
+          onKeyDown={e => { if (e.key === "Enter") handleSearch(); if (e.key === "Escape") { setOpen(false); setQuery(""); onResult(null); } }}
+          onFocus={() => query.length > 0 && setOpen(true)}
+          placeholder="Search stocks, indices…"
+          className={`flex-1 bg-transparent text-xs font-bold outline-none placeholder:font-normal w-full min-w-0 ${tx.t1(l)}`}
+        />
+        {searching && <RefreshCw className="w-3 h-3 animate-spin text-[#16a34a] shrink-0"/>}
+        {query && !searching && (
+          <button onClick={() => { setQuery(""); setOpen(false); onResult(null); }}>
+            <X className={`w-3 h-3 ${tx.t3(l)}`}/>
+          </button>
+        )}
+      </div>
+      {/* Dropdown */}
+      {open && suggestions.length > 0 && (
+        <div className={`absolute top-full left-0 right-0 mt-1 rounded-xl border shadow-xl z-50 overflow-hidden ${l?"bg-white border-gray-200":"bg-[#0c1821] border-[#1a2d3f]"}`}>
+          {suggestions.map(s => {
+            const key  = s.ex + ":" + s.sym;
+            const tick = rawTicks[key] as KiteTick | undefined;
+            const pct  = getPct(tick);
+            return (
+              <button key={s.sym} onMouseDown={() => handleSelect(s)}
+                className={`w-full flex items-center justify-between px-3.5 py-2.5 text-xs transition-colors ${l?"hover:bg-gray-50":"hover:bg-white/[0.04]"}`}>
+                <div className="text-left">
+                  <p className={`font-black ${tx.t1(l)}`}>{s.sym}</p>
+                  <p className={`text-[10px] ${tx.t3(l)}`}>{s.name}</p>
+                </div>
+                <div className="text-right tabular-nums shrink-0 ml-3">
+                  {tick?.last_price != null ? (
+                    <>
+                      <p className={`font-bold ${tx.t1(l)}`}>₹{fmt(tick.last_price)}</p>
+                      {pct != null && <p className={`text-[10px] font-bold ${pct>=0?"text-emerald-500":"text-red-500"}`}>{pct>=0?"+":""}{pct.toFixed(2)}%</p>}
+                    </>
+                  ) : <span className={tx.t3(l)}>···</span>}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════
+// OVERVIEW — 6 mini cards
+// ══════════════════════════════════════════════════════════════════
+function IdxCard({ idx, tick }: { idx:typeof INDICES[0]; tick?:KiteTick }) {
+  const f = useFlash(tick?.last_price);
+  const l = useIL();
+  const p = getPct(tick);
+  return (
+    <Card className="px-3 py-3 hover:shadow-md transition-shadow cursor-default">
+      <p className={`text-[9px] font-black uppercase tracking-widest mb-1 truncate ${tx.t3(l)}`}>{idx.name}</p>
+      {tick?.last_price!=null ? (
+        <>
+          <p className={`text-sm font-black tabular-nums transition-colors duration-500 ${f==="up"?"text-emerald-500":f==="dn"?"text-red-500":tx.t1(l)}`}>{fmt(tick.last_price)}</p>
+          <PctTag p={p} sm/>
+        </>
+      ) : <><Skel h="h-4" w="w-20"/><div className="mt-1"><Skel h="h-4" w="w-14"/></div></>}
+    </Card>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════
+// MAJOR INDICES CHART SECTION
+// ══════════════════════════════════════════════════════════════════
+function IndicesSection({ ticks, connected }: any) {
+  const l   = useIL();
+  const [sel, setSel] = useState(0);
+  const idx  = INDICES[sel];
+  const tick = ticks[idx.key] as KiteTick|undefined;
+  const p    = getPct(tick);
+  const c    = getChg(tick);
+  const f    = useFlash(tick?.last_price);
+
+  return (
+    <section className="mb-8">
+      <SecHead id="indices" icon={BarChart3} title="Major Indices" sub="OHLCV Candlestick · Historical · Live" live={connected}/>
+      {/* Index tabs */}
+      <div className="flex flex-wrap gap-2 mb-4">
+        {INDICES.map((m,i) => {
+          const tk = ticks[m.key] as KiteTick|undefined;
+          const pp = getPct(tk);
+          return (
+            <button key={m.key} onClick={() => setSel(i)}
+              className={`flex flex-col items-start px-3 py-2 rounded-lg text-xs font-bold transition-all border ${
+                sel===i
+                  ? "bg-[#16a34a] text-white border-transparent"
+                  : l?"bg-white text-gray-600 border-gray-200 hover:border-gray-300":"bg-[#0a1826] text-[#5a7a92] border-[#1a2d3f] hover:border-[#2a4a62]"
+              }`}>
+              <span className="font-black text-[11px]">{m.name}</span>
+              <span className={`text-[10px] tabular-nums mt-0.5 ${sel===i?"opacity-80":up(pp)?"text-emerald-500":"text-red-500"}`}>
+                {tk?.last_price!=null ? `${fmt(tk.last_price)}  ${pp!=null?(pp>=0?"+":"")+pp.toFixed(2)+"%":""}` : "···"}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      <Card className="overflow-hidden">
+        {/* Price header */}
+        <div className={`flex items-start justify-between px-5 pt-4 pb-3 border-b ${l?"border-gray-100":"border-[#1a2d3f]"}`}>
+          <div>
+            <p className={`text-[10px] font-bold uppercase tracking-widest mb-1 ${tx.t3(l)}`}>{idx.sym} · {idx.ex}</p>
+            {tick?.last_price!=null ? (
+              <>
+                <p className={`text-4xl font-black tabular-nums leading-none transition-colors duration-500 ${f==="up"?"text-emerald-500":f==="dn"?"text-red-500":tx.t1(l)}`}>{fmt(tick.last_price)}</p>
+                {c!=null&&p!=null&&(
+                  <div className="flex items-center gap-2 mt-1.5">
+                    {up(c) ? <TrendingUp className="w-4 h-4 text-emerald-500"/> : <TrendingDown className="w-4 h-4 text-red-500"/>}
+                    <span className={`text-sm font-bold tabular-nums ${up(c)?"text-emerald-600":"text-red-500"}`}>
+                      {c>=0?"+":""}{fmt(c)}  ({p>=0?"+":""}{p.toFixed(2)}%)
+                    </span>
+                  </div>
+                )}
+              </>
+            ) : <><Skel h="h-10" w="w-48"/><div className="mt-2"><Skel h="h-5" w="w-36"/></div></>}
+          </div>
+          {tick?.ohlc && (
+            <div className="flex flex-col gap-1 shrink-0">
+              <div className={`flex items-center gap-2 px-2.5 py-1 rounded-lg border text-xs ${l?"bg-emerald-50 border-emerald-100":"bg-emerald-900/15 border-emerald-800/30"}`}>
+                <span className={tx.t3(l)}>H</span><span className="font-bold text-emerald-600 tabular-nums">₹{fmt(tick.ohlc.high)}</span>
+              </div>
+              <div className={`flex items-center gap-2 px-2.5 py-1 rounded-lg border text-xs ${l?"bg-red-50 border-red-100":"bg-red-900/15 border-red-800/30"}`}>
+                <span className={tx.t3(l)}>L</span><span className="font-bold text-red-600 tabular-nums">₹{fmt(tick.ohlc.low)}</span>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Chart — tick passed so last candle updates live */}
+        <CandleChart key={idx.token} token={idx.token} height={340} liveTick={tick}/>
+
+        {/* OHLCV row */}
+        <div className={`grid grid-cols-3 sm:grid-cols-6 border-t ${l?"border-gray-100":"border-[#1a2d3f]"}`}>
+          {[
+            { label:"Open",   val:tick?.ohlc?.open,  cls:tx.t1(l) },
+            { label:"High",   val:tick?.ohlc?.high,  cls:"text-emerald-600" },
+            { label:"Low",    val:tick?.ohlc?.low,   cls:"text-red-500" },
+            { label:"Close",  val:tick?.ohlc?.close, cls:tx.t1(l) },
+            { label:"LTP",    val:tick?.last_price,  cls:"text-blue-600" },
+            { label:"Volume", raw:fmtV(tick?.volume) },
+          ].map((s,i) => (
+            <div key={s.label} className={`text-center py-3 ${i>0?(l?"border-l border-gray-100":"border-l border-[#1a2d3f]"):""} ${l?"bg-gray-50":"bg-[#081017]"}`}>
+              <p className={`text-[9px] font-black uppercase tracking-widest mb-1 ${tx.t3(l)}`}>{s.label}</p>
+              <p className={`text-xs font-black tabular-nums ${s.cls ?? tx.t1(l)}`}>
+                {s.raw ?? (s.val!=null?`₹${fmt(s.val)}`:"—")}
+              </p>
+            </div>
+          ))}
+        </div>
+      </Card>
+    </section>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════
+// TOP STOCKS
+// ══════════════════════════════════════════════════════════════════
+function StockRow({ s, tick, last, maxVol }: { s:typeof STOCKS[0]; tick?:KiteTick; last:boolean; maxVol:number }) {
+  const f   = useFlash(tick?.last_price);
+  const p   = getPct(tick);
+  const l   = useIL();
+  const vol = tick?.volume ?? 0;
+  return (
+    <div className={`grid grid-cols-9 items-center px-4 sm:px-5 ${!last?(l?"border-b border-gray-50":"border-b border-[#111e28]"):""} ${l?"hover:bg-gray-50/60":"hover:bg-white/[0.015]"}`}>
+      <div className="col-span-2 flex items-center gap-2 py-3">
+        <div className={`w-7 h-7 rounded-md flex items-center justify-center text-[9px] font-black shrink-0 ${tx.pill(l,up(p))}`}>{s.sym.slice(0,2)}</div>
+        <div className="min-w-0">
+          <p className={`font-bold text-xs truncate ${tx.t1(l)}`}>{s.sym}</p>
+          <p className={`text-[10px] truncate hidden sm:block ${tx.t3(l)}`}>{s.name}</p>
+        </div>
+      </div>
+      <div className={`text-right text-sm font-black tabular-nums transition-colors duration-500 ${f==="up"?"text-emerald-500":f==="dn"?"text-red-500":tx.t1(l)}`}>
+        {tick?.last_price!=null ? `₹${fmt(tick.last_price)}` : <Skel h="h-4" w="w-16"/>}
+      </div>
+      <div className={`text-right text-xs tabular-nums hidden sm:block ${tx.t2(l)}`}>{tick?.ohlc?.open!=null?`₹${fmt(tick.ohlc.open)}`:"—"}</div>
+      <div className="text-right text-xs tabular-nums text-emerald-600 font-semibold hidden sm:block">{tick?.ohlc?.high!=null?`₹${fmt(tick.ohlc.high)}`:"—"}</div>
+      <div className="text-right text-xs tabular-nums text-red-500 font-semibold hidden sm:block">{tick?.ohlc?.low!=null?`₹${fmt(tick.ohlc.low)}`:"—"}</div>
+      <div className={`text-right text-xs tabular-nums hidden md:block ${tx.t2(l)}`}>{tick?.ohlc?.close!=null?`₹${fmt(tick.ohlc.close)}`:"—"}</div>
+      <div className="text-right py-3 hidden sm:block">
+        <p className={`text-xs tabular-nums ${tx.t2(l)}`}>{fmtV(vol)}</p>
+        <div className={`mt-1 h-1 rounded-full overflow-hidden ${l?"bg-gray-100":"bg-[#1a2d3f]"}`}>
+          <div className="h-full bg-blue-400/60 rounded-full transition-all duration-700" style={{ width:maxVol>0?`${(vol/maxVol)*100}%`:"0%" }}/>
+        </div>
+      </div>
+      <div className="text-right py-3"><PctTag p={p} sm/></div>
+    </div>
+  );
+}
+
+function StocksSection({ ticks }: { ticks:any }) {
+  const l      = useIL();
+  const maxVol = useMemo(() => Math.max(...STOCKS.map(s => ticks[s.key]?.volume??0), 1), [ticks]);
+  return (
+    <section className="mb-8">
+      <SecHead id="stocks" icon={LineChart} title="Top Stocks" sub="Live OHLCV · Volume Bars" live/>
+      <Card className="overflow-x-auto">
+        <div className={`grid grid-cols-9 px-4 sm:px-5 py-2.5 text-[9px] font-black uppercase tracking-widest ${tx.header(l)} ${tx.t3(l)}`}>
+          <div className="col-span-2">Symbol</div>
+          <div className="text-right">LTP</div>
+          <div className="text-right hidden sm:block">Open</div>
+          <div className="text-right text-emerald-600 hidden sm:block">High</div>
+          <div className="text-right text-red-500 hidden sm:block">Low</div>
+          <div className="text-right hidden md:block">Prev Close</div>
+          <div className="text-right hidden sm:block">Volume</div>
+          <div className="text-right">Chg%</div>
+        </div>
+        {STOCKS.map((s,i) => <StockRow key={s.key} s={s} tick={ticks[s.key]} last={i===STOCKS.length-1} maxVol={maxVol}/>)}
+      </Card>
+    </section>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════
+// MARKET DEPTH
+// ══════════════════════════════════════════════════════════════════
+function DepthCard({ sym, ticks }: { sym:string; ticks:any }) {
+  const l    = useIL();
+  const tick = ticks[sym] as KiteTick|undefined;
+  const name = sym.split(":")[1];
+  return (
+    <Card className="overflow-hidden">
+      <div className={`px-4 py-3 border-b ${l?"border-gray-100":"border-[#1a2d3f]"}`}>
+        <div className="flex items-center justify-between mb-1">
+          <span className={`font-black text-sm ${tx.t1(l)}`}>{name}</span>
+          <PctTag p={getPct(tick)} sm/>
+        </div>
+        <FlashPrice val={tick?.last_price} cls="text-lg font-black tabular-nums"/>
+        {tick?.depth && (
+          <div className="flex gap-4 mt-1">
+            <span className="text-[10px] text-emerald-600 font-bold">Buy: {fmtV(tick.buy_quantity)}</span>
+            <span className="text-[10px] text-red-500 font-bold">Sell: {fmtV(tick.sell_quantity)}</span>
+          </div>
+        )}
+      </div>
+      {tick?.depth ? (
+        <>
+          <div className={`grid grid-cols-3 px-3 py-1.5 text-[9px] font-black uppercase tracking-widest ${tx.header(l)} ${tx.t3(l)}`}>
+            <span>Bid Qty</span><span className="text-center">Price</span><span className="text-right">Ask Qty</span>
+          </div>
+          {Array.from({length:5}).map((_,i) => {
+            const b = tick.depth!.buy[i];
+            const a = tick.depth!.sell[i];
+            const mx = Math.max(...tick.depth!.buy.map(x=>x.quantity),...tick.depth!.sell.map(x=>x.quantity),1);
+            return (
+              <div key={i} className={`grid grid-cols-3 px-3 py-1.5 text-xs relative ${i<4?(l?"border-b border-gray-50":"border-b border-[#111e28]"):""} ${l?"hover:bg-gray-50/60":"hover:bg-white/[0.015]"}`}>
+                <div className="absolute inset-y-0 left-0 bg-emerald-500/6" style={{ width:`${(b?b.quantity/mx:0)*33}%` }}/>
+                <div className="absolute inset-y-0 right-0 bg-red-500/6"    style={{ width:`${(a?a.quantity/mx:0)*33}%` }}/>
+                <span className="text-emerald-600 font-bold tabular-nums z-10 relative">{b?b.quantity.toLocaleString("en-IN"):"—"}</span>
+                <span className={`text-center font-mono z-10 relative ${tx.t1(l)}`}>{b?`₹${fmt(b.price)}`:a?`₹${fmt(a.price)}`:"—"}</span>
+                <span className="text-right text-red-500 font-bold tabular-nums z-10 relative">{a?a.quantity.toLocaleString("en-IN"):"—"}</span>
+              </div>
+            );
+          })}
+        </>
+      ) : (
+        <div className="p-4 space-y-2">
+          {[...Array(5)].map((_,i) => <Skel key={i} h="h-7"/>)}
+          <p className={`text-center text-xs mt-2 ${tx.t3(l)}`}>{tick?"Full mode data loading…":"Waiting for WebSocket…"}</p>
+        </div>
+      )}
+    </Card>
+  );
+}
+
+function DepthSection({ ticks }: { ticks:any }) {
+  return (
+    <section className="mb-8">
+      <SecHead id="depth" icon={ArrowUpDown} title="Market Depth" sub="Level 2 Order Book · 5 Best Bids & Asks" live/>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        {["NSE:RELIANCE","NSE:TCS","NSE:HDFCBANK"].map(s => <DepthCard key={s} sym={s} ticks={ticks}/>)}
       </div>
     </section>
   );
 }
 
-// ════════════════════════════════════════════════════════════════
-export default function DomesticView() {
-  const { theme } = useTheme();
-  const isLight = theme === "light";
-  return (
-    <Layout>
-      <style>{`@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}`}</style>
-      <div className={`min-h-screen ${isLight ? "bg-[#F8F7F4]" : "bg-[#0c1a2e]"}`}>
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 max-w-7xl">
+// ══════════════════════════════════════════════════════════════════
+// F&O INSTRUMENTS + OPTIONS CHAIN
+// ══════════════════════════════════════════════════════════════════
+function OptionsSection({ ticks }: { ticks:any }) {
+  const l    = useIL();
+  const spot = ticks["NSE:NIFTY 50"]?.last_price as number|undefined;
+  const ATM  = spot ? Math.round(spot/100)*100 : null;
 
-          {/* ── HERO ───────────────────────────────────────────── */}
-          <div className="mb-12 rounded-2xl overflow-hidden border shadow-sm" style={{ borderColor: isLight ? "#e5e7eb" : "rgba(255,255,255,0.08)" }}>
-            <div className="h-1" style={{ background: `linear-gradient(to right, ${G}, ${O})` }} />
-            <div className={`flex flex-col md:flex-row md:items-center md:justify-between gap-6 px-8 py-9 ${isLight ? "bg-white" : "bg-[#0e2038]"}`}>
-              <div>
-                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold mb-4"
-                  style={{ background: `${G}12`, color: G, border: `1px solid ${G}25` }}>
-                  <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: G }} />
-                  PLACEHOLDER · LIVE DATA COMING SOON
+  // F&O instruments from backend
+  const [foName,   setFoName]   = useState("NIFTY");
+  const [foExpiry, setFoExpiry] = useState("");
+  const [foView,   setFoView]   = useState<"chain"|"futures"|"instruments">("chain");
+
+  const { data: foData, loading: foLoad, error: foErr, meta: foMeta, refresh: foRefresh } = useAPI<any>(
+    `/kite/fo/instruments?name=${foName}${foExpiry ? `&expiry=${foExpiry}` : ""}`,
+    [foName, foExpiry]
+  );
+
+  // useAPI does j.data ?? j — but our backend returns { status, data:[...], meta:{...} }
+  // so foData = the data array (instruments), foMeta = full response with meta
+  const foItems:    any[]   = Array.isArray(foData) ? foData : [];
+  const foExpiries: string[] = foMeta?.meta?.expiries ?? [];
+  const curExpiry:  string   = foMeta?.meta?.current_expiry ?? "";
+
+  // Options chain from instruments list
+  const strikes = useMemo(() => {
+    const calls = foItems.filter(i => i.instrument_type === "CE");
+    const puts  = foItems.filter(i => i.instrument_type === "PE");
+    const allStrikes = [...new Set([
+      ...calls.map(c => Number(c.strike)),
+      ...puts.map(p => Number(p.strike)),
+    ])].sort((a,b) => a-b);
+    if (ATM) {
+      const nearest = allStrikes.reduce((a, b) => Math.abs(b-ATM) < Math.abs(a-ATM) ? b : a, allStrikes[0] || ATM);
+      const idx     = allStrikes.indexOf(nearest);
+      return allStrikes.slice(Math.max(0, idx-10), idx+11);
+    }
+    return allStrikes.slice(0, 30);
+  }, [foItems, ATM, foName]);
+
+  // ── Live quotes for visible options (via /quote API) ──────────────
+  const [liveQuotes, setLiveQuotes] = useState<Record<string,any>>({});
+  const [quotesLoading, setQuotesLoading] = useState(false);
+
+  useEffect(() => {
+    if (strikes.length === 0 || foItems.length === 0) return;
+    const symbols: string[] = [];
+    strikes.forEach(strike => {
+      const ce = foItems.find((x:any) => x.instrument_type==="CE" && Number(x.strike)===strike);
+      const pe = foItems.find((x:any) => x.instrument_type==="PE" && Number(x.strike)===strike);
+      if (ce?.tradingsymbol) symbols.push("NFO:" + ce.tradingsymbol);
+      if (pe?.tradingsymbol) symbols.push("NFO:" + pe.tradingsymbol);
+    });
+    foItems.filter((x:any) => x.instrument_type==="FUT").slice(0,5).forEach((f:any) => {
+      symbols.push("NFO:" + f.tradingsymbol);
+    });
+    if (symbols.length === 0) return;
+    setQuotesLoading(true);
+    const qs = symbols.map(s => "i=" + encodeURIComponent(s)).join("&");
+    fetch(BASE + "/kite/quote?" + qs)
+      .then(r => r.json())
+      .then(j => { if (j.status === "success" && j.data) setLiveQuotes(j.data); })
+      .catch(() => {})
+      .finally(() => setQuotesLoading(false));
+  }, [strikes.join(","), foItems.length]);
+
+  // Futures list
+  const futures = useMemo(() => foItems.filter(i => i.instrument_type === "FUT"), [foItems]);
+
+  const FO_NAMES = ["NIFTY","BANKNIFTY","FINNIFTY","MIDCPNIFTY"];
+
+  return (
+    <section className="mb-8">
+      <SecHead id="options" icon={Layers} title="F&O Instruments" sub={`Options Chain & Futures · Kite Connect \`/instruments/NFO\``}/>
+
+      {/* Controls */}
+      <div className="flex flex-wrap gap-2 mb-3 items-center">
+        <div className="flex gap-1.5 flex-wrap">
+          {FO_NAMES.map(n => (
+            <button key={n} onClick={() => { setFoName(n); setFoExpiry(""); }}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all ${
+                foName===n ? "bg-[#16a34a] text-white border-transparent"
+                  : l?"bg-white text-gray-600 border-gray-200":"bg-[#0a1826] text-[#5a7a92] border-[#1a2d3f]"
+              }`}>{n}</button>
+          ))}
+        </div>
+        {foExpiries.length > 0 && (
+          <select
+            value={foExpiry || curExpiry}
+            onChange={e => setFoExpiry(e.target.value)}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all ${l?"bg-white text-gray-600 border-gray-200":"bg-[#0a1826] text-[#5a7a92] border-[#1a2d3f]"}`}>
+            {foExpiries.map(e => <option key={e} value={e}>{e}</option>)}
+          </select>
+        )}
+        <div className="flex gap-1.5 ml-auto">
+          {(["chain","futures","instruments"] as const).map(v => (
+            <button key={v} onClick={() => setFoView(v)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all capitalize ${
+                foView===v ? "bg-[#2563eb] text-white border-transparent"
+                  : l?"bg-white text-gray-600 border-gray-200":"bg-[#0a1826] text-[#5a7a92] border-[#1a2d3f]"
+              }`}>{v}</button>
+          ))}
+          <button onClick={foRefresh}
+            className={`px-2.5 py-1.5 rounded-lg border flex items-center ${l?"bg-white text-gray-600 border-gray-200":"bg-[#0a1826] text-[#5a7a92] border-[#1a2d3f]"}`}>
+            <RefreshCw className={`w-3.5 h-3.5 ${foLoad?"animate-spin":""}`}/>
+          </button>
+        </div>
+      </div>
+
+      {foErr && (
+        <div className={`mb-3 px-4 py-3 rounded-xl border flex items-center gap-2 text-xs ${l?"bg-red-50 border-red-200 text-red-600":"bg-red-900/15 border-red-800/30 text-red-400"}`}>
+          <AlertCircle className="w-3.5 h-3.5 shrink-0"/>{foErr}
+        </div>
+      )}
+
+      {foLoad ? (
+        <Card className="p-4 space-y-2">{[...Array(6)].map((_,i) => <Skel key={i} h="h-9"/>)}</Card>
+      ) : foView === "chain" ? (
+        /* ── Options Chain ── */
+        <Card className="overflow-x-auto">
+          <div className={`flex items-center justify-between px-5 py-3 border-b ${l?"bg-blue-50 border-blue-100":"bg-blue-900/10 border-blue-800/20"}`}>
+            <div className="flex items-center gap-3">
+              {spot && <span className={`text-xs font-bold ${l?"text-blue-700":"text-blue-300"}`}>Spot ₹{fmt(spot)}</span>}
+              {ATM  && <span className={`text-xs font-bold px-2 py-0.5 rounded ${l?"bg-blue-100 text-blue-700":"bg-blue-800/30 text-blue-300"}`}>ATM {ATM}</span>}
+              <span className={`text-[10px] ${tx.t3(l)}`}>{foName} · {foExpiry || curExpiry}</span>
+            </div>
+            <span className={`text-[10px] hidden sm:block ${tx.t3(l)}`}>{foItems.length} instruments loaded</span>
+          </div>
+          <div className={`grid grid-cols-7 px-5 py-2.5 text-[9px] font-black uppercase tracking-widest ${tx.header(l)} ${tx.t3(l)}`}>
+            <div className="text-emerald-600">Call OI</div>
+            <div className="text-right text-emerald-600">Call Vol</div>
+            <div className="text-right text-emerald-600">Call LTP</div>
+            <div className="text-center">Strike</div>
+            <div className="text-red-500">Put LTP</div>
+            <div className="text-right text-red-500">Put Vol</div>
+            <div className="text-right text-red-500">Put OI</div>
+          </div>
+          {/* loading overlay */}
+          {quotesLoading && (
+            <div className={`px-5 py-2 text-[10px] font-bold flex items-center gap-2 ${l?"text-blue-600":"text-blue-400"}`}>
+              <RefreshCw className="w-3 h-3 animate-spin"/> Fetching live quotes...
+            </div>
+          )}
+          {strikes.length === 0 ? (
+            <div className={`p-8 text-center text-sm ${tx.t2(l)}`}>
+              <Layers className="w-10 h-10 mx-auto mb-3 opacity-20"/>
+              No instruments loaded — select expiry above
+            </div>
+          ) : strikes.map((strike,i) => {
+            const isATM = strike === ATM;
+            const cInst = foItems.find((x:any) => x.instrument_type==="CE" && Number(x.strike)===strike);
+            const pInst = foItems.find((x:any) => x.instrument_type==="PE" && Number(x.strike)===strike);
+            const cKey  = cInst ? "NFO:" + cInst.tradingsymbol : null;
+            const pKey  = pInst ? "NFO:" + pInst.tradingsymbol : null;
+            // Priority: WebSocket tick > live REST quote > instrument CSV (always 0, skip)
+            const cWS   = cKey ? ticks[cKey]       : undefined;
+            const pWS   = pKey ? ticks[pKey]       : undefined;
+            const cQ    = cKey ? liveQuotes[cKey]  : undefined;
+            const pQ    = pKey ? liveQuotes[pKey]  : undefined;
+            const cLTP  = cWS?.last_price  || cQ?.last_price  || 0;
+            const pLTP  = pWS?.last_price  || pQ?.last_price  || 0;
+            const cOI   = cWS?.oi          || cQ?.oi          || 0;
+            const pOI   = pWS?.oi          || pQ?.oi          || 0;
+            const cVol  = cWS?.volume      || cQ?.volume      || 0;
+            const pVol  = pWS?.volume      || pQ?.volume      || 0;
+            return (
+              <div key={strike} className={`grid grid-cols-7 px-5 py-2 text-xs items-center
+                ${isATM ? (l?"bg-amber-50":"bg-amber-900/10") : ""}
+                ${i < strikes.length-1 ? (l?"border-b border-gray-50":"border-b border-[#111e28]") : ""}
+                ${l?"hover:bg-gray-50/60":"hover:bg-white/[0.015]"}`}>
+                <span className="text-emerald-700 font-bold">{cOI > 0 ? fmtV(cOI) : <span className={`text-[10px] ${tx.t3(l)}`}>—</span>}</span>
+                <span className={`text-right ${tx.t2(l)}`}>{cVol > 0 ? fmtV(cVol) : "—"}</span>
+                <span className="text-right text-emerald-600 font-bold">
+                  {cLTP > 0 ? "₹" + fmt(cLTP) : <span className={`text-[10px] ${tx.t3(l)}`}>₹0.00</span>}
+                </span>
+                <div className={`text-center font-black text-sm ${isATM?"text-amber-600":tx.t1(l)}`}>
+                  {isATM && <span className="mr-1 text-[9px] bg-amber-400 text-white rounded px-1">ATM</span>}
+                  {strike}
                 </div>
-                <h1 className={`text-4xl sm:text-5xl font-black tracking-tight leading-none mb-3 ${isLight ? "text-gray-900" : "text-slate-100"}`}>
-                  Indian Stock
-                  <span className="block" style={{ color: G }}>Markets</span>
-                </h1>
-                <p className={`text-sm font-normal ${isLight ? "text-gray-400" : "text-slate-400"}`}>
-                  NSE · BSE · F&amp;O · Sector data via Zerodha Kite Connect v3
-                </p>
+                <span className="text-red-600 font-bold">
+                  {pLTP > 0 ? "₹" + fmt(pLTP) : <span className={`text-[10px] ${tx.t3(l)}`}>₹0.00</span>}
+                </span>
+                <span className={`text-right ${tx.t2(l)}`}>{pVol > 0 ? fmtV(pVol) : "—"}</span>
+                <span className="text-right text-red-700 font-bold">{pOI > 0 ? fmtV(pOI) : <span className={`text-[10px] ${tx.t3(l)}`}>—</span>}</span>
               </div>
-              <div className="flex flex-col items-end gap-3">
-                <div className="flex items-center gap-2 text-xs text-gray-400 bg-amber-50 border border-amber-200 px-4 py-2.5 rounded-xl">
-                  <Info className="w-4 h-4 text-amber-500 shrink-0" />
-                  <span className="font-medium text-amber-700">Static placeholder data — Zerodha API integration pending</span>
+            );
+          })}
+        </Card>
+      ) : foView === "futures" ? (
+        /* ── Futures ── */
+        <Card className="overflow-x-auto">
+          <div className={`grid grid-cols-5 px-5 py-2.5 text-[9px] font-black uppercase tracking-widest ${tx.header(l)} ${tx.t3(l)}`}>
+            <div className="col-span-2">Symbol</div>
+            <div className="text-right">Expiry</div>
+            <div className="text-right">Lot Size</div>
+            <div className="text-right">Last Price</div>
+          </div>
+          {futures.length === 0 ? (
+            <div className={`p-8 text-center text-sm ${tx.t2(l)}`}>No futures found</div>
+          ) : futures.map((f:any, i:number) => {
+            const wsKey = `NFO:${f.tradingsymbol}`;
+            const tick  = ticks[wsKey];
+            return (
+              <div key={f.instrument_token} className={`grid grid-cols-5 px-5 py-3 items-center text-xs
+                ${i<futures.length-1?(l?"border-b border-gray-50":"border-b border-[#111e28]"):""}
+                ${l?"hover:bg-gray-50/60":"hover:bg-white/[0.015]"}`}>
+                <div className="col-span-2">
+                  <p className={`font-bold ${tx.t1(l)}`}>{f.tradingsymbol}</p>
+                  <p className={`text-[10px] ${tx.t3(l)}`}>Token: {f.instrument_token}</p>
                 </div>
-                <button
-                  disabled
-                  className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-xl text-sm font-bold text-white opacity-40 cursor-not-allowed shadow-lg"
-                  style={{ background: G }}
-                >
-                  <RefreshCw className="w-4 h-4" />
-                  Refresh Data
-                </button>
+                <div className={`text-right tabular-nums ${tx.t2(l)}`}>{f.expiry}</div>
+                <div className={`text-right tabular-nums ${tx.t2(l)}`}>{f.lot_size}</div>
+                <div className={`text-right font-bold tabular-nums ${tx.t1(l)}`}>
+                  {(() => {
+                    const q = liveQuotes["NFO:" + f.tradingsymbol];
+                    const ltp = tick?.last_price || q?.last_price || 0;
+                    return ltp > 0 ? "₹" + fmt(ltp) : "—";
+                  })()}
+                </div>
               </div>
+            );
+          })}
+        </Card>
+      ) : (
+        /* ── All Instruments ── */
+        <Card className="overflow-x-auto">
+          <div className={`grid grid-cols-6 px-5 py-2.5 text-[9px] font-black uppercase tracking-widest ${tx.header(l)} ${tx.t3(l)}`}>
+            <div className="col-span-2">Symbol</div>
+            <div>Type</div>
+            <div className="text-right">Strike</div>
+            <div className="text-right">Expiry</div>
+            <div className="text-right">Lot Size</div>
+          </div>
+          {foItems.length === 0 ? (
+            <div className={`p-8 text-center text-sm ${tx.t2(l)}`}>No instruments found</div>
+          ) : foItems.slice(0,100).map((f:any, i:number) => (
+            <div key={f.instrument_token} className={`grid grid-cols-6 px-5 py-2.5 items-center text-xs
+              ${i<Math.min(foItems.length,100)-1?(l?"border-b border-gray-50":"border-b border-[#111e28]"):""}
+              ${l?"hover:bg-gray-50/60":"hover:bg-white/[0.015]"}`}>
+              <div className="col-span-2">
+                <p className={`font-bold text-xs truncate ${tx.t1(l)}`}>{f.tradingsymbol}</p>
+                <p className={`text-[10px] ${tx.t3(l)}`}>Token: {f.instrument_token}</p>
+              </div>
+              <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded w-fit ${
+                f.instrument_type==="CE" ? l?"bg-emerald-100 text-emerald-700":"bg-emerald-900/20 text-emerald-400"
+                : f.instrument_type==="PE" ? l?"bg-red-100 text-red-600":"bg-red-900/20 text-red-400"
+                : l?"bg-blue-100 text-blue-700":"bg-blue-900/20 text-blue-400"
+              }`}>{f.instrument_type}</span>
+              <div className={`text-right tabular-nums ${tx.t2(l)}`}>{f.strike && Number(f.strike) > 0 ? `₹${fmt(Number(f.strike), 0)}` : "—"}</div>
+              <div className={`text-right tabular-nums ${tx.t2(l)}`}>{f.expiry}</div>
+              <div className={`text-right tabular-nums ${tx.t3(l)}`}>{f.lot_size}</div>
+            </div>
+          ))}
+          {foItems.length > 100 && (
+            <div className={`px-5 py-3 text-center text-xs ${tx.t3(l)}`}>Showing 100 of {foItems.length} · Filter by type using the controls above</div>
+          )}
+        </Card>
+      )}
+    </section>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════
+// HISTORICAL DATA — Candlestick chart + table toggle
+// ══════════════════════════════════════════════════════════════════
+function HistoricalSection() {
+  const l = useIL();
+  const SYMS = [
+    { label:"Nifty 50",   token:256265  },
+    { label:"Sensex",     token:265     },
+    { label:"Bank Nifty", token:260105  },
+    { label:"Nifty IT",   token:258529  },
+    { label:"Reliance",   token:738561  },
+    { label:"TCS",        token:2953217 },
+    { label:"HDFC Bank",  token:341249  },
+    { label:"Infosys",    token:408065  },
+  ];
+  const IVLS = [
+    { label:"5m",  val:"5minute"  },
+    { label:"15m", val:"15minute" },
+    { label:"1h",  val:"60minute" },
+    { label:"1d",  val:"day"      },
+  ];
+
+  const [sym, setSym]    = useState(SYMS[0]);
+  const [ivl, setIvl]    = useState("day");
+  const [view, setView]  = useState<"chart"|"table">("chart");
+
+  const { data, loading, error, refresh } = useAPI<any>(
+    `/kite/historical?token=${sym.token}&interval=${ivl}`,
+    [sym.token, ivl]
+  );
+
+  const candles: Candle[] = useMemo(() => data?.candles ?? [], [data]);
+  const rows    = useMemo(() => [...candles].reverse().slice(0,30), [candles]);
+
+  return (
+    <section className="mb-8">
+      <SecHead id="historical" icon={BookOpen} title="Historical Data" sub="OHLCV · Candlestick Chart · Table"/>
+
+      <div className="flex flex-wrap gap-2 mb-3">
+        {/* Symbol selector */}
+        <div className="flex flex-wrap gap-1.5">
+          {SYMS.map(s => (
+            <button key={s.token} onClick={() => setSym(s)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all ${
+                sym.token===s.token
+                  ? "bg-[#16a34a] text-white border-transparent"
+                  : l?"bg-white text-gray-600 border-gray-200":"bg-[#0a1826] text-[#5a7a92] border-[#1a2d3f]"
+              }`}>{s.label}</button>
+          ))}
+        </div>
+      </div>
+
+      <div className="flex flex-wrap gap-2 mb-3 items-center">
+        {/* Interval */}
+        <div className="flex gap-1.5">
+          {IVLS.map(iv => (
+            <button key={iv.val} onClick={() => setIvl(iv.val)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all ${
+                ivl===iv.val
+                  ? "bg-[#d97706] text-white border-transparent"
+                  : l?"bg-white text-gray-600 border-gray-200":"bg-[#0a1826] text-[#5a7a92] border-[#1a2d3f]"
+              }`}>{iv.label}</button>
+          ))}
+          <button onClick={refresh} className={`px-2.5 py-1.5 rounded-lg border flex items-center transition-all ${l?"bg-white text-gray-600 border-gray-200":"bg-[#0a1826] text-[#5a7a92] border-[#1a2d3f]"}`}>
+            <RefreshCw className={`w-3.5 h-3.5 ${loading?"animate-spin":""}`}/>
+          </button>
+        </div>
+        {/* View toggle */}
+        <div className="flex gap-1.5 ml-auto">
+          {(["chart","table"] as const).map(v => (
+            <button key={v} onClick={() => setView(v)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all ${
+                view===v
+                  ? "bg-[#2563eb] text-white border-transparent"
+                  : l?"bg-white text-gray-600 border-gray-200":"bg-[#0a1826] text-[#5a7a92] border-[#1a2d3f]"
+              }`}>{v==="chart"?"📊 Chart":"📋 Table"}</button>
+          ))}
+        </div>
+      </div>
+
+      {error && (
+        <div className={`px-4 py-3 rounded-xl border mb-3 flex items-center gap-2 text-xs ${l?"bg-red-50 border-red-200 text-red-600":"bg-red-900/15 border-red-800/30 text-red-400"}`}>
+          <AlertCircle className="w-3.5 h-3.5 shrink-0"/>{error}
+        </div>
+      )}
+
+      <Card className="overflow-hidden">
+        {view==="chart" ? (
+          <CandleChart key={`${sym.token}-${ivl}`} token={sym.token} height={360}/>
+        ) : (
+          <>
+            <div className={`grid grid-cols-6 px-5 py-2.5 text-[9px] font-black uppercase tracking-widest ${tx.header(l)} ${tx.t3(l)}`}>
+              <div>Date</div><div className="text-right">Open</div><div className="text-right text-emerald-600">High</div>
+              <div className="text-right text-red-500">Low</div><div className="text-right">Close</div><div className="text-right">Volume</div>
+            </div>
+            {loading
+              ? <div className="p-4 space-y-2">{[...Array(8)].map((_,i) => <Skel key={i} h="h-9"/>)}</div>
+              : rows.length===0
+                ? <div className={`p-8 text-center text-sm ${tx.t2(l)}`}>No data available</div>
+                : rows.map((c,i) => {
+                    const o=c.y?.[0], h=c.y?.[1], lo=c.y?.[2], cl=c.y?.[3];
+                    const isu=(cl??0)>=(o??0);
+                    return (
+                      <div key={i} className={`grid grid-cols-6 px-5 py-2.5 items-center ${i<rows.length-1?(l?"border-b border-gray-50":"border-b border-[#111e28]"):""} ${l?"hover:bg-gray-50/60":"hover:bg-white/[0.015]"}`}>
+                        <div className={`text-xs font-semibold flex items-center gap-1.5 ${tx.t2(l)}`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${isu?"bg-emerald-500":"bg-red-500"}`}/>
+                          {c.x ? new Date(c.x).toLocaleDateString("en-IN",{day:"numeric",month:"short"}) : "—"}
+                        </div>
+                        <div className={`text-right text-xs tabular-nums ${tx.t1(l)}`}>₹{fmt(o)}</div>
+                        <div className="text-right text-xs tabular-nums text-emerald-600 font-semibold">₹{fmt(h)}</div>
+                        <div className="text-right text-xs tabular-nums text-red-500 font-semibold">₹{fmt(lo)}</div>
+                        <div className={`text-right text-xs tabular-nums font-bold ${isu?"text-emerald-600":"text-red-500"}`}>₹{fmt(cl)}</div>
+                        <div className={`text-right text-xs tabular-nums ${tx.t3(l)}`}>{fmtV(c.volume)}</div>
+                      </div>
+                    );
+                  })
+            }
+          </>
+        )}
+      </Card>
+    </section>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════
+// CORPORATE ACTIONS — Real NSE data via backend proxy
+// ══════════════════════════════════════════════════════════════════
+const CORP_TYPES = ["All","Dividend","Bonus","Split","Buyback","Rights"] as const;
+type CorpType = typeof CORP_TYPES[number];
+
+function CorporateSection() {
+  const l = useIL();
+  const [filter, setFilter] = useState<CorpType>("All");
+  const [expanded, setExpanded] = useState<number|null>(null);
+
+  const { data, loading, error, meta, refresh } = useAPI<any[]>("/kite/nse/corporate-actions", []);
+  const source: string = meta?.source ?? "";
+
+  const actions: any[] = Array.isArray(data) ? data : [];
+
+  const filtered = useMemo(() => {
+    if (filter === "All") return actions;
+    return actions.filter(a => {
+      const s = (a.subject || a.purpose || "").toLowerCase();
+      return s.includes(filter.toLowerCase());
+    });
+  }, [actions, filter]);
+
+  const typeColor = (subject: string) => {
+    const s = (subject || "").toLowerCase();
+    if (s.includes("dividend")) return l ? "bg-emerald-50 text-emerald-700" : "bg-emerald-900/20 text-emerald-400";
+    if (s.includes("bonus"))    return l ? "bg-blue-50 text-blue-700"       : "bg-blue-900/20 text-blue-400";
+    if (s.includes("split"))    return l ? "bg-amber-50 text-amber-700"     : "bg-amber-900/20 text-amber-400";
+    if (s.includes("buyback"))  return l ? "bg-purple-50 text-purple-700"   : "bg-purple-900/20 text-purple-400";
+    return l ? "bg-gray-50 text-gray-600" : "bg-gray-800/30 text-gray-400";
+  };
+
+  return (
+    <section className="mb-8">
+      <SecHead id="corporate" icon={Building2} title="Corporate Actions"
+        sub={source ? `${source} · Dividend · Bonus · Split · Buyback` : "NSE/BSE · Dividend · Bonus · Split · Buyback"}/>
+
+      {/* Filter tabs */}
+      <div className="flex flex-wrap gap-2 mb-3 items-center">
+        {CORP_TYPES.map(t => (
+          <button key={t} onClick={() => setFilter(t)}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all ${
+              filter === t
+                ? "bg-[#16a34a] text-white border-transparent"
+                : l ? "bg-white text-gray-600 border-gray-200" : "bg-[#0a1826] text-[#5a7a92] border-[#1a2d3f]"
+            }`}>{t}</button>
+        ))}
+        {source && (
+          <span className={`text-[10px] font-black px-2 py-0.5 rounded border ${
+            source === "NSE"
+              ? l?"bg-blue-50 text-blue-700 border-blue-200":"bg-blue-900/15 text-blue-400 border-blue-800/30"
+              : l?"bg-orange-50 text-orange-700 border-orange-200":"bg-orange-900/15 text-orange-400 border-orange-800/30"
+          }`}>via {source}</span>
+        )}
+        <button onClick={refresh}
+          className={`px-2.5 py-1.5 rounded-lg border flex items-center ml-auto transition-all ${l?"bg-white text-gray-600 border-gray-200":"bg-[#0a1826] text-[#5a7a92] border-[#1a2d3f]"}`}>
+          <RefreshCw className={`w-3.5 h-3.5 ${loading?"animate-spin":""}`}/>
+        </button>
+      </div>
+
+      {error && (
+        <div className={`mb-3 px-4 py-3 rounded-xl border flex items-start gap-2 text-xs ${l?"bg-amber-50 border-amber-200 text-amber-700":"bg-amber-900/10 border-amber-800/30 text-amber-400"}`}>
+          <AlertCircle className="w-3.5 h-3.5 shrink-0 mt-0.5"/>
+          <div>
+            <p className="font-bold">NSE &amp; BSE blocked the request ({error})</p>
+            <p className="mt-0.5 opacity-80">Both exchanges use Akamai bot protection. Click retry — it may work after a fresh session. Or visit directly:</p>
+            <div className="flex gap-2 mt-2">
+              {[["NSE","https://www.nseindia.com/companies-listing/corporate-filings-actions"],
+                ["BSE","https://www.bseindia.com/corporates/corporate_act.html"]].map(([nm,url]) => (
+                <a key={nm} href={url} target="_blank" rel="noreferrer"
+                  className={`inline-flex items-center gap-1 font-bold px-2 py-1 rounded border ${l?"bg-blue-50 text-blue-700 border-blue-200":"bg-blue-900/20 text-blue-400 border-blue-800/30"}`}>
+                  <ExternalLink className="w-3 h-3"/>{nm}
+                </a>
+              ))}
+              <button onClick={refresh} className={`inline-flex items-center gap-1 font-bold px-2 py-1 rounded border ${l?"bg-white text-gray-700 border-gray-200":"bg-[#0a1826] text-[#c0d8ea] border-[#1a2d3f]"}`}>
+                <RefreshCw className={`w-3 h-3 ${loading?"animate-spin":""}`}/>Retry
+              </button>
             </div>
           </div>
+        </div>
+      )}
 
-          {/* ── INDEX SELECTOR (with inline sparklines on summary) ─ */}
-          <IndexSelector isLight={isLight} />
-
-          {/* ── SECTOR PERFORMANCE ─────────────────────────────── */}
-          <section className="mb-12">
-            <SectionLabel icon={Layers} isLight={isLight}>Sector Performance</SectionLabel>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-              {SECTORS.map((s) => (
-                <div key={s.name} className={`rounded-2xl border hover:shadow-md transition-all duration-200 overflow-hidden ${isLight ? "bg-white border-gray-100 hover:border-gray-200" : "bg-[#0e2038] border-white/8 hover:border-white/15"}`}>
-                  <div className="h-0.5" style={{ background: s.pos ? "linear-gradient(to right,#16a34a,transparent)" : "linear-gradient(to right,#dc2626,transparent)" }} />
-                  <div className="p-5">
-                    <div className="flex items-start justify-between mb-4">
-                      <p className={`font-extrabold text-base ${isLight ? "text-gray-900" : "text-slate-100"}`}>{s.name}</p>
-                      <span className="text-xl font-black" style={{ color: s.pos ? "#16a34a" : "#dc2626" }}>{s.chg}</span>
-                    </div>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between items-center px-3 py-2.5 rounded-xl bg-emerald-50 border border-emerald-100">
-                        <span className="text-gray-500 font-medium">Best</span>
-                        <span className="text-emerald-700 font-bold text-xs">{s.top}</span>
-                      </div>
-                      <div className="flex justify-between items-center px-3 py-2.5 rounded-xl bg-red-50 border border-red-100">
-                        <span className="text-gray-500 font-medium">Worst</span>
-                        <span className="text-red-600 font-bold text-xs">{s.bot}</span>
-                      </div>
-                    </div>
-                    <div className={`flex justify-between text-xs mt-4 pt-4 border-t ${isLight ? "text-gray-300 border-gray-50" : "text-slate-600 border-white/5"}`}>
-                      <div className="flex items-center gap-1"><Activity className="w-3 h-3" /> Sector Index</div>
-                      <div className="flex items-center gap-1"><Clock className="w-3 h-3" /> Placeholder</div>
-                    </div>
-                  </div>
-                </div>
+      <Card className="overflow-x-auto">
+        <div className={`grid grid-cols-5 px-4 sm:px-5 py-2 text-[9px] font-black uppercase tracking-widest ${tx.header(l)} ${tx.t3(l)}`}>
+          <div className="col-span-2">Symbol / Company</div>
+          <div>Action</div>
+          <div className="text-right">Ex-Date</div>
+          <div className="text-right">Record Date</div>
+        </div>
+        <div className="overflow-y-auto" style={{maxHeight:"400px"}}>
+        {loading ? (
+          <div className="p-4 space-y-2">{[...Array(6)].map((_,i) => <Skel key={i} h="h-10"/>)}</div>
+        ) : filtered.length === 0 ? (
+          <div className={`p-10 text-center ${tx.t2(l)}`}>
+            <Building2 className="w-10 h-10 mx-auto mb-3 opacity-20"/>
+            <p className="text-sm font-bold">No corporate actions found</p>
+            <p className="text-xs mt-1">
+              {error ? "Unable to fetch data from NSE" : "No events match the selected filter"}
+            </p>
+            <div className="flex justify-center gap-3 mt-5 flex-wrap">
+              {[["NSE","https://www.nseindia.com/companies-listing/corporate-filings-actions"],
+                ["BSE","https://www.bseindia.com/corporates/corporate_act.html"]].map(([nm,url]) => (
+                <a key={nm} href={url} target="_blank" rel="noreferrer"
+                  className={`inline-flex items-center gap-1.5 text-xs font-bold px-4 py-2 rounded-lg border transition-colors ${l?"bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100":"bg-blue-900/15 text-blue-300 border-blue-800/30 hover:bg-blue-900/25"}`}>
+                  <ExternalLink className="w-3 h-3"/>{nm} Corporate Actions
+                </a>
               ))}
             </div>
-          </section>
-
-          {/* ── TOP STOCKS (OHLCV) ──────────────────────────────── */}
-          <section className="mb-12">
-            <SectionLabel icon={LineChart} isLight={isLight}>Top Stocks — OHLCV</SectionLabel>
-            <div className={`rounded-2xl border shadow-sm overflow-hidden ${isLight ? "bg-white border-gray-100" : "bg-[#0e2038] border-white/8"}`}>
-              {/* Table header */}
-              <div className={`grid grid-cols-8 gap-4 px-5 py-3 border-b text-xs font-bold uppercase tracking-widest ${isLight ? "bg-gray-50 border-gray-100 text-gray-400" : "bg-white/5 border-white/8 text-slate-500"}`}>
-                <div className="col-span-2">Symbol</div>
-                <div className="text-right">LTP</div>
-                <div className="text-right">Open</div>
-                <div className="text-right">High</div>
-                <div className="text-right">Low</div>
-                <div className="text-right">Volume</div>
-                <div className="text-right">Change</div>
+          </div>
+        ) : (
+          filtered.map((a: any, i: number) => (
+            <div key={i}>
+              <div
+                onClick={() => setExpanded(expanded === i ? null : i)}
+                className={`grid grid-cols-5 px-4 sm:px-5 py-2 items-center cursor-pointer
+                  ${i < filtered.length-1 ? (l?"border-b border-gray-50":"border-b border-[#111e28]") : ""}
+                  ${l?"hover:bg-gray-50/60":"hover:bg-white/[0.015]"}`}>
+                <div className="col-span-2">
+                  <p className={`font-bold text-xs ${tx.t1(l)}`}>{a.symbol ?? a.comp ?? "—"}</p>
+                  <p className={`text-[10px] truncate ${tx.t3(l)}`}>{a.series ? `Series: ${a.series}` : a.companyName ?? ""}</p>
+                </div>
+                <div>
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${typeColor(a.subject ?? a.purpose ?? "")}`}>
+                    {(a.subject ?? a.purpose ?? "—").split("-")[0].trim().slice(0,22)}
+                  </span>
+                  {a.remarks && <p className={`text-[9px] mt-0.5 truncate max-w-[140px] ${tx.t3(l)}`}>{a.remarks}</p>}
+                </div>
+                <div className={`text-right text-xs tabular-nums font-semibold ${tx.t1(l)}`}>{a.exDate ?? a.exDividendDate ?? "—"}</div>
+                <div className={`text-right text-xs tabular-nums flex items-center justify-end gap-1 ${tx.t2(l)}`}>
+                  {a.recordDate ?? "—"}
+                  {expanded === i
+                    ? <ChevronUp className="w-3 h-3 shrink-0"/>
+                    : <ChevronDown className="w-3 h-3 shrink-0"/>}
+                </div>
               </div>
-              {TOP_STOCKS.map((s, i) => (
-                <div
-                  key={s.name}
-                  className={`grid grid-cols-8 gap-4 px-5 py-3.5 items-center transition-colors text-sm ${i < TOP_STOCKS.length - 1 ? (isLight ? "border-b border-gray-50" : "border-b border-white/5") : ""} ${isLight ? "hover:bg-gray-50/60" : "hover:bg-white/5"}`}
-                >
-                  <div className="col-span-2 flex items-center gap-3">
-                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-black ${s.pos ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-600"}`}>
-                      {s.name.slice(0, 2)}
+              {expanded === i && (
+                <div className={`px-4 sm:px-5 py-3 grid grid-cols-2 sm:grid-cols-4 gap-2 ${l?"bg-gray-50 border-b border-gray-100":"bg-[#081017] border-b border-[#1a2d3f]"}`}>
+                  {[
+                    ["Symbol",      a.symbol],
+                    ["Series",      a.series],
+                    ["Face Value",  a.faceVal ? `₹${a.faceVal}` : null],
+                    ["Ex-Date",     a.exDate],
+                    ["Record Date", a.recordDate],
+                    ["BC Start",    a.bcStartDate !== "-" ? a.bcStartDate : null],
+                    ["BC End",      a.bcEndDate   !== "-" ? a.bcEndDate   : null],
+                    ["Remarks",     a.remarks],
+                  ].filter(([,v]) => v).map(([label, val]) => (
+                    <div key={label as string} className={`rounded-lg border px-3 py-2 ${l?"bg-white border-gray-100":"bg-[#0c1821] border-[#1a2d3f]"}`}>
+                      <p className={`text-[9px] font-black uppercase tracking-wider mb-0.5 ${tx.t3(l)}`}>{label as string}</p>
+                      <p className={`text-xs font-bold ${tx.t1(l)}`}>{val as string}</p>
                     </div>
-                    <div>
-                      <p className={`font-bold ${isLight ? "text-gray-900" : "text-slate-100"}`}>{s.name}</p>
-                      <p className={`text-xs ${isLight ? "text-gray-400" : "text-slate-500"}`}>NSE</p>
-                    </div>
-                  </div>
-                  <div className={`text-right font-black ${isLight ? "text-gray-900" : "text-slate-100"}`}>{s.price}</div>
-                  <div className={`text-right font-medium ${isLight ? "text-gray-500" : "text-slate-400"}`}>{s.open}</div>
-                  <div className="text-right text-emerald-600 font-medium">{s.high}</div>
-                  <div className="text-right text-red-500 font-medium">{s.low}</div>
-                  <div className={`text-right font-medium ${isLight ? "text-gray-500" : "text-slate-400"}`}>{s.vol}</div>
-                  <div className="text-right">
-                    <span className={`inline-flex items-center gap-1 text-xs font-extrabold px-2 py-1 rounded-lg ${s.pos ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-600"}`}>
-                      {s.pos ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-                      {s.chg}
-                    </span>
-                  </div>
+                  ))}
                 </div>
-              ))}
+              )}
             </div>
-          </section>
+          ))
+        )}
+        </div>
+        {filtered.length > 0 && (
+          <div className={`px-5 py-2 text-[10px] border-t ${l?"border-gray-100 text-gray-400":"border-[#1a2d3f] text-[#3d5f78]"}`}>
+            {filtered.length} actions · scroll to see all
+          </div>
+        )}
+      </Card>
+    </section>
+  );
+}
 
-          {/* ── FOREX (INR pairs) ───────────────────────────────── */}
-          <section className="mb-12">
-            <SectionLabel icon={DollarSign} isLight={isLight}>INR Forex Pairs</SectionLabel>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              {FOREX_PAIRS.map((fx) => (
-                <div key={fx.pair} className={`rounded-2xl border hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 overflow-hidden ${isLight ? "bg-white border-gray-100" : "bg-[#0e2038] border-white/8"}`}>
-                  <div className="h-0.5" style={{ background: fx.pos ? "linear-gradient(to right,#16a34a,transparent)" : "linear-gradient(to right,#dc2626,transparent)" }} />
-                  <div className="p-4">
-                    <p className={`text-xs font-bold tracking-widest uppercase mb-2 ${isLight ? "text-gray-400" : "text-slate-500"}`}>{fx.pair}</p>
-                    <p className={`text-2xl font-black ${isLight ? "text-gray-900" : "text-slate-100"}`}>{fx.rate}</p>
-                    <div className="flex items-center gap-1.5 mt-1.5">
-                      <span className="text-xs font-bold" style={{ color: fx.pos ? "#16a34a" : "#dc2626" }}>{fx.chg}</span>
-                      <span className={`text-xs ${isLight ? "text-gray-300" : "text-slate-600"}`}>·</span>
-                      <span className="text-xs font-bold" style={{ color: fx.pos ? "#16a34a" : "#dc2626" }}>{fx.pct}</span>
-                    </div>
-                    <p className={`text-xs mt-3 ${isLight ? "text-gray-300" : "text-slate-600"}`}>Placeholder · API ready</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
+// ══════════════════════════════════════════════════════════════════
+// PORTFOLIO
+// ══════════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════════════
+// PORTFOLIO — uses EXACT Kite Connect API field names:
+// tradingsymbol, exchange, quantity, average_price, last_price,
+// close_price, pnl (total), day_change, day_change_percentage, isin, product
+// ══════════════════════════════════════════════════════════════════
+function PortfolioRow({ h, last }: { h:any; last:boolean }) {
+  const f = useFlash(h.livePrice);
+  const l = useIL();
 
-          {/* ── F&O OPEN INTEREST ───────────────────────────────── */}
-          <section className="mb-12">
-            <SectionLabel icon={Percent} isLight={isLight}>F&amp;O Open Interest</SectionLabel>
-            <div className={`rounded-2xl border shadow-sm overflow-hidden ${isLight ? "bg-white border-gray-100" : "bg-[#0e2038] border-white/8"}`}>
-              <div className={`grid grid-cols-5 gap-4 px-5 py-3 border-b text-xs font-bold uppercase tracking-widest ${isLight ? "bg-gray-50 border-gray-100 text-gray-400" : "bg-white/5 border-white/8 text-slate-500"}`}>
-                <div className="col-span-2">Instrument</div>
-                <div className="text-right">OI</div>
-                <div className="text-right">OI Change</div>
-                <div className="text-right">LTP</div>
+  // h.pnl         = net P&L from Kite (avg_price * qty vs current value)
+  // h.pnlPct      = calculated from invested vs current
+  // h.livePrice   = WebSocket LTP if available, else Kite's last_price
+  // h.day_change_percentage = Kite's own day % change from close
+
+  return (
+    <div className={`grid grid-cols-9 items-center px-4 sm:px-5 py-3 ${!last?(l?"border-b border-gray-50":"border-b border-[#111e28]"):""} ${l?"hover:bg-gray-50/60":"hover:bg-white/[0.015]"}`}>
+      {/* Stock name + exchange */}
+      <div className="col-span-2">
+        <p className={`font-bold text-xs ${tx.t1(l)}`}>{h.tradingsymbol}</p>
+        <p className={`text-[10px] ${tx.t3(l)}`}>{h.exchange} · {h.product} · {h.quantity} qty</p>
+      </div>
+
+      {/* Avg buy price */}
+      <div className={`text-right text-xs tabular-nums ${tx.t2(l)}`}>
+        ₹{fmt(h.average_price)}
+      </div>
+
+      {/* Live LTP with flash */}
+      <div className={`text-right text-sm font-bold tabular-nums transition-colors duration-500 ${f==="up"?"text-emerald-500":f==="dn"?"text-red-500":tx.t1(l)}`}>
+        ₹{fmt(h.livePrice)}
+      </div>
+
+      {/* Prev close (Kite: close_price field) */}
+      <div className={`text-right text-xs tabular-nums hidden sm:block ${tx.t3(l)}`}>
+        ₹{fmt(h.close_price)}
+      </div>
+
+      {/* Invested amount */}
+      <div className={`text-right text-xs tabular-nums hidden sm:block ${tx.t2(l)}`}>
+        ₹{fmtV(h.invested)}
+      </div>
+
+      {/* Current value */}
+      <div className={`text-right text-xs tabular-nums hidden md:block ${tx.t1(l)}`}>
+        ₹{fmtV(h.current)}
+      </div>
+
+      {/* Total P&L (Kite's h.pnl when using last_price, else recalculated from livePrice) */}
+      <div className="text-right">
+        <p className={`text-xs font-bold tabular-nums ${h.computedPnl>=0?"text-emerald-600":"text-red-500"}`}>
+          {h.computedPnl>=0?"+":""}₹{fmtV(Math.abs(h.computedPnl))}
+        </p>
+        <p className={`text-[10px] ${h.pnlPct>=0?"text-emerald-500":"text-red-400"}`}>
+          {h.pnlPct>=0?"+":""}{h.pnlPct.toFixed(2)}%
+        </p>
+      </div>
+
+      {/* Day change % — Kite provides day_change_percentage directly */}
+      <div className="text-right">
+        <PctTag p={h.day_change_percentage ?? null} sm/>
+        {h.day_change != null && (
+          <p className={`text-[10px] tabular-nums mt-0.5 ${h.day_change>=0?"text-emerald-500":"text-red-400"}`}>
+            {h.day_change>=0?"+":""}₹{fmt(h.day_change,2)}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function PortfolioSection({ ticks }: { ticks:any }) {
+  const l = useIL();
+  const { data, loading, error, refresh } = useAPI<any[]>("/kite/portfolio/holdings", []);
+
+  // Kite response: { status:"success", data: [...holdings] }
+  // useAPI extracts j.data — so `data` is the raw array
+  const raw: any[] = useMemo(() => Array.isArray(data) ? data : [], [data]);
+
+  const holdings = useMemo(() => raw.map(h => {
+    // Use h.exchange from Kite (can be NSE or BSE)
+    const wsKey    = `${h.exchange}:${h.tradingsymbol}`;
+    // Live price: WebSocket tick > Kite's last_price (from REST). Never fallback to avg_price for display.
+    const livePrice = ticks[wsKey]?.last_price ?? h.last_price;
+    const invested  = h.average_price * h.quantity;
+    const current   = livePrice * h.quantity;
+    // computedPnl: if WebSocket has live price, recalculate; else use Kite's pnl
+    const computedPnl = ticks[wsKey]?.last_price != null
+      ? current - invested
+      : h.pnl ?? (current - invested);
+    const pnlPct  = invested > 0 ? (computedPnl / invested) * 100 : 0;
+    return { ...h, livePrice, invested, current, computedPnl, pnlPct };
+  }), [raw, ticks]);
+
+  // Summary using Kite's pnl for accuracy
+  const totInv = holdings.reduce((a,h) => a + h.invested, 0);
+  const totCur = holdings.reduce((a,h) => a + h.current,  0);
+  const totPnL = totCur - totInv;
+  const totPct = totInv > 0 ? (totPnL / totInv) * 100 : 0;
+  // Day P&L from Kite's day_change field
+  const totDayPnL = holdings.reduce((a,h) => a + ((h.day_change ?? 0) * h.quantity), 0);
+
+  const isAuth = !!error && /403|401|token|unauthorized|invalid/i.test(error);
+  const isErr  = !!error && !isAuth;
+
+  return (
+    <section className="mb-8">
+      <SecHead id="portfolio" icon={PieChart} title="Portfolio / Holdings" sub="Live P&L · Kite Connect `/portfolio/holdings`"/>
+      {isAuth && <KiteBanner msg="Session expired — please login again to Zerodha Kite"/>}
+      {isErr && (
+        <div className={`mb-4 px-4 py-3 rounded-xl border flex items-center gap-2 text-xs ${l?"bg-red-50 border-red-200 text-red-600":"bg-red-900/15 border-red-800/30 text-red-400"}`}>
+          <AlertCircle className="w-3.5 h-3.5 shrink-0"/>{error}
+          <button onClick={refresh} className="ml-auto underline">Retry</button>
+        </div>
+      )}
+
+      {holdings.length > 0 && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-2 mb-4">
+          {[
+            { label:"Invested",    val:`₹${fmtV(totInv)}`,                                            cls:tx.t1(l) },
+            { label:"Current Val", val:`₹${fmtV(totCur)}`,                                            cls:tx.t1(l) },
+            { label:"Total P&L",   val:`${totPnL>=0?"+":""}₹${fmtV(Math.abs(totPnL))}`,              cls:totPnL>=0?"text-emerald-600":"text-red-500" },
+            { label:"Returns",     val:`${totPct>=0?"+":""}${totPct.toFixed(2)}%`,                    cls:totPct>=0?"text-emerald-600":"text-red-500" },
+            { label:"Today's P&L", val:`${totDayPnL>=0?"+":""}₹${fmtV(Math.abs(totDayPnL))}`,       cls:totDayPnL>=0?"text-emerald-600":"text-red-500" },
+          ].map(s => (
+            <Card key={s.label} className="px-3 py-2.5">
+              <p className={`text-[9px] font-black uppercase tracking-widest mb-1 ${tx.t3(l)}`}>{s.label}</p>
+              <p className={`text-base font-black ${s.cls}`}>{s.val}</p>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      <Card className="overflow-x-auto">
+        <div className={`grid grid-cols-9 px-4 sm:px-5 py-2.5 text-[9px] font-black uppercase tracking-widest ${tx.header(l)} ${tx.t3(l)}`}>
+          <div className="col-span-2">Stock</div>
+          <div className="text-right">Avg Cost</div>
+          <div className="text-right">LTP</div>
+          <div className="text-right hidden sm:block">Prev Close</div>
+          <div className="text-right hidden sm:block">Invested</div>
+          <div className="text-right hidden md:block">Current</div>
+          <div className="text-right">P&amp;L</div>
+          <div className="text-right">Day Chg</div>
+        </div>
+        {loading
+          ? <div className="p-4 space-y-2">{[...Array(4)].map((_,i) => <Skel key={i} h="h-14"/>)}</div>
+          : holdings.length === 0
+            ? <div className={`p-10 text-center ${tx.t2(l)}`}>
+                <PieChart className="w-10 h-10 mx-auto mb-3 opacity-20"/>
+                <p className="text-sm font-bold">No holdings found</p>
+                <p className="text-xs mt-1 opacity-70">Your Zerodha demat account has 0 holdings</p>
               </div>
-              {FNO_OI.map((f, i) => (
-                <div key={f.name}
-                  className={`grid grid-cols-5 gap-4 px-5 py-3.5 items-center transition-colors text-sm ${i < FNO_OI.length - 1 ? (isLight ? "border-b border-gray-50" : "border-b border-white/5") : ""} ${isLight ? "hover:bg-gray-50/60" : "hover:bg-white/5"}`}>
-                  <div className="col-span-2">
-                    <p className={`font-bold ${isLight ? "text-gray-900" : "text-slate-100"}`}>{f.name}</p>
-                    <p className={`text-xs ${isLight ? "text-gray-400" : "text-slate-500"}`}>Exp: {f.expiry}</p>
-                  </div>
-                  <div className={`text-right font-mono font-semibold ${isLight ? "text-gray-600" : "text-slate-300"}`}>{f.oi}</div>
-                  <div className="text-right">
-                    <span className={`text-xs font-extrabold ${f.pos ? "text-emerald-600" : "text-red-500"}`}>{f.chgOI}</span>
-                  </div>
-                  <div className={`text-right font-black ${isLight ? "text-gray-900" : "text-slate-100"}`}>{f.ltp}</div>
-                </div>
-              ))}
-            </div>
-          </section>
+            : holdings.map((h,i) => <PortfolioRow key={`${h.exchange}:${h.tradingsymbol}`} h={h} last={i===holdings.length-1}/>)
+        }
+      </Card>
+    </section>
+  );
+}
 
-          {/* ── MARKET DEPTH ────────────────────────────────────── */}
-          <section className="mb-12">
-            <SectionLabel icon={ArrowUpDown} isLight={isLight}>Market Depth (Level 2)</SectionLabel>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              {MARKET_DEPTH.map((md) => (
-                <div key={md.stock} className={`rounded-2xl border shadow-sm overflow-hidden ${isLight ? "bg-white border-gray-100" : "bg-[#0e2038] border-white/8"}`}>
-                  <div className={`flex items-center justify-between px-5 py-3 border-b ${isLight ? "border-gray-50" : "border-white/5"}`}>
-                    <p className={`font-extrabold ${isLight ? "text-gray-900" : "text-slate-100"}`}>{md.stock}</p>
-                    <span className="text-xs font-bold px-2.5 py-1 rounded-full" style={{ background: `${G}12`, color: G }}>5 Level Bid/Ask</span>
-                  </div>
-                  <div className={`grid grid-cols-2 divide-x ${isLight ? "divide-gray-50" : "divide-white/5"}`}>
-                    <div>
-                      <div className="grid grid-cols-2 px-4 py-2 bg-emerald-50 border-b border-emerald-100 text-xs font-bold uppercase text-emerald-700">
-                        <span>Bid Qty</span><span className="text-right">Price</span>
+// ══════════════════════════════════════════════════════════════════
+// MUTUAL FUNDS
+// ══════════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════════════
+// MUTUAL FUNDS — uses EXACT Kite Connect API field names:
+// /mf/holdings: { folio, fund, tradingsymbol, average_price, last_price, pnl, quantity, last_price_date, pledged_quantity }
+// /mf/sips:     { sip_id, fund, tradingsymbol, status, frequency, instalment_amount, next_instalment, completed_instalments, pending_instalments }
+// ══════════════════════════════════════════════════════════════════
+function MFSection() {
+  const l = useIL();
+  const [tab, setTab] = useState<"holdings"|"sips">("holdings");
+
+  const { data: holdData, loading: hLoad, error: hErr, refresh: hRefresh } = useAPI<any[]>("/kite/mf/holdings", []);
+  const { data: sipData,  loading: sLoad, error: sErr,  refresh: sRefresh } = useAPI<any[]>("/kite/mf/sips",     []);
+
+  // Kite /mf/holdings returns array directly via j.data
+  // Each item: { folio, fund, tradingsymbol, average_price, last_price, pnl, quantity, last_price_date, pledged_quantity }
+  const holdings: any[] = useMemo(() => Array.isArray(holdData) ? holdData : [], [holdData]);
+  const sips:     any[] = useMemo(() => Array.isArray(sipData)  ? sipData  : [], [sipData]);
+
+  // Kite already gives us pnl per holding. Use it directly.
+  const stats = useMemo(() => {
+    const inv    = holdings.reduce((a,h) => a + (h.average_price * h.quantity), 0);
+    const cur    = holdings.reduce((a,h) => a + (h.last_price    * h.quantity), 0);
+    // Use Kite's own pnl field if available, otherwise calculate
+    const kitePnl = holdings.every(h => h.pnl != null)
+      ? holdings.reduce((a,h) => a + (h.pnl ?? 0), 0)
+      : cur - inv;
+    const pct = inv > 0 ? (kitePnl / inv) * 100 : 0;
+    return { inv, cur, pnl: kitePnl, pct };
+  }, [holdings]);
+
+  const isAuthH = !!hErr && /403|401|token|unauthorized|invalid/i.test(hErr);
+  const isAuthS = !!sErr && /403|401|token|unauthorized|invalid/i.test(sErr);
+
+  return (
+    <section className="mb-8">
+      <SecHead id="mf" icon={Package} title="Mutual Funds" sub="MF Holdings & SIPs · Kite Connect `/mf/holdings` + `/mf/sips`"/>
+
+      {(isAuthH || isAuthS) && <KiteBanner msg="Session expired — please login again to view mutual funds"/>}
+
+      {/* Holdings summary cards */}
+      {holdings.length > 0 && tab === "holdings" && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
+          {[
+            { label:"Invested",    val:`₹${fmtV(stats.inv)}`,                                       cls:tx.t1(l) },
+            { label:"Current NAV", val:`₹${fmtV(stats.cur)}`,                                       cls:tx.t1(l) },
+            { label:"Total P&L",   val:`${stats.pnl>=0?"+":""}₹${fmtV(Math.abs(stats.pnl))}`,      cls:stats.pnl>=0?"text-emerald-600":"text-red-500" },
+            { label:"Returns",     val:`${stats.pct>=0?"+":""}${stats.pct.toFixed(2)}%`,             cls:stats.pct>=0?"text-emerald-600":"text-red-500" },
+          ].map(s => (
+            <Card key={s.label} className="px-3 py-2.5">
+              <p className={`text-[9px] font-black uppercase tracking-widest mb-1 ${tx.t3(l)}`}>{s.label}</p>
+              <p className={`text-sm font-black ${s.cls}`}>{s.val}</p>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {/* Holdings / SIPs tab */}
+      <div className="flex gap-2 mb-3">
+        {(["holdings","sips"] as const).map(t => (
+          <button key={t} onClick={() => setTab(t)}
+            className={`px-4 py-1.5 rounded-lg text-xs font-bold border transition-all ${tab===t?"bg-[#16a34a] text-white border-transparent":l?"bg-white text-gray-600 border-gray-200":"bg-[#0a1826] text-[#5a7a92] border-[#1a2d3f]"}`}>
+            {t==="holdings" ? `Holdings ${holdings.length>0?`(${holdings.length})`:""}` : `Active SIPs ${sips.length>0?`(${sips.length})`:""}`}
+          </button>
+        ))}
+        <button onClick={tab==="holdings"?hRefresh:sRefresh}
+          className={`px-2.5 py-1.5 rounded-lg border flex items-center transition-all ${l?"bg-white text-gray-600 border-gray-200":"bg-[#0a1826] text-[#5a7a92] border-[#1a2d3f]"}`}>
+          <RefreshCw className={`w-3.5 h-3.5 ${(hLoad||sLoad)?"animate-spin":""}`}/>
+        </button>
+      </div>
+
+      {/* ── HOLDINGS TABLE ── */}
+      {tab === "holdings" && (
+        <Card className="overflow-x-auto">
+          <div className={`grid grid-cols-6 px-4 sm:px-5 py-2.5 text-[9px] font-black uppercase tracking-widest ${tx.header(l)} ${tx.t3(l)}`}>
+            <div className="col-span-2">Fund Name</div>
+            <div className="text-right">Units</div>
+            <div className="text-right">Avg NAV</div>
+            <div className="text-right">Cur NAV</div>
+            <div className="text-right">P&amp;L</div>
+          </div>
+          {hLoad
+            ? <div className="p-4 space-y-2">{[...Array(3)].map((_,i) => <Skel key={i} h="h-14"/>)}</div>
+            : holdings.length === 0
+              ? <div className={`p-10 text-center ${tx.t2(l)}`}>
+                  <Package className="w-10 h-10 mx-auto mb-3 opacity-20"/>
+                  <p className="text-sm font-bold">No MF holdings found</p>
+                  <p className="text-xs mt-1 opacity-70">No mutual fund investments in your Zerodha account</p>
+                </div>
+              : holdings.map((h: any, i: number) => {
+                  // Use Kite's pnl field directly — it's the authoritative value
+                  const pnl    = h.pnl ?? ((h.last_price - h.average_price) * h.quantity);
+                  const inv    = h.average_price * h.quantity;
+                  const pnlPct = inv > 0 ? (pnl / inv) * 100 : 0;
+                  return (
+                    <div key={i} className={`grid grid-cols-6 px-4 sm:px-5 py-3 items-center ${i<holdings.length-1?(l?"border-b border-gray-50":"border-b border-[#111e28]"):""} ${l?"hover:bg-gray-50/60":"hover:bg-white/[0.015]"}`}>
+                      <div className="col-span-2">
+                        {/* Kite field: h.fund (fund name), NOT h.fund_name */}
+                        <p className={`font-bold text-xs truncate pr-2 ${tx.t1(l)}`} title={h.fund}>
+                          {h.fund ?? h.tradingsymbol}
+                        </p>
+                        {/* Kite field: h.folio (folio number), NOT h.folio_no */}
+                        <p className={`text-[10px] ${tx.t3(l)}`}>
+                          {h.folio ? `Folio: ${h.folio}` : h.tradingsymbol}
+                          {h.pledged_quantity > 0 && <span className="ml-1 text-amber-500">· Pledged: {h.pledged_quantity}</span>}
+                        </p>
                       </div>
-                      {md.bids.map((b, i) => (
-                        <div key={i} className={`grid grid-cols-2 px-4 py-2 text-sm border-b last:border-0 transition-colors ${isLight ? "border-gray-50 hover:bg-emerald-50/40" : "border-white/5 hover:bg-emerald-900/20"}`}>
-                          <span className="font-bold text-emerald-600">{b.q}</span>
-                          <span className={`text-right font-mono ${isLight ? "text-gray-700" : "text-slate-300"}`}>{b.p}</span>
-                        </div>
-                      ))}
-                    </div>
-                    <div>
-                      <div className="grid grid-cols-2 px-4 py-2 bg-red-50 border-b border-red-100 text-xs font-bold uppercase text-red-600">
-                        <span>Price</span><span className="text-right">Ask Qty</span>
+                      <div className={`text-right text-xs tabular-nums font-semibold ${tx.t1(l)}`}>{fmt(h.quantity, 3)}</div>
+                      <div className={`text-right text-xs tabular-nums ${tx.t2(l)}`}>₹{fmt(h.average_price)}</div>
+                      <div className="text-right">
+                        <p className={`text-xs tabular-nums font-bold ${tx.t1(l)}`}>₹{fmt(h.last_price)}</p>
+                        {h.last_price_date && <p className={`text-[9px] ${tx.t3(l)}`}>{h.last_price_date}</p>}
                       </div>
-                      {md.asks.map((a, i) => (
-                        <div key={i} className={`grid grid-cols-2 px-4 py-2 text-sm border-b last:border-0 transition-colors ${isLight ? "border-gray-50 hover:bg-red-50/40" : "border-white/5 hover:bg-red-900/20"}`}>
-                          <span className={`font-mono ${isLight ? "text-gray-700" : "text-slate-300"}`}>{a.p}</span>
-                          <span className="text-right font-bold text-red-500">{a.q}</span>
+                      <div className="text-right">
+                        {/* Use Kite's pnl directly */}
+                        <p className={`text-xs font-bold ${pnl>=0?"text-emerald-600":"text-red-500"}`}>
+                          {pnl>=0?"+":""}₹{fmtV(Math.abs(pnl))}
+                        </p>
+                        <p className={`text-[10px] ${pnlPct>=0?"text-emerald-500":"text-red-400"}`}>
+                          {pnlPct>=0?"+":""}{pnlPct.toFixed(2)}%
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })
+          }
+        </Card>
+      )}
+
+      {/* ── SIPs TABLE ── */}
+      {tab === "sips" && (
+        <Card className="overflow-x-auto">
+          <div className={`grid grid-cols-6 px-4 sm:px-5 py-2.5 text-[9px] font-black uppercase tracking-widest ${tx.header(l)} ${tx.t3(l)}`}>
+            <div className="col-span-2">Fund Name</div>
+            <div className="text-right">Amount</div>
+            <div className="text-right">Frequency</div>
+            <div className="text-right">Next Date</div>
+            <div className="text-right">Status</div>
+          </div>
+          {sLoad
+            ? <div className="p-4 space-y-2">{[...Array(3)].map((_,i) => <Skel key={i} h="h-14"/>)}</div>
+            : sips.length === 0
+              ? <div className={`p-10 text-center ${tx.t2(l)}`}>
+                  <Package className="w-10 h-10 mx-auto mb-3 opacity-20"/>
+                  <p className="text-sm font-bold">No active SIPs</p>
+                  <p className="text-xs mt-1">Start a SIP on Zerodha Coin to see them here</p>
+                </div>
+              : sips.map((s: any, i: number) => (
+                  <div key={s.sip_id ?? i} className={`grid grid-cols-6 px-4 sm:px-5 py-3 items-center ${i<sips.length-1?(l?"border-b border-gray-50":"border-b border-[#111e28]"):""} ${l?"hover:bg-gray-50/60":"hover:bg-white/[0.015]"}`}>
+                    <div className="col-span-2">
+                      {/* Kite field: s.fund (fund name) */}
+                      <p className={`font-bold text-xs truncate pr-2 ${tx.t1(l)}`} title={s.fund}>{s.fund ?? s.tradingsymbol}</p>
+                      <p className={`text-[10px] ${tx.t3(l)}`}>
+                        Done: {s.completed_instalments ?? 0}
+                        {s.pending_instalments > 0 && s.pending_instalments !== 9999 && ` · Left: ${s.pending_instalments}`}
+                        {s.pending_instalments === -1 && " · Until cancelled"}
+                      </p>
+                    </div>
+                    <div className={`text-right text-xs font-bold tabular-nums ${tx.t1(l)}`}>₹{fmtV(s.instalment_amount)}</div>
+                    <div className={`text-right text-xs capitalize ${tx.t2(l)}`}>{s.frequency}</div>
+                    <div className={`text-right text-xs tabular-nums ${tx.t2(l)}`}>{s.next_instalment ?? "—"}</div>
+                    <div className="text-right">
+                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
+                        s.status === "ACTIVE"
+                          ? l?"bg-emerald-100 text-emerald-700":"bg-emerald-900/25 text-emerald-400"
+                          : s.status === "PAUSED"
+                            ? l?"bg-amber-100 text-amber-700":"bg-amber-900/25 text-amber-400"
+                            : l?"bg-gray-100 text-gray-500":"bg-gray-800/40 text-gray-400"
+                      }`}>{s.status}</span>
+                    </div>
+                  </div>
+                ))
+          }
+        </Card>
+      )}
+    </section>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════
+// ORDERS — Last 7 days orders via /kite/orders
+// ══════════════════════════════════════════════════════════════════
+const ORDER_STATUS_COLORS: Record<string,(l:boolean)=>string> = {
+  COMPLETE:  (l) => l?"bg-emerald-100 text-emerald-700":"bg-emerald-900/25 text-emerald-400",
+  OPEN:      (l) => l?"bg-blue-100 text-blue-700":"bg-blue-900/25 text-blue-400",
+  REJECTED:  (l) => l?"bg-red-100 text-red-600":"bg-red-900/25 text-red-400",
+  CANCELLED: (l) => l?"bg-gray-100 text-gray-500":"bg-gray-800/40 text-gray-400",
+  TRIGGER_PENDING: (l) => l?"bg-amber-100 text-amber-700":"bg-amber-900/25 text-amber-400",
+};
+
+function OrderRow({ o, last }: { o:any; last:boolean }) {
+  const l      = useIL();
+  const isBuy  = o.transaction_type === "BUY";
+  const sc     = ORDER_STATUS_COLORS[o.status] ?? ((l:boolean) => l?"bg-gray-100 text-gray-500":"bg-gray-800/30 text-gray-400");
+  const ts     = o.order_timestamp ? new Date(o.order_timestamp).toLocaleString("en-IN",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit",hour12:true}) : "—";
+
+  return (
+    <div className={`grid grid-cols-8 items-center px-4 sm:px-5 py-3 text-xs
+      ${!last?(l?"border-b border-gray-50":"border-b border-[#111e28]"):""}
+      ${l?"hover:bg-gray-50/60":"hover:bg-white/[0.015]"}`}>
+      {/* Symbol + type */}
+      <div className="col-span-2">
+        <div className="flex items-center gap-1.5">
+          <span className={`font-black text-xs ${tx.t1(l)}`}>{o.tradingsymbol}</span>
+          <span className={`text-[9px] font-black px-1.5 py-0.5 rounded ${isBuy
+            ? l?"bg-emerald-100 text-emerald-700":"bg-emerald-900/20 text-emerald-400"
+            : l?"bg-red-100 text-red-600":"bg-red-900/20 text-red-400"}`}>
+            {o.transaction_type}
+          </span>
+        </div>
+        <p className={`text-[10px] mt-0.5 ${tx.t3(l)}`}>{o.exchange} · {o.product} · {o.order_type}</p>
+      </div>
+
+      {/* Qty */}
+      <div className={`text-right tabular-nums font-semibold ${tx.t1(l)}`}>{o.quantity ?? "—"}</div>
+
+      {/* Price */}
+      <div className={`text-right tabular-nums ${tx.t2(l)}`}>
+        {o.average_price > 0 ? `₹${fmt(o.average_price)}` : o.price > 0 ? `₹${fmt(o.price)}` : "MKT"}
+      </div>
+
+      {/* Amount */}
+      <div className={`text-right tabular-nums hidden sm:block ${tx.t2(l)}`}>
+        {o.average_price > 0 && o.quantity > 0 ? `₹${fmtV(o.average_price * o.quantity)}` : "—"}
+      </div>
+
+      {/* Variety */}
+      <div className={`text-right hidden md:block ${tx.t3(l)}`}>{o.variety}</div>
+
+      {/* Timestamp */}
+      <div className={`text-right text-[10px] hidden sm:block ${tx.t3(l)}`}>{ts}</div>
+
+      {/* Status */}
+      <div className="text-right">
+        <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${sc(l)}`}>{o.status}</span>
+        {o.status_message && o.status !== "COMPLETE" && (
+          <p className={`text-[9px] mt-0.5 truncate max-w-[100px] ml-auto ${tx.t3(l)}`} title={o.status_message}>{o.status_message}</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function OrdersSection() {
+  const l = useIL();
+  const [statusFilter, setStatusFilter] = useState<string>("All");
+  const [txFilter,    setTxFilter]     = useState<string>("All");
+
+  const { data, loading, error, refresh } = useAPI<any[]>("/kite/orders", []);
+
+  const orders: any[] = useMemo(() => Array.isArray(data) ? data : [], [data]);
+
+  const filtered = useMemo(() => {
+    return orders
+      .filter(o => statusFilter === "All" || o.status === statusFilter)
+      .filter(o => txFilter    === "All" || o.transaction_type === txFilter)
+      .sort((a,b) => new Date(b.order_timestamp||0).getTime() - new Date(a.order_timestamp||0).getTime());
+  }, [orders, statusFilter, txFilter]);
+
+  const statusCounts = useMemo(() => {
+    const c: Record<string,number> = {};
+    orders.forEach(o => { c[o.status] = (c[o.status]||0)+1; });
+    return c;
+  }, [orders]);
+
+  const isAuth = !!error && /403|401|token|unauthorized|invalid/i.test(error);
+
+  return (
+    <section className="mb-8">
+      <SecHead id="orders" icon={FileText} title="Orders" sub="Last 7 days · Kite Connect `/orders`"/>
+
+      {isAuth && <KiteBanner msg="Session expired — please login again to view orders"/>}
+
+      {/* Summary pills */}
+      {orders.length > 0 && (
+        <div className="flex flex-wrap gap-2 mb-3">
+          {Object.entries(statusCounts).map(([st, cnt]) => {
+            const sc = ORDER_STATUS_COLORS[st] ?? ((l:boolean) => l?"bg-gray-100 text-gray-500":"bg-gray-800/30 text-gray-400");
+            return (
+              <span key={st} className={`text-[10px] font-bold px-2.5 py-1 rounded-lg ${sc(l)}`}>
+                {st}: {cnt}
+              </span>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Filters */}
+      <div className="flex flex-wrap gap-2 mb-3 items-center">
+        <div className="flex gap-1.5 flex-wrap">
+          {["All","COMPLETE","OPEN","REJECTED","CANCELLED"].map(s => (
+            <button key={s} onClick={() => setStatusFilter(s)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all ${
+                statusFilter===s ? "bg-[#16a34a] text-white border-transparent"
+                  : l?"bg-white text-gray-600 border-gray-200":"bg-[#0a1826] text-[#5a7a92] border-[#1a2d3f]"
+              }`}>{s}</button>
+          ))}
+        </div>
+        <div className="flex gap-1.5 ml-auto">
+          {["All","BUY","SELL"].map(t => (
+            <button key={t} onClick={() => setTxFilter(t)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all ${
+                txFilter===t ? (t==="BUY"?"bg-emerald-600 text-white border-transparent":t==="SELL"?"bg-red-600 text-white border-transparent":"bg-[#16a34a] text-white border-transparent")
+                  : l?"bg-white text-gray-600 border-gray-200":"bg-[#0a1826] text-[#5a7a92] border-[#1a2d3f]"
+              }`}>{t}</button>
+          ))}
+          <button onClick={refresh}
+            className={`px-2.5 py-1.5 rounded-lg border flex items-center ${l?"bg-white text-gray-600 border-gray-200":"bg-[#0a1826] text-[#5a7a92] border-[#1a2d3f]"}`}>
+            <RefreshCw className={`w-3.5 h-3.5 ${loading?"animate-spin":""}`}/>
+          </button>
+        </div>
+      </div>
+
+      {!isAuth && error && (
+        <div className={`mb-3 px-4 py-3 rounded-xl border flex items-center gap-2 text-xs ${l?"bg-red-50 border-red-200 text-red-600":"bg-red-900/15 border-red-800/30 text-red-400"}`}>
+          <AlertCircle className="w-3.5 h-3.5 shrink-0"/>{error}
+          <button onClick={refresh} className="ml-auto underline">Retry</button>
+        </div>
+      )}
+
+      <Card className="overflow-x-auto">
+        <div className={`grid grid-cols-8 px-4 sm:px-5 py-2.5 text-[9px] font-black uppercase tracking-widest ${tx.header(l)} ${tx.t3(l)}`}>
+          <div className="col-span-2">Symbol</div>
+          <div className="text-right">Qty</div>
+          <div className="text-right">Price</div>
+          <div className="text-right hidden sm:block">Amount</div>
+          <div className="text-right hidden md:block">Variety</div>
+          <div className="text-right hidden sm:block">Time</div>
+          <div className="text-right">Status</div>
+        </div>
+        {loading ? (
+          <div className="p-4 space-y-2">{[...Array(5)].map((_,i) => <Skel key={i} h="h-14"/>)}</div>
+        ) : filtered.length === 0 ? (
+          <div className={`p-10 text-center ${tx.t2(l)}`}>
+            <FileText className="w-10 h-10 mx-auto mb-3 opacity-20"/>
+            <p className="text-sm font-bold">No orders found</p>
+            <p className="text-xs mt-1">
+              {orders.length > 0 ? "No orders match current filters" : "No orders placed in the last 7 days"}
+            </p>
+          </div>
+        ) : (
+          filtered.map((o,i) => <OrderRow key={o.order_id ?? i} o={o} last={i===filtered.length-1}/>)
+        )}
+      </Card>
+    </section>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════
+// MARGIN CALCULATOR — User margins + Order margin calculator
+// ══════════════════════════════════════════════════════════════════
+const EXCHANGES   = ["NSE","BSE","NFO","CDS","MCX"] as const;
+const PRODUCTS    = ["CNC","MIS","NRML"] as const;
+const ORDER_TYPES = ["MARKET","LIMIT","SL","SL-M"] as const;
+const VARIETIES   = ["regular","amo","co","iceberg","auction"] as const;
+
+function MarginSection() {
+  const l = useIL();
+
+  // Available user margins
+  const { data: umData, loading: umLoad, error: umErr, refresh: umRefresh } = useAPI<any>("/kite/user/margins", []);
+
+  // Calculator form
+  const [form, setForm]     = useState({
+    exchange: "NSE", tradingsymbol: "", transaction_type: "BUY",
+    variety: "regular", product: "CNC", order_type: "MARKET",
+    quantity: "", price: "", trigger_price: "",
+  });
+  const [result,   setResult]   = useState<any>(null);
+  const [calcLoad, setCalcLoad] = useState(false);
+  const [calcErr,  setCalcErr]  = useState<string|null>(null);
+
+  const equity    = umData?.equity    ?? null;
+  const commodity = umData?.commodity ?? null;
+  const isAuthUM  = !!umErr && /403|401|token|unauthorized|invalid/i.test(umErr);
+
+  const handleCalc = async () => {
+    if (!form.tradingsymbol.trim() || !form.quantity) {
+      setCalcErr("Symbol and Quantity are required"); return;
+    }
+    setCalcLoad(true); setCalcErr(null); setResult(null);
+    try {
+      const r = await fetch(`${BASE}/kite/margins/orders`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify([{
+          exchange:         form.exchange,
+          tradingsymbol:    form.tradingsymbol.toUpperCase().trim(),
+          transaction_type: form.transaction_type,
+          variety:          form.variety,
+          product:          form.product,
+          order_type:       form.order_type,
+          quantity:         Number(form.quantity),
+          price:            Number(form.price)         || 0,
+          trigger_price:    Number(form.trigger_price) || 0,
+        }]),
+      });
+      const j = await r.json();
+      if (!r.ok || j.status === "error") throw new Error(j.message ?? `HTTP ${r.status}`);
+      setResult(j.data?.[0] ?? null);
+    } catch (e:any) { setCalcErr(e.message); }
+    finally { setCalcLoad(false); }
+  };
+
+  const InpCls = `w-full px-3 py-2 rounded-lg border text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-[#16a34a] transition-all ${
+    l ? "bg-white border-gray-200 text-gray-800 placeholder:text-gray-400"
+      : "bg-[#0a1826] border-[#1a2d3f] text-[#e2ecf4] placeholder:text-[#3d5f78]"
+  }`;
+  const SelCls = `w-full px-3 py-2 rounded-lg border text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-[#16a34a] transition-all ${
+    l ? "bg-white border-gray-200 text-gray-800"
+      : "bg-[#0a1826] border-[#1a2d3f] text-[#e2ecf4]"
+  }`;
+
+  return (
+    <section className="mb-8">
+      <SecHead id="margins" icon={Calculator} title="Margin Calculator" sub="Available Cash · Order Margin · Charges Breakdown"/>
+
+      {/* ── Available Margins ── */}
+      <div className="mb-5">
+        <div className="flex items-center justify-between mb-3">
+          <p className={`text-xs font-black uppercase tracking-widest ${tx.t3(l)}`}>Available Margins</p>
+          <button onClick={umRefresh}
+            className={`px-2.5 py-1.5 rounded-lg border flex items-center gap-1.5 text-xs ${l?"bg-white text-gray-600 border-gray-200":"bg-[#0a1826] text-[#5a7a92] border-[#1a2d3f]"}`}>
+            <RefreshCw className={`w-3 h-3 ${umLoad?"animate-spin":""}`}/> Refresh
+          </button>
+        </div>
+
+        {isAuthUM && <KiteBanner msg="Session expired — please login again to view margins"/>}
+
+        {umLoad ? (
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {[...Array(4)].map((_,i) => <Skel key={i} h="h-16"/>)}
+          </div>
+        ) : (equity || commodity) ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {[["Equity", equity], ["Commodity", commodity]].filter(([,d]) => d).map(([seg, d]: any) => (
+              <Card key={seg} className="overflow-hidden">
+                <div className={`px-4 py-2.5 border-b flex items-center justify-between ${l?"border-gray-100 bg-gray-50":"border-[#1a2d3f] bg-[#081017]"}`}>
+                  <span className={`text-xs font-black uppercase tracking-wider ${tx.t1(l)}`}>{seg}</span>
+                  {d.enabled ? (
+                    <span className={`text-[9px] font-black px-1.5 py-0.5 rounded ${l?"bg-emerald-100 text-emerald-700":"bg-emerald-900/20 text-emerald-400"}`}>ENABLED</span>
+                  ) : (
+                    <span className={`text-[9px] font-black px-1.5 py-0.5 rounded ${l?"bg-red-100 text-red-600":"bg-red-900/20 text-red-400"}`}>DISABLED</span>
+                  )}
+                </div>
+                <div className="p-3 grid grid-cols-2 gap-2">
+                  {[
+                    { label:"Net",           val: d.net,                          cls:"text-emerald-500 text-base font-black" },
+                    { label:"Cash",          val: d.available?.cash,              cls:tx.t1(l)+" text-sm font-bold" },
+                    { label:"Collateral",    val: d.available?.collateral,        cls:tx.t1(l) },
+                    { label:"Intraday Payin",val: d.available?.intraday_payin,   cls:tx.t1(l) },
+                    { label:"Debits Used",   val: d.utilised?.debits,             cls:"text-red-500" },
+                    { label:"Span",          val: d.utilised?.span,               cls:tx.t2(l) },
+                    { label:"Exposure",      val: d.utilised?.exposure,           cls:tx.t2(l) },
+                    { label:"Option Premium",val: d.utilised?.option_premium,    cls:tx.t2(l) },
+                  ].map(({ label, val, cls }) => val != null ? (
+                    <div key={label} className={`rounded-lg border px-3 py-2 ${l?"bg-gray-50 border-gray-100":"bg-[#0a1826] border-[#1a2d3f]"}`}>
+                      <p className={`text-[9px] font-black uppercase tracking-wider mb-1 ${tx.t3(l)}`}>{label}</p>
+                      <p className={`tabular-nums text-xs ${cls}`}>₹{fmt(val)}</p>
+                    </div>
+                  ) : null)}
+                </div>
+              </Card>
+            ))}
+          </div>
+        ) : !isAuthUM && !umLoad && (
+          <Card className="p-6 text-center">
+            <ShieldCheck className={`w-8 h-8 mx-auto mb-2 opacity-30 ${tx.t3(l)}`}/>
+            <p className={`text-sm font-bold ${tx.t2(l)}`}>No margin data available</p>
+          </Card>
+        )}
+      </div>
+
+      {/* ── Order Margin Calculator ── */}
+      <Card className="overflow-hidden">
+        <div className={`px-4 sm:px-5 py-3 border-b flex items-center gap-2 ${tx.header(l)}`}>
+          <DollarSign className="w-4 h-4 text-[#16a34a]"/>
+          <span className={`text-sm font-black ${tx.t1(l)}`}>Order Margin Calculator</span>
+          <span className={`text-[10px] ml-1 ${tx.t3(l)}`}>Kite Connect POST `/margins/orders`</span>
+        </div>
+        <div className="p-4 sm:p-5">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mb-4">
+            {/* Symbol */}
+            <div className="sm:col-span-2">
+              <label className={`block text-[10px] font-black uppercase tracking-wider mb-1.5 ${tx.t3(l)}`}>Symbol *</label>
+              <input
+                value={form.tradingsymbol}
+                onChange={e => setForm(f => ({ ...f, tradingsymbol: e.target.value.toUpperCase() }))}
+                placeholder="e.g. INFY, RELIANCE"
+                className={InpCls}
+              />
+            </div>
+
+            {/* Exchange */}
+            <div>
+              <label className={`block text-[10px] font-black uppercase tracking-wider mb-1.5 ${tx.t3(l)}`}>Exchange</label>
+              <select value={form.exchange} onChange={e => setForm(f => ({ ...f, exchange: e.target.value }))} className={SelCls}>
+                {EXCHANGES.map(e => <option key={e}>{e}</option>)}
+              </select>
+            </div>
+
+            {/* Transaction Type */}
+            <div>
+              <label className={`block text-[10px] font-black uppercase tracking-wider mb-1.5 ${tx.t3(l)}`}>Buy / Sell</label>
+              <select value={form.transaction_type} onChange={e => setForm(f => ({ ...f, transaction_type: e.target.value }))} className={SelCls}>
+                <option value="BUY">BUY</option>
+                <option value="SELL">SELL</option>
+              </select>
+            </div>
+
+            {/* Product */}
+            <div>
+              <label className={`block text-[10px] font-black uppercase tracking-wider mb-1.5 ${tx.t3(l)}`}>Product</label>
+              <select value={form.product} onChange={e => setForm(f => ({ ...f, product: e.target.value }))} className={SelCls}>
+                {PRODUCTS.map(p => <option key={p}>{p}</option>)}
+              </select>
+            </div>
+
+            {/* Order Type */}
+            <div>
+              <label className={`block text-[10px] font-black uppercase tracking-wider mb-1.5 ${tx.t3(l)}`}>Order Type</label>
+              <select value={form.order_type} onChange={e => setForm(f => ({ ...f, order_type: e.target.value }))} className={SelCls}>
+                {ORDER_TYPES.map(o => <option key={o}>{o}</option>)}
+              </select>
+            </div>
+
+            {/* Variety */}
+            <div>
+              <label className={`block text-[10px] font-black uppercase tracking-wider mb-1.5 ${tx.t3(l)}`}>Variety</label>
+              <select value={form.variety} onChange={e => setForm(f => ({ ...f, variety: e.target.value }))} className={SelCls}>
+                {VARIETIES.map(v => <option key={v}>{v}</option>)}
+              </select>
+            </div>
+
+            {/* Quantity */}
+            <div>
+              <label className={`block text-[10px] font-black uppercase tracking-wider mb-1.5 ${tx.t3(l)}`}>Quantity *</label>
+              <input
+                type="number" min="1" value={form.quantity}
+                onChange={e => setForm(f => ({ ...f, quantity: e.target.value }))}
+                placeholder="e.g. 10"
+                className={InpCls}
+              />
+            </div>
+
+            {/* Price */}
+            <div>
+              <label className={`block text-[10px] font-black uppercase tracking-wider mb-1.5 ${tx.t3(l)}`}>Price <span className={tx.t3(l)}>(0 = MARKET)</span></label>
+              <input
+                type="number" min="0" step="0.05" value={form.price}
+                onChange={e => setForm(f => ({ ...f, price: e.target.value }))}
+                placeholder="0"
+                className={InpCls}
+              />
+            </div>
+
+            {/* Trigger Price */}
+            {(form.order_type === "SL" || form.order_type === "SL-M") && (
+              <div>
+                <label className={`block text-[10px] font-black uppercase tracking-wider mb-1.5 ${tx.t3(l)}`}>Trigger Price</label>
+                <input
+                  type="number" min="0" step="0.05" value={form.trigger_price}
+                  onChange={e => setForm(f => ({ ...f, trigger_price: e.target.value }))}
+                  placeholder="0"
+                  className={InpCls}
+                />
+              </div>
+            )}
+          </div>
+
+          {calcErr && (
+            <div className={`mb-3 px-3 py-2.5 rounded-lg border flex items-center gap-2 text-xs ${l?"bg-red-50 border-red-200 text-red-600":"bg-red-900/15 border-red-800/30 text-red-400"}`}>
+              <AlertCircle className="w-3.5 h-3.5 shrink-0"/>{calcErr}
+            </div>
+          )}
+
+          <button
+            onClick={handleCalc} disabled={calcLoad}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-xs font-black bg-[#16a34a] text-white hover:bg-[#15803d] transition-colors disabled:opacity-60">
+            {calcLoad ? <RefreshCw className="w-3.5 h-3.5 animate-spin"/> : <Send className="w-3.5 h-3.5"/>}
+            {calcLoad ? "Calculating…" : "Calculate Margin"}
+          </button>
+
+          {/* Result */}
+          {result && (
+            <div className="mt-5">
+              <div className={`rounded-xl border p-4 ${l?"bg-emerald-50 border-emerald-200":"bg-emerald-900/10 border-emerald-800/30"}`}>
+                <p className={`text-[10px] font-black uppercase tracking-widest mb-3 ${l?"text-emerald-700":"text-emerald-400"}`}>
+                  Margin Required · {result.tradingsymbol} · {result.exchange}
+                </p>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
+                  {[
+                    { label:"Total Margin", val: result.total,          cls:"text-emerald-600 text-base font-black" },
+                    { label:"SPAN",         val: result.span,           cls:tx.t1(l)+" font-bold" },
+                    { label:"Exposure",     val: result.exposure,       cls:tx.t1(l) },
+                    { label:"VAR",          val: result.var,            cls:tx.t1(l) },
+                    { label:"Leverage",     val: null, raw: result.leverage ? `${result.leverage}x` : null, cls:"text-blue-500 font-bold" },
+                    { label:"Opt Premium",  val: result.option_premium, cls:tx.t2(l) },
+                    { label:"Additional",   val: result.additional,     cls:tx.t2(l) },
+                    { label:"Cash Credit",  val: result.cash,           cls:"text-emerald-600" },
+                  ].map(({ label, val, raw, cls }) => (
+                    <div key={label} className={`rounded-lg border px-3 py-2 ${l?"bg-white border-gray-100":"bg-[#0c1821] border-[#1a2d3f]"}`}>
+                      <p className={`text-[9px] font-black uppercase tracking-wider mb-1 ${tx.t3(l)}`}>{label}</p>
+                      <p className={`tabular-nums text-xs ${cls}`}>
+                        {raw ?? (val != null && val !== 0 ? `₹${fmt(val)}` : "—")}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Charges breakdown */}
+                {result.charges && (
+                  <>
+                    <p className={`text-[10px] font-black uppercase tracking-widest mb-2 ${tx.t3(l)}`}>Charges Breakdown</p>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+                      {[
+                        { label:"Total Charges",     val: result.charges.total,                     cls:"text-red-500 font-bold" },
+                        { label:"Brokerage",         val: result.charges.brokerage,                 cls:tx.t1(l) },
+                        { label:`${(result.charges.transaction_tax_type??'STT').toUpperCase()} / CTT`,
+                                                     val: result.charges.transaction_tax,           cls:tx.t2(l) },
+                        { label:"Exch Turnover",     val: result.charges.exchange_turnover_charge,  cls:tx.t2(l) },
+                        { label:"SEBI Charge",       val: result.charges.sebi_turnover_charge,      cls:tx.t2(l) },
+                        { label:"Stamp Duty",        val: result.charges.stamp_duty,                cls:tx.t2(l) },
+                        { label:"GST Total",         val: result.charges.gst?.total,                cls:tx.t2(l) },
+                      ].map(({ label, val, cls }) => val != null ? (
+                        <div key={label} className={`rounded-lg border px-3 py-2 ${l?"bg-white border-gray-100":"bg-[#0c1821] border-[#1a2d3f]"}`}>
+                          <p className={`text-[9px] font-black uppercase tracking-wider mb-1 ${tx.t3(l)}`}>{label}</p>
+                          <p className={`tabular-nums text-xs ${cls}`}>₹{fmt(val, 4)}</p>
                         </div>
-                      ))}
+                      ) : null)}
                     </div>
-                  </div>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      </Card>
+    </section>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════
+// MAIN
+// ══════════════════════════════════════════════════════════════════
+export default function DomesticView() {
+  const l   = useIL();
+  const [now, setNow]           = useState(new Date());
+  const [activeNav, setActiveNav] = useState("overview");
+  const [sidebar, setSidebar]   = useState(false);
+  const [searchResult, setSearchResult] = useState<typeof SEARCH_CATALOGUE[0] | null>(null);
+
+  const { ticks: rawTicks, connected, wsError } = useKiteTicks();
+  const ticks = useThrottledTicks(rawTicks, 2000);
+  const instrCount = useMemo(() => Object.keys(ticks).length, [ticks]);
+
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  useEffect(() => {
+    const ids = NAV_SECTIONS.map(s => s.id);
+    const h = () => {
+      for (const id of [...ids].reverse()) {
+        const el = document.getElementById(id);
+        if (el && el.getBoundingClientRect().top <= 120) { setActiveNav(id); break; }
+      }
+    };
+    window.addEventListener("scroll", h, { passive:true });
+    return () => window.removeEventListener("scroll", h);
+  }, []);
+
+  const mktOpen = (() => { const m=now.getHours()*60+now.getMinutes(); return m>=555&&m<930; })();
+
+  return (
+    <Layout>
+      <style>{`html{scroll-behavior:smooth}`}</style>
+      <div className={`min-h-screen ${tx.bg(l)}`}>
+
+        <TickerBar rawTicks={rawTicks}/>
+
+        {/* Top bar */}
+        <div className={`sticky top-0 z-20 ${tx.topbar(l)}`}>
+          <div className="max-w-[1600px] mx-auto px-4 sm:px-6 py-2 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <button className="lg:hidden p-1.5 rounded-lg border transition-colors"
+                style={{ borderColor:l?"#e5e7eb":"#1a2d3f", background:l?"#f9fafb":"rgba(255,255,255,0.03)" }}
+                onClick={() => setSidebar(v=>!v)}>
+                {sidebar ? <X className={`w-4 h-4 ${tx.t1(l)}`}/> : <Menu className={`w-4 h-4 ${tx.t1(l)}`}/>}
+              </button>
+              <span className={`text-[9px] font-black px-2 py-1 rounded-md border ${
+                mktOpen&&connected
+                  ? l?"bg-emerald-50 border-emerald-200 text-emerald-700":"bg-emerald-900/15 border-emerald-800/30 text-emerald-400"
+                  : l?"bg-gray-50 border-gray-100 text-gray-400":"bg-[#1a2d3f]/40 border-[#1a2d3f] text-[#3d5f78]"
+              }`}>{mktOpen?(connected?"● LIVE":"○ CONNECTING…"):"MARKET CLOSED"}</span>
+              <h1 className={`text-sm font-black hidden sm:block ${tx.t1(l)}`}>
+                Indian Markets <span className={`font-normal ml-1 text-xs ${tx.t2(l)}`}>Pro Dashboard</span>
+              </h1>
+            </div>
+            {/* ── Search bar ── */}
+            <SearchBar rawTicks={rawTicks} onResult={setSearchResult}/>
+            <div className="flex items-center gap-2">
+              {connected && instrCount>0 && (
+                <div className={`flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-md border ${l?"bg-emerald-50 border-emerald-200 text-emerald-700":"bg-emerald-900/15 border-emerald-800/30 text-emerald-400"}`}>
+                  <Activity className="w-3 h-3"/>
+                  <span className="hidden sm:inline">{instrCount} instruments</span>
                 </div>
-              ))}
-            </div>
-          </section>
-
-          {/* ── CORPORATE ACTIONS ───────────────────────────────── */}
-          <section className="mb-12">
-            <SectionLabel icon={CalendarDays} isLight={isLight}>Corporate Actions</SectionLabel>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {CORP_ACTIONS.map((ca, i) => {
-                const COLOR: Record<string, string> = { Dividend: "bg-blue-50 text-blue-700 border-blue-200", Buyback: "bg-purple-50 text-purple-700 border-purple-200", Bonus: "bg-amber-50 text-amber-700 border-amber-200", Split: "bg-teal-50 text-teal-700 border-teal-200" };
-                const c = COLOR[ca.action] || "bg-gray-50 text-gray-600 border-gray-100";
-                return (
-                  <div key={i} className={`rounded-xl border p-4 transition-all duration-150 ${isLight ? "bg-white border-gray-100 hover:border-gray-200 hover:shadow-sm" : "bg-[#0e2038] border-white/8 hover:border-white/15"}`}>
-                    <div className="flex items-center gap-2 flex-wrap mb-3">
-                      <span className={`px-2.5 py-0.5 text-[11px] font-extrabold rounded-full border ${c}`}>{ca.action}</span>
-                      <span className={`ml-auto text-xs font-medium ${isLight ? "text-gray-300" : "text-slate-600"}`}>Ex: {ca.exDate}</span>
-                    </div>
-                    <p className={`font-extrabold mb-1 ${isLight ? "text-gray-900" : "text-slate-100"}`}>{ca.name}</p>
-                    <p className={`text-sm ${isLight ? "text-gray-500" : "text-slate-400"}`}>{ca.detail}</p>
-                  </div>
-                );
-              })}
-            </div>
-          </section>
-
-          {/* ── NOT-YET-AVAILABLE DATA ──────────────────────────── */}
-          <section className="mb-12">
-            <SectionLabel icon={Info} isLight={isLight}>Data Pending External Sources</SectionLabel>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {[
-                { label: "India VIX",            src: "nseindia.com",            desc: "Fear gauge — not in Zerodha API" },
-                { label: "FII / DII Activity",   src: "nseindia.com/market-data",desc: "Institutional flow data" },
-                { label: "Market Breadth (A/D)", src: "nseindia.com/market-data",desc: "Advance–Decline ratio" },
-                { label: "Macro Data (CPI/GDP)", src: "rbi.org.in",              desc: "Fundamental economic indicators" },
-              ].map((item) => (
-                <div key={item.label} className={`rounded-xl border border-dashed p-4 flex flex-col gap-2 ${isLight ? "border-gray-200 bg-gray-50" : "border-white/10 bg-white/5"}`}>
-                  <div className="w-8 h-8 rounded-lg bg-amber-50 border border-amber-100 flex items-center justify-center">
-                    <Info className="w-4 h-4 text-amber-500" />
-                  </div>
-                  <p className={`font-bold text-sm ${isLight ? "text-gray-700" : "text-slate-300"}`}>{item.label}</p>
-                  <p className={`text-xs leading-relaxed ${isLight ? "text-gray-400" : "text-slate-500"}`}>{item.desc}</p>
-                  <span className="text-[10px] font-bold text-amber-600 bg-amber-50 border border-amber-100 rounded px-1.5 py-0.5 w-fit">{item.src}</span>
+              )}
+              {!connected && (
+                <div className={`flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-md border ${l?"bg-red-50 border-red-200 text-red-600":"bg-red-900/15 border-red-800/30 text-red-400"}`}>
+                  <WifiOff className="w-3 h-3"/><span className="hidden sm:inline">Disconnected</span>
                 </div>
-              ))}
+              )}
+              <div className={`flex items-center gap-1 text-[10px] ${tx.t3(l)}`}>
+                <Clock className="w-3 h-3"/>
+                <span className="tabular-nums hidden sm:inline">{now.toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:true})} IST</span>
+              </div>
+              {wsError && <span className="text-[10px] text-red-500 hidden md:inline">⚠ {wsError}</span>}
             </div>
-          </section>
+          </div>
+        </div>
 
-       
+        <div className="max-w-[1600px] mx-auto flex">
+          {/* Sidebar — hidden on mobile by default */}
+          <aside className={`fixed lg:sticky top-[49px] h-[calc(100vh-49px)] w-52 shrink-0 z-10 transition-transform duration-200 overflow-y-auto ${tx.sidebar(l)} ${sidebar?"translate-x-0":"-translate-x-full lg:translate-x-0"}`}>
+            <SideNav active={activeNav} onSelect={id => { setActiveNav(id); setSidebar(false); }} ticks={ticks} connected={connected}/>
+          </aside>
+          {sidebar && <div className="fixed inset-0 bg-black/50 z-[9] lg:hidden" onClick={() => setSidebar(false)}/>}
 
+          <main className="flex-1 min-w-0 px-4 sm:px-6 lg:px-8 pt-5 pb-12 max-w-5xl">
+            {/* Search result — shown when user searches */}
+            {searchResult && (
+              <SearchResultCard
+                item={searchResult}
+                onClose={() => setSearchResult(null)}
+                rawTicks={rawTicks}
+              />
+            )}
+
+            {/* Overview 6 cards */}
+            <div id="overview" className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-2 mb-8 scroll-mt-24">
+              {INDICES.map(idx => <IdxCard key={idx.key} idx={idx} tick={ticks[idx.key]}/>)}
+            </div>
+
+            <IndicesSection   ticks={ticks} connected={connected}/>
+            <StocksSection    ticks={ticks}/>
+            <DepthSection     ticks={ticks}/>
+            <OptionsSection   ticks={ticks}/>
+            <HistoricalSection/>
+            <CorporateSection/>
+            <PortfolioSection ticks={ticks}/>
+            <MFSection/>
+            <OrdersSection/>
+            <MarginSection/>
+          </main>
         </div>
       </div>
     </Layout>
