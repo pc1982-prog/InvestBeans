@@ -8,15 +8,15 @@ const Footer = () => {
   // ── Theme-aware class helpers ───────────────────────────────────────────
   const footerBg = isLight
     ? "bg-gradient-to-br from-[#dce8f7] to-[#e8f2fd] text-navy py-16 relative overflow-hidden"
-    : "bg-gradient-to-br from-navy to-navy-light text-white py-16 relative overflow-hidden";
+    : "bg-gradient-to-br from-[#101528] to-[#1C395B] text-white py-16 relative overflow-hidden";
 
   const blob1 = isLight
     ? "absolute top-0 left-0 w-96 h-96 bg-blue-300/20 rounded-full blur-3xl"
-    : "absolute top-0 left-0 w-96 h-96 bg-accent/5 rounded-full blur-3xl";
+    : "absolute top-0 left-0 w-96 h-96 bg-[#4E91F6]/5 rounded-full blur-3xl";
 
   const blob2 = isLight
     ? "absolute bottom-0 right-0 w-96 h-96 bg-indigo-300/20 rounded-full blur-3xl"
-    : "absolute bottom-0 right-0 w-96 h-96 bg-accent/5 rounded-full blur-3xl";
+    : "absolute bottom-0 right-0 w-96 h-96 bg-[#4E91F6]/5 rounded-full blur-3xl";
 
   const disclaimerText = isLight
     ? "text-sm md:text-base text-left leading-relaxed text-navy/80"
@@ -31,16 +31,16 @@ const Footer = () => {
     : "text-sm text-white/85 leading-relaxed mb-6 max-w-md";
 
   const socialBtnCls = isLight
-    ? "w-10 h-10 bg-navy/10 hover:bg-accent rounded-lg flex items-center justify-center transition-all hover:scale-110 text-navy hover:text-white"
-    : "w-10 h-10 bg-white/10 hover:bg-accent rounded-lg flex items-center justify-center transition-all hover:scale-110";
+    ? "w-10 h-10 bg-navy/10 hover:bg-[#4E91F6] rounded-lg flex items-center justify-center transition-all hover:scale-110 text-navy hover:text-white"
+    : "w-10 h-10 bg-white/10 hover:bg-[#4E91F6] rounded-lg flex items-center justify-center transition-all hover:scale-110";
 
   const sectionHeadingCls = isLight
-    ? "text-lg font-semibold mb-4 text-accent"
-    : "text-lg font-semibold mb-4 text-accent";
+    ? "text-lg font-semibold mb-4 text-[#4E91F6]"
+    : "text-lg font-semibold mb-4 text-[#4E91F6]";
 
   const linkCls = isLight
-    ? "text-navy/65 hover:text-accent transition-all hover:translate-x-1 inline-block"
-    : "text-white/80 hover:text-white hover:text-accent transition-all hover:translate-x-1 inline-block";
+    ? "text-navy/65 hover:text-[#4E91F6] transition-all hover:translate-x-1 inline-block"
+    : "text-white/80 hover:text-white hover:text-[#4E91F6] transition-all hover:translate-x-1 inline-block";
 
   const borderTopCls = isLight
     ? "border-t border-navy/15 pt-8"
@@ -58,7 +58,7 @@ const Footer = () => {
       {/* Disclaimer Section */}
       <div className="container mx-auto px-6 mb-6 relative z-15">
         <p className={disclaimerText}>
-          <span className="font-bold text-accent">Disclaimer:</span> InvestBeans provides educational content only and does not offer personalized investment advice.
+          <span className="font-bold text-[#4E91F6]">Disclaimer:</span> InvestBeans provides educational content only and does not offer personalized investment advice.
           All trading and investing decisions are the sole responsibility of the individual.
           Investments in financial markets are subject to risk, and past performance does not indicate future results.
         </p>
@@ -118,7 +118,7 @@ const Footer = () => {
       href="https://www.strategixworks.com/"
       target="_blank"
       rel="noopener noreferrer"
-      className="font-bold tracking-wide hover:underline transition-all duration-200 text-accent "
+      className="font-bold tracking-wide hover:underline transition-all duration-200 text-[#4E91F6] "
     >
       Strategix
     </a> — Delivering intelligent digital solutions.

@@ -87,48 +87,48 @@ export default function BeansOfWisdomView() {
   const sectionHeadingColor = isLight ? "#0d1b2a" : "white";
   const sectionSubColor     = isLight ? "rgba(13,37,64,0.55)" : "rgba(203,213,225,1)";
 
-  const cardWrapBorder  = isLight ? "1px solid rgba(13,37,64,0.12)" : "1px solid #334155";
+  const cardWrapBorder  = isLight ? "1px solid rgba(13,37,64,0.12)" : "1px solid rgba(81,148,246,0.2)";
   const cardWrapBg      = isLight ? "#f0f7fe" : "#0F172A";
-  const cardWrapShadow  = isLight ? "0 8px 32px rgba(13,37,64,0.08)" : "0 8px 32px rgba(0,0,0,0.2)";
+  const cardWrapShadow  = isLight ? "0 8px 32px rgba(13,37,64,0.08)" : "0 8px 32px rgba(0,0,0,0.35)";
 
   const leftColBg       = isLight ? "#dce8f7" : "#1E293B";
-  const dividerColor    = isLight ? "rgba(13,37,64,0.08)" : "rgba(255,255,255,0.07)";
+  const dividerColor    = isLight ? "rgba(13,37,64,0.08)" : "rgba(81,148,246,0.1)";
 
-  const badgeBg         = isLight ? "rgba(13,37,64,0.06)" : "rgba(255,255,255,0.05)";
-  const badgeBorder     = isLight ? "1px solid rgba(13,37,64,0.1)" : "1px solid rgba(255,255,255,0.1)";
+  const badgeBg         = isLight ? "rgba(13,37,64,0.06)" : "rgba(81,148,246,0.08)";
+  const badgeBorder     = isLight ? "1px solid rgba(13,37,64,0.1)" : "1px solid rgba(81,148,246,0.18)";
   const badgeTextColor  = isLight ? "rgba(13,37,64,0.65)" : "rgba(255,255,255,0.85)";
 
   const heroTitleColor    = isLight ? "#0d1b2a" : "white";
   const heroSubtitleColor = isLight ? "rgba(13,37,64,0.55)" : "rgba(255,255,255,0.60)";
 
-  const tagBg     = isLight ? "rgba(13,37,64,0.07)" : "rgba(255,255,255,0.08)";
-  const tagBorder = isLight ? "1px solid rgba(13,37,64,0.1)" : "1px solid rgba(255,255,255,0.12)";
-  const tagColor  = isLight ? "rgba(13,37,64,0.6)" : "rgba(255,255,255,0.70)";
+  const tagBg     = isLight ? "rgba(13,37,64,0.07)" : "rgba(81,148,246,0.1)";
+  const tagBorder = isLight ? "1px solid rgba(13,37,64,0.1)" : "1px solid rgba(81,148,246,0.2)";
+  const tagColor  = isLight ? "rgba(13,37,64,0.6)" : "rgba(129,174,249,1)";
 
-  const descIconBg     = isLight ? "rgba(13,37,64,0.06)" : "rgba(255,255,255,0.05)";
+  const descIconBg     = isLight ? "rgba(13,37,64,0.06)" : "rgba(81,148,246,0.08)";
   const descIconBorder = isLight ? "1px solid rgba(13,37,64,0.1)" : "1px solid rgba(255,255,255,0.10)";
   const descTextColor  = isLight ? "rgba(13,37,64,0.60)" : "rgba(255,255,255,0.60)";
 
-  const keyPrincipleBg         = isLight ? "#c8ddf5" : "#334155";
+  const keyPrincipleBg         = isLight ? "#c8ddf5" : "rgba(81,148,246,0.12)";
   const keyPrincipleBorderClr  = isLight ? "rgba(13,37,64,0.1)" : "#1E293B";
   const keyPrincipleTextColor  = isLight ? "#0d1b2a" : "white";
 
   const insightPanelBg     = isLight ? "#dce8f7" : "#1E293B";
-  const insightPanelBorder = isLight ? "rgba(13,37,64,0.08)" : "#334155";
-  const insightIconBg      = isLight ? "rgba(245,158,11,0.1)" : "rgba(245,158,11,0.12)";
-  const insightIconBorder  = isLight ? "1px solid rgba(245,158,11,0.2)" : "1px solid rgba(245,158,11,0.20)";
+  const insightPanelBorder = isLight ? "rgba(13,37,64,0.08)" : "#1C3656";
+  const insightIconBg      = isLight ? "rgba(81,148,246,0.12)" : "rgba(81,148,246,0.12)";
+  const insightIconBorder  = isLight ? "1px solid rgba(81,148,246,0.22)" : "1px solid rgba(81,148,246,0.22)";
   const insightTextColor   = isLight ? "rgba(13,37,64,0.65)" : "rgba(203,213,225,1)";
 
   const quotePanelBg   = isLight ? "#dce8f7" : "#1E293B";
-  const quoteTextColor = isLight ? "rgba(13,37,64,0.60)" : "rgba(255,255,255,0.70)";
+  const quoteTextColor = isLight ? "rgba(13,37,64,0.60)" : "rgba(129,174,249,1)";
 
   const errorBg     = isLight ? "rgba(220,38,38,0.05)" : "rgba(220,38,38,0.1)";
   const errorBorder = isLight ? "1px solid rgba(220,38,38,0.2)" : "1px solid rgba(239,68,68,0.5)";
   const errorColor  = isLight ? "#991b1b" : "rgba(252,165,165,1)";
 
-  const emptyIconColor = "#F59E0B";
+  const emptyIconColor = "#5194F6";
   const emptyTextColor = isLight ? "rgba(13,37,64,0.45)" : "rgba(148,163,184,1)";
-  const spinnerColor   = isLight ? "#D97706" : "#F59E0B";
+  const spinnerColor   = isLight ? "#3a7de8" : "#5194F6";
 
   /* ── Loading ── */
   if (authLoading || loading) {
@@ -166,17 +166,17 @@ export default function BeansOfWisdomView() {
         {/* ════ SECTION HEADER ════ */}
         <div className="mb-5 lg:mb-8 text-center">
           <div className="flex items-center justify-center gap-2 mb-1.5">
-            <div className="w-1 h-4 rounded-full bg-[#F59E0B]" />
-            <span className="text-xs font-bold text-[#F59E0B] tracking-[0.2em] uppercase">
+            <div className="w-1 h-4 rounded-full bg-[#5194F6]" />
+            <span className="text-xs font-bold text-[#5194F6] tracking-[0.2em] uppercase">
               Weekly Edition
             </span>
-            <div className="w-1 h-4 rounded-full bg-[#F59E0B]" />
+            <div className="w-1 h-4 rounded-full bg-[#5194F6]" />
           </div>
           <h2
             className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight leading-none"
             style={{ color: sectionHeadingColor }}
           >
-            Beans of <span className="text-[#F59E0B]">Wisdom</span>
+            Beans of <span className="text-[#5194F6]">Wisdom</span>
           </h2>
           <p className="text-sm mt-2 max-w-md mx-auto" style={{ color: sectionSubColor }}>
             Curated market insight, delivered every week.
@@ -186,7 +186,7 @@ export default function BeansOfWisdomView() {
             <div className="flex items-center justify-center gap-2.5 mt-4">
               <button
                 onClick={() => setShowEditForm(true)}
-                className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-bold text-[#0F172A] bg-[#F59E0B] hover:bg-[#D97706] rounded-xl transition-colors shadow-sm"
+                className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-bold text-white bg-[#5194F6] hover:bg-[#D97706] rounded-xl transition-colors shadow-sm"
               >
                 <Edit3 className="w-3.5 h-3.5" /> Edit
               </button>
@@ -218,7 +218,7 @@ export default function BeansOfWisdomView() {
           style={{ border: cardWrapBorder, boxShadow: cardWrapShadow, background: cardWrapBg }}
         >
           {/* Top strip */}
-          <div style={{ height: 3, background: "linear-gradient(90deg,#F59E0B,rgba(245,158,11,0.5),transparent)" }} />
+          <div style={{ height: 3, background: "linear-gradient(90deg,#5194F6,rgba(81,148,246,0.5),transparent)" }} />
 
           {/* ── MOBILE LAYOUT: stacked, everything compact ── */}
           <div className="lg:hidden">
@@ -229,7 +229,7 @@ export default function BeansOfWisdomView() {
                 className="inline-flex items-center gap-2 rounded-full px-3 py-1 mb-4 w-fit"
                 style={{ background: badgeBg, border: badgeBorder }}
               >
-                <span className="bow-dot w-2 h-2 rounded-full bg-[#F59E0B] block" />
+                <span className="bow-dot w-2 h-2 rounded-full bg-[#5194F6] block" />
                 <span className="text-[10px] font-bold tracking-[0.18em] uppercase" style={{ color: badgeTextColor }}>
                   Today's Wisdom
                 </span>
@@ -237,7 +237,7 @@ export default function BeansOfWisdomView() {
               <h3 className="text-2xl font-extrabold leading-tight tracking-tight" style={{ color: heroTitleColor }}>
                 {bean.title}
               </h3>
-              <div className="bow-line-anim mt-3 mb-3" style={{ height: 3, width: 40, background: "linear-gradient(90deg,#F59E0B,rgba(245,158,11,0.4))", borderRadius: 2 }} />
+              <div className="bow-line-anim mt-3 mb-3" style={{ height: 3, width: 40, background: "linear-gradient(90deg,#5194F6,rgba(81,148,246,0.4))", borderRadius: 2 }} />
               {bean.subtitle && (
                 <p className="text-[13px] leading-relaxed" style={{ color: heroSubtitleColor }}>
                   {bean.subtitle}
@@ -249,11 +249,11 @@ export default function BeansOfWisdomView() {
             {(bean.sectionTitle || bean.description) && (
               <div className="px-5 py-4 flex gap-3" style={{ background: leftColBg, borderTop: `1px solid ${dividerColor}` }}>
                 <div className="flex-shrink-0 w-8 h-8 rounded-xl flex items-center justify-center mt-0.5" style={{ background: descIconBg, border: descIconBorder }}>
-                  <Sparkles className="w-3.5 h-3.5 text-[#F59E0B]" />
+                  <Sparkles className="w-3.5 h-3.5 text-[#5194F6]" />
                 </div>
                 <div className="flex-1 min-w-0">
                   {bean.sectionTitle && (
-                    <p className="text-[10px] font-extrabold uppercase tracking-[0.22em] text-[#F59E0B] mb-1">{bean.sectionTitle}</p>
+                    <p className="text-[10px] font-extrabold uppercase tracking-[0.22em] text-[#5194F6] mb-1">{bean.sectionTitle}</p>
                   )}
                   {bean.description && (
                     <p className="text-[12.5px] leading-relaxed" style={{ color: descTextColor }}>{bean.description}</p>
@@ -265,11 +265,11 @@ export default function BeansOfWisdomView() {
             {/* Key Principle — compact */}
             {bean.keyPrinciple && (
               <div className="px-5 py-4 flex gap-3 items-start" style={{ background: keyPrincipleBg, borderTop: `1px solid ${keyPrincipleBorderClr}` }}>
-                <div className="w-7 h-7 rounded-lg bg-[#F59E0B] flex items-center justify-center flex-shrink-0 mt-0.5">
+                <div className="w-7 h-7 rounded-lg bg-[#5194F6] flex items-center justify-center flex-shrink-0 mt-0.5">
                   <TrendingUp className="w-3.5 h-3.5 text-[#0F172A]" />
                 </div>
                 <div>
-                  <p className="text-[10px] font-extrabold uppercase tracking-[0.22em] text-[#F59E0B] mb-1">Key Principle</p>
+                  <p className="text-[10px] font-extrabold uppercase tracking-[0.22em] text-[#5194F6] mb-1">Key Principle</p>
                   <p className="text-base font-extrabold leading-snug" style={{ color: keyPrincipleTextColor }}>{bean.keyPrinciple}</p>
                 </div>
               </div>
@@ -279,10 +279,10 @@ export default function BeansOfWisdomView() {
             {bean.insightText && (
               <div className="px-5 py-4 flex gap-3 items-start" style={{ background: insightPanelBg, borderTop: `1px solid ${insightPanelBorder}` }}>
                 <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5" style={{ background: insightIconBg, border: insightIconBorder }}>
-                  <Lightbulb className="w-3.5 h-3.5 text-[#F59E0B]" />
+                  <Lightbulb className="w-3.5 h-3.5 text-[#5194F6]" />
                 </div>
                 <div>
-                  <p className="text-[10px] font-extrabold uppercase tracking-[0.22em] text-[#F59E0B] mb-1">{bean.insightTag || "Investment Strategy"}</p>
+                  <p className="text-[10px] font-extrabold uppercase tracking-[0.22em] text-[#5194F6] mb-1">{bean.insightTag || "Investment Strategy"}</p>
                   <p className="text-[12.5px] leading-relaxed" style={{ color: insightTextColor }}>{bean.insightText}</p>
                 </div>
               </div>
@@ -293,9 +293,9 @@ export default function BeansOfWisdomView() {
               <div className="px-5 py-4 relative overflow-hidden" style={{ background: quotePanelBg, borderTop: `1px solid ${dividerColor}` }}>
                 <div className="absolute top-0 left-0 right-0 h-[2px]" style={{ background: "linear-gradient(90deg,rgba(245,158,11,0.55),transparent)" }} />
                 <div className="flex gap-2 items-start">
-                  <span className="text-[#F59E0B] text-2xl font-serif leading-none mt-1 opacity-60">"</span>
+                  <span className="text-[#5194F6] text-2xl font-serif leading-none mt-1 opacity-60">"</span>
                   <p className="text-[12.5px] italic leading-relaxed flex-1" style={{ color: quoteTextColor }}>{bean.quote}</p>
-                  <span className="text-[#F59E0B] text-2xl font-serif leading-none self-end opacity-60">"</span>
+                  <span className="text-[#5194F6] text-2xl font-serif leading-none self-end opacity-60">"</span>
                 </div>
               </div>
             )}
@@ -321,13 +321,13 @@ export default function BeansOfWisdomView() {
 
               <div className="bow-up bow-d2 px-9 md:px-11 pt-9 pb-7">
                 <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 mb-6 w-fit" style={{ background: badgeBg, border: badgeBorder }}>
-                  <span className="bow-dot w-2 h-2 rounded-full bg-[#F59E0B] block" />
+                  <span className="bow-dot w-2 h-2 rounded-full bg-[#5194F6] block" />
                   <span className="text-[10px] font-bold tracking-[0.18em] uppercase" style={{ color: badgeTextColor }}>Today's Wisdom</span>
                 </div>
                 <h3 className="text-4xl md:text-5xl lg:text-[3.2rem] font-extrabold leading-[1.06] tracking-tight" style={{ color: heroTitleColor }}>
                   {bean.title}
                 </h3>
-                <div className="bow-line-anim mt-4 mb-5" style={{ height: 3, width: 52, background: "linear-gradient(90deg,#F59E0B,rgba(245,158,11,0.4))", borderRadius: 2 }} />
+                <div className="bow-line-anim mt-4 mb-5" style={{ height: 3, width: 52, background: "linear-gradient(90deg,#5194F6,rgba(81,148,246,0.4))", borderRadius: 2 }} />
                 {bean.subtitle && (
                   <p className="text-[13.5px] leading-relaxed max-w-lg" style={{ color: heroSubtitleColor }}>{bean.subtitle}</p>
                 )}
@@ -338,11 +338,11 @@ export default function BeansOfWisdomView() {
               {(bean.sectionTitle || bean.description) && (
                 <div className="bow-up bow-d3 px-9 md:px-11 py-6 flex gap-4">
                   <div className="flex-shrink-0 w-9 h-9 rounded-xl flex items-center justify-center mt-0.5" style={{ background: descIconBg, border: descIconBorder }}>
-                    <Sparkles className="w-4 h-4 text-[#F59E0B]" />
+                    <Sparkles className="w-4 h-4 text-[#5194F6]" />
                   </div>
                   <div className="flex-1 min-w-0">
                     {bean.sectionTitle && (
-                      <p className="text-[10px] font-extrabold uppercase tracking-[0.22em] text-[#F59E0B] mb-2">{bean.sectionTitle}</p>
+                      <p className="text-[10px] font-extrabold uppercase tracking-[0.22em] text-[#5194F6] mb-2">{bean.sectionTitle}</p>
                     )}
                     {bean.description && (
                       <p className="text-[13px] sm:text-[13.5px] leading-[1.85]" style={{ color: descTextColor }}>{bean.description}</p>
@@ -372,13 +372,13 @@ export default function BeansOfWisdomView() {
                 <div className="bow-up bow-d3 flex-1 flex flex-col justify-center gap-4 px-7 py-7"
                   style={{ background: keyPrincipleBg, borderBottom: `1px solid ${keyPrincipleBorderClr}` }}>
                   <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-lg bg-[#F59E0B] flex items-center justify-center flex-shrink-0">
+                    <div className="w-8 h-8 rounded-lg bg-[#5194F6] flex items-center justify-center flex-shrink-0">
                       <TrendingUp className="w-4 h-4 text-[#0F172A]" />
                     </div>
-                    <p className="text-[10px] font-extrabold uppercase tracking-[0.22em] text-[#F59E0B]">Key Principle</p>
+                    <p className="text-[10px] font-extrabold uppercase tracking-[0.22em] text-[#5194F6]">Key Principle</p>
                   </div>
                   <p className="text-xl sm:text-2xl font-extrabold leading-snug tracking-tight" style={{ color: keyPrincipleTextColor }}>{bean.keyPrinciple}</p>
-                  <div className="w-10 h-[3px] rounded-full bg-[#F59E0B]" />
+                  <div className="w-10 h-[3px] rounded-full bg-[#5194F6]" />
                 </div>
               )}
 
@@ -387,9 +387,9 @@ export default function BeansOfWisdomView() {
                   style={{ background: insightPanelBg, borderBottom: `1px solid ${insightPanelBorder}` }}>
                   <div className="flex items-center gap-2.5">
                     <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: insightIconBg, border: insightIconBorder }}>
-                      <Lightbulb className="w-4 h-4 text-[#F59E0B]" />
+                      <Lightbulb className="w-4 h-4 text-[#5194F6]" />
                     </div>
-                    <p className="text-[10px] font-extrabold uppercase tracking-[0.22em] text-[#F59E0B]">{bean.insightTag || "Investment Strategy"}</p>
+                    <p className="text-[10px] font-extrabold uppercase tracking-[0.22em] text-[#5194F6]">{bean.insightTag || "Investment Strategy"}</p>
                   </div>
                   <p className="text-[13px] leading-[1.85]" style={{ color: insightTextColor }}>{bean.insightText}</p>
                 </div>
@@ -398,11 +398,11 @@ export default function BeansOfWisdomView() {
               {bean.quote && (
                 <div className="bow-up bow-d5 relative flex flex-col justify-center px-7 py-8 overflow-hidden" style={{ background: quotePanelBg }}>
                   <div className="absolute top-0 left-0 right-0 h-[2px]" style={{ background: "linear-gradient(90deg,rgba(245,158,11,0.55),transparent)" }} />
-                  <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse at 50% 0%,rgba(245,158,11,0.07) 0%,transparent 65%)" }} />
+                  <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse at 50% 0%,rgba(81,148,246,0.07) 0%,transparent 65%)" }} />
                   <div className="relative z-10">
-                    <div className="text-[5rem] leading-none font-serif select-none mb-2" style={{ color: "rgba(245,158,11,0.25)" }}>"</div>
+                    <div className="text-[5rem] leading-none font-serif select-none mb-2" style={{ color: "rgba(81,148,246,0.2)" }}>"</div>
                     <p className="text-[13.5px] md:text-[14.5px] italic font-light leading-[1.9] px-1" style={{ color: quoteTextColor }}>{bean.quote}</p>
-                    <div className="text-[5rem] leading-none font-serif select-none text-right mt-1" style={{ color: "rgba(245,158,11,0.25)" }}>"</div>
+                    <div className="text-[5rem] leading-none font-serif select-none text-right mt-1" style={{ color: "rgba(81,148,246,0.2)" }}>"</div>
                   </div>
                 </div>
               )}
@@ -410,7 +410,7 @@ export default function BeansOfWisdomView() {
           </div>
 
           {/* Bottom strip */}
-          <div style={{ height: 3, background: "linear-gradient(90deg,transparent,rgba(245,158,11,0.4),#F59E0B)" }} />
+          <div style={{ height: 3, background: "linear-gradient(90deg,transparent,rgba(81,148,246,0.4),#5194F6)" }} />
         </div>
 
         {isAdmin && (

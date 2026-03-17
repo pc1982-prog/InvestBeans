@@ -143,9 +143,9 @@ const SensexNiftyCard = ({ cardBg, cardBorder, isLight, sensex, nifty }) => {
   return (
     <div style={{ background: cardBg, border: cardBorder }} className="rounded-2xl relative overflow-hidden group hover:scale-[1.02] transition-all duration-300 cursor-pointer md:p-5">
       <div className="md:hidden">
-        <div style={{ position:"absolute", left:0, top:0, bottom:0, width:3, background:"linear-gradient(180deg,#C9A84C,#e8c96a)", borderRadius:"12px 0 0 12px" }} />
+        <div style={{ position:"absolute", left:0, top:0, bottom:0, width:3, background:"linear-gradient(180deg,#4E91F6,#7ab8fa)", borderRadius:"12px 0 0 12px" }} />
         <div style={{ padding:"10px 10px 10px 14px" }}>
-          <div style={{ fontSize:"8px", fontWeight:900, letterSpacing:"0.12em", textTransform:"uppercase", color:"#C9A84C", marginBottom:8 }}>SENSEX · NIFTY 50</div>
+          <div style={{ fontSize:"8px", fontWeight:900, letterSpacing:"0.12em", textTransform:"uppercase", color:"#4E91F6", marginBottom:8 }}>SENSEX · NIFTY 50</div>
           {[
             { label:"SENSEX", val: fmtVal(sensex?.price), chg: fmtChg(sensex?.chg), pos: sensexPos },
             { label:"NIFTY 50", val: fmtVal(nifty?.price), chg: fmtChg(nifty?.chg), pos: niftyPos },
@@ -169,7 +169,7 @@ const SensexNiftyCard = ({ cardBg, cardBorder, isLight, sensex, nifty }) => {
       </div>
       <div className="hidden md:block">
         <div className="flex items-center gap-1.5 mb-3">
-          <span style={{ width:8, height:8, borderRadius:2, background:"#C9A84C", display:"inline-block" }} />
+          <span style={{ width:8, height:8, borderRadius:2, background:"#4E91F6", display:"inline-block" }} />
           <span style={{ fontSize:"11px", fontWeight:900, textTransform:"uppercase", letterSpacing:"0.12em", color: isLight ? "#1e3a5f" : "#ffffff" }}>SENSEX vs NIFTY 50</span>
         </div>
         <div className="space-y-2 mb-3">
@@ -204,7 +204,7 @@ const FiiDiiCard = ({ cardBg, cardBorder, isLight }) => {
     <div style={{ background: cardBg, border: cardBorder }} className="rounded-2xl relative overflow-hidden group hover:scale-[1.02] transition-all duration-300 cursor-pointer md:p-5">
       <div className="md:hidden" style={{ padding:"10px 10px 10px 14px", position:"relative" }}>
         <div style={{ position:"absolute", left:0, top:0, bottom:0, width:3, background:"linear-gradient(180deg,#ef4444,#a855f7,#22c55e)", borderRadius:"12px 0 0 12px" }} />
-        <div style={{ fontSize:"8px", fontWeight:900, letterSpacing:"0.12em", textTransform:"uppercase", color:"#C9A84C", marginBottom:8 }}>FII · DII FLOW</div>
+        <div style={{ fontSize:"8px", fontWeight:900, letterSpacing:"0.12em", textTransform:"uppercase", color:"#4E91F6", marginBottom:8 }}>FII · DII FLOW</div>
         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:6, marginBottom:8 }}>
           <div style={{ background:"rgba(239,68,68,0.08)", border:"1px solid rgba(239,68,68,0.2)", borderRadius:8, padding:"6px 8px" }}>
             <div style={{ fontSize:"8px", fontWeight:700, color:"rgba(239,68,68,0.7)", marginBottom:2 }}>FII SELL</div>
@@ -228,7 +228,7 @@ const FiiDiiCard = ({ cardBg, cardBorder, isLight }) => {
       </div>
       <div className="hidden md:block">
         <div className="flex items-center gap-1.5 mb-3">
-          <span style={{ width:8, height:8, borderRadius:2, background:"#C9A84C", display:"inline-block" }} />
+          <span style={{ width:8, height:8, borderRadius:2, background:"#4E91F6", display:"inline-block" }} />
           <span style={{ fontSize:"11px", fontWeight:900, textTransform:"uppercase", letterSpacing:"0.12em", color: isLight ? "#1e3a5f" : "#ffffff" }}>FII vs DII</span>
         </div>
         <div className="flex justify-between items-end mb-4">
@@ -259,7 +259,7 @@ const IndiaVixCard = ({ cardBg, cardBorder, isLight, vixData }) => {
     <div style={{ background: cardBg, border: cardBorder }} className="rounded-2xl relative overflow-hidden group hover:scale-[1.02] transition-all duration-300 cursor-pointer md:p-5">
       <div className="md:hidden" style={{ padding:"10px 10px 10px 14px", position:"relative" }}>
         <div style={{ position:"absolute", left:0, top:0, bottom:0, width:3, background:`linear-gradient(180deg,${fearColor},${fearColor}44)`, borderRadius:"12px 0 0 12px" }} />
-        <div style={{ fontSize:"8px", fontWeight:900, letterSpacing:"0.12em", textTransform:"uppercase", color:"#C9A84C", marginBottom:6 }}>INDIA VIX</div>
+        <div style={{ fontSize:"8px", fontWeight:900, letterSpacing:"0.12em", textTransform:"uppercase", color:"#4E91F6", marginBottom:6 }}>INDIA VIX</div>
         <div style={{ display:"flex", alignItems:"flex-end", justifyContent:"space-between", marginBottom:8 }}>
           <span style={{ fontSize:"32px", fontWeight:900, color: isLight ? "#0d1b2a" : "#fff", letterSpacing:"-0.04em", lineHeight:1 }}>{vix.toFixed ? vix.toFixed(2) : vix}</span>
           <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", gap:4 }}>
@@ -279,7 +279,7 @@ const IndiaVixCard = ({ cardBg, cardBorder, isLight, vixData }) => {
       </div>
       <div className="hidden md:block">
         <div className="flex items-center gap-1.5 mb-3">
-          <span style={{ width:8, height:8, borderRadius:2, background:"#C9A84C", display:"inline-block" }} />
+          <span style={{ width:8, height:8, borderRadius:2, background:"#4E91F6", display:"inline-block" }} />
           <span style={{ fontSize:"11px", fontWeight:900, textTransform:"uppercase", letterSpacing:"0.12em", color: isLight ? "#1e3a5f" : "#ffffff" }}>INDIA VIX</span>
         </div>
         <div className="flex items-end justify-between mb-3">
@@ -314,20 +314,20 @@ const GiftNiftyCard = ({ cardBg, cardBorder, isLight, liveGiftNifty, liveGiftCha
   return (
     <div style={{ background: cardBg, border: cardBorder }} className="rounded-2xl relative overflow-hidden group hover:scale-[1.02] transition-all duration-300 cursor-pointer md:p-5">
       <div className="md:hidden" style={{ position:"relative" }}>
-        <div style={{ height:3, background:"linear-gradient(90deg,#C9A84C,#e8c96a,transparent)", borderRadius:"12px 12px 0 0" }} />
+        <div style={{ height:3, background:"linear-gradient(90deg,#4E91F6,#7ab8fa,transparent)", borderRadius:"12px 12px 0 0" }} />
         <div style={{ padding:"8px 10px 0 10px" }}>
-          <div style={{ fontSize:"8px", fontWeight:900, letterSpacing:"0.12em", textTransform:"uppercase", color:"#C9A84C", marginBottom:4 }}>GIFT NIFTY</div>
+          <div style={{ fontSize:"8px", fontWeight:900, letterSpacing:"0.12em", textTransform:"uppercase", color:"#4E91F6", marginBottom:4 }}>GIFT NIFTY</div>
           <div style={{ fontSize:"28px", fontWeight:900, color: isLight ? "#0d1b2a" : "#fff", letterSpacing:"-0.03em", lineHeight:1 }}>{displayPrice}</div>
           <div style={{ display:"flex", alignItems:"center", gap:4, marginTop:4, marginBottom:2 }}>
             <span style={{ fontSize:"9px", fontWeight:700, color: pos ? "#4ade80" : "#f87171" }}>{displayChange}</span>
             <span style={{ fontSize:"8px", color: isLight ? "rgba(13,37,64,0.45)" : "rgba(255,255,255,0.4)" }}>{sentiment}</span>
           </div>
         </div>
-        <Sparkline positive={pos} color="#C9A84C" />
+        <Sparkline positive={pos} color="#4E91F6" />
       </div>
       <div className="hidden md:block">
         <div className="flex items-center gap-1.5 mb-3">
-          <span style={{ width:8, height:8, borderRadius:2, background:"#C9A84C", display:"inline-block" }} />
+          <span style={{ width:8, height:8, borderRadius:2, background:"#4E91F6", display:"inline-block" }} />
           <span style={{ fontSize:"11px", fontWeight:900, textTransform:"uppercase", letterSpacing:"0.12em", color: isLight ? "#1e3a5f" : "#ffffff" }}>GIFT NIFTY</span>
         </div>
         <div className="flex items-end justify-between mb-1">
@@ -340,7 +340,7 @@ const GiftNiftyCard = ({ cardBg, cardBorder, isLight, liveGiftNifty, liveGiftCha
           </div>
         </div>
         <div className={`text-[11px] font-medium mb-2 ${isLight ? "text-navy/50" : "text-white/40"}`}>{sentiment}</div>
-        <Sparkline positive={pos} color="#C9A84C" />
+        <Sparkline positive={pos} color="#4E91F6" />
       </div>
     </div>
   );
@@ -356,7 +356,7 @@ const UsdInrCard = ({ cardBg, cardBorder, isLight, liveValue, liveChange }) => {
     <div style={{ background: cardBg, border: cardBorder }} className="rounded-2xl relative overflow-hidden group hover:scale-[1.02] transition-all duration-300 cursor-pointer md:p-5">
       <div className="md:hidden" style={{ padding:"10px 10px 10px 14px", position:"relative" }}>
         <div style={{ position:"absolute", left:0, top:0, bottom:0, width:3, background:"linear-gradient(180deg,#3b82f6,#06b6d4)", borderRadius:"12px 0 0 12px" }} />
-        <div style={{ fontSize:"8px", fontWeight:900, letterSpacing:"0.12em", textTransform:"uppercase", color:"#C9A84C", marginBottom:5 }}>USD / INR</div>
+        <div style={{ fontSize:"8px", fontWeight:900, letterSpacing:"0.12em", textTransform:"uppercase", color:"#4E91F6", marginBottom:5 }}>USD / INR</div>
         <div style={{ display:"flex", alignItems:"baseline", gap:3, marginBottom:4 }}>
           <span style={{ fontSize:"11px", fontWeight:700, color: isLight ? "rgba(13,37,64,0.5)" : "rgba(255,255,255,0.4)" }}>₹</span>
           <span style={{ fontSize:"28px", fontWeight:900, color: isLight ? "#0d1b2a" : "#fff", letterSpacing:"-0.03em", lineHeight:1 }}>{rate.toFixed ? rate.toFixed(2) : rate}</span>
@@ -379,7 +379,7 @@ const UsdInrCard = ({ cardBg, cardBorder, isLight, liveValue, liveChange }) => {
       </div>
       <div className="hidden md:block">
         <div className="flex items-center gap-1.5 mb-3">
-          <span style={{ width:8, height:8, borderRadius:2, background:"#C9A84C", display:"inline-block" }} />
+          <span style={{ width:8, height:8, borderRadius:2, background:"#4E91F6", display:"inline-block" }} />
           <span style={{ fontSize:"11px", fontWeight:900, textTransform:"uppercase", letterSpacing:"0.12em", color: isLight ? "#1e3a5f" : "#ffffff" }}>USD / INR</span>
         </div>
         <div className="flex items-end justify-between mb-2">
@@ -418,8 +418,8 @@ const GoldSilverCard = ({ cardBg, cardBorder, isLight, liveGold, liveGoldChange,
   return (
     <div style={{ background: cardBg, border: cardBorder }} className="rounded-2xl relative overflow-hidden group hover:scale-[1.02] transition-all duration-300 cursor-pointer md:p-5">
       <div className="md:hidden" style={{ padding:"10px", position:"relative" }}>
-        <div style={{ position:"absolute", top:0, right:0, width:40, height:40, background:"linear-gradient(135deg,#C9A84C22,transparent)", borderRadius:"0 12px 0 40px" }} />
-        <div style={{ fontSize:"8px", fontWeight:900, letterSpacing:"0.12em", textTransform:"uppercase", color:"#C9A84C", marginBottom:7 }}>GOLD · SILVER</div>
+        <div style={{ position:"absolute", top:0, right:0, width:40, height:40, background:"linear-gradient(135deg,rgba(78,145,246,0.13),transparent)", borderRadius:"0 12px 0 40px" }} />
+        <div style={{ fontSize:"8px", fontWeight:900, letterSpacing:"0.12em", textTransform:"uppercase", color:"#4E91F6", marginBottom:7 }}>GOLD · SILVER</div>
         {[
           { Icon: GoldBrickIcon, label:"Gold", price: fmtPrice(gold), chg: fmtChg(goldChg, goldPos), pos: goldPos, bar:"linear-gradient(90deg,#C9A84C,#f5d78e)", barW:"72%" },
           { Icon: SilverBrickIcon, label:"Silver", price: fmtPrice(silver), chg: fmtChg(silverChg, silverPos), pos: silverPos, bar:"linear-gradient(90deg,#94a3b8,#cbd5e1)", barW:"58%" },
@@ -443,7 +443,7 @@ const GoldSilverCard = ({ cardBg, cardBorder, isLight, liveGold, liveGoldChange,
       </div>
       <div className="hidden md:block">
         <div className="flex items-center gap-1.5 mb-4">
-          <span style={{ width:8, height:8, borderRadius:2, background:"#C9A84C", display:"inline-block" }} />
+          <span style={{ width:8, height:8, borderRadius:2, background:"#4E91F6", display:"inline-block" }} />
           <span style={{ fontSize:"11px", fontWeight:900, textTransform:"uppercase", letterSpacing:"0.12em", color: isLight ? "#1e3a5f" : "#ffffff" }}>GOLD vs SILVER</span>
         </div>
         <div className="space-y-3">
@@ -474,7 +474,7 @@ const GoldSilverCard = ({ cardBg, cardBorder, isLight, liveGold, liveGoldChange,
 // ─── US Stat Card ────────────────────────────────────────────────────────────
 const USStatCard = ({ label, value, positive, cardBg, cardBorder, isLight, path, section, onNavigate }) => {
   const isUp = positive === true; const isDown = positive === false;
-  const color = isUp ? "#22c55e" : isDown ? "#ef4444" : "#C9A84C";
+  const color = isUp ? "#22c55e" : isDown ? "#ef4444" : "#4E91F6";
   const loading = value === "..." || value === "N/A";
   const clickable = !!path && !!section;
   return (
@@ -482,7 +482,7 @@ const USStatCard = ({ label, value, positive, cardBg, cardBorder, isLight, path,
       className={`rounded-2xl p-3 sm:p-5 relative overflow-hidden group hover:scale-[1.02] transition-all duration-300 ${clickable ? "cursor-pointer hover:border-accent/40" : ""}`}
       onClick={() => clickable && onNavigate?.(path, section)}>
       <div className="flex items-center gap-1.5 mb-3">
-        <span style={{ width:8, height:8, borderRadius:2, background:"#C9A84C", display:"inline-block" }} />
+        <span style={{ width:8, height:8, borderRadius:2, background:"#4E91F6", display:"inline-block" }} />
         <span style={{ fontSize:"10px", fontWeight:900, textTransform:"uppercase", letterSpacing:"0.10em", color: isLight ? "#1e3a5f" : "#ffffff" }}>{label}</span>
       </div>
       <div className="mb-3">
@@ -490,7 +490,7 @@ const USStatCard = ({ label, value, positive, cardBg, cardBorder, isLight, path,
         <div className={`text-[10px] sm:text-[11px] mt-1 ${isLight ? "text-navy/40" : "text-white/35"}`}>Today's change</div>
       </div>
       <Sparkline positive={isUp} color={color} />
-      {clickable && <div style={{ fontSize:"10px", marginTop:"6px", color:"#C9A84C", opacity:0.8, fontWeight:600 }}>View details →</div>}
+      {clickable && <div style={{ fontSize:"10px", marginTop:"6px", color:"#4E91F6", opacity:0.8, fontWeight:600 }}>View details →</div>}
     </div>
   );
 };
@@ -673,62 +673,79 @@ const Hero = () => {
   // ── Theme tokens ─────────────────────────────────────────────────────────
   const sectionStyle = isLight
     ? { background:"linear-gradient(135deg,#dbe9f9 0%,#e8f2fd 30%,#edf5fe 60%,#dce8f7 100%)" }
-    : {};
+    : { background:"linear-gradient(135deg,#101528 0%,#101528 40%,#101528 70%,#101528 100%)" };
   const sectionCls = isLight
     ? "text-navy py-10 md:py-16 lg:py-20 relative overflow-hidden"
-    : "gradient-hero text-white py-10 md:py-16 lg:py-20 relative overflow-hidden";
-  const cardBg     = isLight ? "rgba(255,255,255,0.78)" : "rgba(255,255,255,0.05)";
-  const cardBorder = isLight ? "1px solid rgba(13,37,64,0.10)" : "1px solid rgba(255,255,255,0.10)";
-  const gridOpacity = isLight ? "opacity-[0.04]" : "opacity-[0.06]";
-  const gridColor   = isLight ? "#0d2540" : "white";
-
+    : "text-white py-10 md:py-16 lg:py-20 relative overflow-hidden";
+  const cardBg     = isLight ? "rgba(255,255,255,0.78)" : "rgba(28,57,91,0.25)";
+  const cardBorder = isLight ? "1px solid rgba(13,37,64,0.10)" : "1px solid rgba(78,145,246,0.18)";
   const tabWrapStyle = isLight
     ? { display:"inline-flex", alignItems:"center", gap:6, background:"#fff", border:"1.5px solid #CBD5E1", borderRadius:18, padding:6, boxShadow:"0 4px 24px rgba(13,27,64,0.10)" }
-    : { display:"inline-flex", alignItems:"center", gap:6, background:"#1E293B", border:"1.5px solid #334155", borderRadius:18, padding:6, boxShadow:"0 4px 24px rgba(0,0,0,0.40)" };
-  const activeTabStyle = { background:"linear-gradient(135deg,#1d4ed8,#0ea5e9,#6366f1)", color:"#fff", fontWeight:700, boxShadow:"0 4px 20px rgba(14,165,233,0.45)", border:"none" };
+    : { display:"inline-flex", alignItems:"center", gap:6, background:"#101528", border:"1.5px solid #1C395B", borderRadius:18, padding:6, boxShadow:"0 4px 32px rgba(78,145,246,0.12)" };
+  const activeTabStyle = { background:"linear-gradient(135deg,#1d4ed8,#4E91F6,#6366f1)", color:"#fff", fontWeight:700, boxShadow:"0 4px 20px rgba(78,145,246,0.50)", border:"none" };
   const inactiveTabStyle = isLight
     ? { background:"#F1F5F9", color:"#1E293B", fontWeight:600, border:"1.5px solid #CBD5E1" }
-    : { background:"#0F172A", color:"#E2E8F0", fontWeight:600, border:"1.5px solid #475569" };
+    : { background:"rgba(28,57,91,0.35)", color:"#c8dff8", fontWeight:600, border:"1.5px solid #1C395B" };
   const inactiveHoverStyle = isLight
     ? { background:"#E2E8F0", color:"#0F172A", border:"1.5px solid #94A3B8" }
-    : { background:"#1E3A5F", color:"#F8FAFC", border:"1.5px solid #64748B" };
+    : { background:"#1C395B", color:"#4E91F6", border:"1.5px solid #4E91F6" };
 
   return (
     <section className={sectionCls} style={sectionStyle}>
       {/* Blobs */}
-      <div className={isLight ? "absolute top-0 right-0 w-96 h-96 rounded-full blur-3xl pointer-events-none bg-blue-200/50" : "absolute top-0 right-0 w-96 h-96 bg-accent/18 rounded-full blur-3xl pointer-events-none"} />
-      <div className={isLight ? "absolute bottom-0 left-0 w-96 h-96 rounded-full blur-3xl pointer-events-none bg-indigo-200/40" : "absolute bottom-0 left-0 w-96 h-96 bg-accent/12 rounded-full blur-3xl pointer-events-none"} />
+      <div style={{ position:"absolute", top:0, right:0, width:"32rem", height:"32rem", borderRadius:"50%", background: isLight ? "rgba(59,130,246,0.12)" : "rgba(78,145,246,0.08)", filter:"blur(80px)", pointerEvents:"none" }} />
+      <div style={{ position:"absolute", bottom:0, left:0, width:"32rem", height:"32rem", borderRadius:"50%", background: isLight ? "rgba(99,102,241,0.10)" : "rgba(28,57,91,0.60)", filter:"blur(80px)", pointerEvents:"none" }} />
+      <div style={{ position:"absolute", top:"40%", left:"30%", width:"20rem", height:"20rem", borderRadius:"50%", background: isLight ? "rgba(14,165,233,0.07)" : "rgba(78,145,246,0.05)", filter:"blur(60px)", pointerEvents:"none" }} />
       {/* Grid */}
-      <div className={`absolute inset-0 pointer-events-none ${gridOpacity}`}
-        style={{ backgroundImage:`linear-gradient(${gridColor} 1px,transparent 1px),linear-gradient(90deg,${gridColor} 1px,transparent 1px)`, backgroundSize:"40px 40px" }} />
+      <div className="absolute inset-0 pointer-events-none"
+        style={{ backgroundImage: isLight ? `linear-gradient(#0d2540 1px,transparent 1px),linear-gradient(90deg,#0d2540 1px,transparent 1px)` : `linear-gradient(#1C395B 1px,transparent 1px),linear-gradient(90deg,#1C395B 1px,transparent 1px)`, backgroundSize:"40px 40px", opacity: isLight ? 0.04 : 0.12 }} />
 
       <div className="container mx-auto px-4 sm:px-6 relative z-10">
         <div className="max-w-5xl mx-auto text-center animate-fade-in">
 
           {/* Icons — colored to match the heading blue gradient */}
           <div className="flex justify-center items-end gap-4 md:gap-6 mb-5 md:mb-8">
-            <PieChartIcon className="w-7 h-7 md:w-9 md:h-9" style={{ color: isLight ? "#1d4ed8" : "#60a5fa", filter: isLight ? "drop-shadow(0 0 10px rgba(29,78,216,0.5))" : "drop-shadow(0 0 14px rgba(96,165,250,0.75))" }} />
-            <GrowthPlantIcon className="w-9 h-9 md:w-11 md:h-11" style={{ color: isLight ? "#0ea5e9" : "#38bdf8", filter: isLight ? "drop-shadow(0 0 12px rgba(14,165,233,0.55))" : "drop-shadow(0 0 16px rgba(56,189,248,0.80))" }} />
-            <IndexChartIcon className="w-7 h-7 md:w-9 md:h-9" style={{ color: isLight ? "#6366f1" : "#a78bfa", filter: isLight ? "drop-shadow(0 0 10px rgba(99,102,241,0.5))" : "drop-shadow(0 0 14px rgba(167,139,250,0.75))" }} />
+            <PieChartIcon className="w-7 h-7 md:w-9 md:h-9" style={{ color: isLight ? "#1d4ed8" : "#4E91F6", filter: isLight ? "drop-shadow(0 0 10px rgba(78,145,246,0.5))" : "drop-shadow(0 0 14px rgba(78,145,246,0.80))" }} />
+            <GrowthPlantIcon className="w-9 h-9 md:w-11 md:h-11" style={{ color: isLight ? "#4E91F6" : "#7ab8fa", filter: isLight ? "drop-shadow(0 0 12px rgba(78,145,246,0.55))" : "drop-shadow(0 0 18px rgba(122,184,250,0.85))" }} />
+            <IndexChartIcon className="w-7 h-7 md:w-9 md:h-9" style={{ color: isLight ? "#6366f1" : "#a5c8ff", filter: isLight ? "drop-shadow(0 0 10px rgba(99,102,241,0.5))" : "drop-shadow(0 0 14px rgba(165,200,255,0.75))" }} />
           </div>
 
           {/* ── Heading — forced single line, shrinks to fit ── */}
           <h1
-            className="font-extrabold mb-7 md:mb-10 leading-none tracking-tight whitespace-nowrap"
+           key={theme} 
+            className="font-extrabold leading-none tracking-tight whitespace-nowrap mb-3 md:mb-4"
             style={{
               fontSize: "clamp(1.1rem, 4.5vw, 4.2rem)",
               background: isLight
-                ? "linear-gradient(90deg,#1d4ed8,#0ea5e9,#3b82f6,#6366f1)"
-                : "linear-gradient(90deg,#60a5fa,#38bdf8,#818cf8,#a78bfa)",
+                ? "linear-gradient(90deg,#1d4ed8,#4E91F6,#3b82f6,#6366f1)"
+                : "linear-gradient(90deg,#4E91F6,#7ab8fa,#a5c8ff,#4E91F6)",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
               backgroundClip: "text",
-              filter: isLight
-                ? "drop-shadow(0 0 18px rgba(59,130,246,0.35))"
-                : "drop-shadow(0 0 24px rgba(96,165,250,0.55))",
+              color: "transparent",
+              display: "block",
             }}>
             Baazigar Banein… Sattebaaz Nahi
           </h1>
+
+          {/* ── Subtitle ── */}
+          <p
+            className="mx-auto mb-7 md:mb-10 max-w-2xl"
+            style={{
+              fontSize: "clamp(0.78rem, 1.6vw, 1.05rem)",
+              lineHeight: 1.7,
+              letterSpacing: "0.01em",
+              color: isLight ? "rgba(30,58,95,0.62)" : "rgba(200,223,248,0.55)",
+            }}>
+            Daily research-backed stock insights —{" "}
+            <span style={{
+              color: isLight ? "#4E91F6" : "#7ab8fa",
+              fontWeight: 600,
+            }}>
+              where every pick is powered by analysis
+            </span>
+            , not assumptions.
+          </p>
 
           {/* Tab Switcher */}
           <div style={tabWrapStyle} className="mx-auto">

@@ -106,10 +106,10 @@ const ResetPasswordView = () => {
   // Show loading while verifying token
   if (tokenValid === null) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      <div className="min-h-screen flex items-center justify-center bg-slate-950/95">
         <div className="text-center">
-          <Loader2 className="w-12 h-12 animate-spin text-blue-600 mx-auto mb-4" />
-          <p className="text-gray-600">Verifying reset link...</p>
+          <Loader2 className="w-12 h-12 animate-spin text-[#5194F6] mx-auto mb-4" />
+          <p className="text-white/50">Verifying reset link...</p>
         </div>
       </div>
     );
@@ -121,33 +121,33 @@ const ResetPasswordView = () => {
       <>
         <ToastContainer toasts={toasts} removeToast={removeToast} />
         
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 px-4 py-12">
+        <div className="min-h-screen flex items-center justify-center bg-slate-950/95 px-4 py-12">
           <div className="w-full max-w-md">
-            <div className="bg-white rounded-3xl shadow-2xl border border-gray-100 p-8 sm:p-10">
+            <div className="relative overflow-hidden rounded-[32px] border border-white/10 bg-white/5 backdrop-blur-2xl p-8 sm:p-10">
               <div className="text-center">
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-6">
-                  <AlertCircle className="w-8 h-8 text-red-600" />
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-red-500/20 border border-red-500/30 rounded-full mb-6">
+                  <AlertCircle className="w-8 h-8 text-red-400" />
                 </div>
                 
-                <h1 className="text-3xl font-bold text-gray-900 tracking-tight mb-3">
+                <h1 className="text-3xl font-bold text-white tracking-tight mb-3">
                   Invalid Reset Link
                 </h1>
                 
-                <p className="text-gray-600 mb-6">
+                <p className="text-white/60 mb-6">
                   {error || "This password reset link is invalid or has expired."}
                 </p>
 
                 <Link to="/forgot-password">
                   <Button
                     size="lg"
-                    className="w-full h-12 text-base font-semibold bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all"
+                    className="w-full h-12 text-base font-semibold bg-gradient-to-r from-[#5194F6] to-[#3a7de0] hover:from-[#3a7de0] hover:to-[#5194F6] text-white shadow-lg hover:shadow-xl transition-all"
                   >
                     Request New Reset Link
                   </Button>
                 </Link>
 
-                <p className="text-center text-sm text-gray-600 mt-6">
-                  <Link to="/signin" className="font-semibold text-blue-600 hover:text-blue-700 hover:underline">
+                <p className="text-center text-sm text-white/50 mt-6">
+                  <Link to="/signin" className="font-semibold text-[#5194F6] hover:text-[#7ab8fa] hover:underline">
                     Back to Sign In
                   </Link>
                 </p>
@@ -163,35 +163,35 @@ const ResetPasswordView = () => {
     <>
       <ToastContainer toasts={toasts} removeToast={removeToast} />
       
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 px-4 py-12">
+      <div className="min-h-screen flex items-center justify-center bg-slate-950/95 px-4 py-12">
         <div className="w-full max-w-md">
           {/* Main Card */}
-          <div className="bg-white rounded-3xl shadow-2xl border border-gray-100 p-8 sm:p-10">
+          <div className="relative overflow-hidden rounded-[32px] border border-white/10 bg-white/5 backdrop-blur-2xl p-8 sm:p-10">
             {!resetSuccess ? (
               <>
                 {/* Logo & Heading */}
                 <div className="text-center mb-8">
                   <div className="inline-block mb-4">
-                    <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
+                    <div className="w-16 h-16 bg-gradient-to-br from-[#1C3656] to-[#5194F6] rounded-2xl flex items-center justify-center shadow-lg">
                       <span className="text-white text-2xl font-bold">IB</span>
                     </div>
                   </div>
                   <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
                     Reset Password
                   </h1>
-                  <p className="text-gray-500 mt-2 text-sm">
+                  <p className="text-white/50 mt-2 text-sm">
                     Enter your new password below
                   </p>
                 </div>
 
                 {/* Error Alert */}
                 {error && (
-                  <div className="mb-6 bg-red-50 border border-red-200 rounded-xl p-4">
+                  <div className="mb-6 bg-red-500/10 border border-red-500/30 rounded-xl p-4">
                     <div className="flex items-start gap-3">
-                      <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                      <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
                       <div>
-                        <p className="text-sm font-medium text-red-800">Error</p>
-                        <p className="text-sm text-red-700 mt-1">{error}</p>
+                        <p className="text-sm font-medium text-red-300">Error</p>
+                        <p className="text-sm text-red-400 mt-1">{error}</p>
                       </div>
                     </div>
                   </div>
@@ -201,16 +201,16 @@ const ResetPasswordView = () => {
                 <form onSubmit={onSubmit} className="space-y-5">
                   {/* New Password */}
                   <div className="space-y-2">
-                    <Label htmlFor="password" className="text-sm font-medium text-gray-700">
+                    <Label htmlFor="password" className="text-sm font-medium text-white/70">
                       New Password
                     </Label>
                     <div className="relative">
-                      <Lock className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
+                      <Lock className="absolute left-3 top-3.5 h-5 w-5 text-white/30" />
                       <Input
                         id="password"
                         type={showPassword ? "text" : "password"}
                         placeholder="Create a strong password"
-                        className="pl-11 pr-12 h-12 text-base border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+                        className="pl-11 pr-12 h-12 text-base border-white/10 bg-white/5 text-white placeholder:text-white/30 focus:border-[#5194F6] focus:ring-[#5194F6]"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required
@@ -219,7 +219,7 @@ const ResetPasswordView = () => {
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-3.5 text-gray-400 hover:text-gray-600 transition disabled:opacity-50"
+                        className="absolute right-3 top-3.5 text-white/30 hover:text-white/70 transition disabled:opacity-50"
                         disabled={loading}
                       >
                         {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
@@ -231,41 +231,41 @@ const ResetPasswordView = () => {
                       <div className="mt-3 space-y-1.5">
                         <div className="flex items-center gap-2 text-xs">
                           <CheckCircle2
-                            className={`w-4 h-4 ${passwordStrength.hasLength ? 'text-green-600' : 'text-gray-300'}`}
+                            className={`w-4 h-4 ${passwordStrength.hasLength ? 'text-green-400' : 'text-white/20'}`}
                           />
-                          <span className={passwordStrength.hasLength ? 'text-green-700' : 'text-gray-500'}>
+                          <span className={passwordStrength.hasLength ? 'text-green-400' : 'text-white/40'}>
                             At least 8 characters
                           </span>
                         </div>
                         <div className="flex items-center gap-2 text-xs">
                           <CheckCircle2
-                            className={`w-4 h-4 ${passwordStrength.hasLetter ? 'text-green-600' : 'text-gray-300'}`}
+                            className={`w-4 h-4 ${passwordStrength.hasLetter ? 'text-green-400' : 'text-white/20'}`}
                           />
-                          <span className={passwordStrength.hasLetter ? 'text-green-700' : 'text-gray-500'}>
+                          <span className={passwordStrength.hasLetter ? 'text-green-400' : 'text-white/40'}>
                             Contains lowercase letters
                           </span>
                         </div>
                         <div className="flex items-center gap-2 text-xs">
                           <CheckCircle2
-                            className={`w-4 h-4 ${passwordStrength.hasCapital ? 'text-green-600' : 'text-gray-300'}`}
+                            className={`w-4 h-4 ${passwordStrength.hasCapital ? 'text-green-400' : 'text-white/20'}`}
                           />
-                          <span className={passwordStrength.hasCapital ? 'text-green-700' : 'text-gray-500'}>
+                          <span className={passwordStrength.hasCapital ? 'text-green-400' : 'text-white/40'}>
                             Contains uppercase letters
                           </span>
                         </div>
                         <div className="flex items-center gap-2 text-xs">
                           <CheckCircle2
-                            className={`w-4 h-4 ${passwordStrength.hasNumber ? 'text-green-600' : 'text-gray-300'}`}
+                            className={`w-4 h-4 ${passwordStrength.hasNumber ? 'text-green-400' : 'text-white/20'}`}
                           />
-                          <span className={passwordStrength.hasNumber ? 'text-green-700' : 'text-gray-500'}>
+                          <span className={passwordStrength.hasNumber ? 'text-green-400' : 'text-white/40'}>
                             Contains numbers
                           </span>
                         </div>
                         <div className="flex items-center gap-2 text-xs">
                           <CheckCircle2
-                            className={`w-4 h-4 ${passwordStrength.hasSpecial ? 'text-green-600' : 'text-gray-300'}`}
+                            className={`w-4 h-4 ${passwordStrength.hasSpecial ? 'text-green-400' : 'text-white/20'}`}
                           />
-                          <span className={passwordStrength.hasSpecial ? 'text-green-700' : 'text-gray-500'}>
+                          <span className={passwordStrength.hasSpecial ? 'text-green-400' : 'text-white/40'}>
                             Contains special characters
                           </span>
                         </div>
@@ -275,16 +275,16 @@ const ResetPasswordView = () => {
 
                   {/* Confirm Password */}
                   <div className="space-y-2">
-                    <Label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700">
+                    <Label htmlFor="confirmPassword" className="text-sm font-medium text-white/70">
                       Confirm Password
                     </Label>
                     <div className="relative">
-                      <Lock className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
+                      <Lock className="absolute left-3 top-3.5 h-5 w-5 text-white/30" />
                       <Input
                         id="confirmPassword"
                         type={showConfirmPassword ? "text" : "password"}
                         placeholder="Re-enter your password"
-                        className="pl-11 pr-12 h-12 text-base border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+                        className="pl-11 pr-12 h-12 text-base border-white/10 bg-white/5 text-white placeholder:text-white/30 focus:border-[#5194F6] focus:ring-[#5194F6]"
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
                         required
@@ -293,7 +293,7 @@ const ResetPasswordView = () => {
                       <button
                         type="button"
                         onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                        className="absolute right-3 top-3.5 text-gray-400 hover:text-gray-600 transition disabled:opacity-50"
+                        className="absolute right-3 top-3.5 text-white/30 hover:text-white/70 transition disabled:opacity-50"
                         disabled={loading}
                       >
                         {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
@@ -302,7 +302,7 @@ const ResetPasswordView = () => {
                     
                     {/* Password match indicator */}
                     {confirmPassword && (
-                      <p className={`text-xs ${password === confirmPassword ? 'text-green-600' : 'text-red-600'}`}>
+                      <p className={`text-xs ${password === confirmPassword ? 'text-green-400' : 'text-red-600'}`}>
                         {password === confirmPassword ? '✓ Passwords match' : '✗ Passwords do not match'}
                       </p>
                     )}
@@ -312,7 +312,7 @@ const ResetPasswordView = () => {
                   <Button
                     type="submit"
                     size="lg"
-                    className="w-full h-12 text-base font-semibold bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all"
+                    className="w-full h-12 text-base font-semibold bg-gradient-to-r from-[#5194F6] to-[#3a7de0] hover:from-[#3a7de0] hover:to-[#5194F6] text-white shadow-lg hover:shadow-xl transition-all"
                     disabled={loading || !isPasswordValid || password !== confirmPassword}
                   >
                     {loading ? (
@@ -330,20 +330,20 @@ const ResetPasswordView = () => {
               <>
                 {/* Success State */}
                 <div className="text-center py-8">
-                  <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-6">
-                    <CheckCircle2 className="w-8 h-8 text-green-600" />
+                  <div className="inline-flex items-center justify-center w-16 h-16 bg-green-500/20 border border-green-500/30 rounded-full mb-6">
+                    <CheckCircle2 className="w-8 h-8 text-green-400" />
                   </div>
                   
-                  <h1 className="text-3xl font-bold text-gray-900 tracking-tight mb-3">
+                  <h1 className="text-3xl font-bold text-white tracking-tight mb-3">
                     Password Reset Successful!
                   </h1>
                   
-                  <p className="text-gray-600 mb-6">
+                  <p className="text-white/60 mb-6">
                     Your password has been successfully reset. You can now sign in with your new password.
                   </p>
                   
-                  <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-                    <p className="text-sm text-blue-800">
+                  <div className="bg-[#5194F6]/10 border border-[#5194F6]/25 rounded-xl p-4">
+                    <p className="text-sm text-[#5194F6]/90">
                       Redirecting you to sign in page...
                     </p>
                   </div>
@@ -353,9 +353,9 @@ const ResetPasswordView = () => {
 
             {/* Sign In Link */}
             {!resetSuccess && (
-              <p className="text-center text-sm text-gray-600 mt-6">
+              <p className="text-center text-sm text-white/50 mt-6">
                 Remember your password?{" "}
-                <Link to="/signin" className="font-semibold text-blue-600 hover:text-blue-700 hover:underline">
+                <Link to="/signin" className="font-semibold text-[#5194F6] hover:text-[#7ab8fa] hover:underline">
                   Sign In
                 </Link>
               </p>
@@ -363,7 +363,7 @@ const ResetPasswordView = () => {
           </div>
 
           {/* Footer */}
-          <p className="text-center text-xs text-gray-500 mt-8">
+          <p className="text-center text-xs text-white/30 mt-8">
             © 2025 INVESTBEANS • Secure • Regulated • Trusted
           </p>
         </div>

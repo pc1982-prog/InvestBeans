@@ -112,7 +112,7 @@ const DecodeMarketsPage = () => {
   const handleFormSuccess = () => { fetchInsights(); setEditingInsight(null); };
 
   return (
-    <div className={`min-h-screen ${isLight ? "bg-[#f0f7fe]" : "bg-[#060f1e]"}`}>
+    <div className={`min-h-screen ${isLight ? "bg-[#f0f7fe]" : "bg-[#101528]"}`}>
 
       <Header />
 
@@ -139,8 +139,8 @@ const DecodeMarketsPage = () => {
             }}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all hover:opacity-80"
             style={{
-              background: isLight ? "rgba(13,37,64,0.06)" : "rgba(255,255,255,0.06)",
-              border: isLight ? "1px solid rgba(13,37,64,0.12)" : "1px solid rgba(255,255,255,0.1)",
+              background: isLight ? "rgba(13,37,64,0.06)" : "rgba(81,148,246,0.08)",
+              border: isLight ? "1px solid rgba(13,37,64,0.12)" : "1px solid rgba(81,148,246,0.2)",
               color: isLight ? "rgba(13,37,64,0.7)" : "rgba(203,213,225,1)",
             }}
           >
@@ -162,15 +162,15 @@ const DecodeMarketsPage = () => {
         <div className="text-center mb-8 sm:mb-12">
           <div
             className="inline-flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full mb-4 sm:mb-5"
-            style={{ background: "rgba(212,168,67,0.1)", border: "1px solid rgba(212,168,67,0.2)" }}
+            style={{ background: "rgba(81,148,246,0.1)", border: "1px solid rgba(81,148,246,0.2)" }}
           >
-            <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#D4A843]" />
-            <span className="text-[11px] sm:text-xs font-semibold text-[#D4A843] uppercase tracking-wide">Market Intelligence</span>
+            <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#5194F6]" />
+            <span className="text-[11px] sm:text-xs font-semibold text-[#5194F6] uppercase tracking-wide">Market Intelligence</span>
           </div>
 
           <h1 className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4 leading-tight ${isLight ? "text-navy" : "text-white"}`}>
             Decode the{" "}
-            <span style={{ background: "linear-gradient(135deg,#D4A843,#F0C84A)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+            <span style={{ background: "linear-gradient(135deg,#5194F6,#7eb8ff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
               Market
             </span>
           </h1>
@@ -194,7 +194,7 @@ const DecodeMarketsPage = () => {
         {/* Results count */}
         {!loading && insights.length > 0 && (
           <p className="text-slate-400 text-xs sm:text-sm mb-5 sm:mb-6">
-            Showing <span className="text-[#D4A843] font-semibold">{insights.length}</span> insights
+            Showing <span className="text-[#5194F6] font-semibold">{insights.length}</span> insights
           </p>
         )}
 
@@ -203,7 +203,7 @@ const DecodeMarketsPage = () => {
           <div className="text-center py-16 sm:py-24">
             <div
               className="inline-block animate-spin rounded-full h-12 w-12"
-              style={{ border: "2px solid rgba(212,168,67,0.15)", borderTopColor: "#D4A843" }}
+              style={{ border: "2px solid rgba(212,168,67,0.15)", borderTopColor: "#5194F6" }}
             />
             <p className="mt-4 text-slate-400 text-sm">Loading insights...</p>
           </div>
@@ -213,8 +213,8 @@ const DecodeMarketsPage = () => {
             {isAdmin && (
               <button
                 onClick={() => { setEditingInsight(null); setShowAdminForm(true); }}
-                className="inline-flex items-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 rounded-xl text-sm font-semibold text-[#0c1a2e]"
-                style={{ background: "linear-gradient(135deg,#D4A843,#C4941E)" }}
+                className="inline-flex items-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 rounded-xl text-sm font-semibold text-white"
+                style={{ background: "linear-gradient(135deg,#5194F6,#3a7de8)" }}
               >
                 <Plus className="w-4 h-4" /> Create First Insight
               </button>

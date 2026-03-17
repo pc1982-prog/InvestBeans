@@ -117,12 +117,12 @@ const CommodityCard = ({
     return () => { if (apexRef.current) { apexRef.current.destroy(); apexRef.current = null; } };
   }, [chartData, isLight]);
 
-  const cardBg     = isLight ? 'bg-white' : 'bg-[#0e2038]';
-  const borderCls  = isLight ? 'border-gray-100 hover:border-gray-200' : 'border-white/8 hover:border-white/15';
-  const nameCls    = isLight ? 'text-gray-500' : 'text-slate-400';
-  const unitCls    = isLight ? 'text-gray-400' : 'text-slate-500';
-  const priceCls   = isLight ? 'text-gray-900' : 'text-slate-100';
-  const footerCls  = isLight ? 'text-gray-400 border-gray-100' : 'text-slate-500 border-white/8';
+  const cardBg     = isLight ? 'bg-white' : 'bg-[#1C3656]';
+  const borderCls  = isLight ? 'border-gray-100 hover:border-gray-200' : 'border-[#5194F6]/15 hover:border-[#5194F6]/30';
+  const nameCls    = isLight ? 'text-gray-500' : 'text-slate-300';
+  const unitCls    = isLight ? 'text-gray-400' : 'text-slate-400';
+  const priceCls   = isLight ? 'text-gray-900' : 'text-white';
+  const footerCls  = isLight ? 'text-gray-400 border-gray-100' : 'text-slate-400 border-[#5194F6]/10';
 
   return (
     <div className={`group ${cardBg} rounded-2xl p-4 sm:p-5 border ${borderCls} hover:shadow-lg transition-all duration-300 min-w-0 overflow-hidden`}>

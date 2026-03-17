@@ -112,18 +112,18 @@ function TestimonialCard({
 }) {
   const [hovered, setHovered] = useState(false);
 
-  const cardBg           = isLight ? "rgba(255,255,255,0.85)" : "rgba(255,255,255,0.04)";
-  const cardBorderNormal = isLight ? "rgba(13,37,64,0.1)" : "rgba(255,255,255,0.08)";
-  const cardBorderHover  = "#C4941E";
+  const cardBg           = isLight ? "rgba(255,255,255,0.85)" : "rgba(28,54,86,0.25)";
+  const cardBorderNormal = isLight ? "rgba(13,37,64,0.1)" : "rgba(81,148,246,0.15)";
+  const cardBorderHover  = "#5194F6";
   const cardShadowNormal = isLight ? "0 2px 12px rgba(13,37,64,0.06)" : "0 2px 16px rgba(0,0,0,0.30)";
-  const cardShadowHover  = "0 16px 48px rgba(180,130,10,0.18)";
+  const cardShadowHover  = "0 16px 48px rgba(81,148,246,0.18)";
   const reviewTextColor  = isLight ? "rgba(13,37,64,0.65)" : "rgba(226,232,240,1)";
   const nameColor        = isLight ? "#0d1b2a" : "white";
   const roleColor        = isLight ? "rgba(13,37,64,0.5)" : "rgba(148,163,184,1)";
-  const avatarBg         = isLight ? "rgba(212,168,67,0.15)" : "rgba(201,168,76,0.15)";
+  const avatarBg         = isLight ? "rgba(81,148,246,0.15)" : "rgba(81,148,246,0.15)";
   const sourceColor      = isLight ? "rgba(13,37,64,0.4)" : "rgba(100,116,139,1)";
   const sourceDotColor   = isLight ? "rgba(13,37,64,0.2)" : "rgba(255,255,255,0.20)";
-  const tagBg            = isLight ? "rgba(212,168,67,0.1)" : "rgba(201,168,76,0.12)";
+  const tagBg            = isLight ? "rgba(81,148,246,0.12)" : "rgba(81,148,246,0.12)";
 
   return (
     <div
@@ -144,14 +144,14 @@ function TestimonialCard({
     >
       {/* Watermark */}
       <div style={{ position: "absolute", bottom: "-8px", right: "-4px", opacity: 0.06, pointerEvents: "none" }}>
-        <Quote size={isMobile ? 80 : 120} style={{ color: "#C4941E" }} />
+        <Quote size={isMobile ? 80 : 120} style={{ color: "#5194F6" }} />
       </div>
 
       {/* Top row: Tag + Stars + Action icons */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px" }}>
         <span style={{
           fontSize: "11px", fontWeight: 600, letterSpacing: "0.05em",
-          textTransform: "uppercase" as const, color: "#C9A84C",
+          textTransform: "uppercase" as const, color: "#5194F6",
           background: tagBg, borderRadius: "20px", padding: "3px 11px", whiteSpace: "nowrap" as const,
           flexShrink: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis",
         }}>
@@ -168,9 +168,9 @@ function TestimonialCard({
                 <ActionIcon
                   icon={Edit3}
                   title="Edit your review"
-                  color="#C4941E"
-                  bg="rgba(196,148,30,0.1)"
-                  border="1px solid rgba(196,148,30,0.35)"
+                  color="#5194F6"
+                  bg="rgba(81,148,246,0.12)"
+                  border="1px solid rgba(81,148,246,0.35)"
                   onClick={(e) => { e.stopPropagation(); onEdit?.(); }}
                 />
               )}
@@ -208,7 +208,7 @@ function TestimonialCard({
       </p>
 
       {/* Read more */}
-      <p onClick={onClick} style={{ margin: 0, fontSize: "12px", color: "#C4941E", fontWeight: 600, cursor: "pointer" }}>
+      <p onClick={onClick} style={{ margin: 0, fontSize: "12px", color: "#5194F6", fontWeight: 600, cursor: "pointer" }}>
         Read full review →
       </p>
 
@@ -217,7 +217,7 @@ function TestimonialCard({
         <div style={{
           width: "40px", height: "40px", borderRadius: "50%",
           background: avatarBg, display: "flex", alignItems: "center", justifyContent: "center",
-          fontSize: "14px", fontWeight: 700, color: "#C9A84C", flexShrink: 0,
+          fontSize: "14px", fontWeight: 700, color: "#5194F6", flexShrink: 0,
         }}>
           {t.avatar}
         </div>
@@ -244,7 +244,7 @@ function Modal({ t, onClose, isLight }: { t: Testimonial; onClose: () => void; i
   const metaColor    = isLight ? "rgba(13,37,64,0.5)" : "rgba(148,163,184,1)";
   const dividerColor = isLight ? "rgba(13,37,64,0.08)" : "rgba(255,255,255,0.08)";
   const bodyColor    = isLight ? "rgba(13,37,64,0.65)" : "rgba(226,232,240,1)";
-  const avatarBg     = isLight ? "rgba(212,168,67,0.15)" : "rgba(201,168,76,0.18)";
+  const avatarBg     = isLight ? "rgba(81,148,246,0.15)" : "rgba(81,148,246,0.18)";
   const closeBtnBg   = isLight ? "rgba(13,37,64,0.07)" : "rgba(255,255,255,0.1)";
   const closeBtnColor = isLight ? "rgba(13,37,64,0.5)" : "rgba(203,213,225,1)";
 
@@ -257,11 +257,11 @@ function Modal({ t, onClose, isLight }: { t: Testimonial; onClose: () => void; i
         style={{ width: "100%", maxWidth: "640px", maxHeight: "90vh", borderRadius: "24px", overflow: "hidden", overflowY: "auto", background: modalBg, border: modalBorder, boxShadow: "0 32px 80px rgba(0,0,0,0.35)", position: "relative" }}
         onClick={e => e.stopPropagation()}
       >
-        <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: "2px", background: "linear-gradient(90deg,transparent,rgba(212,168,67,0.6),transparent)" }} />
+        <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: "2px", background: "linear-gradient(90deg,transparent,rgba(81,148,246,0.50),transparent)" }} />
         <div style={{ padding: "32px 28px 28px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "24px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
-              <div style={{ width: "52px", height: "52px", borderRadius: "50%", background: avatarBg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "18px", fontWeight: 800, color: "#C9A84C" }}>
+              <div style={{ width: "52px", height: "52px", borderRadius: "50%", background: avatarBg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "18px", fontWeight: 800, color: "#5194F6" }}>
                 {t.avatar}
               </div>
               <div>
@@ -275,7 +275,7 @@ function Modal({ t, onClose, isLight }: { t: Testimonial; onClose: () => void; i
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "20px", flexWrap: "wrap" }}>
             <Stars rating={t.rating} size={18} isLight={isLight} />
-            <span style={{ fontSize: "11px", fontWeight: 600, textTransform: "uppercase" as const, letterSpacing: "0.05em", color: "#C9A84C", background: "rgba(212,168,67,0.1)", borderRadius: "20px", padding: "3px 10px" }}>{t.tag}</span>
+            <span style={{ fontSize: "11px", fontWeight: 600, textTransform: "uppercase" as const, letterSpacing: "0.05em", color: "#5194F6", background: "rgba(81,148,246,0.12)", borderRadius: "20px", padding: "3px 10px" }}>{t.tag}</span>
             <span style={{ fontSize: "12px", color: metaColor }}>{t.date} · {t.source}</span>
           </div>
           <div style={{ height: "1px", background: dividerColor, marginBottom: "20px" }} />
@@ -430,8 +430,8 @@ export default function TestimonialsPage() {
   // Theme tokens
   const headingColor    = isLight ? "#0d1b2a" : "#E8EDF5";
   const subHeadingColor = isLight ? "rgba(13,37,64,0.55)" : "rgba(255,255,255,0.50)";
-  const badgeBg         = isLight ? "rgba(212,168,67,0.1)" : "rgba(201,168,76,0.10)";
-  const badgeBorder     = isLight ? "1px solid rgba(212,168,67,0.28)" : "1px solid rgba(201,168,76,0.25)";
+  const badgeBg         = isLight ? "rgba(81,148,246,0.12)" : "rgba(81,148,246,0.10)";
+  const badgeBorder     = isLight ? "1px solid rgba(81,148,246,0.30)" : "1px solid rgba(81,148,246,0.25)";
   const dotInactive     = isLight ? "rgba(13,37,64,0.15)" : "rgba(255,255,255,0.18)";
 
   return (
@@ -442,8 +442,8 @@ export default function TestimonialsPage() {
       {/* ── Header ── */}
       <div style={{ textAlign: "center", marginBottom: isMobile ? "36px" : "52px", padding: "0 20px" }}>
         <div style={{ display: "inline-flex", alignItems: "center", gap: "7px", background: badgeBg, border: badgeBorder, borderRadius: "100px", padding: "5px 14px", marginBottom: "14px" }}>
-          <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#C9A84C" }} />
-          <span style={{ fontSize: "11px", fontWeight: 600, color: "#C9A84C", letterSpacing: "0.06em", textTransform: "uppercase" }}>User Reviews</span>
+          <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#5194F6" }} />
+          <span style={{ fontSize: "11px", fontWeight: 600, color: "#5194F6", letterSpacing: "0.06em", textTransform: "uppercase" }}>User Reviews</span>
         </div>
         <h2 style={{ margin: "0 0 10px", fontSize: isMobile ? "26px" : "clamp(28px, 4.5vw, 42px)", fontWeight: 800, color: headingColor, letterSpacing: "-0.025em", lineHeight: 1.15 }}>
           What Our Users are Saying
@@ -459,7 +459,7 @@ export default function TestimonialsPage() {
             {showWriteBtn && (
               <button
                 onClick={openCreate}
-                style={{ display: "inline-flex", alignItems: "center", gap: "7px", padding: "10px 22px", borderRadius: "12px", fontSize: "14px", fontWeight: 700, background: "#C4941E", border: "none", color: "#fff", cursor: "pointer", boxShadow: "0 4px 16px rgba(196,148,30,0.28)" }}
+                style={{ display: "inline-flex", alignItems: "center", gap: "7px", padding: "10px 22px", borderRadius: "12px", fontSize: "14px", fontWeight: 700, background: "#5194F6", border: "none", color: "#fff", cursor: "pointer", boxShadow: "0 4px 16px rgba(81,148,246,0.25)" }}
               >
                 <Plus size={16} /> Write a Review
               </button>
@@ -467,7 +467,7 @@ export default function TestimonialsPage() {
             {showEditBtn && (
               <button
                 onClick={() => openEdit(toUnified(myTestimonial!))}
-                style={{ display: "inline-flex", alignItems: "center", gap: "7px", padding: "10px 22px", borderRadius: "12px", fontSize: "14px", fontWeight: 700, background: "transparent", border: "1px solid #C4941E", color: "#C4941E", cursor: "pointer" }}
+                style={{ display: "inline-flex", alignItems: "center", gap: "7px", padding: "10px 22px", borderRadius: "12px", fontSize: "14px", fontWeight: 700, background: "transparent", border: "1px solid #5194F6", color: "#5194F6", cursor: "pointer" }}
               >
                 <Edit3 size={15} /> Edit My Review
               </button>
@@ -482,14 +482,14 @@ export default function TestimonialsPage() {
         {/* Loading spinner */}
         {loadingApi && (
           <div style={{ display: "flex", justifyContent: "center", padding: "48px" }}>
-            <Loader2 size={28} style={{ color: "#C4941E", animation: "spin 1s linear infinite" }} />
+            <Loader2 size={28} style={{ color: "#5194F6", animation: "spin 1s linear infinite" }} />
           </div>
         )}
 
         {/* Empty state */}
         {!loadingApi && allTestimonials.length === 0 && (
           <div style={{ textAlign: "center", padding: "48px 20px", color: subHeadingColor }}>
-            <Quote size={40} style={{ color: "#C4941E", opacity: 0.3, display: "block", margin: "0 auto 12px" }} />
+            <Quote size={40} style={{ color: "#5194F6", opacity: 0.3, display: "block", margin: "0 auto 12px" }} />
             <p style={{ margin: 0, fontSize: "15px" }}>No reviews yet. Be the first to share your experience!</p>
           </div>
         )}
@@ -504,7 +504,7 @@ export default function TestimonialsPage() {
             onTouchEnd={onTouchEnd}
           >
             {!isMobile && (
-              <button onClick={prev} style={{ width: "48px", height: "48px", minWidth: "48px", borderRadius: "50%", border: "none", background: "#C4941E", color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 16px rgba(196,148,30,0.30)", flexShrink: 0, opacity: cardsHovered ? 1 : 0, pointerEvents: cardsHovered ? "auto" : "none", transition: "opacity 0.22s ease" }}>
+              <button onClick={prev} style={{ width: "48px", height: "48px", minWidth: "48px", borderRadius: "50%", border: "none", background: "#5194F6", color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 16px rgba(81,148,246,0.30)", flexShrink: 0, opacity: cardsHovered ? 1 : 0, pointerEvents: cardsHovered ? "auto" : "none", transition: "opacity 0.22s ease" }}>
                 <ChevronLeft size={22} />
               </button>
             )}
@@ -529,7 +529,7 @@ export default function TestimonialsPage() {
             </div>
 
             {!isMobile && (
-              <button onClick={next} style={{ width: "48px", height: "48px", minWidth: "48px", borderRadius: "50%", border: "none", background: "#C4941E", color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 16px rgba(196,148,30,0.30)", flexShrink: 0, opacity: cardsHovered ? 1 : 0, pointerEvents: cardsHovered ? "auto" : "none", transition: "opacity 0.22s ease" }}>
+              <button onClick={next} style={{ width: "48px", height: "48px", minWidth: "48px", borderRadius: "50%", border: "none", background: "#5194F6", color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 16px rgba(81,148,246,0.30)", flexShrink: 0, opacity: cardsHovered ? 1 : 0, pointerEvents: cardsHovered ? "auto" : "none", transition: "opacity 0.22s ease" }}>
                 <ChevronRight size={22} />
               </button>
             )}
@@ -540,7 +540,7 @@ export default function TestimonialsPage() {
         {!loadingApi && totalDots > 1 && (
           <div style={{ display: "flex", justifyContent: "center", gap: "6px", alignItems: "center" }}>
             {Array.from({ length: totalDots }).map((_, i) => (
-              <button key={i} onClick={() => setIndex(i)} style={{ width: i === index ? "24px" : "8px", height: "8px", borderRadius: "100px", border: "none", background: i === index ? "#C4941E" : dotInactive, cursor: "pointer", padding: 0, transition: "all 0.3s ease" }} />
+              <button key={i} onClick={() => setIndex(i)} style={{ width: i === index ? "24px" : "8px", height: "8px", borderRadius: "100px", border: "none", background: i === index ? "#5194F6" : dotInactive, cursor: "pointer", padding: 0, transition: "all 0.3s ease" }} />
             ))}
           </div>
         )}

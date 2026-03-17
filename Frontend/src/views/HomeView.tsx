@@ -26,56 +26,56 @@ const HomeView = ({ activeTab, onChangeTab }: HomeViewProps) => {
   const isLight = theme === "light";
 
   // ── Gold gradient ─────────────────────────────────────────────────────────
-  const GOLD = "linear-gradient(135deg,#D4A843,#C4941E)";
+  const GOLD = "linear-gradient(135deg,#5194F6,#3a7de0)";
 
   // ── Page background ───────────────────────────────────────────────────────
   const pageBg = isLight
     ? "linear-gradient(160deg,#dce8f7 0%,#e8f2fd 45%,#dce8f7 100%)"
-    : "linear-gradient(160deg,#0c1a2e 0%,#0e2038 45%,#0b1825 100%)";
+    : "linear-gradient(160deg,#101528 0%,#101528 45%,#101528 100%)";
 
   const goldBadge = isLight
-    ? { background: "rgba(212,168,67,0.12)", border: "1px solid rgba(212,168,67,0.3)" }
-    : { background: "rgba(212,168,67,0.1)", border: "1px solid rgba(212,168,67,0.22)" };
+    ? { background: "rgba(81,148,246,0.12)", border: "1px solid rgba(81,148,246,0.30)" }
+    : { background: "rgba(81,148,246,0.10)", border: "1px solid rgba(81,148,246,0.22)" };
 
   const headingCls = isLight ? "text-navy" : "text-white";
   const subTextCls = isLight ? "text-navy/60" : "text-slate-400";
 
-  const cardBg = isLight ? "rgba(255,255,255,0.75)" : "rgba(255,255,255,0.04)";
+  const cardBg = isLight ? "rgba(255,255,255,0.75)" : "rgba(28,54,86,0.18)";
   const cardBorder = isLight
     ? "1px solid rgba(13,37,64,0.1)"
-    : "1px solid rgba(255,255,255,0.08)";
+    : "1px solid rgba(81,148,246,0.10)";
 
   const sectionWrapBg = isLight
     ? "linear-gradient(135deg,#edf5fe 0%,#dce8f7 100%)"
-    : "linear-gradient(135deg,#0f2040 0%,#0c1a2e 100%)";
+    : "linear-gradient(135deg,#1C3656 0%,#101528 100%)";
   const sectionWrapBorder = isLight
     ? "1px solid rgba(13,37,64,0.1)"
-    : "1px solid rgba(255,255,255,0.08)";
+    : "1px solid rgba(81,148,246,0.10)";
   const sectionTopLine = isLight
-    ? "linear-gradient(90deg,transparent,rgba(212,168,67,0.45),transparent)"
-    : "linear-gradient(90deg,transparent,rgba(212,168,67,0.5),transparent)";
+    ? "linear-gradient(90deg,transparent,rgba(81,148,246,0.45),transparent)"
+    : "linear-gradient(90deg,transparent,rgba(81,148,246,0.50),transparent)";
 
   const tabContainerBg = isLight
     ? "rgba(255,255,255,0.6)"
-    : "rgba(255,255,255,0.05)";
+    : "rgba(28,54,86,0.25)";
   const tabContainerBorder = isLight
     ? "1px solid rgba(13,37,64,0.12)"
-    : "1px solid rgba(255,255,255,0.09)";
+    : "1px solid rgba(81,148,246,0.15)";
   const tabInactiveCls = isLight ? "text-navy/50" : "#94a3b8";
 
   const widgetBorder = isLight
     ? "1px solid rgba(13,37,64,0.1)"
-    : "1px solid rgba(255,255,255,0.07)";
+    : "1px solid rgba(81,148,246,0.12)";
 
   const glow1 = isLight
-    ? "radial-gradient(circle,rgba(212,168,67,0.08) 0%,transparent 70%)"
-    : "radial-gradient(circle,rgba(212,168,67,0.06) 0%,transparent 70%)";
+    ? "radial-gradient(circle,rgba(81,148,246,0.08) 0%,transparent 70%)"
+    : "radial-gradient(circle,rgba(81,148,246,0.06) 0%,transparent 70%)";
   const glow2 = isLight
     ? "radial-gradient(circle,rgba(59,130,246,0.07) 0%,transparent 70%)"
     : "radial-gradient(circle,rgba(56,189,248,0.04) 0%,transparent 70%)";
 
-  const emailInputBg = isLight ? "rgba(255,255,255,0.8)" : "rgba(255,255,255,0.06)";
-  const emailInputBorder = isLight ? "1px solid rgba(13,37,64,0.12)" : "1px solid rgba(255,255,255,0.1)";
+  const emailInputBg = isLight ? "rgba(255,255,255,0.8)" : "rgba(28,54,86,0.30)";
+  const emailInputBorder = isLight ? "1px solid rgba(13,37,64,0.12)" : "1px solid rgba(81,148,246,0.15)";
   const emailInputText = isLight ? "#0d1b2a" : "white";
 
   const checkoutHandler = async (amount: number) => {
@@ -86,7 +86,7 @@ const HomeView = ({ activeTab, onChangeTab }: HomeViewProps) => {
       key: keyData.key, amount, currency: "INR", name: "InvestBeans",
       order_id: orderData.order.id, callback_url: `${API_URL}/paymentVerification`,
       prefill: { name: "InvestBeans", email: "InvestBeans@example.com", contact: "9999999999" },
-      theme: { color: "#D4A843" },
+      theme: { color: "#5194F6" },
     };
     // @ts-ignore
     new Razorpay(options).open();
@@ -104,8 +104,8 @@ const HomeView = ({ activeTab, onChangeTab }: HomeViewProps) => {
             <section className="mb-20 animate-fade-in">
               <div className="mb-6">
                 <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-4" style={goldBadge}>
-                  <Sparkles className="w-4 h-4 text-[#D4A843]" />
-                  <span className="text-xs font-semibold text-[#D4A843] uppercase tracking-wide">Premium</span>
+                  <Sparkles className="w-4 h-4 text-[#5194F6]" />
+                  <span className="text-xs font-semibold text-[#5194F6] uppercase tracking-wide">Premium</span>
                 </div>
                 <h2 className={`text-3xl font-bold mb-1 ${headingCls}`}>
                   InvestBeans Live Premium Charts
@@ -132,8 +132,8 @@ const HomeView = ({ activeTab, onChangeTab }: HomeViewProps) => {
               <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-10">
                 <div className="mb-6 md:mb-0">
                   <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-4" style={goldBadge}>
-                    <Activity className="w-4 h-4 text-[#D4A843]" />
-                    <span className="text-xs font-semibold text-[#D4A843] uppercase tracking-wide">
+                    <Activity className="w-4 h-4 text-[#5194F6]" />
+                    <span className="text-xs font-semibold text-[#5194F6] uppercase tracking-wide">
                       {activeTab === "domestic" ? "Market Live" : "Live Data"}
                     </span>
                   </div>
@@ -153,7 +153,7 @@ const HomeView = ({ activeTab, onChangeTab }: HomeViewProps) => {
                     <button key={tab} onClick={() => onChangeTab(tab)}
                       className="px-5 py-2 rounded-lg text-sm font-semibold transition-all capitalize"
                       style={activeTab === tab
-                        ? { background: GOLD, color: "#0c1a2e" }
+                        ? { background: GOLD, color: "#101528" }
                         : { color: tabInactiveCls }}>
                       {tab}
                     </button>
@@ -210,8 +210,8 @@ const HomeView = ({ activeTab, onChangeTab }: HomeViewProps) => {
 
               {/* Gold badge */}
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-5" style={goldBadge}>
-                <TrendingUp className="w-4 h-4 text-[#D4A843]" />
-                <span className="text-xs font-semibold text-[#D4A843] uppercase tracking-widest">
+                <TrendingUp className="w-4 h-4 text-[#5194F6]" />
+                <span className="text-xs font-semibold text-[#5194F6] uppercase tracking-widest">
                   Pricing Plans
                 </span>
               </div>
@@ -222,7 +222,7 @@ const HomeView = ({ activeTab, onChangeTab }: HomeViewProps) => {
               >
                 Invest Smarter,{" "}
                 <span style={{
-                  background: "linear-gradient(135deg,#C9A84C,#e8c45a)",
+                  background: "linear-gradient(135deg,#5194F6,#7ab8fa)",
                   WebkitBackgroundClip: "text",
                   WebkitTextFillColor: "transparent",
                 }}>

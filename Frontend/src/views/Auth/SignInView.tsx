@@ -49,17 +49,17 @@ const SignInView = () => {
   // Page background
   const pageBg = isLight
     ? "linear-gradient(135deg,#dce8f7 0%,#e8f2fd 50%,#dce8f7 100%)"
-    : "linear-gradient(135deg,#0d1b2a 0%,#0e2038 50%,#0b1825 100%)";
+    : "#0d0f1a";
 
   // Card
-  const cardBg = isLight ? "#ffffff" : "rgba(13,30,54,0.95)";
-  const cardBorder = isLight ? "1px solid rgba(13,37,64,0.1)" : "1px solid rgba(255,255,255,0.08)";
+  const cardBg = isLight ? "#ffffff" : "rgba(15,22,40,0.95)";
+  const cardBorder = isLight ? "1px solid rgba(13,37,64,0.1)" : "1px solid rgba(81,148,246,0.15)";
   const cardShadow = isLight
     ? "0 20px 60px rgba(13,37,64,0.1)"
     : "0 20px 60px rgba(0,0,0,0.5)";
 
   // Logo badge (always gold/navy — same in both modes per brand requirement)
-  const logoBg = "linear-gradient(135deg,#1a3a5c,#C4941E)";
+  const logoBg = "linear-gradient(135deg,#1C3656,#5194F6)";
 
   // Headings / text
   const headingColor = isLight ? "#0d1b2a" : "white";
@@ -84,25 +84,25 @@ const SignInView = () => {
 
   // Input
   const inputCls = isLight
-    ? "pl-11 h-12 text-base border-slate-200 focus:border-[#C4941E] focus:ring-[#C4941E]/30 bg-white text-slate-900"
-    : "pl-11 h-12 text-base border-white/10 focus:border-[#C4941E] focus:ring-[#C4941E]/30 bg-white/5 text-white placeholder:text-slate-500";
+    ? "pl-11 h-12 text-base border-slate-200 focus:border-[#5194F6] focus:ring-[#5194F6]/30 bg-white text-slate-900"
+    : "pl-11 h-12 text-base border-white/10 focus:border-[#5194F6] focus:ring-[#5194F6]/30 bg-white/5 text-white placeholder:text-slate-500";
   const passwordInputCls = isLight
-    ? "pl-11 pr-12 h-12 text-base border-slate-200 focus:border-[#C4941E] focus:ring-[#C4941E]/30 bg-white text-slate-900"
-    : "pl-11 pr-12 h-12 text-base border-white/10 focus:border-[#C4941E] focus:ring-[#C4941E]/30 bg-white/5 text-white placeholder:text-slate-500";
+    ? "pl-11 pr-12 h-12 text-base border-slate-200 focus:border-[#5194F6] focus:ring-[#5194F6]/30 bg-white text-slate-900"
+    : "pl-11 pr-12 h-12 text-base border-white/10 focus:border-[#5194F6] focus:ring-[#5194F6]/30 bg-white/5 text-white placeholder:text-slate-500";
   const iconColor = isLight ? "text-slate-400" : "text-slate-500";
   const labelColor = isLight ? "text-slate-700" : "text-slate-300";
 
   // Forgot password
-  const forgotColor = isLight ? "text-[#C4941E] hover:text-[#b47d16]" : "text-[#D4A843] hover:text-[#e8c45a]";
+  const forgotColor = isLight ? "text-[#5194F6] hover:text-[#7ab8fa]" : "text-[#5194F6] hover:text-[#7ab8fa]";
 
   // Submit button (always gold — brand standard)
   const submitBtn =
-    "w-full h-12 text-base font-semibold bg-gradient-to-r from-[#C4941E] to-[#D4A843] hover:from-[#b47d16] hover:to-[#C4941E] text-[#0d1b2a] shadow-lg hover:shadow-xl transition-all";
+    "w-full h-12 text-base font-semibold bg-gradient-to-r from-[#5194F6] to-[#3a7de0] hover:from-[#3a7de0] hover:to-[#5194F6] text-white shadow-lg hover:shadow-xl transition-all";
 
   // Footer text
   const footerColor = isLight ? "text-slate-500" : "text-slate-500";
-  const linkColor = isLight ? "text-[#C4941E] hover:text-[#b47d16]" : "text-[#D4A843] hover:text-[#e8c45a]";
-  const signupLinkColor = isLight ? "font-semibold text-[#C4941E] hover:text-[#b47d16]" : "font-semibold text-[#D4A843] hover:text-[#e8c45a]";
+  const linkColor = isLight ? "text-[#5194F6] hover:text-[#7ab8fa]" : "text-[#5194F6] hover:text-[#7ab8fa]";
+  const signupLinkColor = isLight ? "font-semibold text-[#5194F6] hover:text-[#7ab8fa]" : "font-semibold text-[#5194F6] hover:text-[#7ab8fa]";
 
   // Caption at bottom
   const captionColor = isLight ? "text-slate-400" : "text-slate-500";
@@ -212,7 +212,7 @@ const SignInView = () => {
                   />
                   <button
                     type="button" onClick={() => setShowPassword(!showPassword)}
-                    className={`absolute right-3 top-3.5 transition disabled:opacity-50 ${iconColor} hover:text-[#C4941E]`}
+                    className={`absolute right-3 top-3.5 transition disabled:opacity-50 ${iconColor} hover:text-[#5194F6]`}
                     disabled={loading || googleLoading}
                   >
                     {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}

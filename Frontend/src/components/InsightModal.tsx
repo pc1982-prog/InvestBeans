@@ -21,44 +21,44 @@ const InsightModal = ({ isOpen, onClose, insight, loading = false }: InsightModa
   const showLoading = loading && !insight;
 
   // ── Theme tokens ─────────────────────────────────────────────────────────
-  const backdropBg = "rgba(0,0,0,0.6)";
+  const backdropBg = "rgba(0,0,0,0.7)";
   const modalBg = isLight
     ? "linear-gradient(160deg,#f0f7fe 0%,#e8f2fd 100%)"
-    : "linear-gradient(160deg,#0d1e36 0%,#0c1a2e 100%)";
-  const modalBorder = isLight ? "1px solid rgba(13,37,64,0.12)" : "1px solid rgba(255,255,255,0.08)";
-  const goldTopLine = "linear-gradient(90deg,transparent,rgba(212,168,67,0.55),transparent)";
+    : "linear-gradient(160deg,rgba(13,19,36,0.99) 0%,rgba(10,15,28,0.99) 100%)";
+  const modalBorder = isLight ? "1px solid rgba(13,37,64,0.12)" : "1px solid rgba(81,148,246,0.18)";
+  const blueTopLine = "linear-gradient(90deg,transparent,rgba(81,148,246,0.55),transparent)";
 
-  const headerBg = isLight ? "rgba(232,242,253,0.97)" : "rgba(13,30,54,0.97)";
-  const headerBorder = isLight ? "1px solid rgba(13,37,64,0.08)" : "1px solid rgba(255,255,255,0.07)";
+  const headerBg = isLight ? "rgba(232,242,253,0.97)" : "rgba(13,19,36,0.98)";
+  const headerBorder = isLight ? "1px solid rgba(13,37,64,0.08)" : "1px solid rgba(81,148,246,0.12)";
   const titleColor = isLight ? "#0d1b2a" : "white";
   const metaColor = isLight ? "rgba(13,37,64,0.5)" : "rgba(148,163,184,1)";
-  const closeBtnBg = isLight ? "rgba(13,37,64,0.06)" : "rgba(255,255,255,0.05)";
+  const closeBtnBg = isLight ? "rgba(13,37,64,0.06)" : "rgba(255,255,255,0.06)";
   const closeBtnColor = isLight ? "rgba(13,37,64,0.45)" : "rgba(148,163,184,1)";
-  const sectionBarColor = "#D4A843";
+  const sectionBarColor = "#5194F6";
   const overviewTextColor = isLight ? "rgba(13,37,64,0.65)" : "rgba(148,163,184,1)";
-  const insightBlockBg = isLight ? "rgba(212,168,67,0.07)" : "rgba(212,168,67,0.05)";
-  const insightBlockBorder = isLight ? "1px solid rgba(212,168,67,0.2)" : "1px solid rgba(212,168,67,0.15)";
+  const insightBlockBg = isLight ? "rgba(81,148,246,0.06)" : "rgba(81,148,246,0.06)";
+  const insightBlockBorder = isLight ? "1px solid rgba(81,148,246,0.18)" : "1px solid rgba(81,148,246,0.18)";
   const insightBodyColor = isLight ? "rgba(13,37,64,0.75)" : "rgba(203,213,225,1)";
 
   // Credits block
-  const creditBlockBg = isLight ? "rgba(255,255,255,0.6)" : "rgba(255,255,255,0.02)";
-  const creditBlockBorder = isLight ? "1px solid rgba(13,37,64,0.09)" : "1px solid rgba(255,255,255,0.07)";
+  const creditBlockBg = isLight ? "rgba(255,255,255,0.6)" : "rgba(255,255,255,0.03)";
+  const creditBlockBorder = isLight ? "1px solid rgba(13,37,64,0.09)" : "1px solid rgba(81,148,246,0.12)";
   const creditLabelColor = isLight ? "rgba(13,37,64,0.4)" : "rgba(100,116,139,1)";
   const creditValueColor = isLight ? "#0d1b2a" : "rgba(226,232,240,1)";
-  const dividerColor = isLight ? "rgba(13,37,64,0.07)" : "rgba(255,255,255,0.06)";
+  const dividerColor = isLight ? "rgba(13,37,64,0.07)" : "rgba(81,148,246,0.12)";
 
-  const footerBg = isLight ? "rgba(232,242,253,0.98)" : "rgba(10,22,40,0.98)";
-  const footerBorder = isLight ? "1px solid rgba(13,37,64,0.08)" : "1px solid rgba(255,255,255,0.06)";
+  const footerBg = isLight ? "rgba(232,242,253,0.98)" : "rgba(10,15,28,0.99)";
+  const footerBorder = isLight ? "1px solid rgba(13,37,64,0.08)" : "1px solid rgba(81,148,246,0.12)";
   const skeletonBase = isLight ? "rgba(13,37,64,0.06)" : "rgba(255,255,255,0.07)";
-  const skeletonGold = isLight ? "rgba(212,168,67,0.1)" : "rgba(212,168,67,0.08)";
+  const skeletonBlue = isLight ? "rgba(81,148,246,0.08)" : "rgba(81,148,246,0.08)";
 
   // ── Sentiment ────────────────────────────────────────────────────────────
   const getSentimentStyle = () => {
-    if (!insight) return { color: "#D4A843", bg: "rgba(212,168,67,0.08)", border: "rgba(212,168,67,0.2)" };
+    if (!insight) return { color: "#5194F6", bg: "rgba(81,148,246,0.08)", border: "rgba(81,148,246,0.20)" };
     return {
       positive: { color: "#16a34a", bg: "rgba(52,211,153,0.1)", border: "rgba(52,211,153,0.25)" },
       negative: { color: "#dc2626", bg: "rgba(251,113,133,0.1)", border: "rgba(251,113,133,0.25)" },
-      neutral:  { color: "#D4A843", bg: "rgba(212,168,67,0.08)", border: "rgba(212,168,67,0.2)" },
+      neutral:  { color: "#5194F6", bg: "rgba(81,148,246,0.08)", border: "rgba(81,148,246,0.20)" },
     }[insight.sentiment];
   };
 
@@ -81,10 +81,10 @@ const InsightModal = ({ isOpen, onClose, insight, loading = false }: InsightModa
     >
       <div
         className="relative w-full max-w-4xl max-h-[90vh] rounded-2xl shadow-2xl overflow-hidden animate-scale-in flex flex-col"
-        style={{ background: modalBg, border: modalBorder, boxShadow: "0 25px 60px rgba(0,0,0,0.4)" }}
+        style={{ background: modalBg, border: modalBorder, boxShadow: "0 25px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(81,148,246,0.10)" }}
       >
-        {/* Gold top accent line */}
-        <div className="absolute top-0 left-0 right-0 h-px" style={{ background: goldTopLine }} />
+        {/* Blue top accent line */}
+        <div className="absolute top-0 left-0 right-0 h-px" style={{ background: blueTopLine }} />
 
         {/* ═══════════════ LOADING SKELETON ═══════════════ */}
         {showLoading ? (
@@ -108,9 +108,9 @@ const InsightModal = ({ isOpen, onClose, insight, loading = false }: InsightModa
               {[1, 2, 3].map(i => (
                 <div key={i} className="h-4 rounded animate-pulse" style={{ background: skeletonBase, width: `${90 - i * 10}%` }} />
               ))}
-              <div className="rounded-xl p-6 mt-4" style={{ background: skeletonGold, border: `1px solid ${skeletonGold}` }}>
+              <div className="rounded-xl p-6 mt-4" style={{ background: skeletonBlue, border: `1px solid ${skeletonBlue}` }}>
                 {[1, 2, 3].map(i => (
-                  <div key={i} className="h-4 rounded animate-pulse mb-3" style={{ background: skeletonGold, width: `${95 - i * 8}%` }} />
+                  <div key={i} className="h-4 rounded animate-pulse mb-3" style={{ background: skeletonBlue, width: `${95 - i * 8}%` }} />
                 ))}
               </div>
             </div>
@@ -134,9 +134,9 @@ const InsightModal = ({ isOpen, onClose, insight, loading = false }: InsightModa
                     <span
                       className="px-3 py-1 rounded-full text-sm font-medium"
                       style={{
-                        background: isLight ? "rgba(13,37,64,0.06)" : "rgba(255,255,255,0.06)",
-                        border: isLight ? "1px solid rgba(13,37,64,0.1)" : "1px solid rgba(255,255,255,0.09)",
-                        color: isLight ? "rgba(13,37,64,0.7)" : "rgba(203,213,225,1)",
+                        background: isLight ? "rgba(13,37,64,0.06)" : "rgba(81,148,246,0.08)",
+                        border: isLight ? "1px solid rgba(13,37,64,0.1)" : "1px solid rgba(81,148,246,0.18)",
+                        color: isLight ? "rgba(13,37,64,0.7)" : "rgba(129,174,249,1)",
                       }}
                     >
                       {insight.category}
@@ -147,9 +147,9 @@ const InsightModal = ({ isOpen, onClose, insight, loading = false }: InsightModa
                   </h2>
                   <div className="flex flex-wrap items-center gap-4 text-sm" style={{ color: metaColor }}>
                     {[
-                      { icon: <Clock className="w-4 h-4 text-[#D4A843]/50" />, text: insight.readTime },
-                      { icon: <Eye className="w-4 h-4 text-[#D4A843]/50" />, text: `${insight.views?.toLocaleString() || 0} views` },
-                      { icon: <Calendar className="w-4 h-4 text-[#D4A843]/50" />, text: formatDate(insight.publishedAt) },
+                      { icon: <Clock className="w-4 h-4 text-[#5194F6]/50" />, text: insight.readTime },
+                      { icon: <Eye className="w-4 h-4 text-[#5194F6]/50" />, text: `${insight.views?.toLocaleString() || 0} views` },
+                      { icon: <Calendar className="w-4 h-4 text-[#5194F6]/50" />, text: formatDate(insight.publishedAt) },
                     ].map((item, i) => (
                       <div key={i} className="flex items-center gap-1.5">{item.icon}<span>{item.text}</span></div>
                     ))}
@@ -182,8 +182,8 @@ const InsightModal = ({ isOpen, onClose, insight, loading = false }: InsightModa
               {/* InvestBeans Insight */}
               <div className="rounded-xl p-4" style={{ background: insightBlockBg, border: insightBlockBorder }}>
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="p-1.5 rounded-lg" style={{ background: "linear-gradient(135deg,#D4A843,#C4941E)" }}>
-                    <Lightbulb className="w-4 h-4 text-[#0c1a2e]" />
+                  <div className="p-1.5 rounded-lg" style={{ background: "linear-gradient(135deg,#5194F6,#3a7de0)" }}>
+                    <Lightbulb className="w-4 h-4 text-white" />
                   </div>
                   <h3 className="text-sm font-bold" style={{ color: titleColor }}>InvestBeans Insight</h3>
                 </div>
@@ -192,11 +192,11 @@ const InsightModal = ({ isOpen, onClose, insight, loading = false }: InsightModa
                 </p>
               </div>
 
-              {/* ✅ Compact Credits — all fields in one row */}
+              {/* Credits block */}
               <div className="rounded-xl p-4" style={{ background: creditBlockBg, border: creditBlockBorder }}>
                 <h3 className="text-xs font-semibold mb-3 flex items-center gap-2" style={{ color: titleColor }}>
                   <span className="w-1 h-3.5 rounded-full inline-block"
-                    style={{ background: isLight ? "rgba(13,37,64,0.3)" : "rgba(100,116,139,1)" }} />
+                    style={{ background: isLight ? "rgba(13,37,64,0.3)" : "rgba(81,148,246,0.5)" }} />
                   Source & Credits
                 </h3>
 
@@ -208,7 +208,6 @@ const InsightModal = ({ isOpen, onClose, insight, loading = false }: InsightModa
                     <span className="text-sm font-semibold" style={{ color: creditValueColor }}>{insight.credits.source}</span>
                   </div>
 
-                  {/* Divider */}
                   {insight.credits.author && (
                     <>
                       <div className="self-stretch w-px mt-1" style={{ background: dividerColor }} />
@@ -219,7 +218,6 @@ const InsightModal = ({ isOpen, onClose, insight, loading = false }: InsightModa
                     </>
                   )}
 
-                  {/* Divider */}
                   {insight.credits.publishedDate && (
                     <>
                       <div className="self-stretch w-px mt-1" style={{ background: dividerColor }} />
@@ -230,7 +228,6 @@ const InsightModal = ({ isOpen, onClose, insight, loading = false }: InsightModa
                     </>
                   )}
 
-                  {/* View Source link — inline at the end */}
                   {insight.credits.url && (
                     <>
                       <div className="self-stretch w-px mt-1" style={{ background: dividerColor }} />
@@ -240,7 +237,7 @@ const InsightModal = ({ isOpen, onClose, insight, loading = false }: InsightModa
                           target="_blank"
                           rel="noopener noreferrer"
                           className="inline-flex items-center gap-1.5 text-sm font-medium hover:opacity-80 transition-opacity"
-                          style={{ color: "#D4A843" }}
+                          style={{ color: "#5194F6" }}
                         >
                           View Source <ExternalLink className="w-3.5 h-3.5" />
                         </a>
@@ -256,7 +253,7 @@ const InsightModal = ({ isOpen, onClose, insight, loading = false }: InsightModa
               <button
                 onClick={onClose}
                 className="w-full h-12 rounded-xl font-semibold text-sm transition-all hover:opacity-90"
-                style={{ background: "linear-gradient(135deg,#D4A843,#C4941E)", color: "#0c1a2e" }}
+                style={{ background: "linear-gradient(135deg,#5194F6,#3a7de0)", color: "#ffffff" }}
               >
                 Close
               </button>

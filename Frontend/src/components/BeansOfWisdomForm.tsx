@@ -179,49 +179,75 @@ export default function BeansOfWisdomForm({ isOpen, onClose, bean, onSuccess }: 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/55 backdrop-blur-sm">
+      {/* Scoped CSS reset — forces light theme inside this modal regardless of parent dark theme */}
+      <style>{`
+        .bow-form-modal, .bow-form-modal * {
+          --background: #101528;
+          --foreground: #e8edf5;
+          --card: rgba(15,22,40,0.97);
+          --card-foreground: #e8edf5;
+          --border: rgba(81,148,246,0.18);
+          --input: rgba(255,255,255,0.05);
+          --muted: rgba(255,255,255,0.06);
+          --muted-foreground: rgba(148,163,184,1);
+        }
+        .bow-form-modal input::placeholder,
+        .bow-form-modal textarea::placeholder {
+          color: rgba(148,163,184,0.5) !important;
+          opacity: 1;
+        }
+        .bow-form-modal input:-webkit-autofill,
+        .bow-form-modal textarea:-webkit-autofill {
+          -webkit-box-shadow: 0 0 0px 1000px #0f1628 inset !important;
+          -webkit-text-fill-color: #e8edf5 !important;
+        }
+      `}</style>
       {/* Modal */}
-      <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col">
+      <div className="bow-form-modal relative rounded-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden" style={{ background: "rgba(13,19,36,0.98)", boxShadow: "0 32px 80px rgba(0,0,0,0.60), 0 0 0 1px rgba(81,148,246,0.20)", color: "#e8edf5" }}>
+        {/* Blue top accent bar */}
+        <div className="h-[4px] w-full flex-shrink-0" style={{ background: "linear-gradient(90deg,#3a7de8,#5194F6,#7ab3f8)" }} />
+
         {/* Header */}
-        <div className="flex items-center justify-between px-6 md:px-8 py-6 border-b border-slate-200">
+        <div className="flex items-center justify-between px-7 md:px-9 py-5" style={{ background: "rgba(13,19,36,0.98)", borderBottom: "1px solid rgba(81,148,246,0.15)" }}>
           <div>
-            <h2 className="text-2xl md:text-3xl font-bold text-slate-900">
+            <h2 className="text-xl md:text-2xl font-bold" style={{ color: "#ffffff" }}>
               Edit Bean of Wisdom
             </h2>
-            <p className="text-slate-600 mt-1">Update your daily investment insight</p>
+            <p className="text-sm mt-0.5" style={{ color: "rgba(148,163,184,0.8)" }}>Update your daily investment insight</p>
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-slate-100 rounded-xl transition-colors"
+            className="w-9 h-9 flex items-center justify-center rounded-lg transition-all"
+            style={{ background: "rgba(255,255,255,0.07)", color: "rgba(148,163,184,0.8)" }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(81,148,246,0.15)"; (e.currentTarget as HTMLElement).style.color = "#5194F6"; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.07)"; (e.currentTarget as HTMLElement).style.color = "rgba(148,163,184,0.8)"; }}
           >
-            <X className="w-6 h-6 text-slate-500" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Error Alert */}
         {error && (
-          <div className="mx-6 md:mx-8 mt-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-lg flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+          <div className="mx-7 md:mx-9 mt-5 p-3.5 rounded-xl flex items-start gap-3" style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.25)" }}>
+            <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: "#ef4444" }} />
             <div className="flex-1">
-              <p className="text-sm font-semibold text-red-900">Error</p>
-              <p className="text-sm text-red-700 mt-1">{error}</p>
+              <p className="text-sm font-semibold" style={{ color: "#fca5a5" }}>Error</p>
+              <p className="text-sm mt-0.5" style={{ color: "#fca5a5" }}>{error}</p>
             </div>
-            <button
-              onClick={() => setError(null)}
-              className="text-red-600 hover:text-red-700"
-            >
+            <button onClick={() => setError(null)} style={{ color: "rgba(252,165,165,0.7)" }}>
               <X className="w-4 h-4" />
             </button>
           </div>
         )}
 
         {/* Form Content - Scrollable */}
-        <div className="flex-1 overflow-y-auto px-6 md:px-8 py-6">
+        <div className="flex-1 overflow-y-auto px-7 md:px-9 py-6" style={{ background: "transparent" }}>
           {!fieldLimits ? (
             <div className="flex items-center justify-center py-20">
               <div className="text-center">
-                <Loader2 className="w-10 h-10 animate-spin text-orange-500 mx-auto mb-4" />
-                <p className="text-slate-600">Loading form...</p>
+                <Loader2 className="w-10 h-10 animate-spin mx-auto mb-4" style={{ color: "#5194F6" }} />
+                <p className="text-sm" style={{ color: "rgba(148,163,184,0.7)" }}>Loading form...</p>
               </div>
             </div>
           ) : (
@@ -354,24 +380,27 @@ export default function BeansOfWisdomForm({ isOpen, onClose, bean, onSuccess }: 
 
               {/* Tags */}
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-2">
-                  Tags <span className="text-red-500">*</span>
+                <label className="block text-sm font-semibold mb-2" style={{ color: "rgba(203,213,225,1)" }}>
+                  Tags <span style={{ color: "#5194F6" }}>*</span>
                 </label>
                 <input
                   type="text"
                   value={formData.tags?.join(", ") || ''}
                   onChange={handleTagsChange}
-                  className={`w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all ${
-                    fieldErrors.tags 
-                      ? 'border-red-300 focus:border-red-500' 
-                      : 'border-slate-200 focus:border-orange-500'
-                  }`}
+                  className="w-full px-4 py-3 rounded-xl text-sm transition-all outline-none"
+                  style={{
+                    background: "rgba(255,255,255,0.05)",
+                    border: fieldErrors.tags ? "1.5px solid rgba(239,68,68,0.6)" : "1.5px solid rgba(81,148,246,0.20)",
+                    color: "#e8edf5",
+                  }}
+                  onFocus={e => { if (!fieldErrors.tags) (e.target as HTMLElement).style.borderColor = "#5194F6"; (e.target as HTMLElement).style.background = "rgba(81,148,246,0.06)"; (e.target as HTMLElement).style.boxShadow = "0 0 0 3px rgba(81,148,246,0.12)"; }}
+                  onBlur={e => { if (!fieldErrors.tags) (e.target as HTMLElement).style.borderColor = "rgba(81,148,246,0.20)"; (e.target as HTMLElement).style.background = "rgba(255,255,255,0.05)"; (e.target as HTMLElement).style.boxShadow = "none"; }}
                   placeholder="e.g., investing, finance, wisdom (comma-separated)"
                 />
                 {fieldErrors.tags && (
-                  <p className="mt-2 text-sm text-red-600">{fieldErrors.tags}</p>
+                  <p className="mt-1.5 text-xs font-medium" style={{ color: "#ef4444" }}>{fieldErrors.tags}</p>
                 )}
-                <p className="mt-2 text-sm text-slate-500">
+                <p className="mt-1.5 text-xs" style={{ color: "rgba(100,116,139,0.8)" }}>
                   Separate tags with commas. Max {fieldLimits.tags} characters per tag.
                 </p>
               </div>
@@ -380,36 +409,38 @@ export default function BeansOfWisdomForm({ isOpen, onClose, bean, onSuccess }: 
         </div>
 
         {/* Footer */}
-        <div className="border-t border-slate-200 px-6 md:px-8 py-6 bg-slate-50 rounded-b-3xl">
-          <div className="flex flex-col-reverse sm:flex-row gap-3 justify-end">
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={loading}
-              className="px-6 py-3 text-slate-700 bg-white border-2 border-slate-200 hover:bg-slate-50 rounded-xl font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Cancel
-            </button>
+        <div className="flex-shrink-0 px-7 md:px-9 py-4 flex flex-col-reverse sm:flex-row gap-3 justify-end" style={{ background: "rgba(13,19,36,0.98)", borderTop: "1px solid rgba(81,148,246,0.15)" }}>
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={loading}
+            className="px-6 py-2.5 rounded-xl font-semibold text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{ background: "rgba(255,255,255,0.06)", border: "1.5px solid rgba(255,255,255,0.12)", color: "rgba(203,213,225,0.8)" }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.10)"; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.06)"; }}
+          >
+            Cancel
+          </button>
 
-            <button
-              type="button"
-              onClick={handleSubmit}
-              disabled={loading || !fieldLimits}
-              className="px-6 py-3 text-white bg-gradient-to-r from-orange-500 to-amber-500 hover:shadow-lg rounded-xl font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  Updating...
-                </>
-              ) : (
-                <>
-                  <Save className="w-5 h-5" />
-                  Save Changes
-                </>
-              )}
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={handleSubmit}
+            disabled={loading || !fieldLimits}
+            className="px-6 py-2.5 text-white rounded-xl font-semibold text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            style={{ background: "linear-gradient(135deg,#5194F6,#3a7de8)", boxShadow: "0 2px 12px rgba(81,148,246,0.35)" }}
+          >
+            {loading ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Updating...
+              </>
+            ) : (
+              <>
+                <Save className="w-4 h-4" />
+                Save Changes
+              </>
+            )}
+          </button>
         </div>
       </div>
     </div>
@@ -448,23 +479,53 @@ function FormField({
   const isWarning = current > max * 0.8;
   const isError = current > max || !!error;
 
+  const baseStyle: React.CSSProperties = {
+    width: "100%",
+    padding: "10px 16px",
+    borderRadius: "10px",
+    fontSize: "14px",
+    color: "#e8edf5",
+    background: "rgba(255,255,255,0.05)",
+    border: isError ? "1.5px solid #f87171" : "1.5px solid #d1d9f0",
+    outline: "none",
+    transition: "border-color 0.15s, box-shadow 0.15s, background 0.15s",
+    resize: "none" as const,
+    WebkitAppearance: "none",
+    appearance: "none",
+    colorScheme: "dark",
+  };
+
+  const handleFocus = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    if (!isError) {
+      e.target.style.borderColor = "#5194F6";
+      e.target.style.boxShadow = "0 0 0 3px rgba(81,148,246,0.12)";
+      e.target.style.background = "rgba(81,148,246,0.06)";
+    }
+  };
+
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    if (!isError) {
+      e.target.style.borderColor = "rgba(81,148,246,0.18)";
+      e.target.style.boxShadow = "none";
+      e.target.style.background = "rgba(255,255,255,0.05)";
+    }
+  };
+
   return (
     <div>
-      <label className="block text-sm font-semibold text-slate-700 mb-2">
-        {label} {required && <span className="text-red-500">*</span>}
+      <label className="block text-sm font-semibold mb-2" style={{ color: "rgba(203,213,225,1)" }}>
+        {label} {required && <span style={{ color: "#5194F6" }}>*</span>}
       </label>
       {textarea ? (
         <textarea
           name={name}
           value={value}
           onChange={onChange}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
           maxLength={maxLength}
           rows={rows}
-          className={`w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 resize-none transition-all ${
-            isError 
-              ? 'border-red-300 focus:border-red-500' 
-              : 'border-slate-200 focus:border-orange-500'
-          }`}
+          style={baseStyle}
           placeholder={placeholder}
         />
       ) : (
@@ -473,21 +534,18 @@ function FormField({
           name={name}
           value={value}
           onChange={onChange}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
           maxLength={maxLength}
-          className={`w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all ${
-            isError 
-              ? 'border-red-300 focus:border-red-500' 
-              : 'border-slate-200 focus:border-orange-500'
-          }`}
+          style={baseStyle}
           placeholder={placeholder}
         />
       )}
-      <div className="flex justify-between items-center mt-2">
-        {error && <p className="text-sm text-red-600 font-medium">{error}</p>}
+      <div className="flex justify-between items-center mt-1.5">
+        {error && <p className="text-xs font-medium" style={{ color: "#ef4444" }}>{error}</p>}
         <p
-          className={`text-sm font-medium ml-auto ${
-            isError ? 'text-red-600' : isWarning ? 'text-orange-600' : 'text-slate-500'
-          }`}
+          className="text-xs font-medium ml-auto"
+          style={{ color: isError ? "#ef4444" : isWarning ? "#f97316" : "rgba(100,116,139,0.7)" }}
         >
           {current}/{max}
         </p>

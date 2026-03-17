@@ -231,26 +231,29 @@ const BlogsView = () => {
 
   return (
     <Layout>
-      <div className="min-h-screen bg-gradient-to-b from-blue-50/30 via-white to-purple-50/20">
+      <div className="min-h-screen bg-slate-950/95 text-white">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 max-w-7xl">
           {/* Header */}
           <div className="text-center mb-12 sm:mb-16">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-6 mb-8">
               <div className="text-center sm:text-left">
                 <div className="inline-flex items-center gap-3 mb-4">
-                  <div className="h-12 w-1.5 bg-black rounded-full shadow-lg" />
-                  <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold bg-clip-text">
-                    Investment Blog
-                  </h1>
+                  <span className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.5em] text-blue-200/80">
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
+                    InvestBeans
+                  </span>
                 </div>
-                <p className="text-lg sm:text-xl text-gray-600 font-medium">
+                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-white leading-tight">
+                  Investment Blog
+                </h1>
+                <p className="text-lg sm:text-xl text-blue-100/70 font-medium mt-2">
                   Expert insights for smart investors
                 </p>
               </div>
               {isAdmin && (
                 <button
                   onClick={() => setShowForm(true)}
-                  className="w-full sm:w-auto bg-gradient-to-r from-navy via-accent to-purple-600 text-white px-8 py-4 rounded-2xl hover:shadow-2xl transition-all flex items-center justify-center gap-3 font-bold text-base shadow-lg hover:scale-105 hover:rotate-1"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-500 to-indigo-500 px-8 py-4 font-bold text-base text-white shadow-lg shadow-blue-900/40 hover:scale-[1.02] transition-all"
                 >
                   <Plus size={22} />
                   Create Blog
@@ -260,10 +263,10 @@ const BlogsView = () => {
           </div>
 
           {/* Filters Section */}
-          <div className="mb-10 sm:mb-12 space-y-6 bg-white p-6 rounded-2xl shadow-md border border-gray-100">
+          <div className="mb-10 sm:mb-12 space-y-6 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-2xl p-6">
             <div className="flex flex-col lg:flex-row gap-4">
               <div className="flex-1 relative group">
-                <Search className="absolute left-5 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-accent transition-colors" size={22} />
+                <Search className="absolute left-5 top-1/2 transform -translate-y-1/2 text-slate-400 group-focus-within:text-blue-400 transition-colors" size={22} />
                 <input
                   type="text"
                   placeholder="Search blogs by title, description..."
@@ -272,13 +275,13 @@ const BlogsView = () => {
                     setSearchQuery(e.target.value);
                     setCurrentPage(1);
                   }}
-                  className="w-full pl-14 pr-6 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-accent focus:border-accent transition-all shadow-sm text-base font-medium placeholder-gray-400 bg-gray-50 focus:bg-white"
+                  className="w-full pl-14 pr-6 py-4 rounded-xl focus:ring-2 focus:ring-blue-500/50 transition-all text-base font-medium placeholder-slate-500 bg-white/5 border border-white/10 text-white focus:outline-none focus:border-blue-500/50"
                 />
               </div>
               <select
                 value={sortOrder}
                 onChange={(e) => setSortOrder(e.target.value as 'asc' | 'desc')}
-                className="lg:w-56 px-6 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-accent focus:border-accent transition-all shadow-sm font-semibold text-base bg-gray-50 cursor-pointer hover:bg-white"
+                className="lg:w-56 px-6 py-4 rounded-xl focus:ring-2 focus:ring-blue-500/50 transition-all font-semibold text-base bg-slate-800 border border-white/10 text-white cursor-pointer focus:outline-none"
               >
                 <option value="desc">📅 Newest First</option>
                 <option value="asc">📅 Oldest First</option>
@@ -286,8 +289,8 @@ const BlogsView = () => {
             </div>
 
             <div>
-              <h3 className="text-sm font-bold text-gray-600 uppercase tracking-wider mb-4 flex items-center gap-2">
-                <Sparkles size={16} className="text-accent" />
+              <h3 className="text-sm font-bold text-white/60 uppercase tracking-wider mb-4 flex items-center gap-2">
+                <Sparkles size={16} className="text-blue-400" />
                 Categories
               </h3>
               <div className="relative">
@@ -301,8 +304,8 @@ const BlogsView = () => {
                       }}
                       className={`flex-shrink-0 px-6 py-3 rounded-full text-sm font-semibold transition-all duration-300 snap-start whitespace-nowrap ${
                         selectedCategory === category
-                          ? 'bg-gradient-to-r from-navy to-accent text-white shadow-lg scale-105'
-                          : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300 hover:border-navy hover:shadow-md'
+                          ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-lg shadow-blue-900/30 scale-105'
+                          : 'bg-white/5 text-white/70 border border-white/15 hover:text-white hover:border-white/40'
                       }`}
                     >
                       {category}
@@ -315,12 +318,12 @@ const BlogsView = () => {
 
           {loading ? (
             <div className="flex justify-center items-center py-32">
-              <Loader2 className="animate-spin text-navy" size={56} />
+              <Loader2 className="animate-spin text-blue-400" size={56} />
             </div>
           ) : blogs.length === 0 ? (
-            <div className="text-center py-32 bg-white rounded-3xl shadow-lg">
-              <p className="text-gray-500 text-2xl font-semibold">🔭 No blogs found</p>
-              <p className="text-gray-400 mt-2">Try adjusting your filters</p>
+            <div className="text-center py-32 rounded-3xl border border-white/10 bg-white/5 backdrop-blur-2xl">
+              <p className="text-white/60 text-2xl font-semibold">🔭 No blogs found</p>
+              <p className="text-white/40 mt-2">Try adjusting your filters</p>
             </div>
           ) : (
             <>
@@ -328,13 +331,13 @@ const BlogsView = () => {
               {featuredBlog && currentPage === 1 && selectedCategory === 'All' && !searchQuery && (
                 <div className="mb-16 sm:mb-20">
                   <div className="flex items-center gap-3 mb-8">
-                    <TrendingUp size={28} className="text-accent" />
-                    <h2 className="text-3xl sm:text-4xl font-bold text-navy">
+                    <TrendingUp size={28} className="text-blue-400" />
+                    <h2 className="text-3xl sm:text-4xl font-bold text-white">
                       Featured Article
                     </h2>
                   </div>
                   
-                  <div className="bg-white rounded-3xl shadow-2xl overflow-hidden hover:shadow-3xl transition-all duration-300">
+                  <div className="relative overflow-hidden rounded-[32px] border border-white/10 bg-white/5 backdrop-blur-2xl shadow-[0_20px_80px_-40px_rgba(15,23,42,0.8)] hover:border-blue-500/30 transition-all duration-300">
                     <div className="grid grid-cols-1 lg:grid-cols-2">
                       <div 
                         className="relative h-80 lg:h-full cursor-pointer group overflow-hidden"
@@ -350,11 +353,11 @@ const BlogsView = () => {
 
                       <div className="p-8 sm:p-10 lg:p-12 flex flex-col justify-center">
                         <div className="flex flex-wrap items-center gap-3 mb-6">
-                          <span className="inline-flex items-center gap-2 bg-gradient-to-r from-accent to-accent/80 text-white px-4 py-2 rounded-full text-sm font-bold shadow-md">
+                          <span className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-4 py-2 rounded-full text-sm font-bold shadow-md">
                             <Sparkles size={14} />
                             {featuredBlog.category}
                           </span>
-                          <span className="text-gray-500 text-sm font-semibold">
+                          <span className="text-white/50 text-sm font-semibold">
                             {featuredBlog.readTime}
                           </span>
                           
@@ -364,7 +367,7 @@ const BlogsView = () => {
                             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-bold transition-all ${
                               isLikedByUser(featuredBlog)
                                 ? "bg-red-50 text-red-600 hover:bg-red-100"
-                                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                                : "bg-white/5 text-white/50 hover:bg-white/10"
                             }`}
                           >
                             <Heart
@@ -375,7 +378,7 @@ const BlogsView = () => {
                           </button>
                           
                           {!featuredBlog.isPublished && (
-                            <span className="bg-yellow-500 text-white px-3 py-1.5 rounded-full text-sm font-bold">
+                            <span className="bg-[#5194F6] text-white px-3 py-1.5 rounded-full text-sm font-bold">
                               Draft
                             </span>
                           )}
@@ -383,12 +386,12 @@ const BlogsView = () => {
                         
                         <h3 
                           onClick={() => handleReadMore(featuredBlog._id)}
-                          className="text-2xl sm:text-3xl lg:text-4xl font-bold text-navy mb-5 hover:text-navy/80 cursor-pointer line-clamp-2 leading-tight"
+                          className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-5 hover:text-blue-200 cursor-pointer line-clamp-2 leading-tight"
                         >
                           {featuredBlog.title}
                         </h3>
                         
-                        <p className="text-gray-600 mb-6 text-base sm:text-lg line-clamp-3 leading-relaxed">
+                        <p className="text-white/60 mb-6 text-base sm:text-lg line-clamp-3 leading-relaxed">
                           {featuredBlog.description}
                         </p>
                         
@@ -397,7 +400,7 @@ const BlogsView = () => {
                             {featuredBlog.tags.slice(0, 5).map((tag, index) => (
                               <span 
                                 key={index} 
-                                className="inline-flex items-center gap-1.5 bg-gray-100 text-gray-700 px-3 py-1.5 rounded-full text-xs font-medium border border-gray-200"
+                                className="inline-flex items-center gap-1.5 bg-white/5 text-white/70 px-3 py-1.5 rounded-full text-xs font-medium border border-white/10"
                               >
                                 <Tag size={12} />
                                 {tag}
@@ -408,14 +411,14 @@ const BlogsView = () => {
                         
                         <div className="flex flex-col gap-6">
                           <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 bg-gradient-to-br from-navy to-accent rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg">
+                            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg">
                               {featuredBlog.author.name.charAt(0)}
                             </div>
                             <div>
-                              <p className="font-bold text-navy text-base">
+                              <p className="font-bold text-white text-base">
                                 {featuredBlog.author.name}
                               </p>
-                              <p className="text-sm text-gray-500 flex items-center gap-1.5">
+                              <p className="text-sm text-white/50 flex items-center gap-1.5">
                                 <Calendar size={14} />
                                 {new Date(featuredBlog.createdAt).toLocaleDateString('en-US', {
                                   month: 'long',
@@ -431,7 +434,7 @@ const BlogsView = () => {
                               <>
                                 <button
                                   onClick={() => handleEdit(featuredBlog)}
-                                  className="flex-1 bg-navy text-white px-5 py-3 rounded-xl hover:bg-navy/90 transition-all flex items-center justify-center gap-2 text-sm font-bold shadow-md hover:shadow-lg"
+                                  className="flex-1 bg-white/10 border border-white/20 text-white px-5 py-3 rounded-xl hover:bg-white/20 transition-all flex items-center justify-center gap-2 text-sm font-bold"
                                 >
                                   <Edit2 size={16} />
                                   Edit
@@ -439,7 +442,7 @@ const BlogsView = () => {
                                 <button
                                   onClick={() => handleDelete(featuredBlog._id)}
                                   disabled={deleteLoading === featuredBlog._id}
-                                  className="flex-1 bg-red-500 text-white px-5 py-3 rounded-xl hover:bg-red-600 transition-all flex items-center justify-center gap-2 text-sm font-bold shadow-md hover:shadow-lg disabled:opacity-50"
+                                  className="flex-1 bg-red-500/20 border border-red-500/30 text-red-400 px-5 py-3 rounded-xl hover:bg-red-500/30 transition-all flex items-center justify-center gap-2 text-sm font-bold disabled:opacity-50"
                                 >
                                   {deleteLoading === featuredBlog._id ? (
                                     <Loader2 className="animate-spin" size={16} />
@@ -452,7 +455,7 @@ const BlogsView = () => {
                             ) : (
                               <button 
                                 onClick={() => handleReadMore(featuredBlog._id)}
-                                className="w-full bg-gradient-to-r from-navy to-accent text-white px-8 py-4 rounded-xl hover:shadow-xl transition-all font-bold text-base hover:scale-105"
+                                className="w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-500 to-indigo-500 px-8 py-4 font-bold text-base text-white shadow-lg shadow-blue-900/40 hover:scale-[1.02] transition-all"
                               >
                                 Read Article →
                               </button>
@@ -467,8 +470,8 @@ const BlogsView = () => {
 
               {/* Articles Grid */}
               <div className="mb-16">
-                <h2 className="text-3xl sm:text-4xl font-bold text-navy mb-10 flex items-center gap-3">
-                  <div className="h-10 w-1 bg-gradient-to-b from-navy to-accent rounded-full" />
+                <h2 className="text-3xl sm:text-4xl font-bold text-white mb-10 flex items-center gap-3">
+                  <div className="h-10 w-1 bg-gradient-to-b from-blue-500 to-indigo-500 rounded-full" />
                   {currentPage === 1 && selectedCategory === 'All' && !searchQuery ? 'Latest Articles' : 'Articles'}
                 </h2>
                 
@@ -478,7 +481,7 @@ const BlogsView = () => {
                     .map((post) => (
                       <article
                         key={post._id}
-                        className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 flex flex-col group"
+                        className="relative overflow-hidden rounded-[24px] border border-white/10 bg-white/5 backdrop-blur-2xl hover:border-blue-500/30 hover:shadow-[0_20px_60px_-20px_rgba(81,148,246,0.2)] transition-all duration-300 flex flex-col group"
                       >
                         <div 
                           className="relative h-56 overflow-hidden cursor-pointer"
@@ -494,14 +497,14 @@ const BlogsView = () => {
 
                         <div className="p-6 flex flex-col flex-grow">
                           <div className="flex items-center gap-2 mb-4 flex-wrap">
-                            <span className="inline-flex items-center gap-1.5 bg-gray-100 text-gray-700 px-3 py-1.5 rounded-lg text-xs font-bold border border-gray-200">
+                            <span className="inline-flex items-center gap-1.5 bg-white/10 text-white/80 px-3 py-1.5 rounded-lg text-xs font-bold border border-white/10">
                               <Sparkles size={12} />
                               {post.category}
                             </span>
-                            <span className="text-gray-500 text-xs font-medium">
+                            <span className="text-white/40 text-xs font-medium">
                               {post.readTime}
                             </span>
-                            <span className="text-gray-500 text-xs flex items-center gap-1">
+                            <span className="text-white/40 text-xs flex items-center gap-1">
                               <Eye size={12} /> {post.views}
                             </span>
                             
@@ -510,8 +513,8 @@ const BlogsView = () => {
                               onClick={(e) => handleLike(post._id, e)}
                               className={`flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-bold transition-all ${
                                 isLikedByUser(post)
-                                  ? "bg-red-50 text-red-600"
-                                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                                  ? "bg-red-500/20 text-red-400"
+                                  : "bg-white/5 text-white/50 hover:bg-white/10"
                               }`}
                             >
                               <Heart
@@ -524,12 +527,12 @@ const BlogsView = () => {
                           
                           <h3 
                             onClick={() => handleReadMore(post._id)}
-                            className="text-xl font-bold text-navy mb-3 line-clamp-2 hover:text-navy/80 cursor-pointer leading-tight"
+                            className="text-xl font-bold text-white mb-3 line-clamp-2 hover:text-blue-200 cursor-pointer leading-tight"
                           >
                             {post.title}
                           </h3>
                           
-                          <p className="text-gray-600 text-sm mb-5 line-clamp-3 flex-grow leading-relaxed">
+                          <p className="text-white/50 text-sm mb-5 line-clamp-3 flex-grow leading-relaxed">
                             {post.description}
                           </p>
                           
@@ -538,7 +541,7 @@ const BlogsView = () => {
                               {post.tags.slice(0, 3).map((tag, index) => (
                                 <span 
                                   key={index} 
-                                  className="inline-flex items-center gap-1 bg-gray-50 text-gray-600 px-2.5 py-1 rounded-full text-xs border border-gray-200"
+                                  className="inline-flex items-center gap-1 bg-white/5 text-white/50 px-2.5 py-1 rounded-full text-xs border border-white/10"
                                 >
                                   <Tag size={10} />
                                   {tag}
@@ -547,16 +550,16 @@ const BlogsView = () => {
                             </div>
                           )}
                           
-                          <div className="flex items-center justify-between pt-5 border-t-2 border-gray-100">
+                          <div className="flex items-center justify-between pt-5 border-t border-white/10">
                             <div className="flex items-center gap-2.5">
-                              <div className="w-10 h-10 bg-gradient-to-br from-navy to-accent rounded-full flex items-center justify-center text-white font-bold text-sm shadow-md">
+                              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-md">
                                 {post.author.name.charAt(0)}
                               </div>
                               <div>
-                                <p className="font-bold text-navy text-sm">
+                                <p className="font-bold text-white text-sm">
                                   {post.author.name}
                                 </p>
-                                <p className="text-xs text-gray-500">
+                                <p className="text-xs text-white/40">
                                   {new Date(post.createdAt).toLocaleDateString('en-US', {
                                     month: 'short',
                                     day: 'numeric'
@@ -569,14 +572,14 @@ const BlogsView = () => {
                               <div className="flex gap-2">
                                 <button 
                                   onClick={() => handleEdit(post)} 
-                                  className="text-navy hover:text-accent transition-colors p-2 hover:bg-gray-100 rounded-lg"
+                                  className="text-white/50 hover:text-blue-400 transition-colors p-2 hover:bg-white/10 rounded-lg"
                                 >
                                   <Edit2 size={18} />
                                 </button>
                                 <button
                                   onClick={() => handleDelete(post._id)}
                                   disabled={deleteLoading === post._id}
-                                  className="text-red-500 hover:text-red-600 transition-colors p-2 hover:bg-red-50 rounded-lg"
+                                  className="text-red-400/70 hover:text-red-400 transition-colors p-2 hover:bg-red-500/10 rounded-lg"
                                 >
                                   {deleteLoading === post._id ? (
                                     <Loader2 className="animate-spin" size={18} />
@@ -588,7 +591,7 @@ const BlogsView = () => {
                             ) : (
                               <button 
                                 onClick={() => handleReadMore(post._id)}
-                                className="text-accent hover:text-accent/80 text-sm font-bold hover:underline"
+                                className="text-blue-400 hover:text-blue-300 text-sm font-bold hover:underline"
                               >
                                 Read →
                               </button>
@@ -606,7 +609,7 @@ const BlogsView = () => {
                   <button
                     onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                     disabled={currentPage === 1}
-                    className="px-6 py-3 border-2 border-gray-300 rounded-xl hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-bold transition-all hover:border-navy disabled:hover:border-gray-300"
+                    className="px-6 py-3 rounded-xl border border-white/15 text-white/70 hover:text-white hover:border-white/40 disabled:opacity-40 disabled:cursor-not-allowed text-sm font-bold transition-all"
                   >
                     ← Previous
                   </button>
@@ -617,8 +620,8 @@ const BlogsView = () => {
                       onClick={() => setCurrentPage(page)}
                       className={`px-5 py-3 rounded-xl text-sm font-bold transition-all ${
                         currentPage === page
-                          ? 'bg-gradient-to-r from-navy to-accent text-white shadow-lg scale-105'
-                          : 'border-2 border-gray-300 hover:bg-gray-50 hover:border-navy'
+                          ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-lg shadow-blue-900/30 scale-105'
+                          : 'border border-white/15 text-white/70 hover:text-white hover:border-white/40'
                       }`}
                     >
                       {page}
@@ -628,7 +631,7 @@ const BlogsView = () => {
                   <button
                     onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                     disabled={currentPage === totalPages}
-                    className="px-6 py-3 border-2 border-gray-300 rounded-xl hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-bold transition-all hover:border-navy disabled:hover:border-gray-300"
+                    className="px-6 py-3 rounded-xl border border-white/15 text-white/70 hover:text-white hover:border-white/40 disabled:opacity-40 disabled:cursor-not-allowed text-sm font-bold transition-all"
                   >
                     Next →
                   </button>
@@ -638,21 +641,22 @@ const BlogsView = () => {
           )}
 
           {/* Newsletter */}
-          <div className="bg-gradient-to-br from-navy via-navy/95 to-accent text-white rounded-3xl p-10 sm:p-14 shadow-2xl">
-            <div className="max-w-3xl mx-auto text-center">
-              <h2 className="text-3xl sm:text-4xl font-bold mb-4">
+          <div className="relative overflow-hidden rounded-[32px] border border-white/10 bg-gradient-to-br from-blue-500/20 via-indigo-500/10 to-purple-500/10 backdrop-blur-2xl text-white p-10 sm:p-14 shadow-[0_30px_90px_-40px_rgba(81,148,246,0.3)]">
+            <div className="absolute inset-0 opacity-40 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.1),_transparent_60%)]"></div>
+            <div className="max-w-3xl mx-auto text-center relative z-10">
+              <h2 className="text-3xl sm:text-4xl font-bold mb-4 text-white">
                 Stay Updated
               </h2>
-              <p className="text-lg sm:text-xl mb-10 opacity-90">
+              <p className="text-lg sm:text-xl mb-10 text-white/70">
                 Subscribe to our newsletter for the latest investment insights and market analysis.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <input
                   type="email"
                   placeholder="Enter your email"
-                  className="flex-1 px-6 py-5 rounded-xl text-navy placeholder-gray-500 font-medium shadow-inner text-base focus:outline-none focus:ring-4 focus:ring-white/30"
+                  className="flex-1 px-6 py-5 rounded-xl bg-white/10 border border-white/20 text-white placeholder-white/40 font-medium text-base focus:outline-none focus:ring-2 focus:ring-white/30 backdrop-blur-sm"
                 />
-                <button className="bg-white text-navy px-10 py-5 rounded-xl font-bold hover:bg-gray-100 transition-all shadow-lg hover:shadow-xl text-base hover:scale-105">
+                <button className="bg-white text-slate-900 px-10 py-5 rounded-xl font-bold hover:bg-blue-50 transition-all shadow-lg hover:shadow-xl text-base hover:scale-105">
                   Subscribe
                 </button>
               </div>

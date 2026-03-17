@@ -102,11 +102,11 @@ export default function TestimonialForm({ isOpen, onClose, onSuccess, existing }
 
     // ── Theme tokens ─────────────────────────────────────────────────────────
     const overlayBg = "rgba(0,0,0,0.6)";
-    const modalBg = isLight ? "#fff" : "#0F172A";
-    const modalBorder = isLight ? "1px solid rgba(13,37,64,0.12)" : "1px solid #334155";
+    const modalBg = isLight ? "#fff" : "#101528";
+    const modalBorder = isLight ? "1px solid rgba(13,37,64,0.12)" : "1px solid #1C3656";
     const labelColor = isLight ? "rgba(13,37,64,0.65)" : "rgba(203,213,225,1)";
-    const inputBg = isLight ? "rgba(13,37,64,0.04)" : "rgba(255,255,255,0.05)";
-    const inputBorder = isLight ? "1px solid rgba(13,37,64,0.15)" : "1px solid #334155";
+    const inputBg = isLight ? "rgba(13,37,64,0.04)" : "rgba(28,54,86,0.40)";
+    const inputBorder = isLight ? "1px solid rgba(13,37,64,0.15)" : "1px solid #1C3656";
     const inputColor = isLight ? "#0d1b2a" : "#E8EDF5";
     const titleColor = isLight ? "#0d1b2a" : "white";
     const errorBg = isLight ? "rgba(220,38,38,0.07)" : "rgba(220,38,38,0.12)";
@@ -226,7 +226,7 @@ export default function TestimonialForm({ isOpen, onClose, onSuccess, existing }
                                 ...inputStyle,
                                 cursor: "pointer",
                                 // ── Add these two lines ──
-                                backgroundColor: isLight ? "rgba(13,37,64,0.04)" : "#1E293B",
+                                backgroundColor: isLight ? "rgba(13,37,64,0.04)" : "#1C3656",
                                 color: isLight ? "#0d1b2a" : "#E8EDF5",
                             }}
                         >
@@ -272,7 +272,7 @@ export default function TestimonialForm({ isOpen, onClose, onSuccess, existing }
                         disabled={loading}
                         style={{
                             width: "100%", padding: "14px", borderRadius: "12px", fontSize: "15px", fontWeight: 700,
-                            border: "none", background: loading ? "rgba(196,148,30,0.5)" : "#C4941E",
+                            border: "none", background: loading ? "rgba(81,148,246,0.5)" : "#5194F6",
                             color: "#fff", cursor: loading ? "not-allowed" : "pointer",
                             display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
                         }}

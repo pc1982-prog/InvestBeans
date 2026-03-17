@@ -204,9 +204,9 @@ const AdminBlogForm: React.FC<AdminBlogFormProps> = ({ onClose, onSuccess, editB
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto">
-      <div className="bg-white rounded-2xl w-full max-w-4xl my-8 shadow-2xl">
-        <div className="sticky top-0 bg-gradient-to-r from-navy to-navy/90 text-white px-6 py-5 flex items-center justify-between z-10 rounded-t-2xl">
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto">
+      <div className="relative overflow-hidden rounded-[32px] border border-white/10 bg-slate-950/95 w-full max-w-4xl my-8 shadow-2xl">
+        <div className="sticky top-0 bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-6 py-5 flex items-center justify-between z-10 rounded-t-[32px]">
           <h2 className="text-2xl font-bold">
             {editBlog ? '✏️ Edit Blog' : '✨ Create New Blog'}
           </h2>
@@ -222,7 +222,7 @@ const AdminBlogForm: React.FC<AdminBlogFormProps> = ({ onClose, onSuccess, editB
         <form onSubmit={handleSubmit} className="p-6 space-y-6 max-h-[calc(90vh-100px)] overflow-y-auto">
           {/* Image Upload */}
           <div>
-            <label className="block text-sm font-semibold text-gray-800 mb-3">
+            <label className="block text-sm font-semibold text-white/70 mb-3">
               📸 Blog Image *
             </label>
             
@@ -244,18 +244,18 @@ const AdminBlogForm: React.FC<AdminBlogFormProps> = ({ onClose, onSuccess, editB
             ) : (
               <div
                 onClick={() => fileInputRef.current?.click()}
-                className="border-2 border-dashed border-gray-300 rounded-xl p-10 text-center cursor-pointer hover:border-navy hover:bg-navy/5 transition-all"
+                className="border-2 border-dashed border-white/20 rounded-xl p-10 text-center cursor-pointer hover:border-blue-400/60 hover:bg-blue-500/5 transition-all"
               >
                 {uploadProgress ? (
                   <div className="flex flex-col items-center">
-                    <Loader2 className="animate-spin text-navy mb-2" size={40} />
-                    <p className="text-gray-600 font-medium">Processing image...</p>
+                    <Loader2 className="animate-spin text-blue-400 mb-2" size={40} />
+                    <p className="text-white/60 font-medium">Processing image...</p>
                   </div>
                 ) : (
                   <div className="flex flex-col items-center">
-                    <ImageIcon className="text-gray-400 mb-3" size={48} />
-                    <p className="text-gray-700 font-medium mb-1">Click to upload image</p>
-                    <p className="text-sm text-gray-500">PNG, JPG, JPEG (max 2MB)</p>
+                    <ImageIcon className="text-white/30 mb-3" size={48} />
+                    <p className="text-white/70 font-medium mb-1">Click to upload image</p>
+                    <p className="text-sm text-white/40">PNG, JPG, JPEG (max 2MB)</p>
                   </div>
                 )}
               </div>
@@ -279,8 +279,8 @@ const AdminBlogForm: React.FC<AdminBlogFormProps> = ({ onClose, onSuccess, editB
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Title */}
             <div className="md:col-span-2">
-              <label htmlFor="title" className="block text-sm font-semibold text-gray-800 mb-2">
-                📝 Title * <span className="text-gray-500 text-xs font-normal">({formData.title.length}/150)</span>
+              <label htmlFor="title" className="block text-sm font-semibold text-white/70 mb-2">
+                📝 Title * <span className="text-white/40 text-xs font-normal">({formData.title.length}/150)</span>
               </label>
               <input
                 type="text"
@@ -289,15 +289,15 @@ const AdminBlogForm: React.FC<AdminBlogFormProps> = ({ onClose, onSuccess, editB
                 value={formData.title}
                 onChange={handleInputChange}
                 maxLength={150}
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-navy focus:border-navy transition-all"
+                className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder-white/30 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:outline-none transition-all"
                 placeholder="Enter an engaging title"
               />
-              {errors.title && <p className="text-red-500 text-sm mt-1">⚠️ {errors.title}</p>}
+              {errors.title && <p className="text-red-400 text-sm mt-1">⚠️ {errors.title}</p>}
             </div>
 
             {/* Category */}
             <div>
-              <label htmlFor="category" className="block text-sm font-semibold text-gray-800 mb-2">
+              <label htmlFor="category" className="block text-sm font-semibold text-white/70 mb-2">
                 📂 Category *
               </label>
               <select
@@ -305,20 +305,20 @@ const AdminBlogForm: React.FC<AdminBlogFormProps> = ({ onClose, onSuccess, editB
                 name="category"
                 value={formData.category}
                 onChange={handleInputChange}
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-navy focus:border-navy transition-all"
+                className="w-full px-4 py-3 rounded-lg bg-slate-800 border border-white/10 text-white focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:outline-none transition-all cursor-pointer"
               >
-                <option value="">Select category</option>
+                <option value="" style={{background:'#1e293b'}}>Select category</option>
                 {categories.map(cat => (
-                  <option key={cat} value={cat}>{cat}</option>
+                  <option key={cat} value={cat} style={{background:'#1e293b'}}>{cat}</option>
                 ))}
               </select>
-              {errors.category && <p className="text-red-500 text-sm mt-1">⚠️ {errors.category}</p>}
+              {errors.category && <p className="text-red-400 text-sm mt-1">⚠️ {errors.category}</p>}
             </div>
 
             {/* Tags */}
             <div>
-              <label htmlFor="tags" className="block text-sm font-semibold text-gray-800 mb-2 flex items-center gap-2">
-                <Tag size={16} className="text-navy" />
+              <label htmlFor="tags" className="block text-sm font-semibold text-white/70 mb-2 flex items-center gap-2">
+                <Tag size={16} className="text-blue-400" />
                 Tags (Optional)
               </label>
               <input
@@ -327,22 +327,22 @@ const AdminBlogForm: React.FC<AdminBlogFormProps> = ({ onClose, onSuccess, editB
                 name="tags"
                 value={formData.tags}
                 onChange={handleInputChange}
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-navy focus:border-navy transition-all"
+                className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder-white/30 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:outline-none transition-all"
                 placeholder="Investing, Finance, Stocks"
               />
             </div>
           </div>
 
           {/* Header Sections */}
-          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-xl border-2 border-blue-100">
+          <div className="rounded-xl border border-white/10 bg-white/5 p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+              <h3 className="text-lg font-bold text-white flex items-center gap-2">
                 📋 Header Sections (Optional)
               </h3>
               <button
                 type="button"
                 onClick={addHeaderSection}
-                className="flex items-center gap-2 bg-navy text-white px-4 py-2 rounded-lg hover:bg-navy/90 transition-all text-sm font-medium"
+                className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-4 py-2 rounded-lg hover:opacity-90 transition-all text-sm font-medium"
               >
                 <Plus size={16} />
                 Add Section
@@ -351,16 +351,16 @@ const AdminBlogForm: React.FC<AdminBlogFormProps> = ({ onClose, onSuccess, editB
 
             <div className="space-y-4 max-h-80 overflow-y-auto pr-2">
               {headerSections.map((section, index) => (
-                <div key={index} className="bg-white p-4 rounded-lg border-2 border-gray-200 relative">
+                <div key={index} className="bg-white/5 border border-white/10 p-4 rounded-lg relative">
                   <div className="flex items-start justify-between mb-3">
-                    <span className="bg-navy text-white px-3 py-1 rounded-full text-xs font-bold">
+                    <span className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-3 py-1 rounded-full text-xs font-bold">
                       Section {index + 1}
                     </span>
                     {headerSections.length > 1 && (
                       <button
                         type="button"
                         onClick={() => removeHeaderSection(index)}
-                        className="text-red-500 hover:bg-red-50 p-1.5 rounded-lg transition-all"
+                        className="text-red-400 hover:bg-red-500/10 p-1.5 rounded-lg transition-all"
                       >
                         <Trash2 size={16} />
                       </button>
@@ -369,27 +369,27 @@ const AdminBlogForm: React.FC<AdminBlogFormProps> = ({ onClose, onSuccess, editB
                   
                   <div className="space-y-3">
                     <div>
-                      <label className="block text-xs font-semibold text-gray-700 mb-1">
+                      <label className="block text-xs font-semibold text-white/60 mb-1">
                         Header (H2)
                       </label>
                       <input
                         type="text"
                         value={section.header}
                         onChange={(e) => handleHeaderSectionChange(index, 'header', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy focus:border-navy text-sm"
+                        className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white placeholder-white/30 focus:ring-2 focus:ring-blue-500/50 focus:outline-none text-sm"
                         placeholder="e.g., How to Choose the Right Tech Field"
                       />
                     </div>
                     
                     <div>
-                      <label className="block text-xs font-semibold text-gray-700 mb-1">
+                      <label className="block text-xs font-semibold text-white/60 mb-1">
                         Content (Paragraph)
                       </label>
                       <textarea
                         value={section.subHeader}
                         onChange={(e) => handleHeaderSectionChange(index, 'subHeader', e.target.value)}
                         rows={3}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy focus:border-navy text-sm resize-none"
+                        className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white placeholder-white/30 focus:ring-2 focus:ring-blue-500/50 focus:outline-none text-sm resize-none"
                         placeholder="Write the paragraph content for this section..."
                       />
                     </div>
@@ -401,8 +401,8 @@ const AdminBlogForm: React.FC<AdminBlogFormProps> = ({ onClose, onSuccess, editB
 
           {/* Description */}
           <div>
-            <label htmlFor="description" className="block text-sm font-semibold text-gray-800 mb-2">
-              📄 Description * <span className="text-gray-500 text-xs font-normal">({formData.description.length}/500)</span>
+            <label htmlFor="description" className="block text-sm font-semibold text-white/70 mb-2">
+              📄 Description * <span className="text-white/40 text-xs font-normal">({formData.description.length}/500)</span>
             </label>
             <textarea
               id="description"
@@ -411,15 +411,15 @@ const AdminBlogForm: React.FC<AdminBlogFormProps> = ({ onClose, onSuccess, editB
               onChange={handleInputChange}
               maxLength={500}
               rows={3}
-              className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-navy focus:border-navy transition-all resize-none"
+              className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder-white/30 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:outline-none transition-all resize-none"
               placeholder="Brief summary of the blog"
             />
-            {errors.description && <p className="text-red-500 text-sm mt-1">⚠️ {errors.description}</p>}
+            {errors.description && <p className="text-red-400 text-sm mt-1">⚠️ {errors.description}</p>}
           </div>
 
           {/* Content */}
           <div>
-            <label htmlFor="content" className="block text-sm font-semibold text-gray-800 mb-2">
+            <label htmlFor="content" className="block text-sm font-semibold text-white/70 mb-2">
               ✍️ Content *
             </label>
             <textarea
@@ -428,32 +428,32 @@ const AdminBlogForm: React.FC<AdminBlogFormProps> = ({ onClose, onSuccess, editB
               value={formData.content}
               onChange={handleInputChange}
               rows={12}
-              className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-navy focus:border-navy transition-all resize-none"
+              className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder-white/30 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:outline-none transition-all resize-none"
               placeholder="Write your detailed blog content here..."
             />
-            {errors.content && <p className="text-red-500 text-sm mt-1">⚠️ {errors.content}</p>}
+            {errors.content && <p className="text-red-400 text-sm mt-1">⚠️ {errors.content}</p>}
           </div>
 
           {/* Submit Error */}
           {errors.submit && (
-            <div className="bg-red-50 border-2 border-red-200 text-red-600 p-4 rounded-lg text-sm font-medium">
+            <div className="bg-red-500/10 border border-red-500/30 text-red-400 p-4 rounded-lg text-sm font-medium">
               ⚠️ {errors.submit}
             </div>
           )}
 
           {/* Actions */}
-          <div className="flex gap-4 justify-end pt-6 border-t-2 border-gray-200">
+          <div className="flex gap-4 justify-end pt-6 border-t border-white/10">
             <button
               type="button"
               onClick={onClose}
-              className="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all font-medium"
+              className="px-6 py-3 rounded-lg border border-white/15 text-white/70 hover:text-white hover:border-white/40 transition-all font-medium"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-8 py-3 bg-gradient-to-r from-navy to-navy/90 text-white rounded-lg hover:shadow-lg transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+              className="px-8 py-3 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-lg hover:opacity-90 hover:shadow-lg hover:shadow-blue-900/40 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
             >
               {loading && <Loader2 className="animate-spin" size={18} />}
               {editBlog ? '💾 Update Blog' : '✨ Create Blog'}

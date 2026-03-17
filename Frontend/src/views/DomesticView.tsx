@@ -717,7 +717,7 @@ function SearchBar({ rawTicks, onResult }: {
   };
 
   return (
-    <div className="relative flex-1 max-w-xs" ref={dropRef as any}>
+    <div className="relative flex-1 max-w-[160px] sm:max-w-xs" ref={dropRef as any}>
       <div className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border transition-all ${
         l ? "bg-gray-50 border-gray-200 focus-within:border-[#16a34a] focus-within:bg-white"
           : "bg-[#0c1821] border-[#1a2d3f] focus-within:border-[#16a34a] focus-within:bg-[#0e2235]"
@@ -806,13 +806,13 @@ function IndicesSection({ ticks, connected }: any) {
     <section className="mb-8">
       <SecHead id="indices" icon={BarChart3} title="Major Indices" sub="OHLCV Candlestick · Historical · Live" live={connected}/>
       {/* Index tabs */}
-      <div className="flex flex-wrap gap-2 mb-4">
+      <div className="flex gap-2 mb-4 overflow-x-auto pb-1 scrollbar-none -mx-1 px-1">
         {INDICES.map((m,i) => {
           const tk = ticks[m.key] as KiteTick|undefined;
           const pp = getPct(tk);
           return (
             <button key={m.key} onClick={() => setSel(i)}
-              className={`flex flex-col items-start px-3 py-2 rounded-lg text-xs font-bold transition-all border ${
+              className={`flex flex-col items-start px-3 py-2 rounded-lg text-xs font-bold transition-all border shrink-0 ${
                 sel===i
                   ? "bg-[#16a34a] text-white border-transparent"
                   : l?"bg-white text-gray-600 border-gray-200 hover:border-gray-300":"bg-[#0a1826] text-[#5a7a92] border-[#1a2d3f] hover:border-[#2a4a62]"
@@ -833,7 +833,7 @@ function IndicesSection({ ticks, connected }: any) {
             <p className={`text-[10px] font-bold uppercase tracking-widest mb-1 ${tx.t3(l)}`}>{idx.sym} · {idx.ex}</p>
             {tick?.last_price!=null ? (
               <>
-                <p className={`text-4xl font-black tabular-nums leading-none transition-colors duration-500 ${f==="up"?"text-emerald-500":f==="dn"?"text-red-500":tx.t1(l)}`}>{fmt(tick.last_price)}</p>
+                <p className={`text-3xl sm:text-4xl font-black tabular-nums leading-none transition-colors duration-500 ${f==="up"?"text-emerald-500":f==="dn"?"text-red-500":tx.t1(l)}`}>{fmt(tick.last_price)}</p>
                 {c!=null&&p!=null&&(
                   <div className="flex items-center gap-2 mt-1.5">
                     {up(c) ? <TrendingUp className="w-4 h-4 text-emerald-500"/> : <TrendingDown className="w-4 h-4 text-red-500"/>}
@@ -846,7 +846,7 @@ function IndicesSection({ ticks, connected }: any) {
             ) : <><Skel h="h-10" w="w-48"/><div className="mt-2"><Skel h="h-5" w="w-36"/></div></>}
           </div>
           {tick?.ohlc && (
-            <div className="flex flex-col gap-1 shrink-0">
+            <div className="flex-col gap-1 shrink-0 hidden xs:flex sm:flex">
               <div className={`flex items-center gap-2 px-2.5 py-1 rounded-lg border text-xs ${l?"bg-emerald-50 border-emerald-100":"bg-emerald-900/15 border-emerald-800/30"}`}>
                 <span className={tx.t3(l)}>H</span><span className="font-bold text-emerald-600 tabular-nums">₹{fmt(tick.ohlc.high)}</span>
               </div>
@@ -858,7 +858,7 @@ function IndicesSection({ ticks, connected }: any) {
         </div>
 
         {/* Chart — tick passed so last candle updates live */}
-        <CandleChart key={idx.token} token={idx.token} height={340} liveTick={tick}/>
+        <CandleChart key={idx.token} token={idx.token} height={typeof window !== "undefined" && window.innerWidth < 640 ? 240 : 340} liveTick={tick}/>
 
         {/* OHLCV row */}
         <div className={`grid grid-cols-3 sm:grid-cols-6 border-t ${l?"border-gray-100":"border-[#1a2d3f]"}`}>
@@ -892,28 +892,28 @@ function StockRow({ s, tick, last, maxVol }: { s:typeof STOCKS[0]; tick?:KiteTic
   const l   = useIL();
   const vol = tick?.volume ?? 0;
   return (
-    <div className={`grid grid-cols-9 items-center px-4 sm:px-5 ${!last?(l?"border-b border-gray-50":"border-b border-[#111e28]"):""} ${l?"hover:bg-gray-50/60":"hover:bg-white/[0.015]"}`}>
-      <div className="col-span-2 flex items-center gap-2 py-3">
-        <div className={`w-7 h-7 rounded-md flex items-center justify-center text-[9px] font-black shrink-0 ${tx.pill(l,up(p))}`}>{s.sym.slice(0,2)}</div>
+    <div className={`grid grid-cols-3 sm:grid-cols-9 items-center px-3 sm:px-5 ${!last?(l?"border-b border-gray-50":"border-b border-[#111e28]"):""} ${l?"hover:bg-gray-50/60":"hover:bg-white/[0.015]"}`}>
+      <div className="col-span-1 sm:col-span-2 flex items-center gap-1.5 sm:gap-2 py-1.5 sm:py-3">
+        <div className={`w-6 h-6 sm:w-7 sm:h-7 rounded-md flex items-center justify-center text-[9px] font-black shrink-0 ${tx.pill(l,up(p))}`}>{s.sym.slice(0,2)}</div>
         <div className="min-w-0">
-          <p className={`font-bold text-xs truncate ${tx.t1(l)}`}>{s.sym}</p>
+          <p className={`font-bold text-[11px] sm:text-xs truncate ${tx.t1(l)}`}>{s.sym}</p>
           <p className={`text-[10px] truncate hidden sm:block ${tx.t3(l)}`}>{s.name}</p>
         </div>
       </div>
-      <div className={`text-right text-sm font-black tabular-nums transition-colors duration-500 ${f==="up"?"text-emerald-500":f==="dn"?"text-red-500":tx.t1(l)}`}>
+      <div className={`text-right text-xs sm:text-sm font-black tabular-nums transition-colors duration-500 ${f==="up"?"text-emerald-500":f==="dn"?"text-red-500":tx.t1(l)}`}>
         {tick?.last_price!=null ? `₹${fmt(tick.last_price)}` : <Skel h="h-4" w="w-16"/>}
       </div>
       <div className={`text-right text-xs tabular-nums hidden sm:block ${tx.t2(l)}`}>{tick?.ohlc?.open!=null?`₹${fmt(tick.ohlc.open)}`:"—"}</div>
       <div className="text-right text-xs tabular-nums text-emerald-600 font-semibold hidden sm:block">{tick?.ohlc?.high!=null?`₹${fmt(tick.ohlc.high)}`:"—"}</div>
       <div className="text-right text-xs tabular-nums text-red-500 font-semibold hidden sm:block">{tick?.ohlc?.low!=null?`₹${fmt(tick.ohlc.low)}`:"—"}</div>
       <div className={`text-right text-xs tabular-nums hidden md:block ${tx.t2(l)}`}>{tick?.ohlc?.close!=null?`₹${fmt(tick.ohlc.close)}`:"—"}</div>
-      <div className="text-right py-3 hidden sm:block">
+      <div className="text-right py-1.5 sm:py-3 hidden sm:block">
         <p className={`text-xs tabular-nums ${tx.t2(l)}`}>{fmtV(vol)}</p>
         <div className={`mt-1 h-1 rounded-full overflow-hidden ${l?"bg-gray-100":"bg-[#1a2d3f]"}`}>
           <div className="h-full bg-blue-400/60 rounded-full transition-all duration-700" style={{ width:maxVol>0?`${(vol/maxVol)*100}%`:"0%" }}/>
         </div>
       </div>
-      <div className="text-right py-3"><PctTag p={p} sm/></div>
+      <div className="text-right py-1.5 sm:py-3"><PctTag p={p} sm/></div>
     </div>
   );
 }
@@ -924,9 +924,9 @@ function StocksSection({ ticks }: { ticks:any }) {
   return (
     <section className="mb-8">
       <SecHead id="stocks" icon={LineChart} title="Top Stocks" sub="Live OHLCV · Volume Bars" live/>
-      <Card className="overflow-x-auto">
-        <div className={`grid grid-cols-9 px-4 sm:px-5 py-2.5 text-[9px] font-black uppercase tracking-widest ${tx.header(l)} ${tx.t3(l)}`}>
-          <div className="col-span-2">Symbol</div>
+      <Card className="overflow-hidden">
+        <div className={`grid grid-cols-3 sm:grid-cols-9 px-3 sm:px-5 py-2.5 text-[9px] font-black uppercase tracking-widest ${tx.header(l)} ${tx.t3(l)}`}>
+          <div className="col-span-1 sm:col-span-2">Symbol</div>
           <div className="text-right">LTP</div>
           <div className="text-right hidden sm:block">Open</div>
           <div className="text-right text-emerald-600 hidden sm:block">High</div>
@@ -1079,38 +1079,47 @@ function OptionsSection({ ticks }: { ticks:any }) {
     <section className="mb-8">
       <SecHead id="options" icon={Layers} title="F&O Instruments" sub={`Options Chain & Futures · Kite Connect \`/instruments/NFO\``}/>
 
-      {/* Controls */}
-      <div className="flex flex-wrap gap-2 mb-3 items-center">
-        <div className="flex gap-1.5 flex-wrap">
-          {FO_NAMES.map(n => (
-            <button key={n} onClick={() => { setFoName(n); setFoExpiry(""); }}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all ${
-                foName===n ? "bg-[#16a34a] text-white border-transparent"
-                  : l?"bg-white text-gray-600 border-gray-200":"bg-[#0a1826] text-[#5a7a92] border-[#1a2d3f]"
-              }`}>{n}</button>
-          ))}
-        </div>
+      {/* Controls — single scrollable row, no wrap */}
+      <div className="flex items-center gap-2 mb-3 overflow-x-auto scrollbar-none pb-1 flex-nowrap">
+        {/* F&O name pills */}
+        {FO_NAMES.map(n => (
+          <button key={n} onClick={() => { setFoName(n); setFoExpiry(""); }}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all shrink-0 ${
+              foName===n ? "bg-[#16a34a] text-white border-transparent"
+                : l?"bg-white text-gray-600 border-gray-200":"bg-[#0a1826] text-[#5a7a92] border-[#1a2d3f]"
+            }`}>{n}</button>
+        ))}
+
+        {/* Divider */}
+        <div className={`w-px h-5 shrink-0 ${l?"bg-gray-200":"bg-[#1a2d3f]"}`}/>
+
+        {/* Expiry select */}
         {foExpiries.length > 0 && (
           <select
             value={foExpiry || curExpiry}
             onChange={e => setFoExpiry(e.target.value)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all ${l?"bg-white text-gray-600 border-gray-200":"bg-[#0a1826] text-[#5a7a92] border-[#1a2d3f]"}`}>
+            className={`px-2.5 py-1.5 rounded-lg text-xs font-bold border shrink-0 ${l?"bg-white text-gray-600 border-gray-200":"bg-[#0a1826] text-[#5a7a92] border-[#1a2d3f]"}`}>
             {foExpiries.map(e => <option key={e} value={e}>{e}</option>)}
           </select>
         )}
-        <div className="flex gap-1.5 ml-auto">
-          {(["chain","futures","instruments"] as const).map(v => (
-            <button key={v} onClick={() => setFoView(v)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all capitalize ${
-                foView===v ? "bg-[#2563eb] text-white border-transparent"
-                  : l?"bg-white text-gray-600 border-gray-200":"bg-[#0a1826] text-[#5a7a92] border-[#1a2d3f]"
-              }`}>{v}</button>
-          ))}
-          <button onClick={foRefresh}
-            className={`px-2.5 py-1.5 rounded-lg border flex items-center ${l?"bg-white text-gray-600 border-gray-200":"bg-[#0a1826] text-[#5a7a92] border-[#1a2d3f]"}`}>
-            <RefreshCw className={`w-3.5 h-3.5 ${foLoad?"animate-spin":""}`}/>
-          </button>
-        </div>
+
+        {/* Divider */}
+        <div className={`w-px h-5 shrink-0 ${l?"bg-gray-200":"bg-[#1a2d3f]"}`}/>
+
+        {/* View toggle: Chain / Futures / Instruments */}
+        {(["chain","futures","instruments"] as const).map(v => (
+          <button key={v} onClick={() => setFoView(v)}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all capitalize shrink-0 ${
+              foView===v ? "bg-[#2563eb] text-white border-transparent"
+                : l?"bg-white text-gray-600 border-gray-200":"bg-[#0a1826] text-[#5a7a92] border-[#1a2d3f]"
+            }`}>{v}</button>
+        ))}
+
+        {/* Refresh */}
+        <button onClick={foRefresh}
+          className={`px-2.5 py-1.5 rounded-lg border flex items-center shrink-0 ${l?"bg-white text-gray-600 border-gray-200":"bg-[#0a1826] text-[#5a7a92] border-[#1a2d3f]"}`}>
+          <RefreshCw className={`w-3.5 h-3.5 ${foLoad?"animate-spin":""}`}/>
+        </button>
       </div>
 
       {foErr && (
@@ -1124,6 +1133,7 @@ function OptionsSection({ ticks }: { ticks:any }) {
       ) : foView === "chain" ? (
         /* ── Options Chain ── */
         <Card className="overflow-x-auto">
+          <div className="min-w-[520px]">
           <div className={`flex items-center justify-between px-5 py-3 border-b ${l?"bg-blue-50 border-blue-100":"bg-blue-900/10 border-blue-800/20"}`}>
             <div className="flex items-center gap-3">
               {spot && <span className={`text-xs font-bold ${l?"text-blue-700":"text-blue-300"}`}>Spot ₹{fmt(spot)}</span>}
@@ -1191,6 +1201,7 @@ function OptionsSection({ ticks }: { ticks:any }) {
               </div>
             );
           })}
+          </div>
         </Card>
       ) : foView === "futures" ? (
         /* ── Futures ── */
@@ -1304,46 +1315,40 @@ function HistoricalSection() {
     <section className="mb-8">
       <SecHead id="historical" icon={BookOpen} title="Historical Data" sub="OHLCV · Candlestick Chart · Table"/>
 
-      <div className="flex flex-wrap gap-2 mb-3">
-        {/* Symbol selector */}
-        <div className="flex flex-wrap gap-1.5">
-          {SYMS.map(s => (
-            <button key={s.token} onClick={() => setSym(s)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all ${
-                sym.token===s.token
-                  ? "bg-[#16a34a] text-white border-transparent"
-                  : l?"bg-white text-gray-600 border-gray-200":"bg-[#0a1826] text-[#5a7a92] border-[#1a2d3f]"
-              }`}>{s.label}</button>
-          ))}
-        </div>
+      {/* Row 1: symbol buttons — full scrollable row */}
+      <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none pb-1 mb-2 flex-nowrap">
+        {SYMS.map(s => (
+          <button key={s.token} onClick={() => setSym(s)}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all shrink-0 ${
+              sym.token===s.token
+                ? "bg-[#16a34a] text-white border-transparent"
+                : l?"bg-white text-gray-600 border-gray-200":"bg-[#0a1826] text-[#5a7a92] border-[#1a2d3f]"
+            }`}>{s.label}</button>
+        ))}
       </div>
 
-      <div className="flex flex-wrap gap-2 mb-3 items-center">
-        {/* Interval */}
-        <div className="flex gap-1.5">
-          {IVLS.map(iv => (
-            <button key={iv.val} onClick={() => setIvl(iv.val)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all ${
-                ivl===iv.val
-                  ? "bg-[#d97706] text-white border-transparent"
-                  : l?"bg-white text-gray-600 border-gray-200":"bg-[#0a1826] text-[#5a7a92] border-[#1a2d3f]"
-              }`}>{iv.label}</button>
-          ))}
-          <button onClick={refresh} className={`px-2.5 py-1.5 rounded-lg border flex items-center transition-all ${l?"bg-white text-gray-600 border-gray-200":"bg-[#0a1826] text-[#5a7a92] border-[#1a2d3f]"}`}>
-            <RefreshCw className={`w-3.5 h-3.5 ${loading?"animate-spin":""}`}/>
-          </button>
-        </div>
-        {/* View toggle */}
-        <div className="flex gap-1.5 ml-auto">
-          {(["chart","table"] as const).map(v => (
-            <button key={v} onClick={() => setView(v)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all ${
-                view===v
-                  ? "bg-[#2563eb] text-white border-transparent"
-                  : l?"bg-white text-gray-600 border-gray-200":"bg-[#0a1826] text-[#5a7a92] border-[#1a2d3f]"
-              }`}>{v==="chart"?"📊 Chart":"📋 Table"}</button>
-          ))}
-        </div>
+      {/* Row 2: interval + refresh + chart/table toggle — all in one scroll row */}
+      <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none pb-1 mb-3 flex-nowrap">
+        {IVLS.map(iv => (
+          <button key={iv.val} onClick={() => setIvl(iv.val)}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all shrink-0 ${
+              ivl===iv.val
+                ? "bg-[#d97706] text-white border-transparent"
+                : l?"bg-white text-gray-600 border-gray-200":"bg-[#0a1826] text-[#5a7a92] border-[#1a2d3f]"
+            }`}>{iv.label}</button>
+        ))}
+        <button onClick={refresh} className={`px-2.5 py-1.5 rounded-lg border flex items-center shrink-0 ${l?"bg-white text-gray-600 border-gray-200":"bg-[#0a1826] text-[#5a7a92] border-[#1a2d3f]"}`}>
+          <RefreshCw className={`w-3.5 h-3.5 ${loading?"animate-spin":""}`}/>
+        </button>
+        <div className={`w-px h-5 shrink-0 ${l?"bg-gray-200":"bg-[#1a2d3f]"}`}/>
+        {(["chart","table"] as const).map(v => (
+          <button key={v} onClick={() => setView(v)}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all shrink-0 ${
+              view===v
+                ? "bg-[#2563eb] text-white border-transparent"
+                : l?"bg-white text-gray-600 border-gray-200":"bg-[#0a1826] text-[#5a7a92] border-[#1a2d3f]"
+            }`}>{v==="chart"?"📊 Chart":"📋 Table"}</button>
+        ))}
       </div>
 
       {error && (
@@ -1918,27 +1923,27 @@ function OrderRow({ o, last }: { o:any; last:boolean }) {
   const ts     = o.order_timestamp ? new Date(o.order_timestamp).toLocaleString("en-IN",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit",hour12:true}) : "—";
 
   return (
-    <div className={`grid grid-cols-8 items-center px-4 sm:px-5 py-3 text-xs
+    <div className={`grid grid-cols-4 sm:grid-cols-8 items-center px-3 sm:px-5 py-2 sm:py-3 text-xs
       ${!last?(l?"border-b border-gray-50":"border-b border-[#111e28]"):""}
       ${l?"hover:bg-gray-50/60":"hover:bg-white/[0.015]"}`}>
       {/* Symbol + type */}
       <div className="col-span-2">
-        <div className="flex items-center gap-1.5">
-          <span className={`font-black text-xs ${tx.t1(l)}`}>{o.tradingsymbol}</span>
+        <div className="flex items-center gap-1 sm:gap-1.5 flex-wrap">
+          <span className={`font-black text-[11px] sm:text-xs ${tx.t1(l)}`}>{o.tradingsymbol}</span>
           <span className={`text-[9px] font-black px-1.5 py-0.5 rounded ${isBuy
             ? l?"bg-emerald-100 text-emerald-700":"bg-emerald-900/20 text-emerald-400"
             : l?"bg-red-100 text-red-600":"bg-red-900/20 text-red-400"}`}>
             {o.transaction_type}
           </span>
         </div>
-        <p className={`text-[10px] mt-0.5 ${tx.t3(l)}`}>{o.exchange} · {o.product} · {o.order_type}</p>
+        <p className={`text-[10px] mt-0.5 ${tx.t3(l)}`}>{o.exchange} · {o.product}</p>
       </div>
 
       {/* Qty */}
       <div className={`text-right tabular-nums font-semibold ${tx.t1(l)}`}>{o.quantity ?? "—"}</div>
 
-      {/* Price */}
-      <div className={`text-right tabular-nums ${tx.t2(l)}`}>
+      {/* Price — hidden sm, show on mobile too for 4-col */}
+      <div className={`text-right tabular-nums hidden sm:block ${tx.t2(l)}`}>
         {o.average_price > 0 ? `₹${fmt(o.average_price)}` : o.price > 0 ? `₹${fmt(o.price)}` : "MKT"}
       </div>
 
@@ -1955,9 +1960,9 @@ function OrderRow({ o, last }: { o:any; last:boolean }) {
 
       {/* Status */}
       <div className="text-right">
-        <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${sc(l)}`}>{o.status}</span>
+        <span className={`text-[9px] sm:text-[10px] font-bold px-1.5 sm:px-2 py-0.5 rounded ${sc(l)}`}>{o.status}</span>
         {o.status_message && o.status !== "COMPLETE" && (
-          <p className={`text-[9px] mt-0.5 truncate max-w-[100px] ml-auto ${tx.t3(l)}`} title={o.status_message}>{o.status_message}</p>
+          <p className={`text-[9px] mt-0.5 truncate max-w-[80px] sm:max-w-[100px] ml-auto ${tx.t3(l)}`} title={o.status_message}>{o.status_message}</p>
         )}
       </div>
     </div>
@@ -2008,30 +2013,30 @@ function OrdersSection() {
         </div>
       )}
 
-      {/* Filters */}
-      <div className="flex flex-wrap gap-2 mb-3 items-center">
-        <div className="flex gap-1.5 flex-wrap">
-          {["All","COMPLETE","OPEN","REJECTED","CANCELLED"].map(s => (
-            <button key={s} onClick={() => setStatusFilter(s)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all ${
-                statusFilter===s ? "bg-[#16a34a] text-white border-transparent"
-                  : l?"bg-white text-gray-600 border-gray-200":"bg-[#0a1826] text-[#5a7a92] border-[#1a2d3f]"
-              }`}>{s}</button>
-          ))}
-        </div>
-        <div className="flex gap-1.5 ml-auto">
-          {["All","BUY","SELL"].map(t => (
-            <button key={t} onClick={() => setTxFilter(t)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all ${
-                txFilter===t ? (t==="BUY"?"bg-emerald-600 text-white border-transparent":t==="SELL"?"bg-red-600 text-white border-transparent":"bg-[#16a34a] text-white border-transparent")
-                  : l?"bg-white text-gray-600 border-gray-200":"bg-[#0a1826] text-[#5a7a92] border-[#1a2d3f]"
-              }`}>{t}</button>
-          ))}
-          <button onClick={refresh}
-            className={`px-2.5 py-1.5 rounded-lg border flex items-center ${l?"bg-white text-gray-600 border-gray-200":"bg-[#0a1826] text-[#5a7a92] border-[#1a2d3f]"}`}>
-            <RefreshCw className={`w-3.5 h-3.5 ${loading?"animate-spin":""}`}/>
-          </button>
-        </div>
+      {/* Filters — single scrollable row, NEVER wraps */}
+      <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none pb-1 mb-3 flex-nowrap">
+        {["All","COMPLETE","OPEN","REJECTED","CANCELLED"].map(s => (
+          <button key={s} onClick={() => setStatusFilter(s)}
+            className={`px-2.5 py-1.5 rounded-lg text-xs font-bold border transition-all shrink-0 ${
+              statusFilter===s ? "bg-[#16a34a] text-white border-transparent"
+                : l?"bg-white text-gray-600 border-gray-200":"bg-[#0a1826] text-[#5a7a92] border-[#1a2d3f]"
+            }`}>{s}</button>
+        ))}
+        <div className={`w-px h-5 shrink-0 mx-0.5 ${l?"bg-gray-200":"bg-[#1a2d3f]"}`}/>
+        {["All","BUY","SELL"].map(t => (
+          <button key={t} onClick={() => setTxFilter(t)}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all shrink-0 ${
+              txFilter===t
+                ? t==="BUY" ? "bg-emerald-600 text-white border-transparent"
+                  : t==="SELL" ? "bg-red-600 text-white border-transparent"
+                  : "bg-[#16a34a] text-white border-transparent"
+                : l?"bg-white text-gray-600 border-gray-200":"bg-[#0a1826] text-[#5a7a92] border-[#1a2d3f]"
+            }`}>{t}</button>
+        ))}
+        <button onClick={refresh}
+          className={`px-2.5 py-1.5 rounded-lg border flex items-center shrink-0 ${l?"bg-white text-gray-600 border-gray-200":"bg-[#0a1826] text-[#5a7a92] border-[#1a2d3f]"}`}>
+          <RefreshCw className={`w-3.5 h-3.5 ${loading?"animate-spin":""}`}/>
+        </button>
       </div>
 
       {!isAuth && error && (
@@ -2041,11 +2046,11 @@ function OrdersSection() {
         </div>
       )}
 
-      <Card className="overflow-x-auto">
-        <div className={`grid grid-cols-8 px-4 sm:px-5 py-2.5 text-[9px] font-black uppercase tracking-widest ${tx.header(l)} ${tx.t3(l)}`}>
+      <Card className="overflow-hidden">
+        <div className={`grid grid-cols-4 sm:grid-cols-8 px-3 sm:px-5 py-2.5 text-[9px] font-black uppercase tracking-widest ${tx.header(l)} ${tx.t3(l)}`}>
           <div className="col-span-2">Symbol</div>
           <div className="text-right">Qty</div>
-          <div className="text-right">Price</div>
+          <div className="text-right hidden sm:block">Price</div>
           <div className="text-right hidden sm:block">Amount</div>
           <div className="text-right hidden md:block">Variety</div>
           <div className="text-right hidden sm:block">Time</div>
@@ -2398,7 +2403,14 @@ export default function DomesticView() {
 
   return (
     <Layout>
-      <style>{`html{scroll-behavior:smooth}`}</style>
+      <style>{`
+        html{scroll-behavior:smooth}
+        .scrollbar-none::-webkit-scrollbar{display:none}
+        .scrollbar-none{-ms-overflow-style:none;scrollbar-width:none}
+        @media(max-width:480px){
+          .xs\\:flex{display:flex}
+        }
+      `}</style>
       <div className={`min-h-screen ${tx.bg(l)}`}>
 
         <TickerBar rawTicks={rawTicks}/>

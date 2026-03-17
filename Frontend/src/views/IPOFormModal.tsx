@@ -79,12 +79,12 @@ export default function IPOFormModal({ initial, onSave, onClose, loading }: Prop
   };
 
   /* ── design tokens ── */
-  const modalBg     = isDark ? "#0f1e38"          : "#f0f7fe";
+  const modalBg     = isDark ? "#101528"          : "#f0f7fe";
   const modalBorder = isDark ? "rgba(255,255,255,0.10)" : "rgba(13,37,64,0.12)";
-  const blockBg     = isDark ? "rgba(212,168,67,0.05)" : "rgba(212,168,67,0.06)";
-  const blockBdr    = isDark ? "rgba(212,168,67,0.12)" : "rgba(212,168,67,0.18)";
-  const blockLabel  = isDark ? "#C4941E"           : "#b45309";
-  const footerBg    = isDark ? "#0f1e38"           : "#f0f7fe";
+  const blockBg     = isDark ? "rgba(81,148,246,0.06)" : "rgba(81,148,246,0.06)";
+  const blockBdr    = isDark ? "rgba(81,148,246,0.18)" : "rgba(81,148,246,0.18)";
+  const blockLabel  = isDark ? "#5194F6"           : "#2563eb";
+  const footerBg    = isDark ? "#101528"           : "#f0f7fe";
   const footerBdr   = isDark ? "rgba(255,255,255,0.10)" : "rgba(13,37,64,0.10)";
 
   /* input */
@@ -92,10 +92,10 @@ export default function IPOFormModal({ initial, onSave, onClose, loading }: Prop
   const inputBdr = isDark ? "rgba(255,255,255,0.12)" : "rgba(13,37,64,0.18)";
   const inputTxt = isDark ? "#ffffff"              : "#0d1b2a";
   const phTxt    = isDark ? "#64748b"              : "#94a3b8";
-  const focusBdr = "rgba(212,168,67,0.55)";
+  const focusBdr = "rgba(81,148,246,0.55)";
 
   /* ── IMPORTANT: select/option always use solid backgrounds so text is black ── */
-  const selBg    = isDark ? "#1a2d48" : "#ffffff";   // dark = navy, light = white
+  const selBg    = isDark ? "#1C3656" : "#ffffff";   // dark = navy, light = white
   const selTxt   = isDark ? "#ffffff" : "#0d1b2a";   // always readable
 
   const lblColor  = isDark ? "rgba(148,163,184,1)" : "rgba(13,37,64,0.55)";
@@ -105,7 +105,7 @@ export default function IPOFormModal({ initial, onSave, onClose, loading }: Prop
   const cancelClr = isDark ? "rgba(148,163,184,1)" : "rgba(13,37,64,0.60)";
   const cancelBdr = isDark ? "rgba(255,255,255,0.12)" : "rgba(13,37,64,0.15)";
 
-  const headerBg  = "linear-gradient(90deg,#0d2540,#C4941E)";
+  const headerBg  = "linear-gradient(90deg,#101528,#5194F6)";
 
   /* shared class helpers */
   const inp = `w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none transition-colors`;
@@ -270,7 +270,7 @@ export default function IPOFormModal({ initial, onSave, onClose, loading }: Prop
               <div>
                 <label className={lbl} style={{ color: lblColor }}>
                   Min Investment *{" "}
-                  <span style={{ color: "#C4941E", fontWeight: 400, textTransform: "none", letterSpacing: 0, fontSize: 10 }}>
+                  <span style={{ color: "#5194F6", fontWeight: 400, textTransform: "none", letterSpacing: 0, fontSize: 10 }}>
                     <Calculator className="inline w-3 h-3 mr-0.5" />auto
                   </span>
                 </label>
@@ -278,14 +278,14 @@ export default function IPOFormModal({ initial, onSave, onClose, loading }: Prop
                   style={inpSty({
                     outline: "none",
                     ...(calcMin(form.priceRange, form.lotSize)
-                      ? { borderColor: "rgba(212,168,67,0.55)", color: "#D4A843", fontWeight: 600 }
+                      ? { borderColor: "rgba(81,148,246,0.55)", color: "#5194F6", fontWeight: 600 }
                       : {}),
                   })}
                   value={form.minInvestment}
                   onChange={e => set("minInvestment", e.target.value)}
                 />
                 {calcMin(form.priceRange, form.lotSize) && (
-                  <p className="text-[10px] mt-1" style={{ color: "rgba(212,168,67,0.75)" }}>
+                  <p className="text-[10px] mt-1" style={{ color: "rgba(81,148,246,0.75)" }}>
                     = {form.lotSize} × ₹{parseUpperPrice(form.priceRange)?.toLocaleString("en-IN")} (upper band)
                   </p>
                 )}
@@ -400,7 +400,7 @@ export default function IPOFormModal({ initial, onSave, onClose, loading }: Prop
           </button>
           <button onClick={handleSave} disabled={loading}
             className="flex-1 py-3 rounded-xl text-white text-sm font-bold transition-all flex items-center justify-center gap-2 hover:opacity-90 hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed"
-            style={{ background: "linear-gradient(135deg,#D4A843,#C4941E)", boxShadow: "0 4px 16px rgba(212,168,67,0.25)" }}>
+            style={{ background: "linear-gradient(135deg,#5194F6,#3a7de0)", boxShadow: "0 4px 16px rgba(81,148,246,0.30)" }}>
             {loading
               ? <><Loader2 className="w-4 h-4 animate-spin" />Saving...</>
               : <><Save className="w-4 h-4" />{initial ? "Changes Save Karein" : "IPO Add Karein"}</>}

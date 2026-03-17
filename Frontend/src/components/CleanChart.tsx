@@ -29,12 +29,14 @@ interface CleanChartProps {
 type Period = '1D' | '1W' | '1M' | '3M' | '1Y';
 const PERIODS: Period[] = ['1D', '1W', '1M', '3M', '1Y'];
 const DELAY_LABEL: Record<Period, string> = {
-  '1D': '~15 min delayed · 5 min bars',
+  '1D': '~15 min delayed · 15 min bars',
   '1W': '~15 min delayed · 30 min bars',
   '1M': 'End-of-day · daily bars',
   '3M': 'End-of-day · daily bars',
   '1Y': 'End-of-day · weekly bars',
 };
+// Auto-refresh interval for live periods (15 minutes in ms)
+const AUTO_REFRESH_MS = 15 * 60 * 1000;
 // VITE_API_URL is like http://localhost:8000/api/v1 — strip /api/v1 for root, add back for kite routes
 const _BASE_RAW = (import.meta as any).env?.VITE_API_URL || 'http://localhost:8000/api/v1';
 const API_BASE  = _BASE_RAW.replace(/\/api\/v1\/?$/, '');
@@ -158,6 +160,13 @@ const CleanChart = ({
 
   useEffect(() => { fetch_(period); }, [period, fetch_]);
 
+  // ── Auto-refresh every 15 min for intraday periods ───────────
+  useEffect(() => {
+    if (period !== '1D' && period !== '1W') return;
+    const id = setInterval(() => { fetch_(period); }, AUTO_REFRESH_MS);
+    return () => clearInterval(id);
+  }, [period, fetch_]);
+
   // ── Create LWC instance ──────────────────────────────────────
   useEffect(() => {
     if (!containerRef.current) return;
@@ -246,6 +255,22 @@ const CleanChart = ({
 
   const isPos = pChangePct >= 0;
 
+  // ── Next-refresh countdown (1D / 1W only) ────────────────────
+  const [nextRefreshIn, setNextRefreshIn] = useState<string>('');
+  useEffect(() => {
+    if ((period !== '1D' && period !== '1W') || !lastFetch || isFallback) { setNextRefreshIn(''); return; }
+    const tick = () => {
+      const elapsed = Date.now() - lastFetch.getTime();
+      const remaining = Math.max(0, AUTO_REFRESH_MS - elapsed);
+      const m = Math.floor(remaining / 60_000);
+      const s = Math.floor((remaining % 60_000) / 1_000);
+      setNextRefreshIn(`Next refresh in ${m}:${s.toString().padStart(2,'0')}`);
+    };
+    tick();
+    const id = setInterval(tick, 1_000);
+    return () => clearInterval(id);
+  }, [period, lastFetch, isFallback]);
+
   const dataAgoLabel = (): string => {
     if (!lastFetch || isFallback) return '';
     const diff = Math.round((Date.now() - lastFetch.getTime()) / 60_000);
@@ -322,12 +347,19 @@ const CleanChart = ({
         <span>
           {isFallback ? '🔒 Estimated shape · market closed' : `📊 ${DELAY_LABEL[period]}`}
         </span>
-        {!isFallback && lastFetch && (
-          <span className="flex items-center gap-1">
-            <Clock className="w-2.5 h-2.5" />
-            Data ~{dataAgoLabel()}
-          </span>
-        )}
+        <span className="flex items-center gap-2">
+          {!isFallback && nextRefreshIn && (
+            <span className="flex items-center gap-1 text-amber-500/80">
+              <Clock className="w-2.5 h-2.5" />{nextRefreshIn}
+            </span>
+          )}
+          {!isFallback && lastFetch && !nextRefreshIn && (
+            <span className="flex items-center gap-1">
+              <Clock className="w-2.5 h-2.5" />
+              Data ~{dataAgoLabel()}
+            </span>
+          )}
+        </span>
       </div>
     </div>
   );

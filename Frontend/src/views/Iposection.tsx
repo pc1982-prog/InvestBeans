@@ -191,12 +191,12 @@ function FormModal({
   };
 
   /* ── Design tokens (dark / light) ── */
-  const modalBg  = isDark ? '#0f1e38'  : '#f0f7fe';
+  const modalBg  = isDark ? '#101528'  : '#f0f7fe';
   const modalBdr = isDark ? 'rgba(255,255,255,0.10)' : 'rgba(13,37,64,0.12)';
-  const blockBg  = isDark ? 'rgba(212,168,67,0.05)'  : 'rgba(212,168,67,0.06)';
-  const blockBdr = isDark ? 'rgba(212,168,67,0.12)'  : 'rgba(212,168,67,0.18)';
-  const bLabel   = isDark ? '#C4941E'  : '#b45309';
-  const footBg   = isDark ? '#0f1e38'  : '#f0f7fe';
+  const blockBg  = isDark ? 'rgba(81,148,246,0.06)'  : 'rgba(81,148,246,0.06)';
+  const blockBdr = isDark ? 'rgba(81,148,246,0.18)'  : 'rgba(81,148,246,0.18)';
+  const bLabel   = isDark ? '#5194F6'  : '#2563eb';
+  const footBg   = isDark ? '#101528'  : '#f0f7fe';
   const footBdr  = isDark ? 'rgba(255,255,255,0.10)' : 'rgba(13,37,64,0.10)';
   const inBg     = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.90)';
   const inBdr    = isDark ? 'rgba(255,255,255,0.12)' : 'rgba(13,37,64,0.18)';
@@ -208,7 +208,7 @@ function FormModal({
   const cancelBdr = isDark ? 'rgba(255,255,255,0.12)' : 'rgba(13,37,64,0.15)';
 
   /* CRITICAL: solid backgrounds on selects so option text is always visible */
-  const selBg  = isDark ? '#1a2d48' : '#ffffff';
+  const selBg  = isDark ? '#1C3656' : '#ffffff';
   const selTxt = isDark ? '#ffffff' : '#0d1b2a';
 
   const IC = 'w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none transition-colors';
@@ -229,7 +229,7 @@ function FormModal({
 
         {/* Header */}
         <div className="sticky top-0 p-5 flex items-center justify-between z-10 rounded-t-2xl"
-          style={{ background: 'linear-gradient(90deg,#0d2540,#C4941E)' }}>
+          style={{ background: 'linear-gradient(90deg,#101528,#5194F6)' }}>
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center">
               {initial ? <Edit3 className="w-4 h-4 text-white" /> : <Plus className="w-4 h-4 text-white" />}
@@ -329,7 +329,7 @@ function FormModal({
                 <label className={LB} style={{ color: lblClr }}>
                   Min Investment *
                   {calcMin(form.priceRange, form.lotSize) && (
-                    <span className="ml-1 font-normal normal-case tracking-normal" style={{ color: '#C4941E', fontSize: 10 }}>
+                    <span className="ml-1 font-normal normal-case tracking-normal" style={{ color: '#5194F6', fontSize: 10 }}>
                       <Calculator className="inline w-3 h-3 mr-0.5" />auto
                     </span>
                   )}
@@ -338,7 +338,7 @@ function FormModal({
                   style={{
                     ...IS,
                     ...(calcMin(form.priceRange, form.lotSize)
-                      ? { borderColor: 'rgba(212,168,67,0.55)', color: '#D4A843', fontWeight: 600 }
+                      ? { borderColor: 'rgba(81,148,246,0.55)', color: '#5194F6', fontWeight: 600 }
                       : {}),
                   }}
                   placeholder="Auto-calculated"
@@ -465,7 +465,7 @@ function FormModal({
           </button>
           <button onClick={submit} disabled={saving}
             className="flex-1 py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all disabled:opacity-60 disabled:cursor-not-allowed hover:shadow-lg"
-            style={{ background: 'linear-gradient(135deg,#D4A843,#C4941E)', color: '#0c1a2e' }}>
+            style={{ background: 'linear-gradient(135deg,#5194F6,#3a7de0)', color: '#ffffff' }}>
             {saving
               ? <><Loader2 className="w-4 h-4 animate-spin" /><span>Saving...</span></>
               : <><Save className="w-4 h-4" />{initial ? 'Save Changes' : 'Add IPO'}</>}
@@ -500,7 +500,7 @@ function SwotAnalysis({ ipo }: { ipo: IPO }) {
   return (
     <div>
       <h3 className="text-base font-bold text-white mb-3 flex items-center gap-2">
-        <BarChart3 className="w-4 h-4 text-[#D4A843]" />SWOT Analysis
+        <BarChart3 className="w-4 h-4 text-[#5194F6]" />SWOT Analysis
       </h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {rows.map(({ k, l, col, bg, bdr, Icon }) => {
@@ -539,16 +539,16 @@ function DetailModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" onClick={onClose}>
       <div className="rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
-        style={{ background: 'linear-gradient(135deg,#0e2038 0%,#0c1a2e 100%)', border: '1px solid rgba(255,255,255,0.10)' }}
+        style={{ background: 'linear-gradient(135deg,#1C3656 0%,#101528 100%)', border: '1px solid rgba(81,148,246,0.15)' }}
         onClick={e => e.stopPropagation()}>
 
         {/* Header */}
         <div className="sticky top-0 p-5 md:p-6 z-10 rounded-t-2xl"
-          style={{ background: 'linear-gradient(135deg,#0a1628,#142640)', borderBottom: '1px solid rgba(212,168,67,0.20)' }}>
+          style={{ background: 'linear-gradient(135deg,#101528,#1C3656)', borderBottom: '1px solid rgba(81,148,246,0.20)' }}>
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-full flex items-center justify-center text-[#D4A843] font-bold text-xl"
-                style={{ background: 'rgba(212,168,67,0.15)', border: '2px solid rgba(212,168,67,0.30)' }}>
+              <div className="w-14 h-14 rounded-full flex items-center justify-center text-[#5194F6] font-bold text-xl"
+                style={{ background: 'rgba(81,148,246,0.15)', border: '2px solid rgba(81,148,246,0.30)' }}>
                 {ipo.logo}
               </div>
               <div>
@@ -587,7 +587,7 @@ function DetailModal({
           {/* Issue Details */}
           <div>
             <h3 className="text-base font-bold text-white mb-3 flex items-center gap-2">
-              <Zap className="w-4 h-4 text-[#D4A843]" />Issue Details
+              <Zap className="w-4 h-4 text-[#5194F6]" />Issue Details
             </h3>
             <div className="rounded-xl overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.08)' }}>
               {[
@@ -609,7 +609,7 @@ function DetailModal({
           {/* Dates */}
           <div>
             <h3 className="text-base font-bold text-white mb-3 flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-[#D4A843]" />Important Dates
+              <Calendar className="w-4 h-4 text-[#5194F6]" />Important Dates
             </h3>
             <div className="rounded-xl overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.08)' }}>
               {[
@@ -632,7 +632,7 @@ function DetailModal({
           {(ipo.subscriptionStatus || ipo.gmp || ipo.listingGain != null) && (
             <div>
               <h3 className="text-base font-bold text-white mb-3 flex items-center gap-2">
-                <BarChart3 className="w-4 h-4 text-[#D4A843]" />Performance
+                <BarChart3 className="w-4 h-4 text-[#5194F6]" />Performance
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 {ipo.subscriptionStatus && (
@@ -663,9 +663,9 @@ function DetailModal({
           )}
 
           {/* Min Investment */}
-          <div className="rounded-xl p-4" style={{ background: 'rgba(212,168,67,0.05)', border: '1px solid rgba(212,168,67,0.15)' }}>
+          <div className="rounded-xl p-4" style={{ background: 'rgba(81,148,246,0.06)', border: '1px solid rgba(81,148,246,0.18)' }}>
             <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
-              <IndianRupee className="w-4 h-4 text-[#D4A843]" />Minimum Investment Required
+              <IndianRupee className="w-4 h-4 text-[#5194F6]" />Minimum Investment Required
             </h3>
             <div className="flex items-center justify-between">
               <div>
@@ -674,7 +674,7 @@ function DetailModal({
               </div>
               <div className="text-right">
                 <p className="text-xs text-slate-400">Amount</p>
-                <p className="text-lg font-bold text-[#D4A843]">{ipo.minInvestment}</p>
+                <p className="text-lg font-bold text-[#5194F6]">{ipo.minInvestment}</p>
               </div>
             </div>
           </div>
@@ -686,8 +686,8 @@ function DetailModal({
           <button
             onClick={() => ipo.rhpLink ? window.open(ipo.rhpLink, '_blank') : null}
             disabled={!ipo.rhpLink}
-            className="w-full py-3 px-4 text-[#0c1a2e] rounded-lg font-semibold text-sm hover:shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
-            style={{ background: 'linear-gradient(135deg,#D4A843,#C4941E)' }}>
+            className="w-full py-3 px-4 text-white rounded-lg font-semibold text-sm hover:shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
+            style={{ background: 'linear-gradient(135deg,#5194F6,#3a7de8)' }}>
             <FileText className="w-4 h-4" />View RHP / DRHP
           </button>
         </div>
@@ -707,15 +707,15 @@ function IPOCard({
   return (
     <div className="rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden group hover:-translate-y-0.5 flex flex-col min-h-[360px]"
       style={{ background: isLight ? 'rgba(255,255,255,0.70)' : 'rgba(255,255,255,0.04)', border: isLight ? '1px solid rgba(13,37,64,0.12)' : '1px solid rgba(255,255,255,0.08)' }}
-      onMouseEnter={e => (e.currentTarget.style.borderColor = 'rgba(212,168,67,0.40)')}
+      onMouseEnter={e => (e.currentTarget.style.borderColor = 'rgba(81,148,246,0.40)')}
       onMouseLeave={e => (e.currentTarget.style.borderColor = isLight ? 'rgba(13,37,64,0.12)' : 'rgba(255,255,255,0.08)')}>
 
       {/* Header */}
       <div className="px-4 pt-4 pb-3" style={{ borderBottom: isLight ? '1px solid rgba(13,37,64,0.08)' : '1px solid rgba(255,255,255,0.06)' }}>
         <div className="flex items-center justify-between mb-2.5">
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-10 h-10 rounded-full flex items-center justify-center text-[#D4A843] font-bold text-xs flex-shrink-0"
-              style={{ background: 'linear-gradient(135deg,rgba(212,168,67,0.2),rgba(196,148,30,0.1))', border: '1px solid rgba(212,168,67,0.25)' }}>
+            <div className="w-10 h-10 rounded-full flex items-center justify-center text-[#5194F6] font-bold text-xs flex-shrink-0"
+              style={{ background: 'linear-gradient(135deg,rgba(81,148,246,0.20),rgba(58,125,224,0.10))', border: '1px solid rgba(81,148,246,0.25)' }}>
               {ipo.logo}
             </div>
             <div className="min-w-0">
@@ -726,8 +726,8 @@ function IPOCard({
           {isAdmin && (
             <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 ml-1">
               <button onClick={e => { e.stopPropagation(); onEdit(); }}
-                className="w-6 h-6 rounded-md flex items-center justify-center text-[#D4A843]"
-                style={{ background: 'rgba(212,168,67,0.10)' }}>
+                className="w-6 h-6 rounded-md flex items-center justify-center text-[#5194F6]"
+                style={{ background: 'rgba(81,148,246,0.10)' }}>
                 <Edit3 className="w-3 h-3" />
               </button>
               <button onClick={e => { e.stopPropagation(); onDelete(); }}
@@ -757,7 +757,7 @@ function IPOCard({
           </div>
           <div>
             <p className={`text-[9px] uppercase tracking-wider ${isLight ? 'text-navy/50' : 'text-slate-500'}`}>Min. Investment</p>
-            <p className="text-xs font-bold text-[#D4A843] leading-tight mt-0.5">{ipo.minInvestment}</p>
+            <p className="text-xs font-bold text-[#5194F6] leading-tight mt-0.5">{ipo.minInvestment}</p>
           </div>
           <div>
             <p className={`text-[9px] uppercase tracking-wider ${isLight ? 'text-navy/50' : 'text-slate-500'}`}>Issue Size</p>
@@ -803,8 +803,8 @@ function IPOCard({
       {/* Footer */}
       <div className="px-4 pb-4 pt-2">
         <button onClick={onViewDetail}
-          className="w-full py-2 px-3 text-[#0c1a2e] rounded-lg font-semibold text-xs hover:shadow-md transition-all flex items-center justify-center gap-1.5 group/btn"
-          style={{ background: 'linear-gradient(135deg,#D4A843,#C4941E)' }}>
+          className="w-full py-2 px-3 text-white rounded-lg font-semibold text-xs hover:shadow-md transition-all flex items-center justify-center gap-1.5 group/btn"
+          style={{ background: 'linear-gradient(135deg,#5194F6,#3a7de8)' }}>
           View Details
           <ArrowRight className="w-3.5 h-3.5 group-hover/btn:translate-x-0.5 transition-transform" />
         </button>
@@ -875,24 +875,24 @@ const IPOSection = () => {
 
   return (
     <>
-      <div className="min-h-screen" style={{ background: isLight ? 'linear-gradient(160deg,#dce8f7 0%,#e8f2fd 45%,#dce8f7 100%)' : 'linear-gradient(160deg,#0c1a2e 0%,#0e2038 45%,#0b1825 100%)' }}>
+      <div className="min-h-screen" style={{ background: isLight ? 'linear-gradient(160deg,#dce8f7 0%,#e8f2fd 45%,#dce8f7 100%)' : '#101528' }}>
 
         {/* Hero */}
         <section className="relative overflow-hidden py-16 md:py-24"
-          style={{ background: isLight ? 'linear-gradient(135deg,#edf5fe 0%,#dce8f7 50%,#e8f2fd 100%)' : 'linear-gradient(135deg,#0a1628 0%,#0e2038 50%,#0c1a2e 100%)', borderBottom: isLight ? '1px solid rgba(13,37,64,0.1)' : '1px solid rgba(255,255,255,0.06)' }}>
-          <div className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full blur-[130px] pointer-events-none" style={{ background: 'radial-gradient(circle,rgba(212,168,67,0.10) 0%,transparent 70%)' }} />
+          style={{ background: isLight ? 'linear-gradient(135deg,#edf5fe 0%,#dce8f7 50%,#e8f2fd 100%)' : '#101528', borderBottom: isLight ? '1px solid rgba(13,37,64,0.1)' : '1px solid rgba(81,148,246,0.08)' }}>
+          <div className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full blur-[130px] pointer-events-none" style={{ background: 'radial-gradient(circle,rgba(81,148,246,0.10) 0%,transparent 70%)' }} />
           <div className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full blur-[100px] pointer-events-none"  style={{ background: 'radial-gradient(circle,rgba(56,189,248,0.07) 0%,transparent 70%)' }} />
 
           <div className="container mx-auto px-4 md:px-6 relative z-10">
             <div className="max-w-4xl mx-auto text-center">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-6"
-                style={{ background: 'rgba(212,168,67,0.1)', border: '1px solid rgba(212,168,67,0.2)' }}>
-                <Zap className="w-4 h-4 text-[#D4A843]" />
-                <span className="text-sm font-medium text-[#D4A843]">Live IPO Updates</span>
+                style={{ background: 'rgba(81,148,246,0.10)', border: '1px solid rgba(81,148,246,0.20)' }}>
+                <Zap className="w-4 h-4 text-[#5194F6]" />
+                <span className="text-sm font-medium text-[#5194F6]">Live IPO Updates</span>
               </div>
               <h1 className={`text-4xl md:text-5xl lg:text-6xl font-bold mb-6 ${isLight ? 'text-navy' : 'text-white'}`}>
                 Initial Public{' '}
-                <span style={{ background: 'linear-gradient(135deg,#D4A843,#F0C84A)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                <span style={{ background: 'linear-gradient(135deg,#5194F6,#7ab8fa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
                   Offerings
                 </span>
               </h1>
@@ -903,14 +903,14 @@ const IPOSection = () => {
               {/* Hero stat tiles — "listed" removed */}
               <div className="grid grid-cols-3 gap-4 max-w-2xl mx-auto">
                 {([
-                  { s: 'open'     as IPOStatus, icon: <Building2  className="w-8 h-8 text-[#D4A843] mx-auto mb-2" /> },
+                  { s: 'open'     as IPOStatus, icon: <Building2  className="w-8 h-8 text-[#5194F6] mx-auto mb-2" /> },
                   { s: 'upcoming' as IPOStatus, icon: <Clock      className="w-8 h-8 text-blue-400   mx-auto mb-2" /> },
                   { s: 'closed'   as IPOStatus, icon: <Award      className="w-8 h-8 text-purple-400 mx-auto mb-2" /> },
                 ]).map(({ s, icon }) => (
                   <button key={s} onClick={() => switchTab(s)}
                     className="rounded-xl p-4 hover:scale-105 transition-all duration-200 cursor-pointer text-center group"
                     style={{ background: isLight ? 'rgba(13,37,64,0.05)' : 'rgba(255,255,255,0.04)', border: isLight ? '1px solid rgba(13,37,64,0.12)' : '1px solid rgba(255,255,255,0.08)' }}
-                    onMouseEnter={e => (e.currentTarget.style.borderColor = 'rgba(212,168,67,0.30)')}
+                    onMouseEnter={e => (e.currentTarget.style.borderColor = 'rgba(81,148,246,0.30)')}
                     onMouseLeave={e => (e.currentTarget.style.borderColor = isLight ? 'rgba(13,37,64,0.12)' : 'rgba(255,255,255,0.08)')}>
                     {icon}
                     <div className={`text-2xl font-bold ${isLight ? 'text-navy' : 'text-white'}`}>{counts[s]}</div>
@@ -933,10 +933,10 @@ const IPOSection = () => {
                   <button key={tab} onClick={() => { setActiveTab(tab); setShowAll(false); }}
                     className="flex-shrink-0 px-3.5 py-2 rounded-lg font-semibold text-xs sm:text-sm transition-all"
                     style={activeTab === tab
-                      ? { background: 'linear-gradient(135deg,#D4A843,#C4941E)', color: '#0c1a2e' }
+                      ? { background: 'linear-gradient(135deg,#5194F6,#3a7de0)', color: '#ffffff' }
                       : isLight
                         ? { background: 'rgba(13,37,64,0.06)', color: 'rgba(13,37,64,0.65)', border: '1px solid rgba(13,37,64,0.12)' }
-                        : { background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.65)', border: '1px solid rgba(255,255,255,0.10)' }}>
+                        : { background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.65)', border: '1px solid rgba(81,148,246,0.15)' }}>
                     {STATUS_CFG[tab].label}
                     <span className="ml-1 opacity-60">({counts[tab]})</span>
                   </button>
@@ -947,7 +947,7 @@ const IPOSection = () => {
               {isAdmin && (
                 <button onClick={() => { setEditIPO(null); setFormOpen(true); }}
                   className="hidden sm:flex flex-shrink-0 items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm hover:shadow-lg transition-all whitespace-nowrap"
-                  style={{ background: 'linear-gradient(135deg,#D4A843,#C4941E)', color: '#0c1a2e' }}>
+                  style={{ background: 'linear-gradient(135deg,#5194F6,#3a7de0)', color: '#ffffff' }}>
                   <Plus className="w-4 h-4" />Add IPO
                 </button>
               )}
@@ -962,7 +962,7 @@ const IPOSection = () => {
             {isAdmin && (
               <button onClick={() => { setEditIPO(null); setFormOpen(true); }}
                 className="sm:hidden mt-2 w-full flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm hover:shadow-lg transition-all"
-                style={{ background: 'linear-gradient(135deg,#D4A843,#C4941E)', color: '#0c1a2e' }}>
+                style={{ background: 'linear-gradient(135deg,#5194F6,#3a7de0)', color: '#ffffff' }}>
                 <Plus className="w-4 h-4" />Add IPO
               </button>
             )}
@@ -970,7 +970,7 @@ const IPOSection = () => {
 
           {loading && (
             <div className="flex flex-col items-center justify-center py-20 gap-3">
-              <Loader2 className="w-10 h-10 text-[#D4A843] animate-spin" />
+              <Loader2 className="w-10 h-10 text-[#5194F6] animate-spin" />
               <p className={`text-sm ${isLight ? 'text-navy/60' : 'text-slate-400'}`}>Loading IPOs...</p>
             </div>
           )}
@@ -983,7 +983,7 @@ const IPOSection = () => {
               <br />
               <button onClick={() => fetchIPOs(activeTab)}
                 className="mt-2 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold"
-                style={{ background: 'rgba(212,168,67,0.10)', border: '1px solid rgba(212,168,67,0.20)', color: '#D4A843' }}>
+                style={{ background: 'rgba(81,148,246,0.10)', border: '1px solid rgba(81,148,246,0.20)', color: '#5194F6' }}>
                 <RefreshCw className="w-4 h-4" />Try Again
               </button>
             </div>
@@ -992,8 +992,8 @@ const IPOSection = () => {
           {!loading && !error && ipos.length === 0 && (
             <div className="text-center py-16">
               <div className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-4"
-                style={{ background: 'rgba(212,168,67,0.08)', border: '1px solid rgba(212,168,67,0.15)' }}>
-                <Building2 className="w-10 h-10 text-[#D4A843]/40" />
+                style={{ background: 'rgba(81,148,246,0.08)', border: '1px solid rgba(81,148,246,0.15)' }}>
+                <Building2 className="w-10 h-10 text-[#5194F6]/40" />
               </div>
               <h3 className={`text-xl font-semibold mb-2 ${isLight ? 'text-navy' : 'text-white'}`}>
                 No {STATUS_CFG[activeTab].label} IPOs found
@@ -1019,7 +1019,7 @@ const IPOSection = () => {
                 {isAdmin && (
                   <button onClick={() => { setEditIPO(null); setFormOpen(true); }}
                     className="inline-flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-sm"
-                    style={{ background: 'linear-gradient(135deg,#D4A843,#C4941E)', color: '#0c1a2e' }}>
+                    style={{ background: 'linear-gradient(135deg,#5194F6,#3a7de0)', color: '#ffffff' }}>
                     <Plus className="w-4 h-4" />Add First IPO
                   </button>
                 )}
@@ -1043,11 +1043,11 @@ const IPOSection = () => {
                 <div className="mt-8 text-center flex items-center justify-center gap-3">
                   <button onClick={() => setShowAll(p => !p)}
                     className="inline-flex items-center gap-2 px-6 py-3 rounded-full transition-all duration-200 group"
-                    style={{ background: 'rgba(212,168,67,0.08)', border: '1px solid rgba(212,168,67,0.20)' }}>
-                    <span className="text-[#D4A843] font-semibold text-sm">
+                    style={{ background: 'rgba(81,148,246,0.08)', border: '1px solid rgba(81,148,246,0.20)' }}>
+                    <span className="text-[#5194F6] font-semibold text-sm">
                       {showAll ? 'Show Less' : `View All ${ipos.length} IPOs`}
                     </span>
-                    <ChevronRight className={`w-4 h-4 text-[#D4A843] transition-transform duration-200 ${showAll ? 'rotate-90' : 'group-hover:translate-x-1'}`} />
+                    <ChevronRight className={`w-4 h-4 text-[#5194F6] transition-transform duration-200 ${showAll ? 'rotate-90' : 'group-hover:translate-x-1'}`} />
                   </button>
                 </div>
               )}
@@ -1055,7 +1055,7 @@ const IPOSection = () => {
               <div className="mt-4 text-center">
                 <button onClick={() => navigate('/ipos')}
                   className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full font-bold text-sm hover:shadow-lg transition-all group"
-                  style={{ background: 'linear-gradient(135deg,#D4A843,#C4941E)', color: '#0c1a2e' }}>
+                  style={{ background: 'linear-gradient(135deg,#5194F6,#3a7de0)', color: '#ffffff' }}>
                   Explore All IPOs
                   <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </button>
@@ -1075,8 +1075,8 @@ const IPOSection = () => {
               <h3 className={`text-lg font-bold mb-2 ${isLight ? 'text-navy' : 'text-white'}`}>Live GMP & Subscription</h3>
               <p className={`text-sm ${isLight ? 'text-navy/65' : 'text-slate-400'}`}>Real-time grey market premium, subscription data, and day-wise allotment tracking.</p>
             </div>
-            <div className="p-6 rounded-2xl" style={{ background: 'rgba(212,168,67,0.05)', border: '1px solid rgba(212,168,67,0.15)' }}>
-              <FileText className="w-10 h-10 text-[#D4A843] mb-4" />
+            <div className="p-6 rounded-2xl" style={{ background: 'rgba(81,148,246,0.06)', border: '1px solid rgba(81,148,246,0.18)' }}>
+              <FileText className="w-10 h-10 text-[#5194F6] mb-4" />
               <h3 className={`text-lg font-bold mb-2 ${isLight ? 'text-navy' : 'text-white'}`}>Expert Analysis</h3>
               <p className={`text-sm ${isLight ? 'text-navy/65' : 'text-slate-400'}`}>Detailed IPO reviews, DRHP financials, and exclusive investbeans insight analysis by a certified experts.</p>
             </div>

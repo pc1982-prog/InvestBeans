@@ -141,7 +141,7 @@ function LearnCard({ id, icon: Icon, title, tag, description, isPaid, items, acc
             </span>
             {isPaid ? (
               <span className="flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full"
-                style={{ background: 'rgba(212,168,67,0.12)', color: '#D4A843', border: '1px solid rgba(212,168,67,0.25)' }}>
+                style={{ background: 'rgba(81,148,246,0.12)', color: '#5194F6', border: '1px solid rgba(81,148,246,0.25)' }}>
                 <Lock className="w-2.5 h-2.5" /> Premium
               </span>
             ) : (
@@ -224,15 +224,15 @@ const EducationView = () => {
           borderBottom: isLight ? '1px solid rgba(13,37,64,0.10)' : '1px solid rgba(255,255,255,0.06)',
         }}>
           <div className="absolute top-0 right-0 w-96 h-96 rounded-full blur-[120px] pointer-events-none"
-            style={{ background: 'radial-gradient(circle,rgba(212,168,67,0.10) 0%,transparent 70%)' }} />
+            style={{ background: 'radial-gradient(circle,rgba(81,148,246,0.10) 0%,transparent 70%)' }} />
           <div className="absolute bottom-0 left-0 w-72 h-72 rounded-full blur-[100px] pointer-events-none"
             style={{ background: 'radial-gradient(circle,rgba(59,130,246,0.08) 0%,transparent 70%)' }} />
 
           <div className="container mx-auto px-6 relative z-10">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-5"
-              style={{ background: 'rgba(212,168,67,0.10)', border: '1px solid rgba(212,168,67,0.20)' }}>
-              <Zap className="w-3.5 h-3.5 text-[#D4A843]" />
-              <span className="text-xs font-medium text-[#D4A843]">InvestBeans Learning Hub</span>
+              style={{ background: 'rgba(81,148,246,0.10)', border: '1px solid rgba(81,148,246,0.20)' }}>
+              <Zap className="w-3.5 h-3.5 text-[#5194F6]" />
+              <span className="text-xs font-medium text-[#5194F6]">InvestBeans Learning Hub</span>
             </div>
 
             <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-8">
@@ -241,7 +241,7 @@ const EducationView = () => {
                   style={{ color: isLight ? '#0D2540' : '#fff' }}>
                   Level Up Your{' '}
                   <span style={{
-                    background: 'linear-gradient(135deg,#D4A843,#F0C84A)',
+                    background: 'linear-gradient(135deg,#5194F6,#7ab8fa)',
                     WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
                   }}>Knowledge</span>
                 </h1>
@@ -256,7 +256,7 @@ const EducationView = () => {
                     background: isLight ? 'rgba(13,37,64,0.05)' : 'rgba(255,255,255,0.05)',
                     border: isLight ? '1px solid rgba(13,37,64,0.10)' : '1px solid rgba(255,255,255,0.10)',
                   }}>
-                    <StatIcon className="w-4 h-4 text-[#D4A843]" />
+                    <StatIcon className="w-4 h-4 text-[#5194F6]" />
                     <div>
                       <p className="text-base font-bold leading-none" style={{ color: isLight ? '#0D2540' : '#fff' }}>{value}</p>
                       <p className="text-[11px] mt-0.5" style={{ color: isLight ? 'rgba(13,37,64,0.50)' : 'rgba(148,163,184,0.8)' }}>{label}</p>
@@ -323,7 +323,7 @@ const EducationView = () => {
               background: isLight ? 'rgba(13,37,64,0.04)' : 'rgba(255,255,255,0.04)',
               border: isLight ? '1px solid rgba(13,37,64,0.08)' : '1px solid rgba(255,255,255,0.07)',
             }}>
-              <Sparkles className="w-3.5 h-3.5 text-[#D4A843]" /> More to explore
+              <Sparkles className="w-3.5 h-3.5 text-[#5194F6]" /> More to explore
             </div>
             <div className="flex-1 h-px" style={{ background: isLight ? 'rgba(13,37,64,0.10)' : 'rgba(255,255,255,0.08)' }} />
           </div>
@@ -339,16 +339,16 @@ const EducationView = () => {
 
           {/* CTA Banner */}
           <div className="relative rounded-2xl overflow-hidden p-8 md:p-10 text-center" style={{
-            background: isLight ? 'linear-gradient(135deg,#edf5fe,#dce8f7)' : 'linear-gradient(135deg,#0a1628 0%,#0e2038 100%)',
-            border: isLight ? '1px solid rgba(13,37,64,0.10)' : '1px solid rgba(212,168,67,0.15)',
+            background: isLight ? 'linear-gradient(135deg,#edf5fe,#dce8f7)' : '#101528',
+            border: isLight ? '1px solid rgba(13,37,64,0.10)' : '1px solid rgba(81,148,246,0.20)',
           }}>
             <div className="absolute inset-0 pointer-events-none"
-              style={{ background: 'radial-gradient(ellipse at 50% 0%,rgba(212,168,67,0.12) 0%,transparent 60%)' }} />
+              style={{ background: 'radial-gradient(ellipse at 50% 0%,rgba(81,148,246,0.12) 0%,transparent 60%)' }} />
             <div className="relative z-10">
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-4"
-                style={{ background: 'rgba(212,168,67,0.10)', border: '1px solid rgba(212,168,67,0.20)' }}>
-                <Zap className="w-3.5 h-3.5 text-[#D4A843]" />
-                <span className="text-xs font-semibold text-[#D4A843]">Start Today</span>
+                style={{ background: 'rgba(81,148,246,0.10)', border: '1px solid rgba(81,148,246,0.20)' }}>
+                <Zap className="w-3.5 h-3.5 text-[#5194F6]" />
+                <span className="text-xs font-semibold text-[#5194F6]">Start Today</span>
               </div>
               <h2 className="text-2xl md:text-3xl font-bold mb-3" style={{ color: isLight ? '#0D2540' : '#fff' }}>
                 Ready to Start Learning?
@@ -359,8 +359,8 @@ const EducationView = () => {
                 knowledge with InvestBeans' curated content.
               </p>
               <div className="flex flex-wrap items-center justify-center gap-3">
-                <button className="inline-flex items-center gap-2 px-7 py-3 rounded-xl font-bold text-sm text-[#0c1a2e] hover:shadow-xl transition-all hover:-translate-y-0.5 group"
-                  style={{ background: 'linear-gradient(135deg,#D4A843,#C4941E)' }}>
+                <button className="inline-flex items-center gap-2 px-7 py-3 rounded-xl font-bold text-sm text-white hover:shadow-xl transition-all hover:-translate-y-0.5 group"
+                  style={{ background: 'linear-gradient(135deg,#5194F6,#3a7de0)' }}>
                   Browse All Resources
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
                 </button>

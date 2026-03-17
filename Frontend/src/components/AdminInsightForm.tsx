@@ -71,21 +71,21 @@ const AdminInsightForm = ({ isOpen, onClose, onSuccess, editingInsight }: AdminI
   // ── Theme tokens ─────────────────────────────────────────────────────────
   const modalBg = isLight
     ? "linear-gradient(160deg,#f0f7fe 0%,#e8f2fd 100%)"
-    : "linear-gradient(160deg,#0d1e36 0%,#0c1a2e 100%)";
-  const modalBorder = isLight ? "1px solid rgba(13,37,64,0.12)" : "1px solid rgba(255,255,255,0.09)";
-  const goldTopLine = "linear-gradient(90deg,transparent,rgba(212,168,67,0.55),transparent)";
+    : "linear-gradient(160deg,#101528 0%,#0d1221 100%)";
+  const modalBorder = isLight ? "1px solid rgba(13,37,64,0.12)" : "1px solid rgba(81,148,246,0.18)";
+  const goldTopLine = "linear-gradient(90deg,transparent,rgba(81,148,246,0.55),transparent)";
 
-  const headerBg = isLight ? "rgba(232,242,253,0.97)" : "rgba(13,30,54,0.97)";
-  const headerBorder = isLight ? "1px solid rgba(13,37,64,0.08)" : "1px solid rgba(255,255,255,0.07)";
+  const headerBg = isLight ? "rgba(232,242,253,0.97)" : "rgba(28,54,86,0.97)";
+  const headerBorder = isLight ? "1px solid rgba(13,37,64,0.08)" : "1px solid rgba(81,148,246,0.12)";
   const titleColor = isLight ? "#0d1b2a" : "white";
   const subTitleColor = isLight ? "rgba(13,37,64,0.45)" : "rgba(148,163,184,1)";
-  const closeBtnBg = isLight ? "rgba(13,37,64,0.06)" : "rgba(255,255,255,0.05)";
+  const closeBtnBg = isLight ? "rgba(13,37,64,0.06)" : "rgba(28,54,86,0.45)";
   const closeBtnColor = isLight ? "rgba(13,37,64,0.45)" : "rgba(148,163,184,1)";
 
-  const inputBg = isLight ? "rgba(255,255,255,0.85)" : "rgba(255,255,255,0.05)";
-  const inputBorder = isLight ? "1px solid rgba(13,37,64,0.15)" : "1px solid rgba(255,255,255,0.1)";
+  const inputBg = isLight ? "rgba(255,255,255,0.85)" : "rgba(28,54,86,0.45)";
+  const inputBorder = isLight ? "1px solid rgba(13,37,64,0.15)" : "1px solid rgba(81,148,246,0.22)";
   const inputColor = isLight ? "#0d1b2a" : "white";
-  const inputFocusRing = isLight ? "focus:ring-accent/40" : "focus:ring-accent/30";
+  const inputFocusRing = isLight ? "focus:ring-accent/40" : "focus:ring-[#5194F6]/40";
   const inputStyle = { background: inputBg, border: inputBorder, color: inputColor };
   const inputClass = `w-full px-3 py-2 text-sm rounded-xl placeholder:text-slate-400 focus:outline-none focus:ring-2 ${inputFocusRing} transition-all`;
 
@@ -93,20 +93,20 @@ const AdminInsightForm = ({ isOpen, onClose, onSuccess, editingInsight }: AdminI
   const labelOptionalColor = isLight ? "rgba(13,37,64,0.45)" : "rgba(100,116,139,1)";
 
   // ✅ More compact credits block
-  const creditBlockBg = isLight ? "rgba(212,168,67,0.06)" : "rgba(212,168,67,0.04)";
-  const creditBlockBorder = isLight ? "1px solid rgba(212,168,67,0.2)" : "1px solid rgba(212,168,67,0.13)";
+  const creditBlockBg = isLight ? "rgba(212,168,67,0.06)" : "rgba(81,148,246,0.06)";
+  const creditBlockBorder = isLight ? "1px solid rgba(212,168,67,0.2)" : "1px solid rgba(81,148,246,0.18)";
 
-  const optionBg = "#0d1e36";
+  const optionBg = "#101528";
 
   const errorBg = isLight ? "rgba(251,113,133,0.06)" : "rgba(251,113,133,0.08)";
   const errorBorder = isLight ? "1px solid rgba(251,113,133,0.25)" : "1px solid rgba(251,113,133,0.2)";
   const errorColor = isLight ? "#be123c" : "rgba(251,113,133,1)";
 
-  const footerBg = isLight ? "rgba(232,242,253,0.98)" : "rgba(10,22,40,0.98)";
-  const footerBorder = isLight ? "1px solid rgba(13,37,64,0.08)" : "1px solid rgba(255,255,255,0.07)";
+  const footerBg = isLight ? "rgba(232,242,253,0.98)" : "rgba(13,18,33,0.98)";
+  const footerBorder = isLight ? "1px solid rgba(13,37,64,0.08)" : "1px solid rgba(81,148,246,0.12)";
 
-  const cancelBg = isLight ? "rgba(13,37,64,0.06)" : "rgba(255,255,255,0.04)";
-  const cancelBorder = isLight ? "1px solid rgba(13,37,64,0.12)" : "1px solid rgba(255,255,255,0.1)";
+  const cancelBg = isLight ? "rgba(13,37,64,0.06)" : "rgba(81,148,246,0.08)";
+  const cancelBorder = isLight ? "1px solid rgba(13,37,64,0.12)" : "1px solid rgba(81,148,246,0.22)";
   const cancelColor = isLight ? "rgba(13,37,64,0.65)" : "rgba(203,213,225,1)";
 
   const charCountColor = isLight ? "rgba(13,37,64,0.35)" : "rgba(100,116,139,1)";
@@ -161,7 +161,7 @@ const AdminInsightForm = ({ isOpen, onClose, onSuccess, editingInsight }: AdminI
             {/* Title */}
             <div>
               <Label className="text-xs font-semibold mb-1.5 block" style={{ color: labelColor }}>
-                Title <span className="text-[#D4A843]">*</span>
+                Title <span className="text-[#5194F6]">*</span>
               </Label>
               <input
                 value={formData.title} onChange={e => set("title", e.target.value)}
@@ -173,7 +173,7 @@ const AdminInsightForm = ({ isOpen, onClose, onSuccess, editingInsight }: AdminI
             {/* Description */}
             <div>
               <Label className="text-xs font-semibold mb-1.5 block" style={{ color: labelColor }}>
-                Description <span className="text-[#D4A843]">*</span>
+                Description <span className="text-[#5194F6]">*</span>
               </Label>
               <textarea
                 value={formData.description} onChange={e => set("description", e.target.value)}
@@ -188,7 +188,7 @@ const AdminInsightForm = ({ isOpen, onClose, onSuccess, editingInsight }: AdminI
             {/* InvestBeans Insight */}
             <div>
               <Label className="text-xs font-semibold mb-1.5 block" style={{ color: labelColor }}>
-                InvestBeans Insight <span className="text-[#D4A843]">*</span>
+                InvestBeans Insight <span className="text-[#5194F6]">*</span>
               </Label>
               <textarea
                 value={formData.investBeansInsight} onChange={e => set("investBeansInsight", e.target.value)}
@@ -202,8 +202,8 @@ const AdminInsightForm = ({ isOpen, onClose, onSuccess, editingInsight }: AdminI
 
             {/* ✅ Compact Credits block — all 3 fields in one row on larger screens */}
             <div className="p-3.5 rounded-xl" style={{ background: creditBlockBg, border: creditBlockBorder }}>
-              <h3 className="text-xs font-semibold text-[#D4A843] flex items-center gap-1.5 mb-3">
-                <span className="w-1 h-3.5 rounded-full inline-block" style={{ background: "#D4A843" }} />
+              <h3 className="text-xs font-semibold text-[#5194F6] flex items-center gap-1.5 mb-3">
+                <span className="w-1 h-3.5 rounded-full inline-block" style={{ background: "#5194F6" }} />
                 Credits & Source
               </h3>
 
@@ -211,7 +211,7 @@ const AdminInsightForm = ({ isOpen, onClose, onSuccess, editingInsight }: AdminI
                 {/* Source */}
                 <div>
                   <Label className="text-xs mb-1 block" style={{ color: labelColor }}>
-                    Source <span className="text-[#D4A843]">*</span>
+                    Source <span className="text-[#5194F6]">*</span>
                   </Label>
                   <input
                     value={formData.creditSource} onChange={e => set("creditSource", e.target.value)}
@@ -245,7 +245,7 @@ const AdminInsightForm = ({ isOpen, onClose, onSuccess, editingInsight }: AdminI
               {/* Category */}
               <div>
                 <Label className="text-xs font-semibold mb-1.5 block" style={{ color: labelColor }}>
-                  Category <span className="text-[#D4A843]">*</span>
+                  Category <span className="text-[#5194F6]">*</span>
                 </Label>
                 <input
                   value={formData.category} onChange={e => set("category", e.target.value)}
@@ -257,7 +257,7 @@ const AdminInsightForm = ({ isOpen, onClose, onSuccess, editingInsight }: AdminI
               {/* Market Type — ✅ Commodities added */}
               <div>
                 <Label className="text-xs font-semibold mb-1.5 block" style={{ color: labelColor }}>
-                  Market Type <span className="text-[#D4A843]">*</span>
+                  Market Type <span className="text-[#5194F6]">*</span>
                 </Label>
                 <select
                   value={formData.marketType} onChange={e => set("marketType", e.target.value)}
@@ -272,7 +272,7 @@ const AdminInsightForm = ({ isOpen, onClose, onSuccess, editingInsight }: AdminI
               {/* Sentiment */}
               <div>
                 <Label className="text-xs font-semibold mb-1.5 block" style={{ color: labelColor }}>
-                  Sentiment <span className="text-[#D4A843]">*</span>
+                  Sentiment <span className="text-[#5194F6]">*</span>
                 </Label>
                 <select
                   value={formData.sentiment} onChange={e => set("sentiment", e.target.value)}
@@ -300,7 +300,7 @@ const AdminInsightForm = ({ isOpen, onClose, onSuccess, editingInsight }: AdminI
               <button
                 type="submit" disabled={loading}
                 className="flex-1 h-11 rounded-xl text-sm font-semibold transition-all hover:opacity-90 disabled:opacity-60"
-                style={{ background: "linear-gradient(135deg,#D4A843,#C4941E)", color: "#0c1a2e" }}
+                style={{ background: "linear-gradient(135deg,#5194F6,#3a7de8)", color: "white" }}
               >
                 {loading ? "Saving..." : editingInsight ? "Update Insight" : "Create Insight"}
               </button>

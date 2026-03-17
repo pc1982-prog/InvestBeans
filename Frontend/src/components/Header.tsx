@@ -61,6 +61,7 @@ function useHoverDropdown(closeDelay = 150) {
 const MarketTickerInline = () => {
   const { data } = useGlobalMarkets();
   const { theme } = useTheme();
+  const isLight = theme === "light";
   const [isPaused, setIsPaused] = useState(false);
   const tickerRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<number>();
@@ -102,8 +103,10 @@ const MarketTickerInline = () => {
 
   if (allMarkets.length === 0) return null;
 
-  // Ticker adapts to theme
-  const btnCls = "absolute z-10 bg-white/10 hover:bg-white/20 text-white/70 hover:text-white p-1 rounded-full transition-colors";
+  // ── Per-mode scroll button style ──
+  const btnCls = isLight
+    ? "absolute z-10 bg-slate-200/80 hover:bg-slate-300 text-slate-500 hover:text-slate-800 p-1 rounded-full transition-colors"
+    : "absolute z-10 bg-white/10 hover:bg-white/20 text-white/70 hover:text-white p-1 rounded-full transition-colors";
 
   return (
     <div className="relative flex items-center">
@@ -134,13 +137,27 @@ const MarketTickerInline = () => {
               className="flex items-center gap-4 whitespace-nowrap group hover:scale-110 transition-transform cursor-pointer"
             >
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-white/65 group-hover:text-white/90 transition-colors">{market.name}</span>
-                <span className="font-bold text-sm text-white/90">{market.value}</span>
+                <span
+                  className="text-sm font-medium transition-colors group-hover:text-[#5194F6]"
+                  style={{ color: isLight ? "rgba(30,58,95,0.65)" : "rgba(255,255,255,0.65)" }}
+                >
+                  {market.name}
+                </span>
+                <span
+                  className="font-bold text-sm"
+                  style={{ color: isLight ? "#0d1b2a" : "rgba(255,255,255,0.92)" }}
+                >
+                  {market.value}
+                </span>
               </div>
               <div className={`flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold ${
                 market.isPositive
-                  ? "bg-emerald-500/20 text-emerald-300 border border-emerald-400/30"
-                  : "bg-red-500/20 text-red-300 border border-red-400/30"
+                  ? isLight
+                    ? "bg-emerald-100 text-emerald-700 border border-emerald-300/60"
+                    : "bg-emerald-500/20 text-emerald-300 border border-emerald-400/30"
+                  : isLight
+                    ? "bg-red-100 text-red-700 border border-red-300/60"
+                    : "bg-red-500/20 text-red-300 border border-red-400/30"
               }`}>
                 {market.isPositive ? (
                   <TrendingUp className="w-3 h-3" />
@@ -187,9 +204,16 @@ const DropLink = ({
     <Link
       to={to}
       onClick={onClick}
-      className={`block px-3 py-1.5 rounded-md text-[13px] font-medium hover:bg-accent/10 hover:text-accent transition cursor-pointer ${
-        theme === "light" ? "text-navy/80" : "text-white/80"
-      }`}
+      className="block px-3 py-1.5 rounded-md text-[13px] font-medium transition cursor-pointer"
+      style={{ color: theme === "light" ? "rgba(30,58,95,0.80)" : "rgba(200,223,248,0.80)" }}
+      onMouseEnter={e => {
+        (e.currentTarget as HTMLElement).style.color = "#5194F6";
+        (e.currentTarget as HTMLElement).style.background = "rgba(78,145,246,0.10)";
+      }}
+      onMouseLeave={e => {
+        (e.currentTarget as HTMLElement).style.color = theme === "light" ? "rgba(30,58,95,0.80)" : "rgba(200,223,248,0.80)";
+        (e.currentTarget as HTMLElement).style.background = "transparent";
+      }}
     >
       {children}
     </Link>
@@ -208,9 +232,16 @@ const DropBtn = ({
   <DropdownMenuItem asChild>
     <button
       onClick={onClick}
-      className={`w-full text-left px-3 py-1.5 text-[13px] rounded-md hover:bg-accent/10 hover:text-accent transition cursor-pointer ${
-        theme === "light" ? "text-navy/80" : "text-white/80"
-      }`}
+      className="w-full text-left px-3 py-1.5 text-[13px] rounded-md transition cursor-pointer"
+      style={{ color: theme === "light" ? "rgba(30,58,95,0.80)" : "rgba(200,223,248,0.80)" }}
+      onMouseEnter={e => {
+        (e.currentTarget as HTMLElement).style.color = "#5194F6";
+        (e.currentTarget as HTMLElement).style.background = "rgba(78,145,246,0.10)";
+      }}
+      onMouseLeave={e => {
+        (e.currentTarget as HTMLElement).style.color = theme === "light" ? "rgba(30,58,95,0.80)" : "rgba(200,223,248,0.80)";
+        (e.currentTarget as HTMLElement).style.background = "transparent";
+      }}
     >
       {children}
     </button>
@@ -237,9 +268,10 @@ const NavItem = ({
       <DropdownMenu open={dd.open} onOpenChange={dd.setOpen}>
         <DropdownMenuTrigger asChild>
           <button
-            className={`text-[13.5px] font-medium hover:text-accent transition-colors px-2 py-1 rounded-md flex items-center gap-0.5 focus:outline-none whitespace-nowrap ${
-              theme === "light" ? "text-[#1e3a5f] hover:text-accent" : "text-white hover:text-accent"
-            }`}
+            className="text-[13.5px] font-medium transition-colors px-2 py-1 rounded-md flex items-center gap-0.5 focus:outline-none whitespace-nowrap"
+            style={{ color: theme === "light" ? "#1e3a5f" : "#c8dff8" }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#5194F6"; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = theme === "light" ? "#1e3a5f" : "#c8dff8"; }}
             onClick={() => {
               if (href) { dd.close(); navigate(href); }
               else dd.toggle();
@@ -258,7 +290,7 @@ const NavItem = ({
           className={`p-1.5 rounded-xl shadow-lg border backdrop-blur-xl ${
             theme === "light"
               ? "bg-white/96 text-navy ring-1 ring-black/[0.07] border-slate-200/80"
-              : "bg-[#0d1f36]/96 text-white ring-1 ring-white/[0.09] border-white/[0.08]"
+              : "bg-[#101528]/98 text-white ring-1 ring-[#1C3656]/70 border-[#1C3656]/50"
           }`}
         >
           {children}
@@ -338,11 +370,10 @@ const Header = () => {
     <li className="rounded-md overflow-hidden">
       <button
         onClick={toggle}
-        className={`w-full flex items-center justify-between font-medium py-3 px-3 rounded-md transition-colors ${
-          isLight
-            ? "text-navy hover:text-accent"
-            : "text-white hover:text-accent"
-        }`}
+        className="w-full flex items-center justify-between font-medium py-3 px-3 rounded-md transition-colors"
+        style={{ color: isLight ? "#1e3a5f" : "#c8dff8" }}
+        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#5194F6"; }}
+        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = isLight ? "#1e3a5f" : "#c8dff8"; }}
       >
         <span>{label}</span>
         <ChevronDown
@@ -358,7 +389,7 @@ const Header = () => {
           className={`rounded-md border px-2 py-2 space-y-0.5 mb-1 ${
             isLight
               ? "bg-slate-100 border-slate-200"
-              : "bg-navy/90 border-white/5"
+              : "bg-[#1C3656]/40 border-[#1C3656]/70"
           }`}
         >
           {children}
@@ -370,9 +401,10 @@ const Header = () => {
   const MobileLink = ({ to, children }: { to: string; children: React.ReactNode }) => (
     <Link
       to={to}
-      className={`block font-medium py-2 px-3 rounded-md text-sm transition-colors hover:text-accent ${
-        isLight ? "text-navy/80" : "text-white/90"
-      }`}
+      className="block font-medium py-2 px-3 rounded-md text-sm transition-colors"
+      style={{ color: isLight ? "rgba(30,58,95,0.80)" : "rgba(200,223,248,0.90)" }}
+      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#5194F6"; }}
+      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = isLight ? "rgba(30,58,95,0.80)" : "rgba(200,223,248,0.90)"; }}
       onClick={closeMobile}
     >
       {children}
@@ -391,13 +423,11 @@ const Header = () => {
 
   const MobileScrollBtn = ({ id, children }: { id: string; children: React.ReactNode }) => (
     <button
-      onClick={() => {
-        scrollToSection(id);
-        closeMobile();
-      }}
-      className={`block font-medium py-2 px-3 rounded-md w-full text-left text-sm transition-colors hover:text-accent ${
-        isLight ? "text-navy/80" : "text-white/90"
-      }`}
+      onClick={() => { scrollToSection(id); closeMobile(); }}
+      className="block font-medium py-2 px-3 rounded-md w-full text-left text-sm transition-colors"
+      style={{ color: isLight ? "rgba(30,58,95,0.80)" : "rgba(200,223,248,0.90)" }}
+      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#5194F6"; }}
+      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = isLight ? "rgba(30,58,95,0.80)" : "rgba(200,223,248,0.90)"; }}
     >
       {children}
     </button>
@@ -406,29 +436,25 @@ const Header = () => {
   // ── Theme-aware class helpers ─────────────────────────────────────────────
   const headerBg = isLight
     ? "bg-white text-[#1e3a5f] shadow-sm border-b border-slate-200"
-    : "bg-[#0a1628] text-white shadow-lg border-b border-white/[0.08]";
+    : "bg-[#101528] text-white shadow-lg border-b border-[#1C3656]/70";
 
   const tickerBg = isLight
-    ? "bg-[#0c1d31] py-1.5 sm:py-2.5 border-b border-white/[0.08]"
-    : "bg-[#060e1c] py-1.5 sm:py-2.5 border-b border-white/[0.06]";
+    ? "bg-white py-1.5 sm:py-2.5 border-b border-slate-200"
+    : "bg-[#0b0f1e] py-1.5 sm:py-2.5 border-b border-[#1C3656]/50";
 
   const mobileBg = isLight
     ? "md:hidden bg-white border-t border-slate-200"
-    : "md:hidden bg-navy border-t border-white/10";
-
-  const mobileIPOBlog = isLight
-    ? "block hover:text-accent transition-colors font-medium py-3 px-3 rounded-md text-navy/90"
-    : "block text-white hover:text-accent transition-colors font-medium py-3 px-3 rounded-md";
+    : "md:hidden bg-[#101528] border-t border-[#1C3656]/70";
 
   const userBtnCls = isLight
     ? "p-2.5 rounded-full bg-navy/8 hover:bg-navy/15 transition-all hover:scale-110"
-    : "p-2.5 rounded-full bg-white/10 hover:bg-white/20 transition-all hover:scale-110";
+    : "p-2.5 rounded-full bg-[#1C3656]/60 hover:bg-[#1C3656] text-[#5194F6] transition-all hover:scale-110 border border-[#1C3656]";
 
-  const userIconCls = isLight ? "text-navy" : "text-white";
+  const userIconCls = isLight ? "text-navy" : "text-[#5194F6]";
 
   const dropdownContentCls = isLight
     ? "min-w-[160px] p-2 bg-white/96 text-navy rounded-xl shadow-lg ring-1 ring-black/[0.07] border border-slate-200/80 backdrop-blur-xl"
-    : "min-w-[160px] p-2 bg-[#0d1f36]/96 text-white rounded-xl shadow-lg ring-1 ring-white/[0.09] border border-white/[0.08] backdrop-blur-xl";
+    : "min-w-[160px] p-2 bg-[#101528]/98 text-white rounded-xl shadow-lg ring-1 ring-[#1C3656]/70 border border-[#1C3656]/50 backdrop-blur-xl";
 
   return (
     <div className="sticky top-0 z-50">
@@ -444,22 +470,42 @@ const Header = () => {
           <div className="flex items-center gap-1.5 sm:gap-3 md:gap-5">
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className={`md:hidden hover:text-accent transition-colors p-1.5 sm:p-2 rounded-md ${
-                isLight ? "text-navy" : "text-white"
-              }`}
+              className="md:hidden transition-colors p-1.5 sm:p-2 rounded-md"
+              style={{ color: isLight ? "#1e3a5f" : "#c8dff8" }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#5194F6"; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = isLight ? "#1e3a5f" : "#c8dff8"; }}
               aria-label="Toggle menu"
             >
               {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
 
             <Link to="/" className="flex items-center shrink-0">
-              <img
-                src={isLight ? "/images/investbeans logo-03.png" : "/images/Untitled-6-04.png"}
-                alt="InvestBeans Logo"
-                className={`h-9 sm:h-9 w-auto max-w-[168px] sm:max-w-[180px] md:max-w-none object-contain relative -top-0.5 transition-all ${
-                  !isLight ? "brightness-[1.3] contrast-[1.1]" : ""
-                }`}
-              />
+              {/* Logo with right-half tinted #5194F6 using a stacked SVG overlay */}
+              <div className="relative inline-flex items-center shrink-0">
+                <img
+                  src={isLight ? "/images/investbeans logo-03.png" : "/images/Untitled-6-04.png"}
+                  alt="InvestBeans Logo"
+                  className={`h-9 sm:h-9 w-auto max-w-[168px] sm:max-w-[180px] md:max-w-none object-contain relative -top-0.5 transition-all ${
+                    !isLight ? "brightness-[1.3] contrast-[1.5]" : ""
+                  }`}
+                />
+                {/* Right-half blue tint overlay — clips to right 50% */}
+                <div
+                  aria-hidden="true"
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    right: 0,
+                    width: "50%",
+                    height: "100%",
+                    background: "#5194F6",
+                    mixBlendMode: "hue",
+                    opacity: 0.85,
+                    borderRadius: "0 4px 4px 0",
+                    pointerEvents: "none",
+                  }}
+                />
+              </div>
             </Link>
 
             {/* Desktop nav list */}
@@ -492,7 +538,7 @@ const Header = () => {
               <NavItem label="Dashboards" dd={dashboards} theme={theme}>
                 <div className="min-w-[200px]">
                   <DropLink to="/dashboard" onClick={dashboards.close} theme={theme}>Bharat (India)</DropLink>
-                  <DropLink to="/dashboard" onClick={dashboards.close} theme={theme}>Global</DropLink>
+                  <DropLink to="/global" onClick={dashboards.close} theme={theme}>Global</DropLink>
                   <DropLink to="/dashboard" onClick={dashboards.close} theme={theme}>ETFs</DropLink>
                 </div>
               </NavItem>
@@ -521,21 +567,34 @@ const Header = () => {
 
               {/* 6. IPO */}
               <li>
-                <Link to="/ipos" className={`text-[13.5px] font-medium hover:text-accent transition-colors px-2 py-1 rounded-md whitespace-nowrap ${isLight ? "text-[#1e3a5f]" : "text-white"}`}>IPO</Link>
+                <Link
+                  to="/ipos"
+                  className="text-[13.5px] font-medium transition-colors px-2 py-1 rounded-md whitespace-nowrap"
+                  style={{ color: isLight ? "#1e3a5f" : "#c8dff8" }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#5194F6"; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = isLight ? "#1e3a5f" : "#c8dff8"; }}
+                >IPO</Link>
               </li>
 
               {/* 7. BLOGS */}
               <li>
-                <Link to="/blogs" className={`text-[13.5px] font-medium hover:text-accent transition-colors px-2 py-1 rounded-md whitespace-nowrap ${isLight ? "text-[#1e3a5f]" : "text-white"}`}>Blogs</Link>
+                <Link
+                  to="/blogs"
+                  className="text-[13.5px] font-medium transition-colors px-2 py-1 rounded-md whitespace-nowrap"
+                  style={{ color: isLight ? "#1e3a5f" : "#c8dff8" }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#5194F6"; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = isLight ? "#1e3a5f" : "#c8dff8"; }}
+                >Blogs</Link>
               </li>
 
               {/* 8. HELP — direct link only */}
               <li>
                 <Link
                   to="/help-center"
-                  className={`text-[13.5px] font-medium hover:text-accent transition-colors px-2 py-1 rounded-md whitespace-nowrap ${
-                    isLight ? "text-[#1e3a5f]" : "text-white"
-                  }`}
+                  className="text-[13.5px] font-medium transition-colors px-2 py-1 rounded-md whitespace-nowrap"
+                  style={{ color: isLight ? "#1e3a5f" : "#c8dff8" }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#5194F6"; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = isLight ? "#1e3a5f" : "#c8dff8"; }}
                 >
                   Help
                 </Link>
@@ -551,10 +610,10 @@ const Header = () => {
             <button
               onClick={toggleTheme}
               aria-label={isLight ? "Switch to dark mode" : "Switch to light mode"}
-              className={`relative flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full transition-all duration-300 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-accent/40 ${
+              className={`relative flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full transition-all duration-300 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-[#5194F6]/40 ${
                 isLight
                   ? "bg-slate-100 hover:bg-slate-200 text-navy shadow-sm border border-slate-300"
-                  : "bg-white/10 hover:bg-white/20 text-white"
+                  : "bg-[#1C3656]/60 hover:bg-[#1C3656] text-[#5194F6] border border-[#1C3656]"
               }`}
             >
               {isLight ? (
@@ -570,13 +629,13 @@ const Header = () => {
                   <DropdownMenuTrigger asChild>
                     <button
                       onClick={userMenu.toggle}
-                      className={`flex items-center gap-3 p-1.5 rounded-full transition-all focus:outline-none focus:ring-2 focus:ring-accent/40 ${
-                        isLight ? "hover:bg-navy/8" : "hover:bg-white/10"
+                      className={`flex items-center gap-3 p-1.5 rounded-full transition-all focus:outline-none focus:ring-2 focus:ring-[#5194F6]/40 ${
+                        isLight ? "hover:bg-navy/8" : "hover:bg-[#1C3656]/60"
                       }`}
                     >
-                      <Avatar className={`h-9 w-9 border-2 ring-2 ${isLight ? "border-slate-300 ring-slate-200" : "border-white/20 ring-white/10"}`}>
+                      <Avatar className={`h-9 w-9 border-2 ring-2 ${isLight ? "border-slate-300 ring-slate-200" : "border-[#1C3656] ring-[#5194F6]/20"}`}>
                         <AvatarImage src={user?.image} alt={user.name} className="object-cover" />
-                        <AvatarFallback className="bg-gradient-to-br from-accent to-accent/80 text-white font-semibold">
+                        <AvatarFallback className="bg-gradient-to-br from-[#5194F6] to-[#5194F6]/60 text-white font-semibold">
                           {getUserInitials()}
                         </AvatarFallback>
                       </Avatar>
@@ -595,7 +654,7 @@ const Header = () => {
                       <div className="flex items-center gap-3 mb-2">
                         <Avatar className="h-10 w-10 border-2 border-gray-200">
                           <AvatarImage src={user?.image} alt={user.name} className="object-cover" />
-                          <AvatarFallback className="bg-gradient-to-br from-accent to-accent/80 text-white font-semibold text-sm">
+                          <AvatarFallback className="bg-gradient-to-br from-[#5194F6] to-[#5194F6]/60 text-white font-semibold text-sm">
                             {getUserInitials()}
                           </AvatarFallback>
                         </Avatar>
@@ -642,7 +701,7 @@ const Header = () => {
                         <DropdownMenuItem asChild>
                           <Link
                             to="/signin"
-                            className="block px-3 py-2 rounded-md text-sm font-medium hover:bg-accent/10 transition"
+                            className="block px-3 py-2 rounded-md text-sm font-medium hover:bg-[#5194F6]/10 hover:text-[#5194F6] transition"
                             onClick={userMenu.close}
                           >
                             Login
@@ -651,7 +710,7 @@ const Header = () => {
                         <DropdownMenuItem asChild>
                           <Link
                             to="/signup"
-                            className="block px-3 py-2 rounded-md text-sm font-medium hover:bg-accent/10 transition"
+                            className="block px-3 py-2 rounded-md text-sm font-medium hover:bg-[#5194F6]/10 hover:text-[#5194F6] transition"
                             onClick={userMenu.close}
                           >
                             Sign up
@@ -677,7 +736,7 @@ const Header = () => {
                       <DropdownMenuItem asChild>
                         <Link
                           to="/signin"
-                          className="block px-3 py-2 rounded-md text-sm font-medium hover:bg-accent/10 transition"
+                          className="block px-3 py-2 rounded-md text-sm font-medium hover:bg-[#5194F6]/10 hover:text-[#5194F6] transition"
                         >
                           Login
                         </Link>
@@ -685,7 +744,7 @@ const Header = () => {
                       <DropdownMenuItem asChild>
                         <Link
                           to="/signup"
-                          className="block px-3 py-2 rounded-md text-sm font-medium hover:bg-accent/10 transition"
+                          className="block px-3 py-2 rounded-md text-sm font-medium hover:bg-[#5194F6]/10 hover:text-[#5194F6] transition"
                         >
                           Sign up
                         </Link>
@@ -723,7 +782,7 @@ const Header = () => {
 
                 <MobileAccordion label="Dashboards" isOpen={mobileDashboardsOpen} toggle={() => setMobileDashboardsOpen((s) => !s)}>
                   <MobileLink to="/dashboard">Bharat (India)</MobileLink>
-                  <MobileLink to="/dashboard">Global</MobileLink>
+                  <MobileLink to="/global">Global</MobileLink>
                   <MobileLink to="/dashboard">ETFs</MobileLink>
                 </MobileAccordion>
 
@@ -743,13 +802,27 @@ const Header = () => {
                 </MobileAccordion>
 
                 <li>
-                  <Link to="/ipos" className={mobileIPOBlog} onClick={closeMobile}>
+                  <Link
+                    to="/ipos"
+                    className="block font-medium py-3 px-3 rounded-md transition-colors"
+                    style={{ color: isLight ? "rgba(30,58,95,0.90)" : "#c8dff8" }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#5194F6"; }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = isLight ? "rgba(30,58,95,0.90)" : "#c8dff8"; }}
+                    onClick={closeMobile}
+                  >
                     IPO
                   </Link>
                 </li>
 
                 <li>
-                  <Link to="/blogs" className={mobileIPOBlog} onClick={closeMobile}>
+                  <Link
+                    to="/blogs"
+                    className="block font-medium py-3 px-3 rounded-md transition-colors"
+                    style={{ color: isLight ? "rgba(30,58,95,0.90)" : "#c8dff8" }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#5194F6"; }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = isLight ? "rgba(30,58,95,0.90)" : "#c8dff8"; }}
+                    onClick={closeMobile}
+                  >
                     Blogs
                   </Link>
                 </li>
@@ -766,7 +839,7 @@ const Header = () => {
                       className={`w-full font-semibold transition-all shadow-sm ${
                         isLight
                           ? "bg-navy text-white hover:bg-navy/80"
-                          : "bg-white text-navy hover:bg-accent hover:text-white"
+                          : "bg-[#1C3656] text-[#5194F6] border border-[#5194F6]/30 hover:bg-[#5194F6] hover:text-white"
                       }`}
                     >
                       Log out

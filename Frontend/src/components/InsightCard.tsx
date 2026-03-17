@@ -58,8 +58,8 @@ const InsightCard = ({ insight, isAdmin = false, onReadMore, onLike, onEdit, onD
         };
       default:
         return {
-          borderAccent: "rgba(212,168,67,0.22)",
-          badge: { color: "#D4A843", background: "rgba(212,168,67,0.1)", border: "1px solid rgba(212,168,67,0.22)" },
+          borderAccent: "rgba(81,148,246,0.25)",
+          badge: { color: "#5194F6", background: "rgba(81,148,246,0.1)", border: "1px solid rgba(81,148,246,0.25)" },
           icon: <Eye className="w-3.5 h-3.5" />,
         };
     }
@@ -67,26 +67,29 @@ const InsightCard = ({ insight, isAdmin = false, onReadMore, onLike, onEdit, onD
 
   const s = getSentimentStyle();
 
+  // ── Card backgrounds ──
   const cardBg = isLight
-    ? "linear-gradient(145deg,rgba(255,255,255,0.92) 0%,rgba(237,245,254,0.97) 100%)"
-    : "linear-gradient(145deg,rgba(15,32,64,0.95) 0%,rgba(12,26,46,0.98) 100%)";
+    ? "linear-gradient(145deg,rgba(255,255,255,0.95) 0%,rgba(237,245,254,0.97) 100%)"
+    : "linear-gradient(145deg,rgba(15,22,40,0.97) 0%,rgba(10,15,30,0.99) 100%)";
 
   const cardBorder = `1px solid ${s.borderAccent}`;
-  const cardShadow = isLight ? "0 4px 20px rgba(13,37,64,0.08)" : "0 4px 24px rgba(0,0,0,0.3)";
+  const cardShadow = isLight
+    ? "0 4px 20px rgba(13,37,64,0.08)"
+    : "0 4px 24px rgba(0,0,0,0.35)";
   const hoverGlow = isLight
-    ? "radial-gradient(ellipse at top right,rgba(212,168,67,0.07) 0%,transparent 60%)"
-    : "radial-gradient(ellipse at top right,rgba(212,168,67,0.05) 0%,transparent 60%)";
+    ? "radial-gradient(ellipse at top right,rgba(81,148,246,0.07) 0%,transparent 60%)"
+    : "radial-gradient(ellipse at top right,rgba(81,148,246,0.08) 0%,transparent 60%)";
 
-  const categoryBg = isLight ? "rgba(13,37,64,0.06)" : "rgba(255,255,255,0.06)";
-  const categoryBorder = isLight ? "1px solid rgba(13,37,64,0.1)" : "1px solid rgba(255,255,255,0.09)";
-  const categoryColor = isLight ? "rgba(13,37,64,0.7)" : "rgba(203,213,225,1)";
-  const titleColor = isLight ? "#0d1b2a" : "white";
-  // ✅ Description: 2-line clamp with ellipsis (overflow hidden + webkit clamp for cross-browser)
-  const descColor = isLight ? "rgba(13,37,64,0.6)" : "rgba(148,163,184,1)";
-  const dividerColor = isLight ? "rgba(13,37,64,0.07)" : "rgba(255,255,255,0.05)";
-  const metaColor = isLight ? "rgba(13,37,64,0.45)" : "rgba(100,116,139,1)";
-  const statsColor = isLight ? "rgba(13,37,64,0.5)" : "rgba(100,116,139,1)";
-  const likedColor = "#D4A843";
+  // ── Text & UI tokens ──
+  const categoryBg     = isLight ? "rgba(81,148,246,0.07)"  : "rgba(81,148,246,0.1)";
+  const categoryBorder = isLight ? "1px solid rgba(81,148,246,0.18)" : "1px solid rgba(81,148,246,0.22)";
+  const categoryColor  = isLight ? "#3a7de8"               : "rgba(129,174,249,1)";
+  const titleColor     = isLight ? "#0d1b2a"               : "white";
+  const descColor      = isLight ? "rgba(13,37,64,0.6)"    : "rgba(148,163,184,1)";
+  const dividerColor   = isLight ? "rgba(81,148,246,0.1)"  : "rgba(81,148,246,0.12)";
+  const metaColor      = isLight ? "rgba(13,37,64,0.45)"   : "rgba(100,116,139,1)";
+  const statsColor     = isLight ? "rgba(13,37,64,0.5)"    : "rgba(100,116,139,1)";
+  const likedColor     = "#5194F6";
 
   const formatTimestamp = (iso: string) => {
     const d = new Date(iso);
@@ -116,7 +119,13 @@ const InsightCard = ({ insight, isAdmin = false, onReadMore, onLike, onEdit, onD
         style={{ background: hoverGlow }}
       />
 
-      <div className="relative z-10 p-6 md:p-7">
+      {/* Blue left accent strip */}
+      <div
+        className="absolute left-0 top-0 bottom-0 w-[3px] rounded-l-2xl"
+        style={{ background: "linear-gradient(180deg,#5194F6,#3a7de8,rgba(81,148,246,0.3))" }}
+      />
+
+      <div className="relative z-10 p-6 md:p-7 pl-7 md:pl-8">
 
         {/* ── Header row: category + sentiment ── */}
         <div className="flex items-center justify-between mb-4">
@@ -136,7 +145,7 @@ const InsightCard = ({ insight, isAdmin = false, onReadMore, onLike, onEdit, onD
 
         {/* ── Title ── */}
         <h3
-          className="text-lg md:text-xl font-bold mb-3 leading-snug line-clamp-1 transition-colors duration-300 group-hover:text-[#D4A843]"
+          className="text-lg md:text-xl font-bold mb-3 leading-snug line-clamp-1 transition-colors duration-300 group-hover:text-[#5194F6]"
           style={{ color: titleColor }}
         >
           {title}
@@ -163,7 +172,7 @@ const InsightCard = ({ insight, isAdmin = false, onReadMore, onLike, onEdit, onD
           style={{ borderTop: `1px solid ${dividerColor}`, color: metaColor }}
         >
           <div className="flex items-center gap-1.5">
-            <Clock className="w-3 h-3 text-[#D4A843]/50" />
+            <Clock className="w-3 h-3" style={{ color: "rgba(81,148,246,0.5)" }} />
             <span>{publishedAt ? formatTimestamp(publishedAt) : "Date not available"}</span>
           </div>
           {readTime && (
@@ -197,7 +206,11 @@ const InsightCard = ({ insight, isAdmin = false, onReadMore, onLike, onEdit, onD
             <button
               onClick={() => onReadMore(_id)}
               className="flex-1 inline-flex items-center justify-center px-4 py-2.5 rounded-full font-semibold text-sm transition-all duration-300 hover:opacity-90 hover:shadow-lg active:scale-95"
-              style={{ background: "linear-gradient(135deg,#D4A843,#C4941E)", color: "#0c1a2e" }}
+              style={{
+                background: "linear-gradient(135deg,#5194F6,#3a7de8)",
+                color: "white",
+                boxShadow: "0 2px 10px rgba(81,148,246,0.3)",
+              }}
             >
               View Details
             </button>
@@ -209,8 +222,8 @@ const InsightCard = ({ insight, isAdmin = false, onReadMore, onLike, onEdit, onD
                   variant="outline"
                   size="icon"
                   className={`flex-shrink-0 ${isLight
-                    ? "border-navy/10 bg-white/60 text-navy/50 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-300"
-                    : "border-white/10 bg-white/4 text-slate-400 hover:bg-blue-500/10 hover:text-blue-400 hover:border-blue-500/25"
+                    ? "border-[#5194F6]/15 bg-white text-[#5194F6]/60 hover:bg-[#5194F6]/8 hover:text-[#5194F6] hover:border-[#5194F6]/35"
+                    : "border-[#5194F6]/15 bg-[#5194F6]/5 text-slate-400 hover:bg-[#5194F6]/12 hover:text-[#5194F6] hover:border-[#5194F6]/30"
                   }`}
                 >
                   <Edit className="w-4 h-4" />
