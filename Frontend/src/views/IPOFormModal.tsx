@@ -79,31 +79,31 @@ export default function IPOFormModal({ initial, onSave, onClose, loading }: Prop
   };
 
   /* ── design tokens ── */
-  const modalBg     = isDark ? "#101528"          : "#f0f7fe";
-  const modalBorder = isDark ? "rgba(255,255,255,0.10)" : "rgba(13,37,64,0.12)";
-  const blockBg     = isDark ? "rgba(81,148,246,0.06)" : "rgba(81,148,246,0.06)";
-  const blockBdr    = isDark ? "rgba(81,148,246,0.18)" : "rgba(81,148,246,0.18)";
-  const blockLabel  = isDark ? "#5194F6"           : "#2563eb";
-  const footerBg    = isDark ? "#101528"           : "#f0f7fe";
-  const footerBdr   = isDark ? "rgba(255,255,255,0.10)" : "rgba(13,37,64,0.10)";
+  const modalBg     = isDark ? "#101528"          : "#ffffff";
+  const modalBorder = isDark ? "rgba(255,255,255,0.10)" : "rgba(226,232,240,0.9)";
+  const blockBg     = isDark ? "rgba(81,148,246,0.06)" : "rgba(248,250,252,0.9)";
+  const blockBdr    = isDark ? "rgba(81,148,246,0.18)" : "rgba(226,232,240,0.9)";
+  const blockLabel  = isDark ? "#5194F6"           : "#3b82f6";
+  const footerBg    = isDark ? "#101528"           : "#ffffff";
+  const footerBdr   = isDark ? "rgba(255,255,255,0.10)" : "rgba(226,232,240,0.8)";
 
   /* input */
-  const inputBg  = isDark ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.90)";
-  const inputBdr = isDark ? "rgba(255,255,255,0.12)" : "rgba(13,37,64,0.18)";
-  const inputTxt = isDark ? "#ffffff"              : "#0d1b2a";
+  const inputBg  = isDark ? "rgba(255,255,255,0.05)" : "rgba(249,250,251,0.9)";
+  const inputBdr = isDark ? "rgba(255,255,255,0.12)" : "rgba(226,232,240,0.9)";
+  const inputTxt = isDark ? "#ffffff"              : "#1e293b";
   const phTxt    = isDark ? "#64748b"              : "#94a3b8";
   const focusBdr = "rgba(81,148,246,0.55)";
 
   /* ── IMPORTANT: select/option always use solid backgrounds so text is black ── */
-  const selBg    = isDark ? "#1C3656" : "#ffffff";   // dark = navy, light = white
-  const selTxt   = isDark ? "#ffffff" : "#0d1b2a";   // always readable
+  const selBg    = isDark ? "#1C3656" : "#ffffff";
+  const selTxt   = isDark ? "#ffffff" : "#1e293b";
 
-  const lblColor  = isDark ? "rgba(148,163,184,1)" : "rgba(13,37,64,0.55)";
-  const hintColor = isDark ? "rgba(100,116,139,1)" : "rgba(13,37,64,0.40)";
+  const lblColor  = isDark ? "rgba(148,163,184,1)" : "#64748b";
+  const hintColor = isDark ? "rgba(100,116,139,1)" : "#94a3b8";
   const errColor  = "#ef4444";
-  const starOff   = isDark ? "rgb(209,213,219)"    : "rgba(13,37,64,0.20)";
-  const cancelClr = isDark ? "rgba(148,163,184,1)" : "rgba(13,37,64,0.60)";
-  const cancelBdr = isDark ? "rgba(255,255,255,0.12)" : "rgba(13,37,64,0.15)";
+  const starOff   = isDark ? "rgb(209,213,219)"    : "rgba(203,213,225,0.8)";
+  const cancelClr = isDark ? "rgba(148,163,184,1)" : "#64748b";
+  const cancelBdr = isDark ? "rgba(255,255,255,0.12)" : "rgba(226,232,240,0.9)";
 
   const headerBg  = "linear-gradient(90deg,#101528,#5194F6)";
 

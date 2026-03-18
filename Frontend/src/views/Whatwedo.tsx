@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTheme } from '@/controllers/Themecontext';
 
 const offerings = [
   {
@@ -28,12 +29,14 @@ const offerings = [
 ];
 
 const WhatWeDo: React.FC = () => {
+  const { theme } = useTheme();
+  const isLight = theme === 'light';
   return (
     <section id="what-we-do" className="scroll-mt-24 mb-12">
-      <div className="relative overflow-hidden rounded-[32px] border border-white/10 bg-white/5 backdrop-blur-2xl p-6 sm:p-10">
+      <div className={`relative overflow-hidden rounded-[32px] p-6 sm:p-10 ${isLight ? "bg-white border border-gray-100 shadow-xl" : "border border-white/10 bg-white/5 backdrop-blur-2xl"}`}>
 
         {/* background blobs */}
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-transparent to-purple-500/10 pointer-events-none" />
+        <div className={`absolute inset-0 bg-gradient-to-br pointer-events-none ${isLight ? "from-blue-50/50 via-transparent to-purple-50/30" : "from-blue-500/10 via-transparent to-purple-500/10"}`} />
         <div className="absolute -top-20 right-10 w-64 h-64 bg-blue-500/10 blur-[120px] rounded-full pointer-events-none" />
         <div className="absolute -bottom-20 left-10 w-64 h-64 bg-purple-500/10 blur-[120px] rounded-full pointer-events-none" />
 
@@ -41,15 +44,15 @@ const WhatWeDo: React.FC = () => {
 
           {/* Header */}
           <div className="text-center mb-10 space-y-3">
-            <span className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.5em] text-white/60">
+            <span className={`inline-flex items-center gap-2 text-xs uppercase tracking-[0.5em] ${isLight ? "text-gray-400" : "text-white/60"}`}>
               <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
               Our Services
             </span>
-            <h2 className="text-3xl sm:text-4xl font-bold text-white">
+            <h2 className={`text-3xl sm:text-4xl font-bold ${isLight ? "text-gray-900" : "text-white"}`}>
               What We Do
             </h2>
             <div className="w-20 h-1 bg-gradient-to-r from-blue-500 to-indigo-500 mx-auto rounded-full" />
-            <p className="text-sm sm:text-base text-white/70 max-w-2xl mx-auto">
+            <p className={`text-sm sm:text-base max-w-2xl mx-auto ${isLight ? "text-gray-500" : "text-white/70"}`}>
               Research-led tools, structured education, and intelligent frameworks designed to support every stage of your market journey.
             </p>
           </div>
@@ -59,7 +62,7 @@ const WhatWeDo: React.FC = () => {
             {offerings.map((item) => (
               <div
                 key={item.title}
-                className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-5 flex gap-4 items-start hover:border-white/20 transition-all duration-300"
+                className={`group relative overflow-hidden rounded-2xl p-5 flex gap-4 items-start transition-all duration-300 ${isLight ? "border border-gray-100 bg-gray-50 hover:bg-white hover:border-gray-200 hover:shadow-md" : "border border-white/10 bg-white/5 hover:border-white/20"}`}
               >
                 {/* subtle hover glow */}
                 <div className={`absolute inset-0 opacity-0 group-hover:opacity-[0.06] bg-gradient-to-br ${item.gradient} pointer-events-none rounded-2xl transition-opacity duration-500`} />
@@ -73,8 +76,8 @@ const WhatWeDo: React.FC = () => {
 
                 {/* text */}
                 <div>
-                  <h3 className="text-base font-semibold text-white">{item.title}</h3>
-                  <p className="text-sm text-white/70 mt-1 leading-relaxed">{item.desc}</p>
+                  <h3 className={`text-base font-semibold ${isLight ? "text-gray-900" : "text-white"}`}>{item.title}</h3>
+                  <p className={`text-sm mt-1 leading-relaxed ${isLight ? "text-gray-500" : "text-white/70"}`}>{item.desc}</p>
                 </div>
               </div>
             ))}

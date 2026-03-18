@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Layout from '@/components/Layout';
+import { useTheme } from '@/controllers/Themecontext';
 
 /* ─────────────────────────────────────────────
    Reveal helper (matches TeamView pattern)
@@ -103,6 +104,8 @@ const faqs: Record<string, { id: string; q: string; a: string; disclaimer?: stri
    COMPONENT
 ───────────────────────────────────────────── */
 export default function HelpCenter() {
+  const { theme } = useTheme();
+  const isLight = theme === 'light';
   const [activeCategory, setActiveCategory] = useState('org');
   const [searchQuery, setSearchQuery] = useState('');
   const [openFaq, setOpenFaq] = useState<string | null>(null);
@@ -125,10 +128,10 @@ export default function HelpCenter() {
   return (
     <Layout>
       <GlobalStyles />
-      <div className="min-h-screen bg-slate-950 text-white">
+      <div className={`min-h-screen ${isLight ? "bg-[#f5f4f0] text-gray-900" : "bg-slate-950 text-white"}`}>
 
         {/* ── HERO ─────────────────────────────────────── */}
-        <div className="relative overflow-hidden bg-[radial-gradient(circle_at_top,_rgba(81,140,255,0.20),_transparent_55%)]">
+        <div className={`relative overflow-hidden ${isLight ? "bg-gradient-to-br from-[#f0f6ff] via-[#f8fbff] to-[#eef4fd]" : "bg-[radial-gradient(circle_at_top,_rgba(81,140,255,0.20),_transparent_55%)]"}`}>
           <div className="absolute inset-0 pointer-events-none">
             <div className="absolute inset-x-0 top-0 h-64 bg-gradient-to-b from-blue-500/10 via-transparent to-transparent blur-3xl" />
             <div className="absolute -top-20 right-10 w-72 h-72 bg-purple-500/10 blur-[120px] rounded-full" />
@@ -141,7 +144,7 @@ export default function HelpCenter() {
               <button
                 type="button"
                 onClick={() => window.history.back()}
-                className="inline-flex items-center gap-1.5 text-sm font-medium text-white/50 hover:text-white/90 transition-colors"
+                className={`inline-flex items-center gap-1.5 text-sm font-medium transition-colors ${isLight ? "text-gray-400 hover:text-gray-700" : "text-white/50 hover:text-white/90"}`}
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -151,14 +154,14 @@ export default function HelpCenter() {
             </div>
 
             <div className="text-center space-y-4 mb-10">
-              <span className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.5em] text-blue-200/80">
+              <span className={`inline-flex items-center gap-2 text-xs uppercase tracking-[0.5em] ${isLight ? "text-blue-500" : "text-blue-200/80"}`}>
                 <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
                 Support
               </span>
-              <h1 className="text-3xl sm:text-5xl font-black text-white leading-tight">
+              <h1 className={`text-3xl sm:text-5xl font-black leading-tight ${isLight ? "text-gray-900" : "text-white"}`}>
                 How can we help you?
               </h1>
-              <p className="text-sm sm:text-base text-blue-100/70 max-w-xl mx-auto">
+              <p className={`text-sm sm:text-base max-w-xl mx-auto ${isLight ? "text-gray-500" : "text-blue-100/70"}`}>
                 Browse categories or search our knowledge base for answers.
               </p>
             </div>
@@ -173,13 +176,13 @@ export default function HelpCenter() {
                 value={searchQuery}
                 onChange={(e) => { setSearchQuery(e.target.value); setOpenFaq(null); }}
                 placeholder="Search questions..."
-                className="w-full pl-12 pr-4 py-3.5 rounded-2xl bg-white/8 border border-white/15 text-white placeholder-white/40 focus:outline-none focus:border-blue-400/60 focus:bg-white/10 transition-all text-sm sm:text-base backdrop-blur-xl"
+                className={`w-full pl-12 pr-4 py-3.5 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-400/30 transition-all text-sm sm:text-base ${isLight ? "bg-white border border-gray-200 text-gray-800 placeholder-gray-400 focus:border-blue-400 shadow-sm" : "bg-white/8 border border-white/15 text-white placeholder-white/40 focus:border-blue-400/60 focus:bg-white/10 backdrop-blur-xl"}`}
               />
               {searchQuery && (
                 <button
                   type="button"
                   onClick={() => setSearchQuery('')}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/80 transition-colors"
+                  className={`absolute right-4 top-1/2 -translate-y-1/2 transition-colors ${isLight ? "text-gray-300 hover:text-gray-600" : "text-white/40 hover:text-white/80"}`}
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -191,10 +194,10 @@ export default function HelpCenter() {
         </div>
 
         {/* ── QUICK CONTACT STRIP ──────────────────────── */}
-        <div className="border-y border-white/8 bg-white/3 backdrop-blur-sm">
+        <div className={`border-y backdrop-blur-sm ${isLight ? "border-gray-100 bg-white" : "border-white/8 bg-white/3"}`}>
           <div className="container mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-4">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-sm">
-              <div className="flex flex-wrap justify-center sm:justify-start items-center gap-4 sm:gap-6 text-white/60">
+              <div className={`flex flex-wrap justify-center sm:justify-start items-center gap-4 sm:gap-6 ${isLight ? "text-gray-500" : "text-white/60"}`}>
                 <span className="flex items-center gap-1.5">
                   <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -233,7 +236,7 @@ export default function HelpCenter() {
           {/* Search results badge */}
           {searchResults !== null && (
             <Reveal className="mb-6">
-              <p className="text-sm text-white/50">
+              <p className={`text-sm ${isLight ? "text-gray-400" : "text-white/50"}`}>
                 {searchResults.length > 0
                   ? `${searchResults.length} result${searchResults.length !== 1 ? 's' : ''} for "${searchQuery}"`
                   : `No results found for "${searchQuery}" — try a different keyword.`}
@@ -248,7 +251,7 @@ export default function HelpCenter() {
               <aside className="lg:w-64 flex-shrink-0">
                 <Reveal>
                   <div className="lg:sticky lg:top-6">
-                    <p className="text-xs uppercase tracking-[0.4em] text-white/40 mb-3 px-1">Categories</p>
+                    <p className={`text-xs uppercase tracking-[0.4em] mb-3 px-1 ${isLight ? "text-gray-400" : "text-white/40"}`}>Categories</p>
 
                     {/* Mobile: horizontal scroll */}
                     <div className="flex lg:hidden overflow-x-auto no-scrollbar gap-2 pb-1">
@@ -260,7 +263,9 @@ export default function HelpCenter() {
                           className={`flex-shrink-0 flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium transition-all ${
                             activeCategory === cat.id
                               ? 'bg-blue-500/20 border border-blue-400/40 text-blue-300'
-                              : 'bg-white/5 border border-white/10 text-white/60 hover:text-white/90 hover:bg-white/8'
+                              : isLight
+                            ? 'bg-white border border-gray-200 text-gray-500 hover:text-gray-800 hover:border-gray-300 shadow-sm'
+                            : 'bg-white/5 border border-white/10 text-white/60 hover:text-white/90 hover:bg-white/8'
                           }`}
                         >
                           <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -280,8 +285,8 @@ export default function HelpCenter() {
                           onClick={() => { setActiveCategory(cat.id); setOpenFaq(null); }}
                           className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-left ${
                             activeCategory === cat.id
-                              ? 'bg-blue-500/20 border border-blue-400/30 text-blue-300'
-                              : 'text-white/55 hover:text-white/90 hover:bg-white/5'
+                              ? isLight ? 'bg-blue-50 border border-blue-200 text-blue-600' : 'bg-blue-500/20 border border-blue-400/30 text-blue-300'
+                              : isLight ? 'text-gray-500 hover:text-gray-800 hover:bg-gray-100' : 'text-white/55 hover:text-white/90 hover:bg-white/5'
                           }`}
                         >
                           <svg className={`w-4 h-4 flex-shrink-0 ${activeCategory === cat.id ? 'text-blue-400' : 'text-white/30'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -304,16 +309,16 @@ export default function HelpCenter() {
               {!searchResults && (
                 <Reveal className="mb-5">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-blue-500/20 border border-blue-400/30 flex items-center justify-center flex-shrink-0">
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${isLight ? "bg-blue-50 border border-blue-200" : "bg-blue-500/20 border border-blue-400/30"}`}>
                       <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={categories.find(c => c.id === activeCategory)?.icon || ''} />
                       </svg>
                     </div>
                     <div>
-                      <h2 className="text-lg font-bold text-white leading-tight">
+                      <h2 className={`text-lg font-bold leading-tight ${isLight ? "text-gray-900" : "text-white"}`}>
                         {categories.find(c => c.id === activeCategory)?.label}
                       </h2>
-                      <p className="text-xs text-white/40">{activeFaqs.length} question{activeFaqs.length !== 1 ? 's' : ''}</p>
+                      <p className={`text-xs ${isLight ? "text-gray-400" : "text-white/40"}`}>{activeFaqs.length} question{activeFaqs.length !== 1 ? 's' : ''}</p>
                     </div>
                   </div>
                 </Reveal>
@@ -324,35 +329,35 @@ export default function HelpCenter() {
                   <Reveal key={faq.id} delay={idx * 60}>
                     <div className={`rounded-2xl border transition-all duration-300 overflow-hidden ${
                       openFaq === faq.id
-                        ? 'border-blue-400/30 bg-white/7'
-                        : 'border-white/10 bg-white/4 hover:border-white/20 hover:bg-white/6'
+                        ? isLight ? 'border-blue-300 bg-blue-50' : 'border-blue-400/30 bg-white/7'
+                        : isLight ? 'border-gray-200 bg-white hover:border-gray-300 shadow-sm' : 'border-white/10 bg-white/4 hover:border-white/20 hover:bg-white/6'
                     }`}>
                       <button
                         type="button"
                         onClick={() => setOpenFaq(openFaq === faq.id ? null : faq.id)}
                         className="w-full flex items-start justify-between gap-3 px-5 py-4 text-left"
                       >
-                        <span className={`text-sm sm:text-base font-medium leading-snug transition-colors ${openFaq === faq.id ? 'text-white' : 'text-white/80'}`}>
+                        <span className={`text-sm sm:text-base font-medium leading-snug transition-colors ${openFaq === faq.id ? (isLight ? "text-gray-900" : "text-white") : (isLight ? "text-gray-700" : "text-white/80")}`}>
                           {faq.q}
                         </span>
                         <span className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center transition-all mt-0.5 ${
-                          openFaq === faq.id ? 'bg-blue-500/30 rotate-180' : 'bg-white/8'
+                          openFaq === faq.id ? (isLight ? 'bg-blue-100 rotate-180' : 'bg-blue-500/30 rotate-180') : (isLight ? 'bg-gray-100' : 'bg-white/8')
                         }`}>
-                          <svg className="w-3.5 h-3.5 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className={`w-3.5 h-3.5 ${isLight ? "text-gray-400" : "text-white/60"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                           </svg>
                         </span>
                       </button>
 
                       {openFaq === faq.id && (
-                        <div className="px-5 pb-5 space-y-3 border-t border-white/8 pt-4">
-                          <p className="text-sm text-white/70 leading-relaxed">{faq.a}</p>
+                        <div className={`px-5 pb-5 space-y-3 border-t pt-4 ${isLight ? "border-gray-100" : "border-white/8"}`}>
+                          <p className={`text-sm leading-relaxed ${isLight ? "text-gray-600" : "text-white/70"}`}>{faq.a}</p>
                           {faq.disclaimer && (
-                            <div className="flex items-start gap-2 rounded-xl bg-amber-500/8 border border-amber-400/20 px-3 py-2.5">
+                            <div className={`flex items-start gap-2 rounded-xl px-3 py-2.5 ${isLight ? "bg-amber-50 border border-amber-200" : "bg-amber-500/8 border border-amber-400/20"}`}>
                               <svg className="w-3.5 h-3.5 text-amber-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                               </svg>
-                              <p className="text-xs text-amber-300/80 italic leading-relaxed">Disclaimer: {faq.disclaimer}</p>
+                              <p className={`text-xs italic leading-relaxed ${isLight ? "text-amber-700" : "text-amber-300/80"}`}>Disclaimer: {faq.disclaimer}</p>
                             </div>
                           )}
                           {/* Show category if in search mode */}
@@ -375,12 +380,12 @@ export default function HelpCenter() {
                 {activeFaqs.length === 0 && searchResults !== null && (
                   <Reveal>
                     <div className="text-center py-16 space-y-3">
-                      <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mx-auto">
+                      <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mx-auto ${isLight ? "bg-gray-100 border border-gray-200" : "bg-white/5 border border-white/10"}`}>
                         <svg className="w-7 h-7 text-white/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
                       </div>
-                      <p className="text-white/50 text-sm">No results found. Try different keywords or email us directly.</p>
+                      <p className={`text-sm ${isLight ? "text-gray-400" : "text-white/50"}`}>No results found. Try different keywords or email us directly.</p>
                     </div>
                   </Reveal>
                 )}
@@ -390,7 +395,7 @@ export default function HelpCenter() {
 
           {/* ── RISK DISCLOSURE SUMMARY ────────────────── */}
           <Reveal className="mt-14">
-            <div className="relative overflow-hidden rounded-[28px] border border-amber-400/20 bg-gradient-to-br from-amber-500/8 to-orange-500/5 p-6 sm:p-8">
+            <div className={`relative overflow-hidden rounded-[28px] p-6 sm:p-8 ${isLight ? "border border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50" : "border border-amber-400/20 bg-gradient-to-br from-amber-500/8 to-orange-500/5"}`}>
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(245,158,11,0.08),_transparent_60%)] pointer-events-none" />
               <div className="relative">
                 <div className="flex items-center gap-3 mb-4">
@@ -400,11 +405,11 @@ export default function HelpCenter() {
                     </svg>
                   </div>
                   <div>
-                    <p className="text-xs uppercase tracking-[0.4em] text-amber-300/70">Important</p>
-                    <h3 className="text-base font-bold text-white">Key Risk Disclosures</h3>
+                    <p className={`text-xs uppercase tracking-[0.4em] ${isLight ? "text-amber-600" : "text-amber-300/70"}`}>Important</p>
+                    <h3 className={`text-base font-bold ${isLight ? "text-gray-900" : "text-white"}`}>Key Risk Disclosures</h3>
                   </div>
                 </div>
-                <div className="grid sm:grid-cols-2 gap-3 text-xs text-white/60 leading-relaxed">
+                <div className={`grid sm:grid-cols-2 gap-3 text-xs leading-relaxed ${isLight ? "text-gray-500" : "text-white/60"}`}>
                   {[
                     'InvestBeans does not guarantee profits, minimum returns, or capital safety.',
                     'All content is strictly educational and informational in nature.',
@@ -425,12 +430,12 @@ export default function HelpCenter() {
 
           {/* ── STILL NEED HELP CTA ────────────────────── */}
           <Reveal className="mt-8">
-            <div className="relative overflow-hidden rounded-[28px] border border-white/10 bg-gradient-to-br from-blue-600/30 to-indigo-600/20 p-6 sm:p-10 text-center">
+            <div className={`relative overflow-hidden rounded-[28px] p-6 sm:p-10 text-center ${isLight ? "border border-blue-100 bg-gradient-to-br from-blue-50 to-indigo-50" : "border border-white/10 bg-gradient-to-br from-blue-600/30 to-indigo-600/20"}`}>
               <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_top,_rgba(99,102,241,0.4),_transparent_60%)] pointer-events-none" />
               <div className="relative space-y-4">
-                <p className="text-xs uppercase tracking-[0.5em] text-blue-200/60">Need more help?</p>
-                <h2 className="text-2xl sm:text-3xl font-bold text-white">Still have questions?</h2>
-                <p className="text-sm text-white/60 max-w-md mx-auto">
+                <p className={`text-xs uppercase tracking-[0.5em] ${isLight ? "text-blue-400" : "text-blue-200/60"}`}>Need more help?</p>
+                <h2 className={`text-2xl sm:text-3xl font-bold ${isLight ? "text-gray-900" : "text-white"}`}>Still have questions?</h2>
+                <p className={`text-sm max-w-md mx-auto ${isLight ? "text-gray-500" : "text-white/60"}`}>
                   Can't find what you're looking for? Our support team is ready to assist you personally.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
@@ -447,7 +452,7 @@ export default function HelpCenter() {
                     href="https://wa.me/91XXXXXXXXXX"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center justify-center gap-2 px-7 py-3 rounded-2xl bg-white/8 border border-white/15 text-white font-semibold text-sm hover:bg-white/12 transition-all"
+                    className={`inline-flex items-center justify-center gap-2 px-7 py-3 rounded-2xl font-semibold text-sm transition-all ${isLight ? "bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 shadow-sm" : "bg-white/8 border border-white/15 text-white hover:bg-white/12"}`}
                   >
                     <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
                       <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
@@ -455,7 +460,7 @@ export default function HelpCenter() {
                     WhatsApp Us
                   </a>
                 </div>
-                <p className="text-xs text-white/35 pt-1">Average response time: 6–12 hours</p>
+                <p className={`text-xs pt-1 ${isLight ? "text-gray-400" : "text-white/35"}`}>Average response time: 6–12 hours</p>
               </div>
             </div>
           </Reveal>

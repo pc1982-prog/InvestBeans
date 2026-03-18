@@ -154,20 +154,20 @@ function PlanCard({
   const Icon = plan.icon;
 
   const cardBg = isLight
-    ? plan.popular ? "linear-gradient(145deg,#ffffff,#f0f7ff)" : "#ffffff"
+    ? plan.popular ? "linear-gradient(145deg,#ffffff,#f0f7ff)" : "rgba(255,255,255,0.98)"
     : plan.popular ? "linear-gradient(145deg,#0f1f3d,#0d1a35)" : "rgba(13,30,54,0.7)";
   const cardBorder = plan.popular
     ? `2px solid ${plan.color}`
-    : isLight ? "1.5px solid rgba(13,37,64,0.1)" : "1.5px solid rgba(255,255,255,0.08)";
+    : isLight ? "1.5px solid rgba(226,232,240,0.9)" : "1.5px solid rgba(255,255,255,0.08)";
   const cardShadow = plan.popular
     ? `0 20px 60px ${plan.colorDim}, 0 4px 20px rgba(0,0,0,0.1)`
-    : isLight ? "0 4px 24px rgba(13,37,64,0.07)" : "0 4px 24px rgba(0,0,0,0.3)";
-  const nameColor = isLight ? "#0d1b2a" : "#e8edf5";
-  const taglineColor = isLight ? "rgba(13,37,64,0.7)" : "rgba(203,213,225,1)";
-  const quoteColor = isLight ? "rgba(13,37,64,0.5)" : "rgba(148,163,184,1)";
-  const benefitColor = isLight ? "rgba(13,37,64,0.75)" : "rgba(203,213,225,1)";
-  const noteColor = isLight ? "rgba(13,37,64,0.4)" : "rgba(148,163,184,0.7)";
-  const dividerColor = isLight ? "rgba(13,37,64,0.07)" : "rgba(255,255,255,0.07)";
+    : isLight ? "0 4px 24px rgba(0,0,0,0.05), 0 1px 4px rgba(0,0,0,0.03)" : "0 4px 24px rgba(0,0,0,0.3)";
+  const nameColor = isLight ? "#0f172a" : "#e8edf5";
+  const taglineColor = isLight ? "#374151" : "rgba(203,213,225,1)";
+  const quoteColor = isLight ? "#6b7280" : "rgba(148,163,184,1)";
+  const benefitColor = isLight ? "#374151" : "rgba(203,213,225,1)";
+  const noteColor = isLight ? "#9ca3af" : "rgba(148,163,184,0.7)";
+  const dividerColor = isLight ? "rgba(226,232,240,0.8)" : "rgba(255,255,255,0.07)";
 
   return (
     <div
@@ -429,7 +429,7 @@ function MobileSections({
                   display: "flex", alignItems: "center", justifyContent: "space-between",
                   padding: "11px 20px 11px 56px",
                   borderTop: `1px solid ${divColor}`,
-                  background: isLight ? "rgba(13,37,64,0.01)" : "rgba(255,255,255,0.01)",
+                  background: isLight ? "rgba(248,250,252,0.5)" : "rgba(255,255,255,0.01)",
                 }}>
                   <span style={{ fontSize: "13px", color: labelColor, flex: 1, paddingRight: "12px", lineHeight: 1.4 }}>
                     {row.label}
@@ -474,10 +474,10 @@ function MobileSections({
 function MobileCompare({ isLight }: { isLight: boolean }) {
   const [activePlan, setActivePlan] = useState<PlanKey>("foundation");
 
-  const cardBg  = isLight ? "#ffffff" : "rgba(13,30,54,0.7)";
-  const border   = isLight ? "1px solid rgba(13,37,64,0.1)" : "1px solid rgba(255,255,255,0.07)";
-  const labelColor = isLight ? "rgba(13,37,64,0.7)" : "rgba(203,213,225,0.85)";
-  const divColor   = isLight ? "rgba(13,37,64,0.06)" : "rgba(255,255,255,0.06)";
+  const cardBg  = isLight ? "rgba(255,255,255,0.98)" : "rgba(13,30,54,0.7)";
+  const border   = isLight ? "1px solid rgba(226,232,240,0.9)" : "1px solid rgba(255,255,255,0.07)";
+  const labelColor = isLight ? "#374151" : "rgba(203,213,225,0.85)";
+  const divColor   = isLight ? "rgba(226,232,240,0.8)" : "rgba(255,255,255,0.06)";
   const sectionLabelColor = isLight ? "rgba(13,37,64,0.45)" : "rgba(148,163,184,0.6)";
 
   const activePlanData = PLAN_KEYS.find(p => p.key === activePlan)!;
@@ -519,7 +519,7 @@ function MobileCompare({ isLight }: { isLight: boolean }) {
       <div style={{
         background: cardBg, border,
         borderRadius: "16px", overflow: "hidden",
-        boxShadow: isLight ? "0 4px 24px rgba(13,37,64,0.07)" : "0 4px 24px rgba(0,0,0,0.3)",
+        boxShadow: isLight ? "0 4px 24px rgba(0,0,0,0.05), 0 1px 4px rgba(0,0,0,0.03)" : "0 4px 24px rgba(0,0,0,0.3)",
       }}>
         {/* Plan header */}
         <div style={{
@@ -650,9 +650,9 @@ function DesktopComparisonSection({ section, isLight }: { section: typeof COMPAR
 
   const headerBg   = isLight ? `${section.color}08` : `${section.color}10`;
   const rowBg      = "transparent";
-  const rowHoverBg = isLight ? "rgba(13,37,64,0.025)" : "rgba(255,255,255,0.03)";
-  const labelColor = isLight ? "rgba(13,37,64,0.7)" : "rgba(203,213,225,0.85)";
-  const borderColor = isLight ? "rgba(13,37,64,0.07)" : "rgba(255,255,255,0.06)";
+  const rowHoverBg = isLight ? "rgba(248,250,252,0.9)" : "rgba(255,255,255,0.03)";
+  const labelColor = isLight ? "#374151" : "rgba(203,213,225,0.85)";
+  const borderColor = isLight ? "rgba(226,232,240,0.8)" : "rgba(255,255,255,0.06)";
 
   return (
     <div style={{ marginBottom: "8px" }}>
@@ -714,7 +714,7 @@ export default function PricingPlan() {
 
   // ── Theme tokens ─────────────────────────────────────────────────────────
   const pageBg = isLight
-    ? "linear-gradient(160deg,#dce8f7 0%,#e8f2fd 40%,#f0f7fe 100%)"
+    ? "linear-gradient(160deg,#f5f4f0 0%,#f8fbff 40%,#f5f4f0 100%)"
     : "linear-gradient(160deg,#060e1a 0%,#0a1628 50%,#060e1a 100%)";
 
   const sectionBg = isLight

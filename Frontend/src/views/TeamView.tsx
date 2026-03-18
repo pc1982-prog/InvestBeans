@@ -3,9 +3,12 @@ import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Layout from '@/components/Layout';
 import WhatWeDo from './Whatwedo';
+import { useTheme } from '@/controllers/Themecontext';
 
 
 const TeamView = () => {
+  const { theme } = useTheme();
+  const isLight = theme === 'light';
   // simple intersection observer reveal
   const useReveal = () => {
     const ref = useRef<HTMLDivElement | null>(null);
@@ -224,13 +227,13 @@ const TeamView = () => {
   return (
     <Layout>
       <GlobalRevealStyles />
-      <div ref={pageRef} className="min-h-screen bg-slate-950/95 text-white">
+      <div ref={pageRef} className={`min-h-screen ${isLight ? "bg-[#f5f4f0] text-gray-900" : "bg-slate-950/95 text-white"}`}>
         {/* Hero Section */}
-        <div className="relative overflow-hidden bg-[radial-gradient(circle_at_top,_rgba(81,140,255,0.25),_transparent_55%)]">
+        <div className={`relative overflow-hidden ${isLight ? "bg-gradient-to-br from-[#f0f6ff] via-[#f8fbff] to-[#eef4fd]" : "bg-[radial-gradient(circle_at_top,_rgba(81,140,255,0.25),_transparent_55%)]"}`}>
           <div className="absolute inset-0 pointer-events-none">
-            <div className="absolute inset-x-0 top-24 h-64 bg-gradient-to-b from-blue-500/10 via-transparent to-transparent blur-3xl"></div>
-            <div className="absolute -bottom-10 right-10 w-72 h-72 bg-purple-500/10 blur-[120px] rounded-full"></div>
-            <div className="absolute -top-24 left-1/3 w-80 h-80 bg-cyan-400/20 blur-[140px] rounded-full"></div>
+            <div className={`absolute inset-x-0 top-24 h-64 bg-gradient-to-b blur-3xl ${isLight ? "from-blue-100/40 via-transparent to-transparent" : "from-blue-500/10 via-transparent to-transparent"}`}></div>
+            <div className={`absolute -bottom-10 right-10 w-72 h-72 blur-[120px] rounded-full ${isLight ? "bg-purple-200/20" : "bg-purple-500/10"}`}></div>
+            <div className={`absolute -top-24 left-1/3 w-80 h-80 blur-[140px] rounded-full ${isLight ? "bg-blue-200/30" : "bg-cyan-400/20"}`}></div>
           </div>
           <div className="relative z-10 container mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 pt-6 pb-14 sm:pb-20 lg:pb-24">
             {/* Back Button */}
@@ -238,7 +241,7 @@ const TeamView = () => {
               <button
                 type="button"
                 onClick={() => window.history.back()}
-                className="inline-flex items-center gap-1.5 text-sm font-medium text-white/50 hover:text-white/90 transition-colors duration-200"
+                className={`inline-flex items-center gap-1.5 text-sm font-medium transition-colors duration-200 ${isLight ? "text-gray-400 hover:text-gray-700" : "text-white/50 hover:text-white/90"}`}
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -248,29 +251,30 @@ const TeamView = () => {
             </div>
             <div className="grid lg:grid-cols-12 gap-6 items-start">
               <div className="lg:col-span-6 space-y-6 text-center lg:text-left gsap-hero-title">
-                <span className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.5em] text-blue-200/80">
+                <span className={`inline-flex items-center gap-2 text-xs uppercase tracking-[0.5em] ${isLight ? "text-blue-500" : "text-blue-200/80"}`}>
                   <span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
                   InvestBeans DNA
                 </span>
-                <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black leading-tight text-white">
+                <h1  className={`text-3xl sm:text-5xl lg:text-6xl font-black leading-tight ${isLight ? "text-blue-600" : "text-white"}`}>
+              
                 We don’t sell calls. We build decision-makers.
                 </h1>
-                <h1 className="text-[18px] sm:text-2xl lg:text-3xl font-black leading-tight text-white">
+                <h1 className={`text-[18px] sm:text-2xl lg:text-3xl font-black leading-tight ${isLight ? "text-blue-700" : "text-white"}`}>
                 “ Baazigar Banein… Sattebaaz Nahi ” 
                 </h1>
-                <p className="text-sm sm:text-base lg:text-lg text-blue-100/90 max-w-2xl mx-auto lg:mx-0">
+                <p className={`text-sm sm:text-base lg:text-lg max-w-2xl mx-auto lg:mx-0 ${isLight ? "text-gray-500" : "text-blue-100/90"}`}>
                   We blend research-driven insights, ethical practices, and human mentorship so you can navigate markets with clarity, calm, and conviction.
                 </p>
-                <div className="flex flex-wrap lg:flex-nowrap justify-center lg:justify-start gap-2 text-[11px] uppercase tracking-[0.2em] text-white/70">
-                  <span className="gsap-floating-pill rounded-full border border-white/25 px-4 py-1.5 bg-white/5">Clarity Over Noise</span>
-                  <span className="gsap-floating-pill rounded-full border border-white/25 px-4 py-1.5 bg-white/5">Discipline Over Emotion</span>
-                  <span className="gsap-floating-pill rounded-full border border-white/25 px-4 py-1.5 bg-white/5">Process Over Predictions</span>
+                <div className={`flex flex-wrap lg:flex-nowrap justify-center lg:justify-start gap-2 text-[11px] uppercase tracking-[0.2em] ${isLight ? "text-gray-500" : "text-white/70"}`}>
+                  <span className={`gsap-floating-pill rounded-full border px-4 py-1.5 ${isLight ? "border-gray-200 bg-white shadow-sm" : "border-white/25 bg-white/5"}`}>Clarity Over Noise</span>
+                  <span className={`gsap-floating-pill rounded-full border px-4 py-1.5 ${isLight ? "border-gray-200 bg-white shadow-sm" : "border-white/25 bg-white/5"}`}>Discipline Over Emotion</span>
+                  <span className={`gsap-floating-pill rounded-full border px-4 py-1.5 ${isLight ? "border-gray-200 bg-white shadow-sm" : "border-white/25 bg-white/5"}`}>Process Over Predictions</span>
                 </div>
 
               </div>
 
               <div className="lg:col-span-6 lg:pt-8">
-                <div className="gsap-hero-panel relative rounded-[32px] border border-white/10 bg-white/5 p-6 sm:p-7 backdrop-blur-2xl shadow-[0_20px_80px_-40px_rgba(15,23,42,0.8)]">
+                <div className={`gsap-hero-panel relative rounded-[32px] p-6 sm:p-7 ${isLight ? "bg-white border border-gray-100 shadow-xl" : "border border-white/10 bg-white/5 backdrop-blur-2xl shadow-[0_20px_80px_-40px_rgba(15,23,42,0.8)]"}`}>
                   <div className="absolute -top-6 -right-6 w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-2xl blur-2xl opacity-30"></div>
                   <div className="relative space-y-5">
                     <div className="flex items-center gap-4">
@@ -280,20 +284,20 @@ const TeamView = () => {
                         </svg>
                       </div>
                       <div>
-                        <p className="text-xs uppercase tracking-[0.4em] text-white/60">Founded 2024</p>
-                        <p className="text-base font-semibold text-white">Education & Research Collective</p>
-                        <p className="text-xs text-white/60 mt-0.5">NISM-certified Research Analyst</p>
+                        <p className={`text-xs uppercase tracking-[0.4em] ${isLight ? "text-gray-400" : "text-white/60"}`}>Founded 2024</p>
+                        <p className={`text-base font-semibold ${isLight ? "text-gray-800" : "text-white"}`}>Education & Research Collective</p>
+                        <p className={`text-xs mt-0.5 ${isLight ? "text-gray-400" : "text-white/60"}`}>NISM-certified Research Analyst</p>
                       </div>
                     </div>
-                    <div className="rounded-2xl border border-white/15 bg-white/5 p-4">
-                      <p className="text-xs text-white/60 uppercase tracking-[0.3em] mb-1">Focus</p>
-                      <div className="flex flex-wrap gap-2 text-sm font-semibold text-white">
+                    <div className={`rounded-2xl p-4 ${isLight ? "border border-gray-100 bg-gray-50" : "border border-white/15 bg-white/5"}`}>
+                      <p className={`text-xs uppercase tracking-[0.3em] mb-1 ${isLight ? "text-gray-400" : "text-white/60"}`}>Focus</p>
+                      <div className={`flex flex-wrap gap-2 text-sm font-semibold ${isLight ? "text-gray-700" : "text-white"}`}>
                         {['Equities', 'Commodities', 'Forex', 'Learn'].map((item) => (
-                          <span key={item} className="px-3 py-1 rounded-full bg-white/10 border border-white/10">
+                          <span key={item} className={`px-3 py-1 rounded-full ${isLight ? "bg-white border border-gray-200 text-gray-600 shadow-sm" : "bg-white/10 border border-white/10"}`}>
                             {item}
                           </span>
                         ))}
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 text-xs font-semibold">
+                        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-xs font-semibold ${isLight ? "text-emerald-700" : "text-emerald-300"}`}>
                           <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                           </svg>
@@ -301,9 +305,9 @@ const TeamView = () => {
                         </span>
                       </div>
                     </div>
-                    <div className="rounded-2xl border border-white/20 bg-gradient-to-br from-blue-600/20 to-purple-600/10 p-5">
-                      <p className="text-xs uppercase tracking-[0.4em] text-white/60">Promise</p>
-                      <p className="mt-2 text-sm text-blue-100/90">
+                    <div className={`rounded-2xl p-5 ${isLight ? "border border-blue-100 bg-blue-50" : "border border-white/20 bg-gradient-to-br from-blue-600/20 to-purple-600/10"}`}>
+                      <p className={`text-xs uppercase tracking-[0.4em] ${isLight ? "text-blue-400" : "text-white/60"}`}>Promise</p>
+                      <p className={`mt-2 text-sm ${isLight ? "text-blue-700" : "text-blue-100/90"}`}>
                         No shortcuts. No noise. Just research-led judgment and disciplined risk thinking.
                       </p>
                     </div>
@@ -330,14 +334,14 @@ const TeamView = () => {
         </div>
 
         {/* Join CTA strip */}
-        <div className="">
+        <div className={isLight ? "border-y border-gray-100 bg-white" : ""}>
           <div className="container mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-5 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <p className="text-sm text-white/60 text-center sm:text-left">
+            <p className={`text-sm text-center sm:text-left ${isLight ? "text-gray-500" : "text-white/60"}`}>
               Ready to navigate markets with clarity and conviction?
             </p>
             <button
               type="button"
-              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-500 to-indigo-500 px-7 py-3 font-semibold text-white shadow-lg shadow-blue-900/40 hover:scale-[1.02] transition-all whitespace-nowrap"
+              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-500 to-indigo-500 px-7 py-3 font-semibold text-white shadow-lg shadow-blue-500/25 hover:scale-[1.02] transition-all whitespace-nowrap"
             >
               Join the Community
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -348,7 +352,7 @@ const TeamView = () => {
         </div>
 
         {/* Sticky sub-navigation */}
-        <div className="sticky top-0 z-30 border-b border-white/10 backdrop-blur-lg bg-slate-950/85 supports-[backdrop-filter]:bg-slate-950/70">
+        <div className={`sticky top-0 z-30 border-b backdrop-blur-lg ${isLight ? "border-gray-100 bg-white/90" : "border-white/10 bg-slate-950/85"}`}>
           <div className="container mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
             <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto no-scrollbar py-3" role="tablist" aria-label="About page sections">
               {[
@@ -366,7 +370,9 @@ const TeamView = () => {
                   className={`text-xs sm:text-sm px-3.5 py-1.5 rounded-full border transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 ${
                     activeSection === item.href.replace('#', '')
                       ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white border-transparent shadow-lg shadow-blue-900/30'
-                      : 'text-white/70 border-white/15 hover:text-white hover:border-white/40'
+                      : isLight
+                        ? 'text-gray-500 border-gray-200 hover:text-gray-800 hover:border-gray-300 bg-white'
+                        : 'text-white/70 border-white/15 hover:text-white hover:border-white/40'
                   }`}
                   role="tab"
                   aria-selected={activeSection === item.href.replace('#', '')}
@@ -378,10 +384,10 @@ const TeamView = () => {
           </div>
         </div>
 
-        <div className="container mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-10 sm:py-14 text-slate-100">
+        <div className={`container mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-10 sm:py-14 ${isLight ? "text-gray-900" : "text-slate-100"}`}>
           {/* Our Story Section */}
           <Reveal id="our-story" className="scroll-mt-24 mb-10">
-            <div className="gsap-section-card relative overflow-hidden rounded-[32px] border border-white/10 bg-white text-slate-900 p-6 sm:p-10 shadow-[0_40px_120px_-60px_rgba(15,23,42,0.5)]">
+            <div className={`gsap-section-card relative overflow-hidden rounded-[32px] p-6 sm:p-10 ${isLight ? "bg-white border border-gray-100 shadow-xl shadow-gray-100" : "border border-white/10 bg-white text-slate-900 shadow-[0_40px_120px_-60px_rgba(15,23,42,0.5)]"}`}>
               <div className="absolute inset-y-0 right-0 w-1/2 bg-gradient-to-br from-blue-50 to-white pointer-events-none opacity-70"></div>
               <div className="relative">
                 <div className="flex items-center gap-3 mb-6">
@@ -446,14 +452,14 @@ const TeamView = () => {
           {/* Team Members */}
           <div id="team-members" className="scroll-mt-24 mb-12">
             <div className="text-center mb-10">
-              <p className="text-xs uppercase tracking-[0.5em] text-white/60">Team</p>
-              <h2 className="text-3xl sm:text-4xl font-bold text-white">The minds behind InvestBeans</h2>
-              <p className="text-sm sm:text-base text-white/70 mt-2">Research-led mentors and market practitioners focused on clarity, discipline and structured learning.</p>
+              <p className={`text-xs uppercase tracking-[0.5em] ${isLight ? "text-gray-400" : "text-white/60"}`}>Team</p>
+              <h2 className={`text-3xl sm:text-4xl font-bold ${isLight ? "text-gray-900" : "text-white"}`}>The minds behind InvestBeans</h2>
+              <p className={`text-sm sm:text-base mt-2 ${isLight ? "text-gray-500" : "text-white/70"}`}>Research-led mentors and market practitioners focused on clarity, discipline and structured learning.</p>
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
               {teamMembers.map((member, idx) => (
                 <Reveal key={member.id} delay={idx * 80} className="gsap-section-card">
-                  <div className="relative overflow-hidden rounded-[28px] border border-white/10 bg-white/5 backdrop-blur-xl p-6 h-full">
+                  <div className={`relative overflow-hidden rounded-[28px] p-6 h-full ${isLight ? "bg-white border border-gray-100 shadow-lg" : "border border-white/10 bg-white/5 backdrop-blur-xl"}`}>
                     <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-blue-500/10 pointer-events-none"></div>
                     <div className="relative flex flex-col gap-5">
                       <div className="flex gap-4 items-center">
@@ -477,18 +483,18 @@ const TeamView = () => {
                           )}
                         </div>
                         <div>
-                          <p className="text-lg font-semibold text-white">{member.name}</p>
-                          <p className="text-sm text-white/70">{member.role}</p>
+                          <p className={`text-lg font-semibold ${isLight ? "text-gray-900" : "text-white"}`}>{member.name}</p>
+                          <p className={`text-sm ${isLight ? "text-gray-500" : "text-white/70"}`}>{member.role}</p>
                         </div>
                       </div>
-                      <p id={`bio-${member.id}`} className="text-sm text-white/80 leading-relaxed">
+                      <p id={`bio-${member.id}`} className={`text-sm leading-relaxed ${isLight ? "text-gray-600" : "text-white/80"}`}>
                         {expandedBios[member.id] ? member.bio : member.shortBio}
                       </p>
                       <div className="flex flex-wrap gap-3 items-center">
                         <button
                           type="button"
                           onClick={() => toggleBio(member.id)}
-                          className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.25em] text-white/70 hover:text-white transition-colors"
+                          className={`inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.25em] transition-colors ${isLight ? "text-gray-400 hover:text-gray-800" : "text-white/70 hover:text-white"}`}
                           aria-expanded={!!expandedBios[member.id]}
                           aria-controls={`bio-${member.id}`}
                         >
@@ -499,7 +505,7 @@ const TeamView = () => {
                         </button>
                         <a
                           href={member.linkedin}
-                          className="inline-flex items-center gap-2 text-sm font-medium text-blue-200 hover:text-white transition-colors"
+                          className={`inline-flex items-center gap-2 text-sm font-medium transition-colors ${isLight ? "text-blue-500 hover:text-blue-700" : "text-blue-200 hover:text-white"}`}
                         >
                           <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
@@ -558,7 +564,7 @@ const TeamView = () => {
           {/* Company Values - Connected Circles Design */}
           <Reveal id="core-values" className="scroll-mt-24 mb-8">
             <div className="text-center mb-4">
-              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-4">Our Core Values</h2>
+              <h2 className={`text-2xl sm:text-3xl lg:text-4xl font-bold mb-4 ${isLight ? "text-gray-900" : "text-white"}`}>Our Core Values</h2>
               <div className="w-20 h-1 bg-gradient-to-r from-blue-600 to-purple-600 mx-auto rounded-full"></div>
             </div>
 
@@ -576,7 +582,7 @@ const TeamView = () => {
                     </div>
 
                     <div className="flex-1">
-                      <h3 className="text-base font-bold text-white mb-1">{value.title}</h3>
+                      <h3 className={`text-base font-bold mb-1 ${isLight ? "text-gray-900" : "text-white"}`}>{value.title}</h3>
                       <p className="text-xs text-gray-500 leading-relaxed">{value.desc}</p>
                     </div>
                   </div>
@@ -624,7 +630,7 @@ const TeamView = () => {
 
                         <div className={`w-4 h-4 rounded-full bg-gradient-to-br ${value.gradient} shadow-md mt-3`}></div>
 
-                        <h3 className="mt-3 text-sm font-bold text-white text-center max-w-[120px] group-hover:text-blue-600 transition-colors">
+                        <h3 className={`mt-3 text-sm font-bold text-center max-w-[120px] group-hover:text-blue-600 transition-colors ${isLight ? "text-gray-800" : "text-white"}`}>
                           {value.title}
                         </h3>
 
@@ -658,7 +664,7 @@ const TeamView = () => {
                           </div>
                         </div>
 
-                        <h3 className="mt-3 text-sm font-bold text-white text-center max-w-[120px] group-hover:text-blue-600 transition-colors">
+                        <h3 className={`mt-3 text-sm font-bold text-center max-w-[120px] group-hover:text-blue-600 transition-colors ${isLight ? "text-gray-800" : "text-white"}`}>
                           {value.title}
                         </h3>
 
@@ -675,13 +681,13 @@ const TeamView = () => {
 
           {/* Why Us Section */}
           <Reveal id="why-us" className="scroll-mt-24 mb-12">
-            <div className="gsap-section-card relative overflow-hidden rounded-[32px] border border-white/10 bg-white/5 backdrop-blur-2xl p-6 sm:p-10">
+            <div className={`gsap-section-card relative overflow-hidden rounded-[32px] p-6 sm:p-10 ${isLight ? "bg-white border border-gray-100 shadow-xl" : "border border-white/10 bg-white/5 backdrop-blur-2xl"}`}>
               <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 via-transparent to-blue-500/10"></div>
               <div className="relative">
                 <div className="text-center mb-8 space-y-3">
-                  <p className="text-xs uppercase tracking-[0.5em] text-white/60">Why us</p>
-                  <h2 className="text-3xl font-bold text-white">Designed for clarity, not hype.</h2>
-                  <p className="text-sm text-white/70 max-w-3xl mx-auto">
+                  <p className={`text-xs uppercase tracking-[0.5em] ${isLight ? "text-gray-400" : "text-white/60"}`}>Why us</p>
+                  <h2 className={`text-3xl font-bold ${isLight ? "text-gray-900" : "text-white"}`}>Designed for clarity, not hype.</h2>
+                  <p className={`text-sm max-w-3xl mx-auto ${isLight ? "text-gray-500" : "text-white/70"}`}>
                     Research-led education and structured frameworks to help you navigate markets with discipline and confidence.
                   </p>
                 </div>
@@ -689,14 +695,14 @@ const TeamView = () => {
                   {whyUsPoints.map((item, idx) => (
                     <div
                       key={item.title}
-                      className="rounded-2xl border border-white/10 bg-white/5 p-5 flex gap-4 items-start text-left"
+                      className={`rounded-2xl p-5 flex gap-4 items-start text-left ${isLight ? "border border-gray-100 bg-gray-50" : "border border-white/10 bg-white/5"}`}
                     >
                       <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-white font-semibold">
                         {idx + 1}
                       </div>
                       <div>
-                        <h3 className="text-base font-semibold text-white">{item.title}</h3>
-                        <p className="text-sm text-white/70 mt-1">{item.desc}</p>
+                        <h3 className={`text-base font-semibold ${isLight ? "text-gray-900" : "text-white"}`}>{item.title}</h3>
+                        <p className={`text-sm mt-1 ${isLight ? "text-gray-500" : "text-white/70"}`}>{item.desc}</p>
                       </div>
                     </div>
                   ))}
@@ -711,7 +717,7 @@ const TeamView = () => {
 
           {/* Certifications Section */}
           <Reveal id="certifications" className="scroll-mt-24 mb-12">
-            <div className="gsap-section-card relative overflow-hidden rounded-[32px] border border-amber-200/20 bg-gradient-to-br from-amber-50 to-white text-amber-900 p-6 sm:p-10">
+            <div className={`gsap-section-card relative overflow-hidden rounded-[32px] p-6 sm:p-10 ${isLight ? "border border-amber-200 bg-gradient-to-br from-amber-50 to-white text-amber-900" : "border border-amber-200/20 bg-gradient-to-br from-amber-900/20 to-slate-900/80 text-amber-100"}`}>
               <div className="absolute inset-0 opacity-60 bg-[radial-gradient(circle_at_top,_rgba(251,191,36,0.2),_transparent_65%)]"></div>
               <div className="relative space-y-6">
                 <div className="flex flex-wrap items-center gap-4">

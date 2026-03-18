@@ -92,15 +92,15 @@ function ItemRow({ title, meta, level, accentRaw, isLight }: {
   const ls = levelStyle[level] ?? levelStyle['All Levels'];
   return (
     <div className="flex items-center justify-between py-3 group transition-all"
-      style={{ borderBottom: isLight ? '1px solid rgba(13,37,64,0.07)' : '1px solid rgba(255,255,255,0.06)' }}>
+      style={{ borderBottom: isLight ? '1px solid rgba(226,232,240,0.8)' : '1px solid rgba(255,255,255,0.06)' }}>
       <div className="flex items-center gap-2.5 min-w-0">
         <div className="w-1.5 h-1.5 rounded-full flex-shrink-0 transition-all duration-300 group-hover:scale-125"
           style={{ background: accentRaw }} />
         <span className="text-sm font-medium truncate"
-          style={{ color: isLight ? 'rgba(13,37,64,0.80)' : 'rgba(255,255,255,0.80)' }}>{title}</span>
+          style={{ color: isLight ? '#374151' : 'rgba(255,255,255,0.80)' }}>{title}</span>
       </div>
       <div className="flex items-center gap-2 flex-shrink-0 ml-2">
-        <span className="text-xs" style={{ color: isLight ? 'rgba(13,37,64,0.45)' : 'rgba(148,163,184,0.8)' }}>{meta}</span>
+        <span className="text-xs" style={{ color: isLight ? '#9ca3af' : 'rgba(148,163,184,0.8)' }}>{meta}</span>
         <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold"
           style={{ background: ls.bg, color: ls.text }}>{level}</span>
       </div>
@@ -116,13 +116,13 @@ function LearnCard({ id, icon: Icon, title, tag, description, isPaid, items, acc
     <div id={id}
       className="rounded-2xl overflow-hidden flex flex-col transition-all duration-300 hover:-translate-y-1"
       style={{
-        background: isLight ? 'rgba(255,255,255,0.80)' : 'rgba(255,255,255,0.04)',
-        border: isLight ? '1px solid rgba(13,37,64,0.10)' : '1px solid rgba(255,255,255,0.08)',
-        boxShadow: isLight ? '0 2px 12px rgba(13,37,64,0.06)' : 'none',
+        background: isLight ? 'rgba(255,255,255,0.98)' : 'rgba(255,255,255,0.04)',
+        border: isLight ? '1px solid rgba(226,232,240,0.9)' : '1px solid rgba(255,255,255,0.08)',
+        boxShadow: isLight ? '0 2px 16px rgba(0,0,0,0.05)' : 'none',
         scrollMarginTop: '140px',
       }}
       onMouseEnter={e => (e.currentTarget.style.borderColor = `${accentRaw}55`)}
-      onMouseLeave={e => (e.currentTarget.style.borderColor = isLight ? 'rgba(13,37,64,0.10)' : 'rgba(255,255,255,0.08)')}>
+      onMouseLeave={e => (e.currentTarget.style.borderColor = isLight ? 'rgba(226,232,240,0.9)' : 'rgba(255,255,255,0.08)')}>
 
       <div className={`h-1 w-full bg-gradient-to-r ${accent}`} />
 
@@ -154,9 +154,9 @@ function LearnCard({ id, icon: Icon, title, tag, description, isPaid, items, acc
         </div>
 
         <h3 className="text-lg font-bold mb-1.5 leading-snug"
-          style={{ color: isLight ? '#0D2540' : '#fff' }}>{title}</h3>
+          style={{ color: isLight ? '#0f172a' : '#fff' }}>{title}</h3>
         <p className="text-sm leading-relaxed mb-5"
-          style={{ color: isLight ? 'rgba(13,37,64,0.55)' : 'rgba(148,163,184,0.9)' }}>{description}</p>
+          style={{ color: isLight ? '#6b7280' : 'rgba(148,163,184,0.9)' }}>{description}</p>
 
         <div className="flex-1 mb-5">
           {items.map((item: any) => (
@@ -184,9 +184,9 @@ function SectionHeader({ icon: Icon, title, subtitle, iconColor, accentColor, is
         <Icon style={{ color: accentColor }} className="w-5 h-5" />
       </div>
       <div>
-        <h2 className="text-2xl font-bold" style={{ color: isLight ? '#0D2540' : '#fff' }}>{title}</h2>
+        <h2 className="text-2xl font-bold" style={{ color: isLight ? '#0f172a' : '#fff' }}>{title}</h2>
         <p className="text-sm mt-0.5"
-          style={{ color: isLight ? 'rgba(13,37,64,0.50)' : 'rgba(148,163,184,0.8)' }}>{subtitle}</p>
+          style={{ color: isLight ? '#9ca3af' : 'rgba(148,163,184,0.8)' }}>{subtitle}</p>
       </div>
       <div className="flex-1 h-px ml-4"
         style={{ background: `linear-gradient(to right, ${accentColor}40, transparent)` }} />
@@ -212,16 +212,16 @@ const EducationView = () => {
     <Layout>
       <div className="min-h-screen" style={{
         background: isLight
-          ? 'linear-gradient(160deg,#dce8f7 0%,#e8f2fd 45%,#dce8f7 100%)'
+          ? 'linear-gradient(160deg,#f5f4f0 0%,#f8fbff 45%,#f5f4f0 100%)'
           : 'linear-gradient(160deg,#0c1a2e 0%,#0e2038 45%,#0b1825 100%)',
       }}>
 
         {/* HERO */}
         <section className="relative overflow-hidden pt-12 pb-8 md:pt-16 md:pb-10" style={{
           background: isLight
-            ? 'linear-gradient(135deg,#edf5fe 0%,#dce8f7 50%,#e8f2fd 100%)'
+            ? 'linear-gradient(135deg,#f8fbff 0%,#f0f6ff 50%,#eef4fd 100%)'
             : 'linear-gradient(135deg,#0a1628 0%,#0e2038 50%,#0c1a2e 100%)',
-          borderBottom: isLight ? '1px solid rgba(13,37,64,0.10)' : '1px solid rgba(255,255,255,0.06)',
+          borderBottom: isLight ? '1px solid rgba(226,232,240,0.8)' : '1px solid rgba(255,255,255,0.06)',
         }}>
           <div className="absolute top-0 right-0 w-96 h-96 rounded-full blur-[120px] pointer-events-none"
             style={{ background: 'radial-gradient(circle,rgba(81,148,246,0.10) 0%,transparent 70%)' }} />
@@ -238,7 +238,7 @@ const EducationView = () => {
             <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-8">
               <div className="max-w-2xl">
                 <h1 className="text-4xl md:text-5xl font-bold leading-tight mb-4"
-                  style={{ color: isLight ? '#0D2540' : '#fff' }}>
+                  style={{ color: isLight ? '#0f172a' : '#fff' }}>
                   Level Up Your{' '}
                   <span style={{
                     background: 'linear-gradient(135deg,#5194F6,#7ab8fa)',
@@ -246,7 +246,7 @@ const EducationView = () => {
                   }}>Knowledge</span>
                 </h1>
                 <p className="text-base md:text-lg leading-relaxed"
-                  style={{ color: isLight ? 'rgba(13,37,64,0.60)' : 'rgba(148,163,184,0.9)' }}>
+                  style={{ color: isLight ? '#6b7280' : 'rgba(148,163,184,0.9)' }}>
                   From financial fundamentals to personal growth — everything you need to become a sharper, more confident investor.
                 </p>
               </div>
@@ -258,8 +258,8 @@ const EducationView = () => {
                   }}>
                     <StatIcon className="w-4 h-4 text-[#5194F6]" />
                     <div>
-                      <p className="text-base font-bold leading-none" style={{ color: isLight ? '#0D2540' : '#fff' }}>{value}</p>
-                      <p className="text-[11px] mt-0.5" style={{ color: isLight ? 'rgba(13,37,64,0.50)' : 'rgba(148,163,184,0.8)' }}>{label}</p>
+                      <p className="text-base font-bold leading-none" style={{ color: isLight ? '#0f172a' : '#fff' }}>{value}</p>
+                      <p className="text-[11px] mt-0.5" style={{ color: isLight ? '#9ca3af' : 'rgba(148,163,184,0.8)' }}>{label}</p>
                     </div>
                   </div>
                 ))}
@@ -270,8 +270,8 @@ const EducationView = () => {
 
         {/* STICKY NAV */}
         <div className="sticky top-[68px] z-30 shadow-sm backdrop-blur-md" style={{
-          background: isLight ? 'rgba(236,245,254,0.92)' : 'rgba(10,22,40,0.92)',
-          borderBottom: isLight ? '1px solid rgba(13,37,64,0.08)' : '1px solid rgba(255,255,255,0.07)',
+          background: isLight ? 'rgba(245,244,240,0.95)' : 'rgba(10,22,40,0.92)',
+          borderBottom: isLight ? '1px solid rgba(226,232,240,0.8)' : '1px solid rgba(255,255,255,0.07)',
         }}>
           <div className="container mx-auto px-6 py-3 flex gap-2 overflow-x-auto scrollbar-hide">
             {[
@@ -286,7 +286,7 @@ const EducationView = () => {
             ].map((nav, i) =>
               nav.href === null ? (
                 <div key={i} className="w-px flex-none mx-1 self-stretch"
-                  style={{ background: isLight ? 'rgba(13,37,64,0.12)' : 'rgba(255,255,255,0.10)' }} />
+                  style={{ background: isLight ? 'rgba(226,232,240,0.9)' : 'rgba(255,255,255,0.10)' }} />
               ) : (
                 <a key={i} href={nav.href}
                   className="flex-none px-3.5 py-1.5 rounded-full text-sm font-semibold transition-all whitespace-nowrap"
@@ -350,12 +350,12 @@ const EducationView = () => {
                 <Zap className="w-3.5 h-3.5 text-[#5194F6]" />
                 <span className="text-xs font-semibold text-[#5194F6]">Start Today</span>
               </div>
-              <h2 className="text-2xl md:text-3xl font-bold mb-3" style={{ color: isLight ? '#0D2540' : '#fff' }}>
+              <h2 className="text-2xl md:text-3xl font-bold mb-3" style={{ color: isLight ? '#0f172a' : '#fff' }}>
                 Ready to Start Learning?
               </h2>
               <p className="mb-7 max-w-xl mx-auto text-sm md:text-base"
                 style={{ color: isLight ? 'rgba(13,37,64,0.55)' : 'rgba(148,163,184,0.9)' }}>
-                Join <strong style={{ color: isLight ? '#0D2540' : '#fff' }}>18,000+</strong> investors growing their
+                Join <strong style={{ color: isLight ? '#0f172a' : '#fff' }}>18,000+</strong> investors growing their
                 knowledge with InvestBeans' curated content.
               </p>
               <div className="flex flex-wrap items-center justify-center gap-3">
@@ -368,7 +368,7 @@ const EducationView = () => {
                   style={{
                     background: isLight ? 'rgba(13,37,64,0.06)' : 'rgba(255,255,255,0.07)',
                     border: isLight ? '1px solid rgba(13,37,64,0.12)' : '1px solid rgba(255,255,255,0.12)',
-                    color: isLight ? '#0D2540' : '#fff',
+                    color: isLight ? '#0f172a' : '#fff',
                   }}>
                   View Free Content
                 </button>

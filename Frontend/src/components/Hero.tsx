@@ -141,7 +141,7 @@ const SensexNiftyCard = ({ cardBg, cardBorder, isLight, sensex, nifty }) => {
   const niftyPos = (nifty?.chg ?? 0) >= 0;
 
   return (
-    <div style={{ background: cardBg, border: cardBorder }} className="rounded-2xl relative overflow-hidden group hover:scale-[1.02] transition-all duration-300 cursor-pointer md:p-5">
+    <div style={{ background: cardBg, border: cardBorder, boxShadow: isLight ? "0 2px 12px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04)" : "none" }} className="rounded-2xl relative overflow-hidden group hover:scale-[1.02] transition-all duration-300 cursor-pointer md:p-5">
       <div className="md:hidden">
         <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 3, background: "linear-gradient(180deg,#4E91F6,#7ab8fa)", borderRadius: "12px 0 0 12px" }} />
         <div style={{ padding: "10px 10px 10px 14px" }}>
@@ -672,33 +672,33 @@ const Hero = () => {
 
   // ── Theme tokens ─────────────────────────────────────────────────────────
   const sectionStyle = isLight
-    ? { background: "linear-gradient(135deg,#dbe9f9 0%,#e8f2fd 30%,#edf5fe 60%,#dce8f7 100%)" }
+    ? { background: "linear-gradient(135deg,#f8fbff 0%,#ffffff 30%,#f4f8fe 60%,#f0f6ff 100%)" }
     : { background: "linear-gradient(135deg,#101528 0%,#101528 40%,#101528 70%,#101528 100%)" };
   const sectionCls = isLight
-    ? "text-navy py-10 md:py-16 lg:py-20 relative overflow-hidden"
+    ? "text-slate-900 py-10 md:py-16 lg:py-20 relative overflow-hidden"
     : "text-white py-10 md:py-16 lg:py-20 relative overflow-hidden";
-  const cardBg = isLight ? "rgba(255,255,255,0.78)" : "rgba(28,57,91,0.25)";
-  const cardBorder = isLight ? "1px solid rgba(13,37,64,0.10)" : "1px solid rgba(78,145,246,0.18)";
+  const cardBg = isLight ? "rgba(255,255,255,0.95)" : "rgba(28,57,91,0.25)";
+  const cardBorder = isLight ? "1px solid rgba(226,232,240,0.9)" : "1px solid rgba(78,145,246,0.18)";
   const tabWrapStyle = isLight
-    ? { display: "inline-flex", alignItems: "center", gap: 6, background: "#fff", border: "1.5px solid #CBD5E1", borderRadius: 18, padding: 6, boxShadow: "0 4px 24px rgba(13,27,64,0.10)" }
+    ? { display: "inline-flex", alignItems: "center", gap: 6, background: "#fff", border: "1.5px solid #e2e8f0", borderRadius: 18, padding: 6, boxShadow: "0 4px 24px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.04)" }
     : { display: "inline-flex", alignItems: "center", gap: 6, background: "#101528", border: "1.5px solid #1C395B", borderRadius: 18, padding: 6, boxShadow: "0 4px 32px rgba(78,145,246,0.12)" };
   const activeTabStyle = { background: "linear-gradient(135deg,#1d4ed8,#4E91F6,#6366f1)", color: "#fff", fontWeight: 700, boxShadow: "0 4px 20px rgba(78,145,246,0.50)", border: "none" };
   const inactiveTabStyle = isLight
-    ? { background: "#F1F5F9", color: "#1E293B", fontWeight: 600, border: "1.5px solid #CBD5E1" }
+    ? { background: "#f8fafc", color: "#475569", fontWeight: 600, border: "1.5px solid #e2e8f0" }
     : { background: "rgba(28,57,91,0.35)", color: "#c8dff8", fontWeight: 600, border: "1.5px solid #1C395B" };
   const inactiveHoverStyle = isLight
-    ? { background: "#E2E8F0", color: "#0F172A", border: "1.5px solid #94A3B8" }
+    ? { background: "#f1f5f9", color: "#1e293b", border: "1.5px solid #cbd5e1" }
     : { background: "#1C395B", color: "#4E91F6", border: "1.5px solid #4E91F6" };
 
   return (
     <section className={sectionCls} style={sectionStyle}>
       {/* Blobs */}
-      <div style={{ position: "absolute", top: 0, right: 0, width: "32rem", height: "32rem", borderRadius: "50%", background: isLight ? "rgba(59,130,246,0.12)" : "rgba(78,145,246,0.08)", filter: "blur(80px)", pointerEvents: "none" }} />
-      <div style={{ position: "absolute", bottom: 0, left: 0, width: "32rem", height: "32rem", borderRadius: "50%", background: isLight ? "rgba(99,102,241,0.10)" : "rgba(28,57,91,0.60)", filter: "blur(80px)", pointerEvents: "none" }} />
-      <div style={{ position: "absolute", top: "40%", left: "30%", width: "20rem", height: "20rem", borderRadius: "50%", background: isLight ? "rgba(14,165,233,0.07)" : "rgba(78,145,246,0.05)", filter: "blur(60px)", pointerEvents: "none" }} />
+      <div style={{ position: "absolute", top: 0, right: 0, width: "32rem", height: "32rem", borderRadius: "50%", background: isLight ? "rgba(59,130,246,0.07)" : "rgba(78,145,246,0.08)", filter: "blur(80px)", pointerEvents: "none" }} />
+      <div style={{ position: "absolute", bottom: 0, left: 0, width: "32rem", height: "32rem", borderRadius: "50%", background: isLight ? "rgba(99,102,241,0.06)" : "rgba(28,57,91,0.60)", filter: "blur(80px)", pointerEvents: "none" }} />
+      <div style={{ position: "absolute", top: "40%", left: "30%", width: "20rem", height: "20rem", borderRadius: "50%", background: isLight ? "rgba(14,165,233,0.04)" : "rgba(78,145,246,0.05)", filter: "blur(60px)", pointerEvents: "none" }} />
       {/* Grid */}
       <div className="absolute inset-0 pointer-events-none"
-        style={{ backgroundImage: isLight ? `linear-gradient(#0d2540 1px,transparent 1px),linear-gradient(90deg,#0d2540 1px,transparent 1px)` : `linear-gradient(#1C395B 1px,transparent 1px),linear-gradient(90deg,#1C395B 1px,transparent 1px)`, backgroundSize: "40px 40px", opacity: isLight ? 0.04 : 0.12 }} />
+        style={{ backgroundImage: isLight ? `linear-gradient(#94a3b8 1px,transparent 1px),linear-gradient(90deg,#94a3b8 1px,transparent 1px)` : `linear-gradient(#1C395B 1px,transparent 1px),linear-gradient(90deg,#1C395B 1px,transparent 1px)`, backgroundSize: "40px 40px", opacity: isLight ? 0.035 : 0.12 }} />
 
       <div className="container mx-auto px-4 sm:px-6 relative z-10">
         <div className="max-w-5xl mx-auto text-center animate-fade-in">

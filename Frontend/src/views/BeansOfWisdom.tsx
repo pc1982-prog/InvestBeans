@@ -83,51 +83,51 @@ export default function BeansOfWisdomView() {
 
   const handleFormSuccess = () => { fetchBeans(); setShowEditForm(false); };
 
-  /* ══ Colors — unchanged ══ */
-  const sectionHeadingColor = isLight ? "#0d1b2a" : "white";
-  const sectionSubColor     = isLight ? "rgba(13,37,64,0.55)" : "rgba(203,213,225,1)";
+  /* ══ Colors — enhanced light mode ══ */
+  const sectionHeadingColor = isLight ? "#0f172a" : "white";
+  const sectionSubColor     = isLight ? "#64748b" : "rgba(203,213,225,1)";
 
-  const cardWrapBorder  = isLight ? "1px solid rgba(13,37,64,0.12)" : "1px solid rgba(81,148,246,0.2)";
-  const cardWrapBg      = isLight ? "#f0f7fe" : "#0F172A";
-  const cardWrapShadow  = isLight ? "0 8px 32px rgba(13,37,64,0.08)" : "0 8px 32px rgba(0,0,0,0.35)";
+  const cardWrapBorder  = isLight ? "1px solid rgba(226,232,240,0.9)" : "1px solid rgba(81,148,246,0.2)";
+  const cardWrapBg      = isLight ? "#ffffff" : "#0F172A";
+  const cardWrapShadow  = isLight ? "0 8px 40px rgba(0,0,0,0.06), 0 2px 8px rgba(0,0,0,0.04)" : "0 8px 32px rgba(0,0,0,0.35)";
 
-  const leftColBg       = isLight ? "#dce8f7" : "#1E293B";
-  const dividerColor    = isLight ? "rgba(13,37,64,0.08)" : "rgba(81,148,246,0.1)";
+  const leftColBg       = isLight ? "#f8fbff" : "#1E293B";
+  const dividerColor    = isLight ? "rgba(226,232,240,0.8)" : "rgba(81,148,246,0.1)";
 
-  const badgeBg         = isLight ? "rgba(13,37,64,0.06)" : "rgba(81,148,246,0.08)";
-  const badgeBorder     = isLight ? "1px solid rgba(13,37,64,0.1)" : "1px solid rgba(81,148,246,0.18)";
-  const badgeTextColor  = isLight ? "rgba(13,37,64,0.65)" : "rgba(255,255,255,0.85)";
+  const badgeBg         = isLight ? "rgba(248,250,252,0.9)" : "rgba(81,148,246,0.08)";
+  const badgeBorder     = isLight ? "1px solid rgba(226,232,240,0.9)" : "1px solid rgba(81,148,246,0.18)";
+  const badgeTextColor  = isLight ? "#475569" : "rgba(255,255,255,0.85)";
 
-  const heroTitleColor    = isLight ? "#0d1b2a" : "white";
-  const heroSubtitleColor = isLight ? "rgba(13,37,64,0.55)" : "rgba(255,255,255,0.60)";
+  const heroTitleColor    = isLight ? "#0f172a" : "white";
+  const heroSubtitleColor = isLight ? "#64748b" : "rgba(255,255,255,0.60)";
 
-  const tagBg     = isLight ? "rgba(13,37,64,0.07)" : "rgba(81,148,246,0.1)";
-  const tagBorder = isLight ? "1px solid rgba(13,37,64,0.1)" : "1px solid rgba(81,148,246,0.2)";
-  const tagColor  = isLight ? "rgba(13,37,64,0.6)" : "rgba(129,174,249,1)";
+  const tagBg     = isLight ? "rgba(241,245,249,0.9)" : "rgba(81,148,246,0.1)";
+  const tagBorder = isLight ? "1px solid rgba(226,232,240,0.8)" : "1px solid rgba(81,148,246,0.2)";
+  const tagColor  = isLight ? "#64748b" : "rgba(129,174,249,1)";
 
-  const descIconBg     = isLight ? "rgba(13,37,64,0.06)" : "rgba(81,148,246,0.08)";
-  const descIconBorder = isLight ? "1px solid rgba(13,37,64,0.1)" : "1px solid rgba(255,255,255,0.10)";
-  const descTextColor  = isLight ? "rgba(13,37,64,0.60)" : "rgba(255,255,255,0.60)";
+  const descIconBg     = isLight ? "rgba(239,246,255,0.9)" : "rgba(81,148,246,0.08)";
+  const descIconBorder = isLight ? "1px solid rgba(219,234,254,0.8)" : "1px solid rgba(255,255,255,0.10)";
+  const descTextColor  = isLight ? "#475569" : "rgba(255,255,255,0.60)";
 
-  const keyPrincipleBg         = isLight ? "#c8ddf5" : "rgba(81,148,246,0.12)";
-  const keyPrincipleBorderClr  = isLight ? "rgba(13,37,64,0.1)" : "#1E293B";
-  const keyPrincipleTextColor  = isLight ? "#0d1b2a" : "white";
+  const keyPrincipleBg         = isLight ? "#eff6ff" : "rgba(81,148,246,0.12)";
+  const keyPrincipleBorderClr  = isLight ? "rgba(219,234,254,0.8)" : "#1E293B";
+  const keyPrincipleTextColor  = isLight ? "#0f172a" : "white";
 
-  const insightPanelBg     = isLight ? "#dce8f7" : "#1E293B";
-  const insightPanelBorder = isLight ? "rgba(13,37,64,0.08)" : "#1C3656";
-  const insightIconBg      = isLight ? "rgba(81,148,246,0.12)" : "rgba(81,148,246,0.12)";
-  const insightIconBorder  = isLight ? "1px solid rgba(81,148,246,0.22)" : "1px solid rgba(81,148,246,0.22)";
-  const insightTextColor   = isLight ? "rgba(13,37,64,0.65)" : "rgba(203,213,225,1)";
+  const insightPanelBg     = isLight ? "#f8fbff" : "#1E293B";
+  const insightPanelBorder = isLight ? "rgba(226,232,240,0.8)" : "#1C3656";
+  const insightIconBg      = isLight ? "rgba(239,246,255,0.9)" : "rgba(81,148,246,0.12)";
+  const insightIconBorder  = isLight ? "1px solid rgba(219,234,254,0.8)" : "1px solid rgba(81,148,246,0.22)";
+  const insightTextColor   = isLight ? "#475569" : "rgba(203,213,225,1)";
 
-  const quotePanelBg   = isLight ? "#dce8f7" : "#1E293B";
-  const quoteTextColor = isLight ? "rgba(13,37,64,0.60)" : "rgba(129,174,249,1)";
+  const quotePanelBg   = isLight ? "#f8fbff" : "#1E293B";
+  const quoteTextColor = isLight ? "#64748b" : "rgba(129,174,249,1)";
 
-  const errorBg     = isLight ? "rgba(220,38,38,0.05)" : "rgba(220,38,38,0.1)";
-  const errorBorder = isLight ? "1px solid rgba(220,38,38,0.2)" : "1px solid rgba(239,68,68,0.5)";
-  const errorColor  = isLight ? "#991b1b" : "rgba(252,165,165,1)";
+  const errorBg     = isLight ? "rgba(254,242,242,1)" : "rgba(220,38,38,0.1)";
+  const errorBorder = isLight ? "1px solid rgba(254,202,202,0.8)" : "1px solid rgba(239,68,68,0.5)";
+  const errorColor  = isLight ? "#dc2626" : "rgba(252,165,165,1)";
 
   const emptyIconColor = "#5194F6";
-  const emptyTextColor = isLight ? "rgba(13,37,64,0.45)" : "rgba(148,163,184,1)";
+  const emptyTextColor = isLight ? "#94a3b8" : "rgba(148,163,184,1)";
   const spinnerColor   = isLight ? "#3a7de8" : "#5194F6";
 
   /* ── Loading ── */

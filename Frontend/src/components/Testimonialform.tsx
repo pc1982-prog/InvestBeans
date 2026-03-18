@@ -101,15 +101,15 @@ export default function TestimonialForm({ isOpen, onClose, onSuccess, existing }
     };
 
     // ── Theme tokens ─────────────────────────────────────────────────────────
-    const overlayBg = "rgba(0,0,0,0.6)";
-    const modalBg = isLight ? "#fff" : "#101528";
-    const modalBorder = isLight ? "1px solid rgba(13,37,64,0.12)" : "1px solid #1C3656";
-    const labelColor = isLight ? "rgba(13,37,64,0.65)" : "rgba(203,213,225,1)";
-    const inputBg = isLight ? "rgba(13,37,64,0.04)" : "rgba(28,54,86,0.40)";
-    const inputBorder = isLight ? "1px solid rgba(13,37,64,0.15)" : "1px solid #1C3656";
-    const inputColor = isLight ? "#0d1b2a" : "#E8EDF5";
-    const titleColor = isLight ? "#0d1b2a" : "white";
-    const errorBg = isLight ? "rgba(220,38,38,0.07)" : "rgba(220,38,38,0.12)";
+    const overlayBg = "rgba(0,0,0,0.5)";
+    const modalBg = isLight ? "#ffffff" : "#101528";
+    const modalBorder = isLight ? "1px solid rgba(226,232,240,0.9)" : "1px solid #1C3656";
+    const labelColor = isLight ? "#64748b" : "rgba(203,213,225,1)";
+    const inputBg = isLight ? "rgba(248,250,252,0.9)" : "rgba(28,54,86,0.40)";
+    const inputBorder = isLight ? "1px solid rgba(226,232,240,0.9)" : "1px solid #1C3656";
+    const inputColor = isLight ? "#1e293b" : "#E8EDF5";
+    const titleColor = isLight ? "#0f172a" : "white";
+    const errorBg = isLight ? "rgba(254,242,242,1)" : "rgba(220,38,38,0.12)";
 
     const inputStyle: React.CSSProperties = {
         width: "100%", boxSizing: "border-box", padding: "10px 14px",

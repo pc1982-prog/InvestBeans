@@ -30,53 +30,53 @@ const HomeView = ({ activeTab, onChangeTab }: HomeViewProps) => {
 
   // ── Page background ───────────────────────────────────────────────────────
   const pageBg = isLight
-    ? "linear-gradient(160deg,#dce8f7 0%,#e8f2fd 45%,#dce8f7 100%)"
+    ? "linear-gradient(160deg,#f8fbff 0%,#ffffff 45%,#f4f8fe 100%)"
     : "linear-gradient(160deg,#101528 0%,#101528 45%,#101528 100%)";
 
   const goldBadge = isLight
-    ? { background: "rgba(81,148,246,0.12)", border: "1px solid rgba(81,148,246,0.30)" }
+    ? { background: "rgba(81,148,246,0.08)", border: "1px solid rgba(81,148,246,0.20)" }
     : { background: "rgba(81,148,246,0.10)", border: "1px solid rgba(81,148,246,0.22)" };
 
-  const headingCls = isLight ? "text-navy" : "text-white";
-  const subTextCls = isLight ? "text-navy/60" : "text-slate-400";
+  const headingCls = isLight ? "text-slate-900" : "text-white";
+  const subTextCls = isLight ? "text-slate-500" : "text-slate-400";
 
-  const cardBg = isLight ? "rgba(255,255,255,0.75)" : "rgba(28,54,86,0.18)";
+  const cardBg = isLight ? "rgba(255,255,255,0.95)" : "rgba(28,54,86,0.18)";
   const cardBorder = isLight
-    ? "1px solid rgba(13,37,64,0.1)"
+    ? "1px solid rgba(226,232,240,0.8)"
     : "1px solid rgba(81,148,246,0.10)";
 
   const sectionWrapBg = isLight
-    ? "linear-gradient(135deg,#edf5fe 0%,#dce8f7 100%)"
+    ? "linear-gradient(135deg,#f0f7ff 0%,#f8fbff 100%)"
     : "linear-gradient(135deg,#1C3656 0%,#101528 100%)";
   const sectionWrapBorder = isLight
-    ? "1px solid rgba(13,37,64,0.1)"
+    ? "1px solid rgba(226,232,240,0.7)"
     : "1px solid rgba(81,148,246,0.10)";
   const sectionTopLine = isLight
-    ? "linear-gradient(90deg,transparent,rgba(81,148,246,0.45),transparent)"
+    ? "linear-gradient(90deg,transparent,rgba(81,148,246,0.35),transparent)"
     : "linear-gradient(90deg,transparent,rgba(81,148,246,0.50),transparent)";
 
   const tabContainerBg = isLight
-    ? "rgba(255,255,255,0.6)"
+    ? "rgba(255,255,255,0.9)"
     : "rgba(28,54,86,0.25)";
   const tabContainerBorder = isLight
-    ? "1px solid rgba(13,37,64,0.12)"
+    ? "1px solid rgba(226,232,240,0.8)"
     : "1px solid rgba(81,148,246,0.15)";
-  const tabInactiveCls = isLight ? "text-navy/50" : "#94a3b8";
+  const tabInactiveCls = isLight ? "#64748b" : "#94a3b8";
 
   const widgetBorder = isLight
-    ? "1px solid rgba(13,37,64,0.1)"
+    ? "1px solid rgba(226,232,240,0.8)"
     : "1px solid rgba(81,148,246,0.12)";
 
   const glow1 = isLight
-    ? "radial-gradient(circle,rgba(81,148,246,0.08) 0%,transparent 70%)"
+    ? "radial-gradient(circle,rgba(81,148,246,0.06) 0%,transparent 70%)"
     : "radial-gradient(circle,rgba(81,148,246,0.06) 0%,transparent 70%)";
   const glow2 = isLight
-    ? "radial-gradient(circle,rgba(59,130,246,0.07) 0%,transparent 70%)"
+    ? "radial-gradient(circle,rgba(59,130,246,0.05) 0%,transparent 70%)"
     : "radial-gradient(circle,rgba(56,189,248,0.04) 0%,transparent 70%)";
 
-  const emailInputBg = isLight ? "rgba(255,255,255,0.8)" : "rgba(28,54,86,0.30)";
-  const emailInputBorder = isLight ? "1px solid rgba(13,37,64,0.12)" : "1px solid rgba(81,148,246,0.15)";
-  const emailInputText = isLight ? "#0d1b2a" : "white";
+  const emailInputBg = isLight ? "rgba(255,255,255,0.95)" : "rgba(28,54,86,0.30)";
+  const emailInputBorder = isLight ? "1px solid rgba(226,232,240,0.8)" : "1px solid rgba(81,148,246,0.15)";
+  const emailInputText = isLight ? "#1e293b" : "white";
 
   const checkoutHandler = async (amount: number) => {
     const API_URL = import.meta.env.VITE_API_URL;

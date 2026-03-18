@@ -6,8 +6,11 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Lock, Eye, EyeOff, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 import { useToast, ToastContainer } from "@/components/ui/Toasts";
 import axios from "axios";
+import { useTheme } from "@/controllers/Themecontext";
 
 const ResetPasswordView = () => {
+  const { theme } = useTheme();
+  const isLight = theme === "light";
   const { toasts, removeToast, showSuccess, showError } = useToast();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -106,10 +109,10 @@ const ResetPasswordView = () => {
   // Show loading while verifying token
   if (tokenValid === null) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-950/95">
+      <div className={`min-h-screen flex items-center justify-center ${isLight ? "bg-[#f5f4f0]" : "bg-slate-950/95"}`}>
         <div className="text-center">
           <Loader2 className="w-12 h-12 animate-spin text-[#5194F6] mx-auto mb-4" />
-          <p className="text-white/50">Verifying reset link...</p>
+          <p className={`${isLight ? "text-gray-400" : "text-white/50"}`}>Verifying reset link...</p>
         </div>
       </div>
     );
@@ -121,19 +124,19 @@ const ResetPasswordView = () => {
       <>
         <ToastContainer toasts={toasts} removeToast={removeToast} />
         
-        <div className="min-h-screen flex items-center justify-center bg-slate-950/95 px-4 py-12">
+        <div className={`min-h-screen flex items-center justify-center px-4 py-12 ${isLight ? "bg-[#f5f4f0]" : "bg-slate-950/95"}`}>
           <div className="w-full max-w-md">
-            <div className="relative overflow-hidden rounded-[32px] border border-white/10 bg-white/5 backdrop-blur-2xl p-8 sm:p-10">
+            <div className={`relative overflow-hidden rounded-[32px] p-8 sm:p-10 ${isLight ? "bg-white border border-gray-100 shadow-xl" : "border border-white/10 bg-white/5 backdrop-blur-2xl"}`}>
               <div className="text-center">
                 <div className="inline-flex items-center justify-center w-16 h-16 bg-red-500/20 border border-red-500/30 rounded-full mb-6">
                   <AlertCircle className="w-8 h-8 text-red-400" />
                 </div>
                 
-                <h1 className="text-3xl font-bold text-white tracking-tight mb-3">
+                <h1 className={`text-3xl font-bold tracking-tight mb-3 ${isLight ? "text-gray-900" : "text-white"}`}>
                   Invalid Reset Link
                 </h1>
                 
-                <p className="text-white/60 mb-6">
+                <p className={`mb-6 ${isLight ? "text-gray-500" : "text-white/60"}`}>
                   {error || "This password reset link is invalid or has expired."}
                 </p>
 
@@ -146,7 +149,7 @@ const ResetPasswordView = () => {
                   </Button>
                 </Link>
 
-                <p className="text-center text-sm text-white/50 mt-6">
+                <p className={`text-center text-sm mt-6 ${isLight ? "text-gray-400" : "text-white/50"}`}>
                   <Link to="/signin" className="font-semibold text-[#5194F6] hover:text-[#7ab8fa] hover:underline">
                     Back to Sign In
                   </Link>
@@ -163,10 +166,10 @@ const ResetPasswordView = () => {
     <>
       <ToastContainer toasts={toasts} removeToast={removeToast} />
       
-      <div className="min-h-screen flex items-center justify-center bg-slate-950/95 px-4 py-12">
+      <div className={`min-h-screen flex items-center justify-center px-4 py-12 ${isLight ? "bg-[#f5f4f0]" : "bg-slate-950/95"}`}>
         <div className="w-full max-w-md">
           {/* Main Card */}
-          <div className="relative overflow-hidden rounded-[32px] border border-white/10 bg-white/5 backdrop-blur-2xl p-8 sm:p-10">
+          <div className={`relative overflow-hidden rounded-[32px] p-8 sm:p-10 ${isLight ? "bg-white border border-gray-100 shadow-xl" : "border border-white/10 bg-white/5 backdrop-blur-2xl"}`}>
             {!resetSuccess ? (
               <>
                 {/* Logo & Heading */}
@@ -176,22 +179,22 @@ const ResetPasswordView = () => {
                       <span className="text-white text-2xl font-bold">IB</span>
                     </div>
                   </div>
-                  <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
+                  <h1 className={`text-3xl font-bold tracking-tight ${isLight ? "text-gray-900" : "text-white"}`}>
                     Reset Password
                   </h1>
-                  <p className="text-white/50 mt-2 text-sm">
+                  <p className={`mt-2 text-sm ${isLight ? "text-gray-400" : "text-white/50"}`}>
                     Enter your new password below
                   </p>
                 </div>
 
                 {/* Error Alert */}
                 {error && (
-                  <div className="mb-6 bg-red-500/10 border border-red-500/30 rounded-xl p-4">
+                  <div className={`mb-6 rounded-xl p-4 ${isLight ? "bg-red-50 border border-red-200" : "bg-red-500/10 border border-red-500/30"}`}>
                     <div className="flex items-start gap-3">
                       <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
                       <div>
-                        <p className="text-sm font-medium text-red-300">Error</p>
-                        <p className="text-sm text-red-400 mt-1">{error}</p>
+                        <p className={`text-sm font-medium ${isLight ? "text-red-700" : "text-red-300"}`}>Error</p>
+                        <p className={`text-sm mt-1 ${isLight ? "text-red-600" : "text-red-400"}`}>{error}</p>
                       </div>
                     </div>
                   </div>
@@ -338,7 +341,7 @@ const ResetPasswordView = () => {
                     Password Reset Successful!
                   </h1>
                   
-                  <p className="text-white/60 mb-6">
+                  <p className={`mb-6 ${isLight ? "text-gray-500" : "text-white/60"}`}>
                     Your password has been successfully reset. You can now sign in with your new password.
                   </p>
                   
@@ -353,7 +356,7 @@ const ResetPasswordView = () => {
 
             {/* Sign In Link */}
             {!resetSuccess && (
-              <p className="text-center text-sm text-white/50 mt-6">
+              <p className={`text-center text-sm mt-6 ${isLight ? "text-gray-400" : "text-white/50"}`}>
                 Remember your password?{" "}
                 <Link to="/signin" className="font-semibold text-[#5194F6] hover:text-[#7ab8fa] hover:underline">
                   Sign In

@@ -112,18 +112,18 @@ function TestimonialCard({
 }) {
   const [hovered, setHovered] = useState(false);
 
-  const cardBg           = isLight ? "rgba(255,255,255,0.85)" : "rgba(28,54,86,0.25)";
-  const cardBorderNormal = isLight ? "rgba(13,37,64,0.1)" : "rgba(81,148,246,0.15)";
+  const cardBg           = isLight ? "rgba(255,255,255,0.98)" : "rgba(28,54,86,0.25)";
+  const cardBorderNormal = isLight ? "rgba(226,232,240,0.9)" : "rgba(81,148,246,0.15)";
   const cardBorderHover  = "#5194F6";
-  const cardShadowNormal = isLight ? "0 2px 12px rgba(13,37,64,0.06)" : "0 2px 16px rgba(0,0,0,0.30)";
-  const cardShadowHover  = "0 16px 48px rgba(81,148,246,0.18)";
-  const reviewTextColor  = isLight ? "rgba(13,37,64,0.65)" : "rgba(226,232,240,1)";
-  const nameColor        = isLight ? "#0d1b2a" : "white";
-  const roleColor        = isLight ? "rgba(13,37,64,0.5)" : "rgba(148,163,184,1)";
-  const avatarBg         = isLight ? "rgba(81,148,246,0.15)" : "rgba(81,148,246,0.15)";
-  const sourceColor      = isLight ? "rgba(13,37,64,0.4)" : "rgba(100,116,139,1)";
-  const sourceDotColor   = isLight ? "rgba(13,37,64,0.2)" : "rgba(255,255,255,0.20)";
-  const tagBg            = isLight ? "rgba(81,148,246,0.12)" : "rgba(81,148,246,0.12)";
+  const cardShadowNormal = isLight ? "0 2px 16px rgba(0,0,0,0.05), 0 1px 4px rgba(0,0,0,0.03)" : "0 2px 16px rgba(0,0,0,0.30)";
+  const cardShadowHover  = isLight ? "0 20px 60px rgba(81,148,246,0.14), 0 4px 16px rgba(0,0,0,0.06)" : "0 16px 48px rgba(81,148,246,0.18)";
+  const reviewTextColor  = isLight ? "#475569" : "rgba(226,232,240,1)";
+  const nameColor        = isLight ? "#0f172a" : "white";
+  const roleColor        = isLight ? "#94a3b8" : "rgba(148,163,184,1)";
+  const avatarBg         = isLight ? "rgba(81,148,246,0.10)" : "rgba(81,148,246,0.15)";
+  const sourceColor      = isLight ? "#94a3b8" : "rgba(100,116,139,1)";
+  const sourceDotColor   = isLight ? "rgba(148,163,184,0.4)" : "rgba(255,255,255,0.20)";
+  const tagBg            = isLight ? "rgba(81,148,246,0.08)" : "rgba(81,148,246,0.12)";
 
   return (
     <div
@@ -238,15 +238,15 @@ function TestimonialCard({
 
 // ─── Full-review Modal ─────────────────────────────────────────────────────
 function Modal({ t, onClose, isLight }: { t: Testimonial; onClose: () => void; isLight: boolean }) {
-  const modalBg      = isLight ? "linear-gradient(160deg,#f0f7fe 0%,#e8f2fd 100%)" : "linear-gradient(160deg,#0d1f38 0%,#0c1a2e 100%)";
-  const modalBorder  = isLight ? "1px solid rgba(13,37,64,0.12)" : "1px solid rgba(255,255,255,0.1)";
-  const titleColor   = isLight ? "#0d1b2a" : "white";
-  const metaColor    = isLight ? "rgba(13,37,64,0.5)" : "rgba(148,163,184,1)";
-  const dividerColor = isLight ? "rgba(13,37,64,0.08)" : "rgba(255,255,255,0.08)";
-  const bodyColor    = isLight ? "rgba(13,37,64,0.65)" : "rgba(226,232,240,1)";
-  const avatarBg     = isLight ? "rgba(81,148,246,0.15)" : "rgba(81,148,246,0.18)";
-  const closeBtnBg   = isLight ? "rgba(13,37,64,0.07)" : "rgba(255,255,255,0.1)";
-  const closeBtnColor = isLight ? "rgba(13,37,64,0.5)" : "rgba(203,213,225,1)";
+  const modalBg      = isLight ? "#ffffff" : "linear-gradient(160deg,#0d1f38 0%,#0c1a2e 100%)";
+  const modalBorder  = isLight ? "1px solid rgba(226,232,240,0.8)" : "1px solid rgba(255,255,255,0.1)";
+  const titleColor   = isLight ? "#0f172a" : "white";
+  const metaColor    = isLight ? "#94a3b8" : "rgba(148,163,184,1)";
+  const dividerColor = isLight ? "rgba(226,232,240,0.8)" : "rgba(255,255,255,0.08)";
+  const bodyColor    = isLight ? "#475569" : "rgba(226,232,240,1)";
+  const avatarBg     = isLight ? "rgba(81,148,246,0.10)" : "rgba(81,148,246,0.18)";
+  const closeBtnBg   = isLight ? "rgba(226,232,240,0.6)" : "rgba(255,255,255,0.1)";
+  const closeBtnColor = isLight ? "#64748b" : "rgba(203,213,225,1)";
 
   return (
     <div
@@ -428,11 +428,11 @@ export default function TestimonialsPage() {
   const showEditBtn  = isLoggedIn && !isAdmin &&  userAlreadyPosted && !!myTestimonial && !authLoading;
 
   // Theme tokens
-  const headingColor    = isLight ? "#0d1b2a" : "#E8EDF5";
-  const subHeadingColor = isLight ? "rgba(13,37,64,0.55)" : "rgba(255,255,255,0.50)";
-  const badgeBg         = isLight ? "rgba(81,148,246,0.12)" : "rgba(81,148,246,0.10)";
-  const badgeBorder     = isLight ? "1px solid rgba(81,148,246,0.30)" : "1px solid rgba(81,148,246,0.25)";
-  const dotInactive     = isLight ? "rgba(13,37,64,0.15)" : "rgba(255,255,255,0.18)";
+  const headingColor    = isLight ? "#0f172a" : "#E8EDF5";
+  const subHeadingColor = isLight ? "#94a3b8" : "rgba(255,255,255,0.50)";
+  const badgeBg         = isLight ? "rgba(81,148,246,0.08)" : "rgba(81,148,246,0.10)";
+  const badgeBorder     = isLight ? "1px solid rgba(81,148,246,0.20)" : "1px solid rgba(81,148,246,0.25)";
+  const dotInactive     = isLight ? "rgba(203,213,225,0.7)" : "rgba(255,255,255,0.18)";
 
   return (
     <section
