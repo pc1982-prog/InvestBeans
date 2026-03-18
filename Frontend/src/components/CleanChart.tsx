@@ -140,7 +140,7 @@ const CleanChart = ({
   const fetch_ = useCallback(async (p: Period) => {
     setLoading(true);
     try {
-      const r = await fetch(`${API_BASE}/kite/markets/history/${encodeURIComponent(symbol)}?period=${p}`);
+      const r = await fetch(`${API_BASE}/api/v1/markets/history/${encodeURIComponent(symbol)}?period=${p}`);
       if (!r.ok) throw new Error(`${r.status}`);
       const d = await r.json();
       const c: CandlePoint[] = d.candles || [];

@@ -13,11 +13,15 @@ const ENV_PATH   = path.resolve(__dirname, "../../.env");
 const router     = express.Router();
 const API_KEY    = process.env.KITE_API_KEY;
 const API_SECRET = process.env.KITE_API_SECRET;
-let   ACCESS_TOKEN = process.env.KITE_ACCESS_TOKEN || "";
+
+// ✅ FIX: autoLoginKite process.env.KITE_ACCESS_TOKEN update karta hai
+// headers() ab runtime pe fresh token read karta hai — stale nahi hoga
+const getToken = () => process.env.KITE_ACCESS_TOKEN || "";
+let ACCESS_TOKEN = getToken(); // backward compat ke liye (callback mein use hota hai)
 
 const headers = () => ({
   "X-Kite-Version": "3",
-  Authorization: `token ${API_KEY}:${ACCESS_TOKEN}`,
+  Authorization: `token ${API_KEY}:${getToken()}`,
 });
 
 // Helper: build ?i=X&i=Y query string (Kite requires repeated params)
@@ -62,6 +66,7 @@ router.get("/callback", async (req, res) => {
     );
 
     ACCESS_TOKEN = r.data.data.access_token;
+    process.env.KITE_ACCESS_TOKEN = ACCESS_TOKEN; // ✅ process.env update karo
     const user   = r.data.data;
     console.log(`\n✅ NEW TOKEN: ${ACCESS_TOKEN}\n`);
 

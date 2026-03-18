@@ -1,10 +1,13 @@
 import dotenv from "dotenv";
-import http from "http";                              // ← NEW
-import { Server as SocketIOServer } from "socket.io"; // ← NEW
+import http from "http";
+import { Server as SocketIOServer } from "socket.io";
 import connectDB from "./db/index.js";
 import Razorpay from "razorpay";
 import { app } from './app.js';
-import { kiteWS } from "./utils/kiteWebSocket.js";    // ← NEW
+import { kiteWS } from "./utils/kiteWebSocket.js";
+import cron from "node-cron";                                        // ← NEW
+import { autoLoginKite, loadTokenFromDB } from "./utils/kiteAutoLogin.js"; // ← NEW
+import { TokenModel } from "./models/TokenModel.js";                 // ← NEW
 
 dotenv.config();
 
@@ -52,7 +55,6 @@ connectDB()
         const PORT = process.env.PORT || 8000;
         const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:8080";
 
-        // ── NEW: HTTP server wrap (Express + Socket.IO same port) ──────
         const httpServer = http.createServer(app);
 
         const io = new SocketIOServer(httpServer, {
@@ -71,26 +73,20 @@ connectDB()
             transports: ["websocket", "polling"],
         });
 
-        // Attach Socket.IO to Kite WebSocket manager
         kiteWS.attachSocketIO(io);
 
         io.on("connection", (socket) => {
             console.log(`🖥️  Frontend WS connected: ${socket.id}`);
-
-            // Send cached ticks immediately so UI doesn't wait
             const cached = kiteWS.getLastTicks();
             if (Object.keys(cached).length > 0) {
                 socket.emit("kite:ticks", cached);
             }
             socket.emit("kite:status", { connected: kiteWS.isConnected() });
-
             socket.on("disconnect", () => {
                 console.log(`🖥️  Frontend WS disconnected: ${socket.id}`);
             });
         });
-        // ── END NEW ────────────────────────────────────────────────────
 
-        // ── CHANGED: httpServer.listen instead of app.listen ──────────
         const server = httpServer.listen(PORT, () => {
             console.log('\n' + '='.repeat(50));
             console.log(`✅  Server is running on port: ${PORT}`);
@@ -108,16 +104,54 @@ connectDB()
             console.log('   - Health: /health');
             console.log('='.repeat(50) + '\n');
 
-            // ── NEW: Start Kite WebSocket after server is up ───────────
-            const apiKey      = process.env.KITE_API_KEY;
-            const accessToken = process.env.KITE_ACCESS_TOKEN;
-            if (apiKey && accessToken) {
-                console.log("🔌 Starting Kite WebSocket streaming...");
-                kiteWS.connect(apiKey, accessToken);
-            } else {
-                console.warn("⚠️  KITE_ACCESS_TOKEN not set — visit /api/v1/kite/login to authenticate");
-            }
-            // ── END NEW ────────────────────────────────────────────────
+            // ═══════════════════════════════════════════════════════
+            // KITE AUTO LOGIN SETUP
+            // ═══════════════════════════════════════════════════════
+
+            // Server start pe DB se token load karo
+            // Agar token nahi mila toh auto-login karo
+            (async () => {
+                const token = await loadTokenFromDB();
+                if (!token) {
+                    console.log("🔐 DB mein token nahi — auto-login try kar raha hoon...");
+                    await autoLoginKite();
+                }
+            })();
+
+            // Har weekday 8:55 AM IST pe auto-login
+            // Market 9:15 AM pe khulti hai — 20 min pehle ready
+            cron.schedule("55 8 * * 1-5", async () => {
+                console.log("⏰ Daily Kite auto-login cron triggered (8:55 AM IST)");
+                await autoLoginKite();
+            }, { timezone: "Asia/Kolkata" });
+
+            // Safety net — 9:05 AM pe check karo
+            // Agar server restart 8:55-9:05 ke beech hua toh yeh backup kaam aayega
+            cron.schedule("5 9 * * 1-5", async () => {
+                try {
+                    const doc = await TokenModel.findOne({ key: "kite_token" });
+                    const lastUpdate = doc?.updatedAt ? new Date(doc.updatedAt) : null;
+                    const today = new Date();
+                    const isTodayToken =
+                        lastUpdate &&
+                        lastUpdate.getDate()     === today.getDate()     &&
+                        lastUpdate.getMonth()    === today.getMonth()    &&
+                        lastUpdate.getFullYear() === today.getFullYear();
+
+                    if (!isTodayToken) {
+                        console.log("⚠️  9:05 AM — token aaj ka nahi, retry...");
+                        await autoLoginKite();
+                    } else {
+                        console.log("✅ 9:05 AM check — token fresh hai");
+                    }
+                } catch (err) {
+                    console.error("Safety net cron error:", err.message);
+                }
+            }, { timezone: "Asia/Kolkata" });
+
+            // ═══════════════════════════════════════════════════════
+            // END KITE AUTO LOGIN SETUP
+            // ═══════════════════════════════════════════════════════
         });
 
         process.on('unhandledRejection', (err) => {
