@@ -3,9 +3,28 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import AdminBlogForm from '@/components/AdminBlogForm';
 import { getAllBlogs, getAdminBlogs, deleteBlog, getBlogById, toggleLike, Blog } from '@/services/blogService';
-import { Loader2, Plus, Edit2, Trash2, Eye, Search, Tag, Calendar, TrendingUp, Sparkles, Heart } from 'lucide-react';
+import { Loader2, Plus, Edit2, Trash2, Eye, Search, Tag, Calendar, TrendingUp, Sparkles, Heart, AlertCircle, CheckCircle } from 'lucide-react';
 import { useAuth } from '@/controllers/AuthContext';
 import { useTheme } from '@/controllers/Themecontext';
+import axios from 'axios';
+
+// ── Email validation ──────────────────────────────────────────────────────────
+const EMAIL_REGEX = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/;
+const DISPOSABLE_DOMAINS = new Set([
+  "mailinator.com", "guerrillamail.com", "10minutemail.com",
+  "trashmail.com", "yopmail.com", "tempmail.com", "throwaway.email",
+  "sharklasers.com",
+]);
+const validateEmail = (email: string): string | null => {
+  const trimmed = email.trim();
+  if (!trimmed) return "Email address is required.";
+  if (trimmed.length > 254) return "Email address is too long.";
+  if (!EMAIL_REGEX.test(trimmed)) return "Please enter a valid email address.";
+  const domain = trimmed.split("@")[1]?.toLowerCase();
+  if (DISPOSABLE_DOMAINS.has(domain)) return "Disposable email addresses are not allowed.";
+  return null;
+};
+type NewsletterStatus = "idle" | "loading" | "success" | "error" | "duplicate";
 
 const BlogsView = () => {
   const { isAdmin, user } = useAuth();
@@ -51,6 +70,77 @@ const BlogsView = () => {
   });
 
   const initialLoadRef = useRef(false);
+
+  // ── Newsletter state ──────────────────────────────────────────────────────
+  const API_URL = import.meta.env.VITE_API_URL;
+  const [nlEmail, setNlEmail] = useState("");
+  const [nlStatus, setNlStatus] = useState<NewsletterStatus>("idle");
+  const [nlFieldError, setNlFieldError] = useState<string | null>(null);
+  const [nlServerMessage, setNlServerMessage] = useState("");
+  const [nlTouched, setNlTouched] = useState(false);
+
+  // Pre-fill if logged in
+  useEffect(() => {
+    if (user?.email) setNlEmail(user.email);
+  }, [user]);
+
+  // Real-time validation after touch
+  useEffect(() => {
+    if (nlTouched) setNlFieldError(validateEmail(nlEmail));
+  }, [nlEmail, nlTouched]);
+
+  const handleNlBlur = () => {
+    setNlTouched(true);
+    setNlFieldError(validateEmail(nlEmail));
+  };
+
+  const handleNlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setNlEmail(e.target.value);
+    if (nlStatus === "error" || nlStatus === "duplicate") {
+      setNlStatus("idle");
+      setNlServerMessage("");
+    }
+  };
+
+  const handleNlSubmit = async () => {
+    setNlTouched(true);
+    const error = validateEmail(nlEmail);
+    setNlFieldError(error);
+    if (error) return;
+
+    setNlStatus("loading");
+    setNlServerMessage("");
+    try {
+      const { data } = await axios.post(
+        `${API_URL}/subscribe`,
+        { email: nlEmail.trim().toLowerCase(), source: "blogs" },
+        { withCredentials: true }
+      );
+      setNlStatus("success");
+      setNlServerMessage(data.message);
+    } catch (err: any) {
+      const resData = err.response?.data;
+      const httpStatus = err.response?.status;
+      if (httpStatus === 409 || resData?.alreadySubscribed) {
+        setNlStatus("duplicate");
+        setNlServerMessage(resData?.message || "This email is already subscribed!");
+      } else {
+        setNlStatus("error");
+        setNlServerMessage(resData?.message || "Something went wrong. Please try again.");
+      }
+    }
+  };
+
+  const handleNlKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") handleNlSubmit();
+  };
+
+  const nlInputBorder = () => {
+    if (nlFieldError) return isLight ? "1px solid #ef4444" : "1px solid #ef4444";
+    if (nlStatus === "success") return "1px solid #22c55e";
+    if (nlStatus === "duplicate") return "1px solid #f59e0b";
+    return isLight ? "1px solid #bfdbfe" : "1px solid rgba(255,255,255,0.20)";
+  };
 
   const categories = [
     'All',
@@ -532,20 +622,71 @@ const BlogsView = () => {
           <div className={`relative overflow-hidden rounded-[32px] p-10 sm:p-14 ${isLight ? "bg-gradient-to-br from-blue-50 via-indigo-50/60 to-blue-50 border border-blue-100 shadow-xl shadow-blue-100/50" : "border border-white/10 bg-gradient-to-br from-blue-500/20 via-indigo-500/10 to-purple-500/10 backdrop-blur-2xl text-white shadow-[0_30px_90px_-40px_rgba(81,148,246,0.3)]"}`}>
             {isLight && <div className="absolute inset-0 opacity-40 bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.08),_transparent_60%)]" />}
             {!isLight && <div className="absolute inset-0 opacity-40 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.1),_transparent_60%)]" />}
-            <div className="max-w-3xl mx-auto text-center relative z-10">
-              <h2 className={`text-3xl sm:text-4xl font-bold mb-4 ${isLight ? "text-slate-800" : "text-white"}`}>Stay Updated</h2>
-              <p className={`text-lg sm:text-xl mb-10 ${isLight ? "text-slate-500" : "text-white/70"}`}>
-                Subscribe to our newsletter for the latest investment insights and market analysis.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <input type="email" placeholder="Enter your email"
-                  className={`flex-1 px-6 py-5 rounded-xl font-medium text-base focus:outline-none focus:ring-2 focus:ring-blue-400/40 ${isLight ? "bg-white border border-blue-200 text-slate-800 placeholder-slate-400 shadow-sm" : "bg-white/10 border border-white/20 text-white placeholder-white/40 backdrop-blur-sm"}`} />
-                <button className={`px-10 py-5 rounded-xl font-bold transition-all shadow-lg hover:shadow-xl text-base hover:scale-105 ${isLight ? "bg-[#5194F6] text-white hover:bg-[#3a7de0] shadow-blue-200" : "bg-white text-slate-900 hover:bg-blue-50"}`}>
-                  Subscribe
-                </button>
+
+            {/* ── Success state ── */}
+            {nlStatus === "success" ? (
+              <div className="max-w-3xl mx-auto text-center relative z-10 py-4">
+                <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full mb-5 mx-auto ${isLight ? "bg-green-50 border border-green-200" : "bg-green-500/10 border border-green-500/30"}`}>
+                  <CheckCircle className="w-8 h-8 text-green-500" />
+                </div>
+                <h2 className={`text-3xl sm:text-4xl font-bold mb-3 ${isLight ? "text-slate-800" : "text-white"}`}>You're In!</h2>
+                <p className={`text-lg mb-4 ${isLight ? "text-slate-500" : "text-white/70"}`}>{nlServerMessage}</p>
+                <p className={`text-sm ${isLight ? "text-slate-400" : "text-white/50"}`}>
+                  Subscribed as <strong className="text-[#5194F6]">{nlEmail.trim().toLowerCase()}</strong>
+                </p>
               </div>
-            </div>
+            ) : (
+              <div className="max-w-3xl mx-auto text-center relative z-10">
+                <h2 className={`text-3xl sm:text-4xl font-bold mb-4 ${isLight ? "text-slate-800" : "text-white"}`}>Stay Updated</h2>
+                <p className={`text-lg sm:text-xl mb-10 ${isLight ? "text-slate-500" : "text-white/70"}`}>
+                  Subscribe to our newsletter for the latest investment insights and market analysis.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-4 max-w-xl mx-auto">
+                  <input
+                    type="email"
+                    value={nlEmail}
+                    onChange={handleNlChange}
+                    onBlur={handleNlBlur}
+                    onKeyDown={handleNlKeyDown}
+                    placeholder="Enter your email"
+                    disabled={nlStatus === "loading"}
+                    style={{ border: nlInputBorder(), transition: "border-color 0.2s ease" }}
+                    className={`flex-1 px-6 py-5 rounded-xl font-medium text-base focus:outline-none focus:ring-2 focus:ring-blue-400/40 disabled:opacity-60 ${isLight ? "bg-white text-slate-800 placeholder-slate-400 shadow-sm" : "bg-white/10 text-white placeholder-white/40 backdrop-blur-sm"}`}
+                  />
+                  <button
+                    onClick={handleNlSubmit}
+                    disabled={nlStatus === "loading" || !!nlFieldError}
+                    className={`px-10 py-5 rounded-xl font-bold transition-all shadow-lg hover:shadow-xl text-base hover:scale-105 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-2 ${isLight ? "bg-[#5194F6] text-white hover:bg-[#3a7de0] shadow-blue-200" : "bg-white text-slate-900 hover:bg-blue-50"}`}
+                  >
+                    {nlStatus === "loading" ? (
+                      <><Loader2 className="w-4 h-4 animate-spin" /> Subscribing…</>
+                    ) : "Subscribe"}
+                  </button>
+                </div>
+
+                {/* Field error */}
+                {nlFieldError && (
+                  <div className="flex items-center justify-center gap-1.5 mt-3 text-sm text-red-400" role="alert">
+                    <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                    <span>{nlFieldError}</span>
+                  </div>
+                )}
+
+                {/* Server error / duplicate */}
+                {(nlStatus === "error" || nlStatus === "duplicate") && nlServerMessage && (
+                  <div
+                    className="flex items-center justify-center gap-1.5 mt-3 text-sm"
+                    style={{ color: nlStatus === "duplicate" ? "#f59e0b" : "#ef4444" }}
+                    role="alert"
+                  >
+                    <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                    <span>{nlServerMessage}</span>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
+        
         </div>
       </div>
 

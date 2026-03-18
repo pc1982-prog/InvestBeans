@@ -106,17 +106,19 @@ const SilverBrickIcon = ({ size = 36 }) => (
   </svg>
 );
 
-// ─── Kite OHLC symbols ────────────────────────────────────────────────────────
-// Kite quote API: NSE:INDIA VIX, BSE:SENSEX, NSE:NIFTY 50, NSE:NIFTY BANK
-// GIFT NIFTY trades on NSE_INDICES as NSE:NIFTY 50 futures proxy — use NSE:GIFT NIFTY or SGX substitute
-// For USD/INR, Gold, Silver we use the existing Yahoo approach (via global endpoint)
-// Kite symbols for indices: "NSE:NIFTY 50", "BSE:SENSEX", "NSE:INDIA VIX", "BSE:INDIA VIX"
+// ─── Data Sources ─────────────────────────────────────────────────────────────
+// Indices (Nifty50, Sensex, VIX)  → Kite /ohlc  (NSE / BSE)
+// GIFT NIFTY                      → Kite /quote  (NSE_IFSC near-month futures)
+//                                   via backend /api/v1/kite/gift-nifty
+// Gold & Silver                   → Kite /quote  (MCX near-month futures)
+//                                   via backend /api/v1/kite/commodities
+// FII vs DII                      → NSE API      via backend /api/v1/kite/fii-dii
+// USD / INR                       → Yahoo Finance (existing global endpoint)
 
 const KITE_BHARAT_SYMBOLS = [
   "NSE:NIFTY 50",
   "BSE:SENSEX",
   "NSE:INDIA VIX",
-  "NSE:NIFTY FIN SERVICE",  // fallback useful
 ];
 
 // ─── Helper: fetch Kite OHLC/quote ──────────────────────────────────────────
@@ -195,11 +197,25 @@ const SensexNiftyCard = ({ cardBg, cardBorder, isLight, sensex, nifty }) => {
 };
 
 // ─── FII vs DII Card ────────────────────────────────────────────────────────
-const FiiDiiCard = ({ cardBg, cardBorder, isLight }) => {
-  const fiiVal = -1240; const diiVal = 1980;
-  const total = Math.abs(fiiVal) + diiVal;
-  const fiiPct = Math.round((Math.abs(fiiVal) / total) * 100);
-  const diiPct = 100 - fiiPct;
+const FiiDiiCard = ({ cardBg, cardBorder, isLight, fiiNet, diiNet, fiiDate }) => {
+  // fiiNet < 0 → selling, diiNet > 0 → buying (values in Crores)
+  const loading  = fiiNet == null || diiNet == null;
+  const absFii   = Math.abs(fiiNet ?? 0);
+  const absDii   = Math.abs(diiNet ?? 0);
+  const total    = absFii + absDii || 1;
+  const fiiPct   = Math.round((absFii / total) * 100);
+  const diiPct   = 100 - fiiPct;
+
+  // Format: e.g. -1240.5 → "−₹1,240 Cr"  |  +1980.2 → "+₹1,980 Cr"
+  const fmt = (v) => {
+    if (v == null) return "···";
+    const sign = v < 0 ? "−" : "+";
+    return `${sign}₹${Math.abs(v).toLocaleString("en-IN", { maximumFractionDigits: 0 })} Cr`;
+  };
+
+  const fiiLabel = fmt(fiiNet);
+  const diiLabel = fmt(diiNet);
+  const dateLabel = fiiDate ? `As of ${fiiDate}` : "";
   return (
     <div style={{ background: cardBg, border: cardBorder }} className="rounded-2xl relative overflow-hidden group hover:scale-[1.02] transition-all duration-300 cursor-pointer md:p-5">
       <div className="md:hidden" style={{ padding: "10px 10px 10px 14px", position: "relative" }}>
@@ -208,13 +224,13 @@ const FiiDiiCard = ({ cardBg, cardBorder, isLight }) => {
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, marginBottom: 8 }}>
           <div style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: 8, padding: "6px 8px" }}>
             <div style={{ fontSize: "8px", fontWeight: 700, color: "rgba(239,68,68,0.7)", marginBottom: 2 }}>FII SELL</div>
-            <div style={{ fontSize: "15px", fontWeight: 800, color: "#f87171" }}>₹1,240</div>
-            <div style={{ fontSize: "8px", color: "rgba(239,68,68,0.6)", marginTop: 2 }}>Cr outflow</div>
+            <div style={{ fontSize: "13px", fontWeight: 800, color: "#f87171" }}>{loading ? "···" : fiiLabel}</div>
+            <div style={{ fontSize: "8px", color: "rgba(239,68,68,0.6)", marginTop: 2 }}>outflow</div>
           </div>
           <div style={{ background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.2)", borderRadius: 8, padding: "6px 8px" }}>
             <div style={{ fontSize: "8px", fontWeight: 700, color: "rgba(34,197,94,0.7)", marginBottom: 2 }}>DII BUY</div>
-            <div style={{ fontSize: "15px", fontWeight: 800, color: "#4ade80" }}>₹1,980</div>
-            <div style={{ fontSize: "8px", color: "rgba(34,197,94,0.6)", marginTop: 2 }}>Cr inflow</div>
+            <div style={{ fontSize: "13px", fontWeight: 800, color: "#4ade80" }}>{loading ? "···" : diiLabel}</div>
+            <div style={{ fontSize: "8px", color: "rgba(34,197,94,0.6)", marginTop: 2 }}>inflow</div>
           </div>
         </div>
         <div style={{ height: 5, borderRadius: 99, overflow: "hidden", display: "flex", gap: 2 }}>
@@ -232,17 +248,18 @@ const FiiDiiCard = ({ cardBg, cardBorder, isLight }) => {
           <span style={{ fontSize: "11px", fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.12em", color: isLight ? "#1e3a5f" : "#ffffff" }}>FII vs DII</span>
         </div>
         <div className="flex justify-between items-end mb-4">
-          <div><div className={`text-[11px] font-semibold mb-1 ${isLight ? "text-navy/50" : "text-white/40"}`}>FII</div><div className="text-lg md:text-xl font-bold text-red-400">−₹1,240 Cr</div></div>
-          <div className="text-right"><div className={`text-[11px] font-semibold mb-1 ${isLight ? "text-navy/50" : "text-white/40"}`}>DII</div><div className="text-lg md:text-xl font-bold text-emerald-400">+₹1,980 Cr</div></div>
+          <div><div className={`text-[11px] font-semibold mb-1 ${isLight ? "text-navy/50" : "text-white/40"}`}>FII</div><div className="text-lg md:text-xl font-bold text-red-400">{loading ? "···" : fiiLabel}</div></div>
+          <div className="text-right"><div className={`text-[11px] font-semibold mb-1 ${isLight ? "text-navy/50" : "text-white/40"}`}>DII</div><div className="text-lg md:text-xl font-bold text-emerald-400">{loading ? "···" : diiLabel}</div></div>
         </div>
         <div className="h-2.5 rounded-full overflow-hidden flex" style={{ background: isLight ? "rgba(0,0,0,0.08)" : "rgba(255,255,255,0.08)" }}>
           <div style={{ width: `${fiiPct}%`, background: "linear-gradient(90deg,#ef4444,#f87171)", borderRadius: "999px 0 0 999px" }} />
           <div style={{ width: `${diiPct}%`, background: "linear-gradient(90deg,#a855f7,#22c55e)", borderRadius: "0 999px 999px 0" }} />
         </div>
         <div className="flex justify-between mt-1.5">
-          <span className="text-[10px] text-red-400/80">{fiiPct}% selling</span>
-          <span className="text-[10px] text-emerald-400/80">{diiPct}% buying</span>
+          <span className="text-[10px] text-red-400/80">{loading ? "—" : `${fiiPct}% selling`}</span>
+          <span className="text-[10px] text-emerald-400/80">{loading ? "—" : `${diiPct}% buying`}</span>
         </div>
+        {dateLabel && <div className={`text-[9px] mt-1.5 ${isLight ? "text-navy/35" : "text-white/30"}`}>{dateLabel}</div>}
       </div>
     </div>
   );
@@ -511,17 +528,20 @@ const Hero = () => {
 
   // ── Bharat live data from Kite ──────────────────────────────────────────────
   const [bharatData, setBharatData] = useState({
-    sensex: null,   // { price, chg }
-    nifty50: null,  // { price, chg }
-    indiaVix: null, // { price, chg }
-    giftNifty: null,
+    sensex: null,        // { price, chg }
+    nifty50: null,       // { price, chg }
+    indiaVix: null,      // { price, chg }
+    giftNifty: null,     // from Kite NSE_IFSC
     giftNiftyChange: null,
     usdInr: null,
     usdInrChange: null,
-    goldInr: null,
+    goldInr: null,       // MCX Gold ₹/10g from Kite
     goldChange: null,
-    silverInr: null,
+    silverInr: null,     // MCX Silver ₹/kg from Kite
     silverChange: null,
+    fiiNet: null,        // FII net in Crores (negative = selling)
+    diiNet: null,        // DII net in Crores (positive = buying)
+    fiiDate: null,       // "DD-Mon-YYYY" from NSE
   });
 
   // ── Helper: parse ohlc/quote response into { price, chg } ────────────────
@@ -538,7 +558,7 @@ const Hero = () => {
     return { price, chg };
   };
 
-  // ── Fetch Kite live data for Bharat ─────────────────────────────────────
+  // ── Fetch Kite live data for Bharat indices (Nifty50, Sensex, VIX) ─────────
   useEffect(() => {
     const symbols = ["NSE:NIFTY 50", "BSE:SENSEX", "NSE:INDIA VIX"];
 
@@ -546,129 +566,115 @@ const Hero = () => {
       const data = await fetchKiteQuote(API, symbols);
       setBharatData(prev => ({
         ...prev,
-        nifty50: parseKiteItem(data, "NSE:NIFTY 50") ?? prev.nifty50,
-        sensex: parseKiteItem(data, "BSE:SENSEX") ?? prev.sensex,
-        indiaVix: parseKiteItem(data, "NSE:INDIA VIX") ?? prev.indiaVix,
+        nifty50:  parseKiteItem(data, "NSE:NIFTY 50")   ?? prev.nifty50,
+        sensex:   parseKiteItem(data, "BSE:SENSEX")      ?? prev.sensex,
+        indiaVix: parseKiteItem(data, "NSE:INDIA VIX")   ?? prev.indiaVix,
       }));
     };
     load();
-    // Refresh every 30s during market hours
     const interval = setInterval(load, 30000);
     return () => clearInterval(interval);
   }, [API]);
 
-  // ── Fetch US global + Yahoo-based Bharat forex/commodity data ───────────
+  // ── Fetch US global + Yahoo-based USD/INR + Gold (for US Stats tab) ───────
   useEffect(() => {
     fetch(`${API}/markets/global`)
       .then(r => r.json())
       .then(data => {
-        const us = data?.indices?.us || [];
-        const forex = data?.forex || [];
-        const comms = data?.commodities || [];
-        const nasdaq = us.find(m => m.symbol === "^IXIC");
-        const dow = us.find(m => m.symbol === "^DJI");
-        const usdinr = forex.find(m => m.pair === "USD/INR");
-        const gold = comms.find(m => m.symbol === "GC=F");
-        const silver = comms.find(m => m.symbol === "SI=F");
+        const us    = data?.indices?.us   || [];
+        const forex = data?.forex          || [];
+        const comms = data?.commodities    || [];
+        const nasdaq  = us.find(m => m.symbol === "^IXIC");
+        const dow     = us.find(m => m.symbol === "^DJI");
+        const usdinr  = forex.find(m => m.pair === "USD/INR");
+        const gold    = comms.find(m => m.symbol === "GC=F");
         const fmt = (v) => `${v >= 0 ? "+" : ""}${v.toFixed(2)}%`;
         setUsData({
-          nasdaq: nasdaq ? fmt(nasdaq.changePercent) : "N/A",
-          usdInr: usdinr?.changePercent != null ? fmt(usdinr.changePercent) : "N/A",
-          gold: gold ? fmt(gold.changePercent) : "N/A",
-          dow: dow ? fmt(dow.changePercent) : "N/A",
-          nasdaqPos: nasdaq ? nasdaq.changePercent >= 0 : null,
+          nasdaq:    nasdaq ? fmt(nasdaq.changePercent)                    : "N/A",
+          usdInr:    usdinr?.changePercent != null ? fmt(usdinr.changePercent) : "N/A",
+          gold:      gold   ? fmt(gold.changePercent)                      : "N/A",
+          dow:       dow    ? fmt(dow.changePercent)                       : "N/A",
+          nasdaqPos: nasdaq ? nasdaq.changePercent >= 0                    : null,
           usdInrPos: usdinr?.changePercent != null ? usdinr.changePercent >= 0 : null,
-          goldPos: gold ? gold.changePercent >= 0 : null,
-          dowPos: dow ? dow.changePercent >= 0 : null,
-          usdInrRate: usdinr?.rate ? Number(usdinr.rate) : 84,
+          goldPos:   gold   ? gold.changePercent >= 0                      : null,
+          dowPos:    dow    ? dow.changePercent >= 0                       : null,
+          usdInrRate: usdinr?.rate ? Number(usdinr.rate)                   : 84,
         });
 
-        // Parse GIFT Nifty from global indices
-        const india = data?.indices?.india || [];
-        const giftItem = india.find(m => m.symbol?.includes("GIFT") || m.symbol === "^NSESGX" || m.symbol === "NIFTY50.NS");
-        const usdInrRate = usdinr?.rate ? Number(usdinr.rate) : 84;
-        // Correct MCX conversion: GC=F (USD/troy oz) → ₹/10g; SI=F (USD/troy oz) → ₹/kg
-        const goldInr = gold?.price ? Math.round((gold.price / 31.1035) * 10 * usdInrRate) : null;
-        const silverInr = silver?.price ? Math.round(silver.price * 32.1507 * usdInrRate) : null;
-
+        // USD/INR for the Bharat card
         setBharatData(prev => ({
           ...prev,
-          giftNifty: giftItem?.price ?? prev.giftNifty,
-          giftNiftyChange: giftItem?.changePercent ?? prev.giftNiftyChange,
-          usdInr: usdinr?.rate ?? prev.usdInr,
+          usdInr:      usdinr?.rate       ?? prev.usdInr,
           usdInrChange: usdinr?.changePercent ?? prev.usdInrChange,
-          goldInr: goldInr ?? prev.goldInr,
-          goldChange: gold?.changePercent ?? prev.goldChange,
-          silverInr: silverInr ?? prev.silverInr,
-          silverChange: silver?.changePercent ?? prev.silverChange,
         }));
       })
-      .catch(() => { });
+      .catch(() => {});
   }, [API]);
 
-  // ── Also try Yahoo directly for GIFT Nifty / USD-INR / Gold / Silver if global fails ──
+  // ── GIFT NIFTY — Kite NSE_IFSC near-month futures ───────────────────────
   useEffect(() => {
-    const PROXY = "https://query1.finance.yahoo.com/v8/finance/chart/";
-    const fetchSym = async (sym) => {
+    const load = async () => {
       try {
-        const r = await fetch(`${PROXY}${encodeURIComponent(sym)}?interval=1d&range=2d`);
-        const j = await r.json();
-        const meta = j?.chart?.result?.[0]?.meta;
-        if (!meta || !meta.regularMarketPrice) return null;
-        const price = meta.regularMarketPrice;
-        const prev = meta.chartPreviousClose ?? meta.previousClose;
-        const chg = price && prev ? ((price - prev) / prev) * 100 : null;
-        return { price, chg, currency: meta.currency };
-      } catch { return null; }
+        const r    = await fetch(`${API}/kite/gift-nifty`);
+        const json = await r.json();
+        if (json.status === "success" && json.data?.last_price) {
+          setBharatData(prev => ({
+            ...prev,
+            giftNifty:       json.data.last_price      ?? prev.giftNifty,
+            giftNiftyChange: json.data.change_percent  ?? prev.giftNiftyChange,
+          }));
+        }
+      } catch (_) {}
     };
+    load();
+    const t = setInterval(load, 30000);
+    return () => clearInterval(t);
+  }, [API]);
 
-    // Try multiple GIFT Nifty symbols — SGX Nifty / GIFT City futures
-    const fetchGiftNifty = async () => {
-      // Try these in order: SGX Nifty, GIFT Nifty futures, NIFTY50 spot as proxy
-      const candidates = ["^NSESGX", "NIFTY50.NS", "^NSEI"];
-      for (const sym of candidates) {
-        const val = await fetchSym(sym);
-        if (val?.price) return val;
-      }
-      return null;
+  // ── Gold & Silver — Kite MCX near-month futures ──────────────────────────
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const r    = await fetch(`${API}/kite/commodities`);
+        const json = await r.json();
+        if (json.status === "success" && json.data) {
+          const { gold, silver } = json.data;
+          setBharatData(prev => ({
+            ...prev,
+            goldInr:     gold?.price_per_10g   ?? prev.goldInr,
+            goldChange:  gold?.change_percent  ?? prev.goldChange,
+            silverInr:   silver?.price_per_kg  ?? prev.silverInr,
+            silverChange: silver?.change_percent ?? prev.silverChange,
+          }));
+        }
+      } catch (_) {}
     };
+    load();
+    const t = setInterval(load, 60000);   // MCX data every 60 s
+    return () => clearInterval(t);
+  }, [API]);
 
-    (async () => {
-      const [fx, giftResult, gold, silver] = await Promise.allSettled([
-        fetchSym("USDINR=X"),
-        fetchGiftNifty(),
-        fetchSym("GC=F"),
-        fetchSym("SI=F"),
-      ]);
-      const fxVal = fx.status === "fulfilled" ? fx.value : null;
-      const giftVal = giftResult.status === "fulfilled" ? giftResult.value : null;
-      const goldVal = gold.status === "fulfilled" ? gold.value : null;
-      const silverVal = silver.status === "fulfilled" ? silver.value : null;
-      const usdInrRate = fxVal?.price ?? 84;
-
-      // MCX Gold India: GC=F is per troy oz in USD → convert to ₹/10g
-      // 1 troy oz = 31.1035g → price per 10g = (price_usd / 31.1035) * 10 * usd_inr
-      const goldInr = goldVal?.price
-        ? Math.round((goldVal.price / 31.1035) * 10 * usdInrRate)
-        : null;
-      // MCX Silver: SI=F is per troy oz in USD → ₹/kg = price_usd * 32.1507 * usd_inr
-      const silverInr = silverVal?.price
-        ? Math.round(silverVal.price * 32.1507 * usdInrRate)
-        : null;
-
-      setBharatData(prev => ({
-        ...prev,
-        giftNifty: giftVal?.price ?? prev.giftNifty,
-        giftNiftyChange: giftVal?.chg ?? prev.giftNiftyChange,
-        usdInr: fxVal?.price ?? prev.usdInr,
-        usdInrChange: fxVal?.chg ?? prev.usdInrChange,
-        goldInr: goldInr ?? prev.goldInr,
-        goldChange: goldVal?.chg ?? prev.goldChange,
-        silverInr: silverInr ?? prev.silverInr,
-        silverChange: silverVal?.chg ?? prev.silverChange,
-      }));
-    })();
-  }, []);
+  // ── FII vs DII — NSE API via backend ────────────────────────────────────
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const r    = await fetch(`${API}/kite/fii-dii`);
+        const json = await r.json();
+        if (json.status === "success" && json.data) {
+          const { fii, dii } = json.data;
+          setBharatData(prev => ({
+            ...prev,
+            fiiNet:  fii?.net  ?? prev.fiiNet,
+            diiNet:  dii?.net  ?? prev.diiNet,
+            fiiDate: fii?.date ?? prev.fiiDate,
+          }));
+        }
+      } catch (_) {}
+    };
+    load();
+    const t = setInterval(load, 5 * 60 * 1000);   // NSE updates a few times/day
+    return () => clearInterval(t);
+  }, [API]);
 
   // ── Theme tokens ─────────────────────────────────────────────────────────
   const sectionStyle = isLight
@@ -772,7 +778,8 @@ const Hero = () => {
             <div className="mt-6 md:mt-10 grid grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 md:gap-4 max-w-5xl mx-auto pb-4 md:pb-0 px-1 sm:px-0">
               <SensexNiftyCard cardBg={cardBg} cardBorder={cardBorder} isLight={isLight}
                 sensex={bharatData.sensex} nifty={bharatData.nifty50} />
-              <FiiDiiCard cardBg={cardBg} cardBorder={cardBorder} isLight={isLight} />
+              <FiiDiiCard cardBg={cardBg} cardBorder={cardBorder} isLight={isLight}
+                fiiNet={bharatData.fiiNet} diiNet={bharatData.diiNet} fiiDate={bharatData.fiiDate} />
               <IndiaVixCard cardBg={cardBg} cardBorder={cardBorder} isLight={isLight}
                 vixData={bharatData.indiaVix} />
               <GiftNiftyCard cardBg={cardBg} cardBorder={cardBorder} isLight={isLight}

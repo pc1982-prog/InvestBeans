@@ -13,9 +13,30 @@ import {
   Tag,
   Bookmark,
   Heart,
+  AlertCircle,
+  CheckCircle,
 } from "lucide-react";
 import { useAuth } from "@/controllers/AuthContext";
 import { useTheme } from "@/controllers/Themecontext";
+import axios from "axios";
+
+// ── Email validation ────────────────────────────────────────────────────────
+const EMAIL_REGEX = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/;
+const DISPOSABLE_DOMAINS = new Set([
+  "mailinator.com", "guerrillamail.com", "10minutemail.com",
+  "trashmail.com", "yopmail.com", "tempmail.com", "throwaway.email",
+  "sharklasers.com",
+]);
+const validateEmail = (email: string): string | null => {
+  const trimmed = email.trim();
+  if (!trimmed) return "Email address is required.";
+  if (trimmed.length > 254) return "Email address is too long.";
+  if (!EMAIL_REGEX.test(trimmed)) return "Please enter a valid email address.";
+  const domain = trimmed.split("@")[1]?.toLowerCase();
+  if (DISPOSABLE_DOMAINS.has(domain)) return "Disposable email addresses are not allowed.";
+  return null;
+};
+type NewsletterStatus = "idle" | "loading" | "success" | "error" | "duplicate";
 
 interface HeaderSection {
   header: string;
@@ -37,6 +58,77 @@ const BlogDetailView = () => {
   const articleRef = useRef<HTMLDivElement | null>(null);
   const [email, setEmail] = useState("");
   const [subscribed, setSubscribed] = useState(false);
+
+  // ── Newsletter backend state ────────────────────────────────────────────
+  const API_URL = import.meta.env.VITE_API_URL;
+  const [nlStatus, setNlStatus] = useState<NewsletterStatus>("idle");
+  const [nlFieldError, setNlFieldError] = useState<string | null>(null);
+  const [nlServerMessage, setNlServerMessage] = useState("");
+  const [nlTouched, setNlTouched] = useState(false);
+
+  // Pre-fill if logged in
+  useEffect(() => {
+    if (user?.email) setEmail(user.email);
+  }, [user]);
+
+  // Real-time validation after touch
+  useEffect(() => {
+    if (nlTouched) setNlFieldError(validateEmail(email));
+  }, [email, nlTouched]);
+
+  const handleNlBlur = () => {
+    setNlTouched(true);
+    setNlFieldError(validateEmail(email));
+  };
+
+  const handleNlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEmail(e.target.value);
+    if (nlStatus === "error" || nlStatus === "duplicate") {
+      setNlStatus("idle");
+      setNlServerMessage("");
+    }
+  };
+
+  const handleNlSubmit = async () => {
+    setNlTouched(true);
+    const error = validateEmail(email);
+    setNlFieldError(error);
+    if (error) return;
+
+    setNlStatus("loading");
+    setNlServerMessage("");
+    try {
+      const { data } = await axios.post(
+        `${API_URL}/subscribe`,
+        { email: email.trim().toLowerCase(), source: "blog-detail" },
+        { withCredentials: true }
+      );
+      setNlStatus("success");
+      setNlServerMessage(data.message);
+      setSubscribed(true);
+    } catch (err: any) {
+      const resData = err.response?.data;
+      const httpStatus = err.response?.status;
+      if (httpStatus === 409 || resData?.alreadySubscribed) {
+        setNlStatus("duplicate");
+        setNlServerMessage(resData?.message || "This email is already subscribed!");
+      } else {
+        setNlStatus("error");
+        setNlServerMessage(resData?.message || "Something went wrong. Please try again.");
+      }
+    }
+  };
+
+  const handleNlKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") handleNlSubmit();
+  };
+
+  const nlInputBorder = () => {
+    if (nlFieldError) return "1px solid #ef4444";
+    if (nlStatus === "success") return "1px solid #22c55e";
+    if (nlStatus === "duplicate") return "1px solid #f59e0b";
+    return isLight ? "1px solid #bfdbfe" : "1px solid rgba(255,255,255,0.20)";
+  };
 
   // Derived state for like status
   const isLiked = blog && user && blog.likedBy ? blog.likedBy.includes(user._id) : false;
@@ -138,15 +230,7 @@ const BlogDetailView = () => {
     }
   };
 
-  const handleSubscribe = useCallback(() => {
-    if (!email || !/^[\w-.]+@[\w-]+\.[a-z]{2,}$/i.test(email)) {
-      alert("Please enter a valid email.");
-      return;
-    }
-    setSubscribed(true);
-    setEmail("");
-    setTimeout(() => alert("Thanks for subscribing!"), 100);
-  }, [email]);
+
 
   if (loading) {
     return (
@@ -410,33 +494,78 @@ const BlogDetailView = () => {
           <div className={`relative overflow-hidden rounded-[32px] p-8 sm:p-12 text-center mb-12 ${isLight ? "bg-gradient-to-br from-blue-50 via-indigo-50/50 to-blue-50 border border-blue-100 shadow-lg shadow-blue-100/50" : "border border-white/10 bg-gradient-to-br from-blue-500/20 via-indigo-500/10 to-purple-500/10 backdrop-blur-2xl text-white shadow-[0_30px_90px_-40px_rgba(81,148,246,0.3)]"}`}>
             <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full -mr-32 -mt-32" />
             <div className="absolute bottom-0 left-0 w-64 h-64 bg-indigo-500/10 rounded-full -ml-32 -mb-32" />
-            
-            <div className="relative z-10">
-              <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 ${isLight ? "bg-blue-100 border border-blue-200" : "bg-white/10 border border-white/20 backdrop-blur-sm"}`}>
-                <Bookmark size={32} className={isLight ? "text-blue-500" : "text-white"} />
+
+            {/* ── Success state ── */}
+            {nlStatus === "success" ? (
+              <div className="relative z-10 py-4">
+                <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 ${isLight ? "bg-green-50 border border-green-200" : "bg-green-500/10 border border-green-500/30"}`}>
+                  <CheckCircle size={32} className="text-green-500" />
+                </div>
+                <h2 className={`text-2xl sm:text-3xl lg:text-4xl font-bold mb-4 ${isLight ? "text-slate-800" : "text-white"}`}>
+                  You're In!
+                </h2>
+                <p className={`text-base sm:text-lg mb-4 max-w-2xl mx-auto ${isLight ? "text-slate-500" : "text-white/70"}`}>
+                  {nlServerMessage}
+                </p>
+                <p className={`text-sm ${isLight ? "text-slate-400" : "text-white/50"}`}>
+                  Subscribed as <strong className="text-[#5194F6]">{email.trim().toLowerCase()}</strong>
+                </p>
               </div>
-              <h2 className={`text-2xl sm:text-3xl lg:text-4xl font-bold mb-4 ${isLight ? "text-slate-800" : "text-white"}`}>
-                Stay Informed
-              </h2>
-              <p className={`text-base sm:text-lg lg:text-xl mb-8 max-w-2xl mx-auto ${isLight ? "text-slate-500" : "text-white/70"}`}>
-                Get the latest investment insights delivered straight to your inbox
-              </p>
-              <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Your email address"
-                  className={`flex-1 px-6 py-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400/40 font-medium ${isLight ? "bg-white border border-blue-200 text-slate-800 placeholder-slate-400 shadow-sm" : "bg-white/10 border border-white/20 text-white placeholder-white/40"}`}
-                />
-                <button
-                  onClick={handleSubscribe}
-                  className={`px-8 py-4 rounded-xl font-bold transition-all shadow-lg hover:shadow-xl hover:scale-105 ${isLight ? "bg-[#5194F6] text-white hover:bg-[#3a7de0] shadow-blue-200" : "bg-white text-slate-900 hover:bg-blue-50"}`}
-                >
-                  {subscribed ? "Subscribed ✓" : "Subscribe"}
-                </button>
+            ) : (
+              <div className="relative z-10">
+                <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 ${isLight ? "bg-blue-100 border border-blue-200" : "bg-white/10 border border-white/20 backdrop-blur-sm"}`}>
+                  <Bookmark size={32} className={isLight ? "text-blue-500" : "text-white"} />
+                </div>
+                <h2 className={`text-2xl sm:text-3xl lg:text-4xl font-bold mb-4 ${isLight ? "text-slate-800" : "text-white"}`}>
+                  Stay Informed
+                </h2>
+                <p className={`text-base sm:text-lg lg:text-xl mb-8 max-w-2xl mx-auto ${isLight ? "text-slate-500" : "text-white/70"}`}>
+                  Get the latest investment insights delivered straight to your inbox
+                </p>
+                <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={handleNlChange}
+                    onBlur={handleNlBlur}
+                    onKeyDown={handleNlKeyDown}
+                    placeholder="Your email address"
+                    disabled={nlStatus === "loading"}
+                    style={{ border: nlInputBorder(), transition: "border-color 0.2s ease" }}
+                    className={`flex-1 px-6 py-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400/40 font-medium disabled:opacity-60 ${isLight ? "bg-white text-slate-800 placeholder-slate-400 shadow-sm" : "bg-white/10 text-white placeholder-white/40"}`}
+                  />
+                  <button
+                    onClick={handleNlSubmit}
+                    disabled={nlStatus === "loading" || !!nlFieldError}
+                    className={`px-8 py-4 rounded-xl font-bold transition-all shadow-lg hover:shadow-xl hover:scale-105 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-2 ${isLight ? "bg-[#5194F6] text-white hover:bg-[#3a7de0] shadow-blue-200" : "bg-white text-slate-900 hover:bg-blue-50"}`}
+                  >
+                    {nlStatus === "loading" ? (
+                      <><Loader2 className="animate-spin" size={16} /> Subscribing…</>
+                    ) : "Subscribe"}
+                  </button>
+                </div>
+
+                {/* Field error */}
+                {nlFieldError && (
+                  <div className="flex items-center justify-center gap-1.5 mt-3 text-sm text-red-400" role="alert">
+                    <AlertCircle size={14} className="flex-shrink-0" />
+                    <span>{nlFieldError}</span>
+                  </div>
+                )}
+
+                {/* Server error / duplicate */}
+                {(nlStatus === "error" || nlStatus === "duplicate") && nlServerMessage && (
+                  <div
+                    className="flex items-center justify-center gap-1.5 mt-3 text-sm"
+                    style={{ color: nlStatus === "duplicate" ? "#f59e0b" : "#ef4444" }}
+                    role="alert"
+                  >
+                    <AlertCircle size={14} className="flex-shrink-0" />
+                    <span>{nlServerMessage}</span>
+                  </div>
+                )}
               </div>
-            </div>
+            )}
           </div>
         </div>
       </div>
