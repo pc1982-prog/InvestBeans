@@ -109,11 +109,31 @@ connectDB()
             // ═══════════════════════════════════════════════════════
 
             // Server start pe DB se token load karo
-            // Agar token nahi mila toh auto-login karo
+            // Agar token nahi mila YA aaj ka nahi hai toh auto-login karo
             (async () => {
-                const token = await loadTokenFromDB();
-                if (!token) {
-                    console.log("🔐 DB mein token nahi — auto-login try kar raha hoon...");
+                try {
+                    const doc = await TokenModel.findOne({ key: "kite_token" });
+                    const lastUpdate = doc?.updatedAt ? new Date(doc.updatedAt) : null;
+                    const today = new Date();
+                    const isTodayToken = lastUpdate &&
+                        lastUpdate.getDate()     === today.getDate()     &&
+                        lastUpdate.getMonth()    === today.getMonth()    &&
+                        lastUpdate.getFullYear() === today.getFullYear();
+
+                    if (doc?.accessToken && isTodayToken) {
+                        // Aaj ka valid token hai — load karo
+                        console.log(`✅ Aaj ka token DB mein hai — load kar raha hoon...`);
+                        process.env.KITE_ACCESS_TOKEN = doc.accessToken;
+                        const { API_KEY } = { API_KEY: process.env.KITE_API_KEY };
+                        kiteWS.connect(API_KEY, doc.accessToken);
+                    } else {
+                        // Token nahi hai ya purana hai — auto-login karo
+                        const reason = !doc ? "token nahi" : "purana token (kal ka)";
+                        console.log(`🔐 ${reason} — auto-login kar raha hoon...`);
+                        await autoLoginKite();
+                    }
+                } catch (err) {
+                    console.error("❌ Startup token check failed:", err.message);
                     await autoLoginKite();
                 }
             })();
