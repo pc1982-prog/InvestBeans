@@ -25,6 +25,7 @@ interface CleanChartProps {
   price: number; change: number; changePercent: number;
   high: number; low: number; isPositive: boolean;
   candles?: CandlePoint[];
+  historyUrl?: string;
 }
 type Period = '1D' | '1W' | '1M' | '3M' | '1Y';
 const PERIODS: Period[] = ['1D', '1W', '1M', '3M', '1Y'];
@@ -116,6 +117,7 @@ const C = {
 const CleanChart = ({
   name, symbol, price, change, changePercent,
   high, low, isPositive, candles: initCandles,
+  historyUrl,
 }: CleanChartProps) => {
   const { theme } = useTheme();
   const dark = theme === 'dark';
@@ -140,7 +142,10 @@ const CleanChart = ({
   const fetch_ = useCallback(async (p: Period) => {
     setLoading(true);
     try {
-      const r = await fetch(`${API_BASE}/api/v1/markets/history/${encodeURIComponent(symbol)}?period=${p}`);
+      const url = historyUrl
+        ? `${historyUrl}?period=${p}`
+        : `${API_BASE}/api/v1/markets/history/${encodeURIComponent(symbol)}?period=${p}`;
+      const r = await fetch(url);
       if (!r.ok) throw new Error(`${r.status}`);
       const d = await r.json();
       const c: CandlePoint[] = d.candles || [];

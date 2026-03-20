@@ -7,7 +7,7 @@ import {
   CheckCircle, Clock, AlertCircle, ArrowRight, Star, Target,
   Award, Shield, Zap, BarChart3, FileText, ExternalLink,
   Search, IndianRupee, ChevronRight, Plus, X, Edit3,
-  Save, Trash2, Loader2, RefreshCw, ShieldCheck, ShieldAlert, AlertTriangle, Calculator,
+  Save, Trash2, Loader2, RefreshCw, ShieldCheck, ShieldAlert, AlertTriangle, Calculator, Upload, ImageIcon,
 } from 'lucide-react';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
@@ -17,12 +17,12 @@ const IPO_ENDPOINT = `${API_BASE}/ipo`;
 type IPOStatus = 'upcoming' | 'open' | 'closed';
 
 interface IPO {
-  _id: string; companyName: string; logo: string; industry: string;
+  _id: string; companyName: string; logo: string; logoUrl?: string; logoPublicId?: string; industry: string;
   status: IPOStatus; openDate: string; closeDate: string;
   listingDate?: string; priceRange: string; lotSize: number;
   issueSize: string; minInvestment: string; subscriptionStatus?: string;
   listingGain?: number | null; gmp?: number | null; allotmentDate?: string;
-  refundDate?: string; exchange: string; rating: number; rhpLink?: string; category?: string;
+  refundDate?: string; upiDate?: string; exchange: string; rating: number; rhpLink?: string; category?: string;
   swot?: { strengths: string[]; weaknesses: string[]; opportunities: string[]; threats: string[]; };
 }
 // "listed" removed from Counts
@@ -45,7 +45,7 @@ const INDUSTRIES = [
 const BLANK: Omit<IPO, '_id'> = {
   companyName: '', logo: '', industry: '', status: 'upcoming',
   category: 'Mainboard', exchange: 'NSE / BSE',
-  openDate: '', closeDate: '', allotmentDate: '', refundDate: '', listingDate: '',
+  openDate: '', closeDate: '', allotmentDate: '', refundDate: '', upiDate: '', listingDate: '',
   priceRange: '', lotSize: 0, issueSize: '', minInvestment: '',
   subscriptionStatus: '', listingGain: null, gmp: null, rating: 3, rhpLink: '',
   swot: { strengths: [], weaknesses: [], opportunities: [], threats: [] },
@@ -110,8 +110,16 @@ function PriceBandInput({ value, onChange, className, style }: {
 
 
 
-async function callAPI(url: string, opts?: RequestInit) {
-  const res  = await fetch(url, { headers: { 'Content-Type': 'application/json' }, credentials: 'include', ...opts });
+// callAPI — supports both JSON bodies and FormData (for file uploads)
+async function callAPI(url: string, opts?: RequestInit & { formData?: FormData }) {
+  const { formData, ...rest } = (opts || {}) as any;
+  const res = await fetch(url, {
+    credentials: 'include',
+    ...(formData
+      ? { method: rest.method || 'POST', body: formData }          // multipart — NO Content-Type header (browser sets boundary)
+      : { headers: { 'Content-Type': 'application/json' }, ...rest }
+    ),
+  });
   const json = await res.json();
   if (!res.ok) throw new Error(json.message || `Error ${res.status}`);
   return json.data;
@@ -146,15 +154,17 @@ function FormModal({
   initial, onSave, onClose, saving,
 }: {
   initial?: IPO;
-  onSave: (data: Omit<IPO, '_id'>) => Promise<void>;
+  onSave: (data: Omit<IPO, '_id'>, logoFile?: File | null) => Promise<void>;
   onClose: () => void;
   saving: boolean;
 }) {
   const { theme } = useTheme();
   const isDark = theme !== 'light';
 
-  const [form,   setForm]   = useState<Omit<IPO, '_id'>>(initial ? { ...initial } : { ...BLANK });
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [form,     setForm]     = useState<Omit<IPO, '_id'>>(initial ? { ...initial } : { ...BLANK });
+  const [errors,   setErrors]   = useState<Record<string, string>>({});
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string>(initial?.logoUrl || '');
 
   const set = (key: keyof Omit<IPO, '_id'>, val: any) =>
     setForm(prev => {
@@ -162,7 +172,6 @@ function FormModal({
         ...prev, [key]: val,
         ...(key === 'companyName' && !initial ? { logo: autoLogo(val) } : {}),
       };
-      // Auto-calculate minInvestment — silently, no formula hint displayed
       const pr  = key === 'priceRange' ? val : next.priceRange;
       const lot = key === 'lotSize'    ? val : next.lotSize;
       const auto = calcMin(pr, Number(lot));
@@ -171,6 +180,15 @@ function FormModal({
       }
       return next;
     });
+
+  const handleLogoFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setLogoFile(file);
+    const reader = new FileReader();
+    reader.onload = ev => setLogoPreview(ev.target?.result as string);
+    reader.readAsDataURL(file);
+  };
 
   const validate = () => {
     const e: Record<string, string> = {};
@@ -187,7 +205,7 @@ function FormModal({
 
   const submit = async () => {
     if (!validate()) return;
-    await onSave({ ...form, logo: form.logo || autoLogo(form.companyName) });
+    await onSave({ ...form, logo: form.logo || autoLogo(form.companyName) }, logoFile);
   };
 
   /* ── Design tokens (dark / light) ── */
@@ -257,19 +275,59 @@ function FormModal({
                 {errors.companyName && <p className={ER}>{errors.companyName}</p>}
               </div>
               <div>
-                <label className={LB} style={{ color: lblClr }}>Logo (2 chars)</label>
-                <input className={IC} style={IS} placeholder="e.g. TT" maxLength={2}
-                  value={form.logo} onChange={e => set('logo', e.target.value.toUpperCase())} />
-                <p className="text-xs mt-1" style={{ color: hintClr }}>Auto-generated from company name</p>
+                <label className={LB} style={{ color: lblClr }}>Company Logo</label>
+                {/* Image upload + preview */}
+                <div className="flex items-center gap-3">
+                  {/* Preview circle */}
+                  <div className="w-14 h-14 rounded-full flex-shrink-0 flex items-center justify-center overflow-hidden"
+                    style={{ background: 'rgba(81,148,246,0.12)', border: '2px solid rgba(81,148,246,0.25)' }}>
+                    {logoPreview
+                      ? <img src={logoPreview} alt="logo" className="w-full h-full object-cover" />
+                      : <span className="text-[#5194F6] font-bold text-lg">{form.logo || '?'}</span>
+                    }
+                  </div>
+                  {/* Upload button */}
+                  <div className="flex-1">
+                    <label className="flex items-center gap-2 cursor-pointer w-full px-3 py-2.5 rounded-lg text-sm transition-colors"
+                      style={{ background: inBg, border: `1px solid ${inBdr}`, color: inTxt }}>
+                      <Upload className="w-4 h-4 flex-shrink-0" style={{ color: '#5194F6' }} />
+                      <span className="truncate" style={{ color: logoFile ? inTxt : 'rgba(148,163,184,0.8)' }}>
+                        {logoFile ? logoFile.name : 'Upload image (JPG/PNG)'}
+                      </span>
+                      <input type="file" accept="image/jpeg,image/jpg,image/png,image/webp"
+                        className="hidden" onChange={handleLogoFile} />
+                    </label>
+                    <p className="text-[10px] mt-1" style={{ color: hintClr }}>
+                      No image? Initials auto-generated from name
+                    </p>
+                    {logoFile && (
+                      <button type="button" onClick={() => { setLogoFile(null); setLogoPreview(''); }}
+                        className="text-[10px] mt-0.5 text-red-400 hover:text-red-500">
+                        ✕ Remove
+                      </button>
+                    )}
+                  </div>
+                </div>
               </div>
               <div>
                 <label className={LB} style={{ color: lblClr }}>Industry</label>
                 {/* Solid bg — readable in both modes */}
                 <select className={IC} style={SS}
-                  value={form.industry} onChange={e => set('industry', e.target.value)}>
+                  value={INDUSTRIES.filter(i=>i!=='Other').includes(form.industry) ? form.industry : form.industry ? 'Other' : ''}
+                  onChange={e => {
+                    if (e.target.value === 'Other') set('industry', '__other__');
+                    else set('industry', e.target.value);
+                  }}>
                   <option value="" style={OS}>-- Select Industry --</option>
                   {INDUSTRIES.map(i => <option key={i} value={i} style={OS}>{i}</option>)}
                 </select>
+                {/* Custom input when Other is selected */}
+                {(!INDUSTRIES.filter(i=>i!=='Other').includes(form.industry)) && (
+                  <input className={IC} style={{ ...IS, marginTop: 8 }}
+                    placeholder="Type your industry name..."
+                    value={form.industry === '__other__' ? '' : form.industry}
+                    onChange={e => set('industry', e.target.value)} />
+                )}
               </div>
             </div>
           </section>
@@ -350,8 +408,28 @@ function FormModal({
               </div>
               <div className="sm:col-span-2">
                 <label className={LB} style={{ color: lblClr }}>Issue Size *</label>
-                <input className={IC} style={IS} placeholder="₹3,042 Cr"
-                  value={form.issueSize} onChange={e => set('issueSize', e.target.value)} />
+                <div className="flex gap-2">
+                  <input className={IC} style={{ ...IS, flex: 1 }} placeholder="e.g. 306"
+                    type="number" min={0}
+                    value={(() => {
+                      // Parse numeric part from stored issueSize like "306 Cr" or "₹3,042 Cr"
+                      const match = form.issueSize.replace(/₹|,/g,'').match(/^[\d.]+/);
+                      return match ? match[0] : (form.issueSize || '');
+                    })()}
+                    onChange={e => {
+                      const unit = form.issueSize.match(/Cr|Lac/i)?.[0] || 'Cr';
+                      set('issueSize', e.target.value ? `${e.target.value} ${unit}` : '');
+                    }} />
+                  <select className={IC} style={{ ...SS, width: 90, flex: 'none' }}
+                    value={form.issueSize.match(/Lac/i) ? 'Lac' : 'Cr'}
+                    onChange={e => {
+                      const num = form.issueSize.replace(/₹|,/g,'').match(/^[\d.]+/)?.[0] || '';
+                      set('issueSize', num ? `${num} ${e.target.value}` : '');
+                    }}>
+                    <option value="Cr" style={OS}>Cr</option>
+                    <option value="Lac" style={OS}>Lac</option>
+                  </select>
+                </div>
                 {errors.issueSize && <p className={ER}>{errors.issueSize}</p>}
               </div>
               <div>
@@ -373,11 +451,12 @@ function FormModal({
             <p className="text-xs font-bold uppercase tracking-wider" style={{ color: bLabel }}>Important Dates</p>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {[
-                { k: 'openDate',      l: 'Open Date *'       },
-                { k: 'closeDate',     l: 'Close Date *'      },
-                { k: 'allotmentDate', l: 'Allotment Date'    },
-                { k: 'refundDate',    l: 'Refund / UPI Date' },
-                { k: 'listingDate',   l: 'Listing Date'      },
+                { k: 'openDate',      l: 'Open Date *'    },
+                { k: 'closeDate',     l: 'Close Date *'   },
+                { k: 'allotmentDate', l: 'Allotment Date' },
+                { k: 'refundDate',    l: 'Refund Date'    },
+                { k: 'upiDate',       l: 'UPI Date'       },
+                { k: 'listingDate',   l: 'Listing Date'   },
               ].map(({ k, l }) => (
                 <div key={k}>
                   <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: lblClr }}>{l}</label>
@@ -421,7 +500,7 @@ function FormModal({
           <section className="p-4 rounded-xl space-y-3" style={{ background: blockBg, border: `1px solid ${blockBdr}` }}>
             <div>
               <p className="text-xs font-bold uppercase tracking-wider" style={{ color: bLabel }}>SWOT Analysis</p>
-              <p className="text-xs mt-0.5" style={{ color: hintClr }}>Har point alag line mein likho (press Enter for next point)</p>
+              <p className="text-xs mt-0.5" style={{ color: hintClr }}>Each point on a new line (press Enter for next point)</p>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {([
@@ -437,10 +516,16 @@ function FormModal({
                     style={{ ...IS, minHeight: 90, resize: 'vertical', lineHeight: 1.5 }}
                     placeholder={ph}
                     value={(form.swot?.[k] || []).join('\n')}
-                    onChange={e => set('swot', {
-                      ...form.swot,
-                      [k]: e.target.value.split('\n').map(s => s.trim()).filter(Boolean),
-                    })}
+                    onChange={e => {
+                      // Store raw lines during editing — do NOT trim/filter so spaces & Enter work freely
+                      const lines = e.target.value.split('\n');
+                      set('swot', { ...form.swot, [k]: lines });
+                    }}
+                    onBlur={e => {
+                      // Clean up on blur only: trim and remove empty lines
+                      const lines = e.target.value.split('\n').map(s => s.trim()).filter(Boolean);
+                      set('swot', { ...form.swot, [k]: lines });
+                    }}
                   />
                 </div>
               ))}
@@ -578,9 +663,12 @@ function DetailModal({
           style={{ background: headerBg, borderBottom: headerBorder }}>
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-full flex items-center justify-center text-[#5194F6] font-bold text-xl flex-shrink-0"
+              <div className="w-14 h-14 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0"
                 style={{ background: isLight ? 'rgba(239,246,255,0.9)' : 'rgba(81,148,246,0.15)', border: isLight ? '2px solid rgba(147,197,253,0.5)' : '2px solid rgba(81,148,246,0.30)' }}>
-                {ipo.logo}
+                {ipo.logoUrl
+                  ? <img src={ipo.logoUrl} alt={ipo.logo} className="w-full h-full object-cover" />
+                  : <span className="text-[#5194F6] font-bold text-xl">{ipo.logo}</span>
+                }
               </div>
               <div>
                 <h2 className="text-xl font-bold leading-tight" style={{ color: titleColor }}>{ipo.companyName}</h2>
@@ -647,7 +735,8 @@ function DetailModal({
                 ['Open Date',    ipo.openDate,      'text-emerald-500'],
                 ['Close Date',   ipo.closeDate,     'text-orange-500'],
                 ...(ipo.allotmentDate ? [['Allotment Date', ipo.allotmentDate, 'text-blue-500']]   : []),
-                ...(ipo.refundDate    ? [['Refund / UPI',   ipo.refundDate,    isLight ? 'text-slate-500' : 'text-slate-400']] : []),
+                ...(ipo.refundDate    ? [['Refund Date',    ipo.refundDate,    isLight ? 'text-slate-500' : 'text-slate-400']] : []),
+                ...(ipo.upiDate       ? [['UPI / Mandate',  ipo.upiDate,       'text-violet-500']] : []),
                 ...(ipo.listingDate   ? [['Listing Date',   ipo.listingDate,   'text-purple-500']]  : []),
               ].map(([l, v, cls], i) => (
                 <div key={i} className="flex items-center justify-between px-4 py-3 text-sm"
@@ -697,23 +786,6 @@ function DetailModal({
             </div>
           )}
 
-          {/* Min Investment */}
-          <div className="rounded-xl p-4" style={{ background: minInvBg, border: minInvBdr }}>
-            <h3 className="text-sm font-bold mb-3 flex items-center gap-2" style={{ color: sectionTitle }}>
-              <IndianRupee className="w-4 h-4 text-[#5194F6]" />Minimum Investment Required
-            </h3>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs" style={{ color: metaColor }}>Lot Size</p>
-                <p className="text-lg font-bold" style={{ color: sectionTitle }}>{ipo.lotSize} shares</p>
-              </div>
-              <div className="text-right">
-                <p className="text-xs" style={{ color: metaColor }}>Amount</p>
-                <p className="text-lg font-bold text-[#5194F6]">{ipo.minInvestment}</p>
-              </div>
-            </div>
-          </div>
-
           {/* SWOT */}
           <SwotAnalysis ipo={ipo} isLight={isLight} />
 
@@ -749,9 +821,12 @@ function IPOCard({
       <div className="px-4 pt-4 pb-3" style={{ borderBottom: isLight ? '1px solid rgba(226,232,240,0.8)' : '1px solid rgba(255,255,255,0.06)' }}>
         <div className="flex items-center justify-between mb-2.5">
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-10 h-10 rounded-full flex items-center justify-center text-[#5194F6] font-bold text-xs flex-shrink-0"
+            <div className="w-10 h-10 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0"
               style={{ background: 'linear-gradient(135deg,rgba(81,148,246,0.15),rgba(58,125,224,0.08))', border: '1px solid rgba(81,148,246,0.20)' }}>
-              {ipo.logo}
+              {ipo.logoUrl
+                ? <img src={ipo.logoUrl} alt={ipo.logo} className="w-full h-full object-cover" />
+                : <span className="text-[#5194F6] font-bold text-xs">{ipo.logo}</span>
+              }
             </div>
             <div className="min-w-0">
               <h3 className={`font-bold text-[13px] leading-tight truncate ${isLight ? 'text-slate-800' : 'text-white'}`}>{ipo.companyName}</h3>
@@ -860,6 +935,7 @@ const IPOSection = () => {
   const [ipos,      setIpos]     = useState<IPO[]>([]);
   const [counts,    setCounts]   = useState<Counts>({ open:0, upcoming:0, closed:0, total:0 });
   const [activeTab, setActiveTab] = useState<IPOStatus>('open');
+  const [sortBy,    setSortBy]   = useState<string>('default');
   const [loading,   setLoading]  = useState(true);
   const [error,     setError]    = useState<string | null>(null);
   const [showAll,   setShowAll]  = useState(false);
@@ -873,33 +949,60 @@ const IPOSection = () => {
 
   const displayed = showAll ? ipos : ipos.slice(0, 3);
 
-  const fetchIPOs = useCallback(async (tab: IPOStatus) => {
+  const fetchIPOs = useCallback(async (tab: IPOStatus, sort: string = 'default') => {
     setLoading(true); setError(null);
     try {
-      const data = await callAPI(`${IPO_ENDPOINT}?status=${tab}`);
+      const sortParam = sort !== 'default' ? `&sort=${sort}` : '';
+      const data = await callAPI(`${IPO_ENDPOINT}?status=${tab}${sortParam}`);
       setIpos(data.ipos ?? []);
       setCounts(data.counts ?? { open:0, upcoming:0, closed:0, total:0 });
     } catch (e: any) { setError(e.message); }
     finally { setLoading(false); }
   }, []);
 
-  useEffect(() => { setShowAll(false); fetchIPOs(activeTab); }, [activeTab, fetchIPOs]);
+  useEffect(() => { setShowAll(false); fetchIPOs(activeTab, sortBy); }, [activeTab, sortBy, fetchIPOs]);
 
   const switchTab = (tab: IPOStatus) => {
     setActiveTab(tab); setShowAll(false);
     setTimeout(() => document.getElementById('ipo-list-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
   };
 
-  const handleAdd = async (data: Omit<IPO, '_id'>) => {
-    setSaving(true);
-    try { await callAPI(IPO_ENDPOINT, { method: 'POST', body: JSON.stringify(data) }); setFormOpen(false); setEditIPO(null); await fetchIPOs(activeTab); }
-    catch (e: any) { alert('❌ ' + e.message); } finally { setSaving(false); }
+  // Build FormData from IPO data + optional logo image file
+  const buildFormData = (data: Omit<IPO, '_id'>, logoFile?: File | null): FormData => {
+    const fd = new FormData();
+    // Skip fields handled separately
+    const skip = new Set(['swot', 'logoUrl', 'logoPublicId', '_id', 'logo']);
+    Object.entries(data).forEach(([k, v]) => {
+      if (skip.has(k)) return;
+      if (v === null || v === undefined) return;
+      fd.append(k, String(v));
+    });
+    // 'logoText' carries the 2-char initials; 'logo' carries the image file
+    // Backend controller reads req.body.logoText for initials, req.file for image
+    fd.append('logoText', data.logo || '');
+    // swot as JSON string — backend will JSON.parse it
+    if (data.swot) fd.append('swot', JSON.stringify(data.swot));
+    // logo image file — multer field name 'logo'
+    if (logoFile) fd.append('logo', logoFile);
+    return fd;
   };
 
-  const handleEdit = async (data: Omit<IPO, '_id'>) => {
+  const handleAdd = async (data: Omit<IPO, '_id'>, logoFile?: File | null) => {
+    setSaving(true);
+    try {
+      const fd = buildFormData(data, logoFile);
+      await callAPI(IPO_ENDPOINT, { method: 'POST', formData: fd } as any);
+      setFormOpen(false); setEditIPO(null); await fetchIPOs(activeTab);
+    } catch (e: any) { alert('❌ ' + e.message); } finally { setSaving(false); }
+  };
+
+  const handleEdit = async (data: Omit<IPO, '_id'>, logoFile?: File | null) => {
     if (!editIPO) return; setSaving(true);
-    try { await callAPI(`${IPO_ENDPOINT}/${editIPO._id}`, { method: 'PUT', body: JSON.stringify(data) }); setFormOpen(false); setEditIPO(null); setDetailOpen(false); setSelectedIPO(null); await fetchIPOs(activeTab); }
-    catch (e: any) { alert('❌ ' + e.message); } finally { setSaving(false); }
+    try {
+      const fd = buildFormData(data, logoFile);
+      await callAPI(`${IPO_ENDPOINT}/${editIPO._id}`, { method: 'PUT', formData: fd } as any);
+      setFormOpen(false); setEditIPO(null); setDetailOpen(false); setSelectedIPO(null); await fetchIPOs(activeTab);
+    } catch (e: any) { alert('❌ ' + e.message); } finally { setSaving(false); }
   };
 
   const handleDelete = async (ipo: IPO) => {
@@ -960,9 +1063,9 @@ const IPOSection = () => {
         {/* List section */}
         <section className="container mx-auto px-4 md:px-6 py-10" id="ipo-list-section">
           {/* Controls */}
-          <div className="mb-6">
+          <div className="mb-6 space-y-2">
             <div className="flex items-center gap-2">
-              {/* Tabs */}
+              {/* Status Tabs */}
               <div className="flex gap-1.5 overflow-x-auto flex-1 pb-0.5" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                 {(['open','upcoming','closed'] as IPOStatus[]).map(tab => (
                   <button key={tab} onClick={() => { setActiveTab(tab); setShowAll(false); }}
@@ -978,6 +1081,20 @@ const IPOSection = () => {
                 ))}
               </div>
 
+              {/* Sort dropdown */}
+              <select
+                value={sortBy}
+                onChange={e => { setSortBy(e.target.value); setShowAll(false); }}
+                className="flex-shrink-0 text-xs font-semibold rounded-xl px-3 py-2 focus:outline-none transition-all cursor-pointer"
+                style={isLight
+                  ? { background: 'rgba(248,250,252,0.9)', color: '#64748b', border: '1px solid rgba(226,232,240,0.9)' }
+                  : { background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.65)', border: '1px solid rgba(81,148,246,0.15)' }}>
+                <option value="default">Default</option>
+                <option value="gmp">GMP ↓</option>
+                <option value="rating">Rating ↓</option>
+                <option value="subscribed">Subscribed ↓</option>
+              </select>
+
               {/* Add IPO (desktop) */}
               {isAdmin && (
                 <button onClick={() => { setEditIPO(null); setFormOpen(true); }}
@@ -986,7 +1103,7 @@ const IPOSection = () => {
                   <Plus className="w-4 h-4" />Add IPO
                 </button>
               )}
-              <button onClick={() => fetchIPOs(activeTab)} disabled={loading}
+              <button onClick={() => fetchIPOs(activeTab, sortBy)} disabled={loading}
                 className={`flex-shrink-0 flex items-center justify-center w-9 h-9 rounded-xl transition-all ${isLight ? 'text-slate-400 hover:text-slate-700' : 'text-slate-400 hover:text-white'}`}
                 style={{ background: isLight ? 'rgba(248,250,252,0.9)' : 'rgba(255,255,255,0.05)', border: isLight ? '1px solid rgba(226,232,240,0.9)' : '1px solid rgba(255,255,255,0.10)' }}>
                 <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />

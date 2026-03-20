@@ -15,20 +15,17 @@ import { verifyAdmin } from "../middlewares/admin.middleware.js";
 
 const router = Router();
 
-// Public routes
+// ── Public list ──────────────────────────────────────────────────────────────
 router.route("/").get(getAllInsights);
-router.route("/:id").get(getInsightById);
 
-// Like route (requires authentication)
-router.route("/:id/like").post(verifyJWT, toggleLike);
-
-// Admin routes
+// ── Admin static routes (MUST be before /:id) ───────────────────────────────
+// If these come after router.route("/:id"), Express matches "admin" as :id
+// and these routes never execute — causing silent failures.
 router.route("/admin/create").post(verifyJWT, verifyAdmin, createInsight);
-
 router.route("/admin/all").get(verifyJWT, verifyAdmin, getAdminInsights);
-
 router.route("/admin/stats").get(verifyJWT, verifyAdmin, getInsightStats);
 
+// ── Admin dynamic routes ─────────────────────────────────────────────────────
 router
   .route("/admin/:id")
   .put(verifyJWT, verifyAdmin, updateInsight)
@@ -37,5 +34,11 @@ router
 router
   .route("/admin/:id/toggle-publish")
   .patch(verifyJWT, verifyAdmin, togglePublishStatus);
+
+// ── Like (authenticated) ─────────────────────────────────────────────────────
+router.route("/:id/like").post(verifyJWT, toggleLike);
+
+// ── Public single insight (MUST be last) ────────────────────────────────────
+router.route("/:id").get(getInsightById);
 
 export default router;

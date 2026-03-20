@@ -1,118 +1,197 @@
+// src/views/StockWidget.tsx
+// NSE stocks → Kite Connect (/api/v1/kite/markets/history/:symbol)
+// US  stocks → Yahoo Finance (/api/v1/markets/history/:symbol)
+// Chart rendered by CleanChart (lightweight-charts candlestick)
+
 import { useEffect, useState } from "react";
-import axios from "axios";
 import { useTheme } from "@/controllers/Themecontext";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  Tooltip,
-  CartesianGrid,
-  ResponsiveContainer,
-} from "recharts";
+import CleanChart from "@/components/CleanChart";
+import { Loader2, AlertCircle } from "lucide-react";
 
 interface StockWidgetProps {
   symbol: string;
   market: "NSE" | "US";
 }
 
-interface StockData {
-  time: string;
-  price: number;
+interface CandlePoint {
+  x: number;
+  y: [number, number, number, number]; // [open, high, low, close]
 }
 
+interface StockMeta {
+  price:         number;
+  previousClose: number;
+  high:          number;
+  low:           number;
+  currency?:     string;
+}
+
+// Symbol → Yahoo Finance ticker mapping for US stocks
+const US_YAHOO_MAP: Record<string, string> = {
+  AAPL:  "AAPL",
+  TSLA:  "TSLA",
+  MSFT:  "MSFT",
+  GOOGL: "GOOGL",
+  AMZN:  "AMZN",
+  NVDA:  "NVDA",
+  META:  "META",
+};
+
+// NSE symbol → display name
+const NSE_NAMES: Record<string, string> = {
+  RELIANCE:   "Reliance Industries",
+  TCS:        "Tata Consultancy Services",
+  HDFCBANK:   "HDFC Bank",
+  INFY:       "Infosys",
+  ICICIBANK:  "ICICI Bank",
+  WIPRO:      "Wipro",
+  HINDUNILVR: "HUL",
+  ITC:        "ITC Ltd",
+};
+
+const US_NAMES: Record<string, string> = {
+  AAPL:  "Apple Inc.",
+  TSLA:  "Tesla Inc.",
+  MSFT:  "Microsoft Corp.",
+  GOOGL: "Alphabet Inc.",
+  AMZN:  "Amazon.com Inc.",
+  NVDA:  "NVIDIA Corp.",
+  META:  "Meta Platforms",
+};
+
+const BASE = (import.meta as any).env?.VITE_API_URL || "http://localhost:8000/api/v1";
+const ROOT = BASE.replace(/\/api\/v1\/?$/, "");
+
 const StockWidget: React.FC<StockWidgetProps> = ({ symbol, market }) => {
-  const [data, setData] = useState<StockData[]>([]);
-  const [latestPrice, setLatestPrice] = useState<number | null>(null);
   const { theme } = useTheme();
   const isLight = theme === "light";
 
-  const API_KEY = import.meta.env.API_KEY;
+  const [candles, setCandles] = useState<CandlePoint[]>([]);
+  const [meta,    setMeta]    = useState<StockMeta | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error,   setError]   = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchStock = async () => {
+    let cancelled = false;
+
+    const load = async () => {
+      setLoading(true);
+      setError(null);
       try {
-        const url =
-          market === "NSE"
-            ? `https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=${symbol}.NS&interval=5min&apikey=${API_KEY}`
-            : `https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=${symbol}&interval=5min&apikey=${API_KEY}`;
+        let url: string;
 
-        const res = await axios.get(url);
-        const timeSeriesKey = Object.keys(res.data).find((k) =>
-          k.includes("Time Series")
-        );
-        const timeSeries = timeSeriesKey ? res.data[timeSeriesKey] : null;
+        if (market === "NSE") {
+          // Kite Connect — NSE stocks via our backend
+          url = `${ROOT}/api/v1/kite/markets/history/${encodeURIComponent(symbol)}?period=1D`;
+        } else {
+          // Yahoo Finance proxy — US stocks
+          const yahooSym = US_YAHOO_MAP[symbol] ?? symbol;
+          url = `${ROOT}/api/v1/markets/history/${encodeURIComponent(yahooSym)}?period=1D`;
+        }
 
-        if (!timeSeries) return;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
 
-        const formattedData: StockData[] = Object.entries(timeSeries).map(
-          ([time, values]) => ({
-            time: time.split(" ")[1],
-            price: parseFloat((values as any)["4. close"]),
-          })
-        ).reverse();
+        if (cancelled) return;
 
-        setData(formattedData);
-        setLatestPrice(formattedData[formattedData.length - 1].price);
-      } catch (err) {
-        console.error("Error fetching stock data:", err);
+        const c: CandlePoint[] = data.candles ?? [];
+        if (c.length === 0) throw new Error("No candles returned");
+
+        setCandles(c);
+
+        // Build meta from candles if API doesn't return it
+        const closes   = c.map(k => k.y[3]);
+        const highs    = c.map(k => k.y[1]);
+        const lows     = c.map(k => k.y[2]);
+        const lastClose = closes[closes.length - 1];
+        const prevClose = data.meta?.previousClose ?? closes[0];
+
+        setMeta({
+          price:         data.meta?.price ?? lastClose,
+          previousClose: prevClose,
+          high:          data.meta?.high  ?? Math.max(...highs),
+          low:           data.meta?.low   ?? Math.min(...lows),
+          currency:      data.meta?.currency,
+        });
+
+      } catch (err: any) {
+        if (!cancelled) setError(err.message ?? "Failed to load");
+      } finally {
+        if (!cancelled) setLoading(false);
       }
     };
 
-    fetchStock();
-    const interval = setInterval(fetchStock, 60000);
-    return () => clearInterval(interval);
+    load();
+    // Refresh every 15 min
+    const id = setInterval(load, 15 * 60 * 1000);
+    return () => { cancelled = true; clearInterval(id); };
   }, [symbol, market]);
 
-  if (!data.length)
+  const displayName = market === "NSE"
+    ? (NSE_NAMES[symbol] ?? symbol)
+    : (US_NAMES[symbol]  ?? symbol);
+
+  const price         = meta?.price         ?? 0;
+  const previousClose = meta?.previousClose ?? price;
+  const change        = price - previousClose;
+  const changePct     = previousClose !== 0 ? (change / previousClose) * 100 : 0;
+  const high          = meta?.high ?? price;
+  const low           = meta?.low  ?? price;
+  const isPositive    = change >= 0;
+
+  // ── Loading state ───────────────────────────────────────────────
+  if (loading && candles.length === 0) {
     return (
-      <p className={isLight ? "text-navy" : "text-white"}>
-        Loading {symbol}...
-      </p>
+      <div className={`rounded-2xl border p-6 flex items-center justify-center min-h-[320px] ${
+        isLight ? "bg-white border-slate-200" : "bg-[#0e2038] border-white/8"
+      }`}>
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-3 text-[#5194F6]" />
+          <p className={`text-sm font-medium ${isLight ? "text-slate-500" : "text-slate-400"}`}>
+            Loading {symbol}…
+          </p>
+        </div>
+      </div>
     );
+  }
+
+  // ── Error state ─────────────────────────────────────────────────
+  if (error && candles.length === 0) {
+    return (
+      <div className={`rounded-2xl border p-6 flex items-center justify-center min-h-[320px] ${
+        isLight ? "bg-white border-slate-200" : "bg-[#0e2038] border-white/8"
+      }`}>
+        <div className="text-center">
+          <AlertCircle className="w-8 h-8 mx-auto mb-3 text-red-400" />
+          <p className={`text-sm font-semibold mb-1 ${isLight ? "text-slate-700" : "text-slate-300"}`}>
+            {symbol} data unavailable
+          </p>
+          <p className="text-xs text-slate-400">{error}</p>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Chart via CleanChart ────────────────────────────────────────
+  // Pass historyUrl so CleanChart fetches correct endpoint for ALL periods (1D/1W/1M/3M/1Y)
+  const historyUrl = market === "NSE"
+    ? `${ROOT}/api/v1/kite/markets/history/${encodeURIComponent(symbol)}`
+    : `${ROOT}/api/v1/markets/history/${encodeURIComponent(US_YAHOO_MAP[symbol] ?? symbol)}`;
 
   return (
-    <div
-      className="p-4 border rounded-lg bg-background/50"
-      style={{
-        borderColor: isLight ? "rgba(13,37,64,0.15)" : "rgba(255,255,255,0.10)",
-      }}
-    >
-      <h2 className={`font-bold mb-2 ${isLight ? "text-navy" : "text-white"}`}>
-        {symbol} ({market})
-      </h2>
-      <p className={`text-xl mb-2 ${isLight ? "text-navy" : "text-white"}`}>
-        ₹ {latestPrice}
-      </p>
-      <ResponsiveContainer width="100%" height={150}>
-        <LineChart data={data}>
-          <CartesianGrid stroke={isLight ? "#cbd5e1" : "#334155"} />
-          <XAxis
-            dataKey="time"
-            tick={{ fill: isLight ? "#0d2540" : "#94a3b8", fontSize: 11 }}
-          />
-          <YAxis
-            domain={["dataMin", "dataMax"]}
-            tick={{ fill: isLight ? "#0d2540" : "#94a3b8", fontSize: 11 }}
-          />
-          <Tooltip
-            contentStyle={{
-              background: isLight ? "#ffffff" : "#0e2038",
-              border: isLight ? "1px solid rgba(13,37,64,0.15)" : "1px solid rgba(255,255,255,0.10)",
-              borderRadius: "8px",
-              color: isLight ? "#0d2540" : "#ffffff",
-            }}
-          />
-          <Line
-            type="monotone"
-            dataKey="price"
-            stroke="#3b82f6"
-            strokeWidth={2}
-            dot={false}
-          />
-        </LineChart>
-      </ResponsiveContainer>
-    </div>
+    <CleanChart
+      name={`${displayName} · ${market}`}
+      symbol={market === "NSE" ? symbol : (US_YAHOO_MAP[symbol] ?? symbol)}
+      price={price}
+      change={change}
+      changePercent={changePct}
+      high={high}
+      low={low}
+      isPositive={isPositive}
+      candles={candles}
+      historyUrl={historyUrl}
+    />
   );
 };
 

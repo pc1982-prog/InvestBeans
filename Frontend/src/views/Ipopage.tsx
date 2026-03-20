@@ -9,7 +9,7 @@ import {
   CheckCircle, Clock, AlertCircle, ArrowRight, Star, Target,
   Zap, BarChart3, FileText, Search, IndianRupee, Plus, X, Edit3,
   Save, Trash2, Loader2, RefreshCw, ChevronDown,
-  ShieldCheck, ShieldAlert, AlertTriangle, Filter, Calculator,
+  ShieldCheck, ShieldAlert, AlertTriangle, Filter, Calculator, Upload,
 } from 'lucide-react';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
@@ -19,12 +19,12 @@ const IPO_ENDPOINT = `${API_BASE}/ipo`;
 type IPOStatus = 'upcoming' | 'open' | 'closed';   // "listed" removed
 
 interface IPO {
-  _id: string; companyName: string; logo: string; industry: string;
+  _id: string; companyName: string; logo: string; logoUrl?: string; logoPublicId?: string; industry: string;
   status: IPOStatus; openDate: string; closeDate: string;
   listingDate?: string; priceRange: string; lotSize: number;
   issueSize: string; minInvestment: string; subscriptionStatus?: string;
   listingGain?: number | null; gmp?: number | null; allotmentDate?: string;
-  refundDate?: string; exchange: string; rating: number; rhpLink?: string; category?: string;
+  refundDate?: string; upiDate?: string; exchange: string; rating: number; rhpLink?: string; category?: string;
   swot?: { strengths: string[]; weaknesses: string[]; opportunities: string[]; threats: string[]; };
 }
 interface Counts { open: number; upcoming: number; closed: number; total: number; }
@@ -46,7 +46,7 @@ const INDUSTRIES = [
 const BLANK: Omit<IPO,'_id'> = {
   companyName:'', logo:'', industry:'', status:'upcoming',
   category:'Mainboard', exchange:'NSE / BSE',
-  openDate:'', closeDate:'', allotmentDate:'', refundDate:'', listingDate:'',
+  openDate:'', closeDate:'', allotmentDate:'', refundDate:'', upiDate:'', listingDate:'',
   priceRange:'', lotSize:0, issueSize:'', minInvestment:'',
   subscriptionStatus:'', listingGain:null, gmp:null, rating:3, rhpLink:'',
   swot:{ strengths:[], weaknesses:[], opportunities:[], threats:[] },
@@ -104,8 +104,16 @@ function PriceBandInput({ value, onChange, className, style }: {
   );
 }
 
-async function callAPI(url: string, opts?: RequestInit) {
-  const res  = await fetch(url, { headers:{'Content-Type':'application/json'}, credentials:'include', ...opts });
+// callAPI — supports JSON and FormData (for file uploads)
+async function callAPI(url: string, opts?: RequestInit & { formData?: FormData }) {
+  const { formData, ...rest } = (opts || {}) as any;
+  const res = await fetch(url, {
+    credentials: 'include',
+    ...(formData
+      ? { method: rest.method || 'POST', body: formData }
+      : { headers: { 'Content-Type': 'application/json' }, ...rest }
+    ),
+  });
   const json = await res.json();
   if (!res.ok) throw new Error(json.message || `Error ${res.status}`);
   return json.data;
@@ -138,13 +146,15 @@ function Stars({ rating, onClick }: { rating: number; onClick?: (n:number)=>void
    FORM MODAL (inline version — full dark/light theming)
 ═══════════════════════════════════════════════════════════════════ */
 function FormModal({ initial, onSave, onClose, saving }: {
-  initial?: IPO; onSave:(d:Omit<IPO,'_id'>)=>Promise<void>; onClose:()=>void; saving:boolean;
+  initial?: IPO; onSave:(d:Omit<IPO,'_id'>, logoFile?: File|null)=>Promise<void>; onClose:()=>void; saving:boolean;
 }) {
   const { theme } = useTheme();
   const isDark = theme !== 'light';
 
-  const [form, setForm] = useState<Omit<IPO,'_id'>>(initial ? {...initial} : {...BLANK});
-  const [errors, setErrors] = useState<Record<string,string>>({});
+  const [form,        setForm]       = useState<Omit<IPO,'_id'>>(initial ? {...initial} : {...BLANK});
+  const [errors,      setErrors]     = useState<Record<string,string>>({});
+  const [logoFile,    setLogoFile]   = useState<File|null>(null);
+  const [logoPreview, setLogoPreview] = useState<string>(initial?.logoUrl || '');
 
   const set = (k: keyof Omit<IPO,'_id'>, v: any) =>
     setForm(prev => {
@@ -159,6 +169,15 @@ function FormModal({ initial, onSave, onClose, saving }: {
       return next;
     });
 
+  const handleLogoFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setLogoFile(file);
+    const reader = new FileReader();
+    reader.onload = ev => setLogoPreview(ev.target?.result as string);
+    reader.readAsDataURL(file);
+  };
+
   const validate = () => {
     const e: Record<string,string> = {};
     if (!form.companyName.trim())   e.companyName   = 'Required';
@@ -171,7 +190,7 @@ function FormModal({ initial, onSave, onClose, saving }: {
     setErrors(e); return !Object.keys(e).length;
   };
 
-  const submit = async () => { if (!validate()) return; await onSave({...form, logo:form.logo||autoLogo(form.companyName)}); };
+  const submit = async () => { if (!validate()) return; await onSave({...form, logo:form.logo||autoLogo(form.companyName)}, logoFile); };
 
   /* ── tokens ── */
   const modalBg   = isDark ? '#101528' : '#f0f7fe';
@@ -237,17 +256,53 @@ function FormModal({ initial, onSave, onClose, saving }: {
                 {errors.companyName&&<p className={ER}>{errors.companyName}</p>}
               </div>
               <div>
-                <label className={LB} style={{color:lblClr}}>Logo (2 chars)</label>
-                <input className={IC} style={IS} placeholder="e.g. TT" maxLength={2}
-                  value={form.logo} onChange={e=>set('logo',e.target.value.toUpperCase())}/>
-                <p className="text-xs mt-1" style={{color:hintClr}}>Auto-generated from company name</p>
+                <label className={LB} style={{color:lblClr}}>Company Logo</label>
+                <div className="flex items-center gap-3">
+                  {/* Preview circle */}
+                  <div className="w-14 h-14 rounded-full flex-shrink-0 flex items-center justify-center overflow-hidden"
+                    style={{background:'rgba(81,148,246,0.12)',border:'2px solid rgba(81,148,246,0.25)'}}>
+                    {logoPreview
+                      ? <img src={logoPreview} alt="logo" className="w-full h-full object-cover"/>
+                      : <span className="text-[#5194F6] font-bold text-lg">{form.logo||'?'}</span>
+                    }
+                  </div>
+                  {/* Upload button */}
+                  <div className="flex-1">
+                    <label className="flex items-center gap-2 cursor-pointer w-full px-3 py-2.5 rounded-lg text-sm"
+                      style={{background:inBg,border:`1px solid ${inBdr}`,color:inTxt}}>
+                      <Upload className="w-4 h-4 flex-shrink-0" style={{color:'#5194F6'}}/>
+                      <span className="truncate" style={{color:logoFile?inTxt:'rgba(148,163,184,0.8)'}}>
+                        {logoFile ? logoFile.name : 'Upload image (JPG/PNG)'}
+                      </span>
+                      <input type="file" accept="image/jpeg,image/jpg,image/png,image/webp"
+                        className="hidden" onChange={handleLogoFile}/>
+                    </label>
+                    <p className="text-[10px] mt-1" style={{color:hintClr}}>No image? Initials auto-generated from name</p>
+                    {logoFile&&(
+                      <button type="button" onClick={()=>{setLogoFile(null);setLogoPreview('');}}
+                        className="text-[10px] mt-0.5 text-red-400 hover:text-red-500">✕ Remove</button>
+                    )}
+                  </div>
+                </div>
               </div>
               <div>
                 <label className={LB} style={{color:lblClr}}>Industry</label>
-                <select className={IC} style={SS} value={form.industry} onChange={e=>set('industry',e.target.value)}>
+                <select className={IC} style={SS}
+                  value={INDUSTRIES.filter(i=>i!=='Other').includes(form.industry) ? form.industry : form.industry ? 'Other' : ''}
+                  onChange={e => {
+                    if (e.target.value === 'Other') set('industry', '__other__');
+                    else set('industry', e.target.value);
+                  }}>
                   <option value="" style={OS}>-- Select Industry --</option>
                   {INDUSTRIES.map(i=><option key={i} value={i} style={OS}>{i}</option>)}
                 </select>
+                {/* Custom text input when Other is selected */}
+                {!INDUSTRIES.filter(i=>i!=='Other').includes(form.industry) && (
+                  <input className={IC} style={{...IS, marginTop:8}}
+                    placeholder="Type your industry name..."
+                    value={form.industry === '__other__' ? '' : form.industry}
+                    onChange={e=>set('industry', e.target.value)}/>
+                )}
               </div>
             </div>
           </section>
@@ -315,8 +370,26 @@ function FormModal({ initial, onSave, onClose, saving }: {
               </div>
               <div className="sm:col-span-2">
                 <label className={LB} style={{color:lblClr}}>Issue Size *</label>
-                <input className={IC} style={IS} placeholder="₹3,042 Cr"
-                  value={form.issueSize} onChange={e=>set('issueSize',e.target.value)}/>
+                <div className="flex gap-2">
+                  <input className={IC} style={{...IS, flex:1}} type="number" min={0} placeholder="e.g. 306"
+                    value={(() => {
+                      const match = form.issueSize.replace(/₹|,/g,'').match(/^[\d.]+/);
+                      return match ? match[0] : (form.issueSize || '');
+                    })()}
+                    onChange={e => {
+                      const unit = form.issueSize.match(/Lac/i)?.[0] || 'Cr';
+                      set('issueSize', e.target.value ? `${e.target.value} ${unit}` : '');
+                    }}/>
+                  <select className={IC} style={{...SS, width:90, flex:'none'}}
+                    value={form.issueSize.match(/Lac/i) ? 'Lac' : 'Cr'}
+                    onChange={e => {
+                      const num = form.issueSize.replace(/₹|,/g,'').match(/^[\d.]+/)?.[0] || '';
+                      set('issueSize', num ? `${num} ${e.target.value}` : '');
+                    }}>
+                    <option value="Cr" style={OS}>Cr</option>
+                    <option value="Lac" style={OS}>Lac</option>
+                  </select>
+                </div>
                 {errors.issueSize&&<p className={ER}>{errors.issueSize}</p>}
               </div>
               <div>
@@ -340,7 +413,8 @@ function FormModal({ initial, onSave, onClose, saving }: {
                 {k:'openDate',      l:'Open Date *'},
                 {k:'closeDate',     l:'Close Date *'},
                 {k:'allotmentDate', l:'Allotment Date'},
-                {k:'refundDate',    l:'Refund / UPI Date'},
+                {k:'refundDate',    l:'Refund Date'},
+                {k:'upiDate',       l:'UPI / Mandate Date'},
                 {k:'listingDate',   l:'Listing Date'},
               ].map(({k,l})=>(
                 <div key={k}>
@@ -383,7 +457,7 @@ function FormModal({ initial, onSave, onClose, saving }: {
           <section className="p-4 rounded-xl space-y-3" style={{background:blockBg,border:`1px solid ${blockBdr}`}}>
             <div>
               <p className="text-xs font-bold uppercase tracking-wider" style={{color:bLabel}}>SWOT Analysis</p>
-              <p className="text-xs mt-0.5" style={{color:hintClr}}>Har point alag line mein likho (press Enter for next point)</p>
+              <p className="text-xs mt-0.5" style={{color:hintClr}}>Each point on a new line (press Enter for next point)</p>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {([
@@ -399,10 +473,16 @@ function FormModal({ initial, onSave, onClose, saving }: {
                     style={{...IS, minHeight:90, resize:'vertical', lineHeight:1.5}}
                     placeholder={ph}
                     value={(form.swot?.[k]||[]).join('\n')}
-                    onChange={e=>set('swot',{
-                      ...form.swot,
-                      [k]: e.target.value.split('\n').map(s=>s.trim()).filter(Boolean),
-                    })}
+                    onChange={e => {
+                      // Store raw lines — do NOT trim/filter so spaces & Enter work freely
+                      const lines = e.target.value.split('\n');
+                      set('swot', { ...form.swot, [k]: lines });
+                    }}
+                    onBlur={e => {
+                      // Clean up only on blur: trim and remove blank lines
+                      const lines = e.target.value.split('\n').map(s=>s.trim()).filter(Boolean);
+                      set('swot', { ...form.swot, [k]: lines });
+                    }}
                   />
                 </div>
               ))}
@@ -529,9 +609,12 @@ function DetailModal({ ipo, onClose, onEdit, onDelete, deleting, isAdmin }: {
           style={{background:headerBg, borderBottom:headerBorder}}>
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-full flex items-center justify-center text-[#5194F6] font-bold text-xl flex-shrink-0"
+              <div className="w-14 h-14 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0"
                 style={{background: isLight ? 'rgba(239,246,255,0.9)' : 'rgba(81,148,246,0.15)', border: isLight ? '2px solid rgba(147,197,253,0.5)' : '2px solid rgba(81,148,246,0.30)'}}>
-                {ipo.logo}
+                {ipo.logoUrl
+                  ? <img src={ipo.logoUrl} alt={ipo.logo} className="w-full h-full object-cover"/>
+                  : <span className="text-[#5194F6] font-bold text-xl">{ipo.logo}</span>
+                }
               </div>
               <div>
                 <h2 className="text-xl font-bold leading-tight" style={{color:titleColor}}>{ipo.companyName}</h2>
@@ -597,7 +680,8 @@ function DetailModal({ ipo, onClose, onEdit, onDelete, deleting, isAdmin }: {
                 ['Open Date',    ipo.openDate,      'text-emerald-500'],
                 ['Close Date',   ipo.closeDate,     'text-orange-500'],
                 ...(ipo.allotmentDate?[['Allotment', ipo.allotmentDate,'text-blue-500']]:[]),
-                ...(ipo.refundDate?   [['Refund/UPI',ipo.refundDate,   isLight ? 'text-slate-500' : 'text-slate-400']]:[]),
+                ...(ipo.refundDate?   [['Refund Date', ipo.refundDate, isLight ? 'text-slate-500' : 'text-slate-400']]:[]),
+                ...(ipo.upiDate?      [['UPI / Mandate', ipo.upiDate,  'text-violet-500']]:[]),
                 ...(ipo.listingDate?  [['Listing',   ipo.listingDate,  'text-purple-500']]:[]),
               ].map(([l,v,cls],i)=>(
                 <div key={i} className="flex items-center justify-between px-4 py-3 text-sm"
@@ -647,23 +731,6 @@ function DetailModal({ ipo, onClose, onEdit, onDelete, deleting, isAdmin }: {
             </div>
           )}
 
-          {/* Min Investment */}
-          <div className="rounded-xl p-4" style={{background:minInvBg, border:minInvBdr}}>
-            <h3 className="text-sm font-bold mb-3 flex items-center gap-2" style={{color:sectionTitle}}>
-              <IndianRupee className="w-4 h-4 text-[#5194F6]"/>Minimum Investment
-            </h3>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs" style={{color:metaColor}}>Lot Size</p>
-                <p className="text-lg font-bold" style={{color:sectionTitle}}>{ipo.lotSize} shares</p>
-              </div>
-              <div className="text-right">
-                <p className="text-xs" style={{color:metaColor}}>Amount</p>
-                <p className="text-lg font-bold text-[#5194F6]">{ipo.minInvestment}</p>
-              </div>
-            </div>
-          </div>
-
           {/* SWOT — from backend, visible to everyone */}
           <SwotAnalysis ipo={ipo} isLight={isLight}/>
 
@@ -699,9 +766,12 @@ function IPOCard({ ipo, onViewDetail, onEdit, onDelete, isAdmin }: {
       <div className="px-4 pt-4 pb-3" style={{borderBottom:isLight?'1px solid rgba(13,37,64,0.08)':'1px solid rgba(255,255,255,0.06)'}}>
         <div className="flex items-center justify-between mb-2.5">
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-10 h-10 rounded-full flex items-center justify-center text-[#5194F6] font-bold text-xs flex-shrink-0"
+            <div className="w-10 h-10 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0"
               style={{background:'linear-gradient(135deg,rgba(81,148,246,0.20),rgba(58,125,224,0.10))',border:'1px solid rgba(81,148,246,0.25)'}}>
-              {ipo.logo}
+              {ipo.logoUrl
+                ? <img src={ipo.logoUrl} alt={ipo.logo} className="w-full h-full object-cover"/>
+                : <span className="text-[#5194F6] font-bold text-xs">{ipo.logo}</span>
+              }
             </div>
             <div className="min-w-0">
               <h3 className={`font-bold text-[13px] leading-tight truncate ${isLight?'text-navy':'text-white'}`}>{ipo.companyName}</h3>
@@ -782,7 +852,7 @@ export default function IPOPage() {
   const [counts,     setCounts]    = useState<Counts>({ open:0, upcoming:0, closed:0, total:0 });
   const [activeTab,  setActiveTab] = useState<IPOStatus>('open');
   const [search,     setSearch]    = useState('');
-  const [sortBy,     setSortBy]    = useState<'default'|'gmp'|'rating'>('default');
+  const [sortBy,     setSortBy]    = useState<'default'|'gmp'|'rating'|'subscribed'>('default');
   const [catFilter,  setCatFilter] = useState<''|'Mainboard'|'SME'>('');
   const [loading,    setLoading]   = useState(true);
   const [error,      setError]     = useState<string|null>(null);
@@ -822,16 +892,40 @@ export default function IPOPage() {
   // reset showAll on filter change
   useEffect(() => { setShowAll(false); }, [activeTab, search, catFilter, sortBy]);
 
-  const handleAdd = async (data: Omit<IPO,'_id'>) => {
-    setSaving(true);
-    try { await callAPI(IPO_ENDPOINT,{method:'POST',body:JSON.stringify(data)}); setFormOpen(false); setEditIPO(null); await fetchIPOs(); }
-    catch (e:any) { alert('❌ '+e.message); } finally { setSaving(false); }
+  // Build multipart FormData — separates logo file from text fields
+  const buildFormData = (data: Omit<IPO,'_id'>, logoFile?: File|null): FormData => {
+    const fd = new FormData();
+    const skip = new Set(['swot', 'logoUrl', 'logoPublicId', '_id', 'logo']);
+    Object.entries(data).forEach(([k, v]) => {
+      if (skip.has(k)) return;
+      if (v === null || v === undefined) return;
+      fd.append(k, String(v));
+    });
+    // logoText = 2-char initials (backend reads req.body.logoText)
+    fd.append('logoText', data.logo || '');
+    // swot as JSON string (backend JSON.parses it)
+    if (data.swot) fd.append('swot', JSON.stringify(data.swot));
+    // logo image file (multer field name 'logo')
+    if (logoFile) fd.append('logo', logoFile);
+    return fd;
   };
 
-  const handleEdit = async (data: Omit<IPO,'_id'>) => {
+  const handleAdd = async (data: Omit<IPO,'_id'>, logoFile?: File|null) => {
+    setSaving(true);
+    try {
+      const fd = buildFormData(data, logoFile);
+      await callAPI(IPO_ENDPOINT, { method:'POST', formData:fd } as any);
+      setFormOpen(false); setEditIPO(null); await fetchIPOs();
+    } catch (e:any) { alert('❌ '+e.message); } finally { setSaving(false); }
+  };
+
+  const handleEdit = async (data: Omit<IPO,'_id'>, logoFile?: File|null) => {
     if (!editIPO) return; setSaving(true);
-    try { await callAPI(`${IPO_ENDPOINT}/${editIPO._id}`,{method:'PUT',body:JSON.stringify(data)}); setFormOpen(false); setEditIPO(null); setDetailOpen(false); setSelectedIPO(null); await fetchIPOs(); }
-    catch (e:any) { alert('❌ '+e.message); } finally { setSaving(false); }
+    try {
+      const fd = buildFormData(data, logoFile);
+      await callAPI(`${IPO_ENDPOINT}/${editIPO._id}`, { method:'PUT', formData:fd } as any);
+      setFormOpen(false); setEditIPO(null); setDetailOpen(false); setSelectedIPO(null); await fetchIPOs();
+    } catch (e:any) { alert('❌ '+e.message); } finally { setSaving(false); }
   };
 
   const handleDelete = async (ipo: IPO) => {
@@ -918,9 +1012,10 @@ export default function IPOPage() {
                     <select value={sortBy} onChange={e=>setSortBy(e.target.value as any)}
                       className="appearance-none rounded-xl pl-3 pr-7 py-2.5 text-sm focus:outline-none cursor-pointer"
                       style={{background:fSelBg,border:`1px solid ${fBdr}`,color:fSelTxt}}>
-                      <option value="default" style={{background:fSelBg,color:fSelTxt}}>Sort: Default</option>
-                      <option value="gmp"     style={{background:fSelBg,color:fSelTxt}}>Sort: GMP ↓</option>
-                      <option value="rating"  style={{background:fSelBg,color:fSelTxt}}>Sort: Rating ↓</option>
+                      <option value="default"    style={{background:fSelBg,color:fSelTxt}}>Sort: Default</option>
+                      <option value="gmp"        style={{background:fSelBg,color:fSelTxt}}>Sort: GMP ↓</option>
+                      <option value="rating"     style={{background:fSelBg,color:fSelTxt}}>Sort: Rating ↓</option>
+                      <option value="subscribed" style={{background:fSelBg,color:fSelTxt}}>Sort: Subscribed ↓</option>
                     </select>
                     <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400 pointer-events-none"/>
                   </div>

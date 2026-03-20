@@ -305,114 +305,15 @@ router.get("/fo/instruments", async (req, res) => {
   }
 });
 
-// ── PORTFOLIO / HOLDINGS ──────────────────────────────────────────
-router.get("/portfolio/holdings", async (req, res) => {
-  try {
-    const r = await axios.get("https://api.kite.trade/portfolio/holdings", { headers: headers() });
-    res.json(r.data);
-  } catch (err) {
-    res.status(err?.response?.status || 500).json(err?.response?.data || { status: "error", message: err.message });
-  }
-});
 
-// ── PORTFOLIO / POSITIONS ─────────────────────────────────────────
-router.get("/portfolio/positions", async (req, res) => {
-  try {
-    const r = await axios.get("https://api.kite.trade/portfolio/positions", { headers: headers() });
-    res.json(r.data);
-  } catch (err) {
-    res.status(err?.response?.status || 500).json(err?.response?.data || { status: "error", message: err.message });
-  }
-});
 
-// ── ORDERS ────────────────────────────────────────────────────────
-router.get("/orders", async (req, res) => {
-  try {
-    const r = await axios.get("https://api.kite.trade/orders", { headers: headers() });
-    res.json(r.data);
-  } catch (err) {
-    res.status(err?.response?.status || 500).json(err?.response?.data || { status: "error", message: err.message });
-  }
-});
 
-// ── MARGINS ───────────────────────────────────────────────────────
-router.get("/margins", async (req, res) => {
-  try {
-    const r = await axios.get("https://api.kite.trade/user/margins", { headers: headers() });
-    res.json(r.data);
-  } catch (err) {
-    res.status(err?.response?.status || 500).json(err?.response?.data || { status: "error", message: err.message });
-  }
-});
 
-// ── MUTUAL FUNDS HOLDINGS ─────────────────────────────────────────
-router.get("/mf/holdings", async (req, res) => {
-  try {
-    const r = await axios.get("https://api.kite.trade/mf/holdings", { headers: headers() });
-    res.json(r.data);
-  } catch (err) {
-    res.status(err?.response?.status || 500).json(err?.response?.data || { status: "error", message: err.message });
-  }
-});
 
-// ── MUTUAL FUNDS SIPS ─────────────────────────────────────────────
-router.get("/mf/sips", async (req, res) => {
-  try {
-    const r = await axios.get("https://api.kite.trade/mf/sips", { headers: headers() });
-    res.json(r.data);
-  } catch (err) {
-    res.status(err?.response?.status || 500).json(err?.response?.data || { status: "error", message: err.message });
-  }
-});
 
-// ── MUTUAL FUNDS ORDERS ───────────────────────────────────────────
-router.get("/mf/orders", async (req, res) => {
-  try {
-    const r = await axios.get("https://api.kite.trade/mf/orders", { headers: headers() });
-    res.json(r.data);
-  } catch (err) {
-    res.status(err?.response?.status || 500).json(err?.response?.data || { status: "error", message: err.message });
-  }
-});
 
-// ── MARGIN CALCULATION (Order margins) ───────────────────────────
-router.post("/margins/orders", async (req, res) => {
-  try {
-    const r = await axios.post(
-      "https://api.kite.trade/margins/orders",
-      req.body,
-      { headers: { ...headers(), "Content-Type": "application/json" } }
-    );
-    res.json(r.data);
-  } catch (err) {
-    res.status(err?.response?.status || 500).json(err?.response?.data || { status: "error", message: err.message });
-  }
-});
 
-// ── MARGIN CALCULATION (Basket margins) ──────────────────────────
-router.post("/margins/basket", async (req, res) => {
-  try {
-    const params = req.query.consider_positions ? `?consider_positions=${req.query.consider_positions}` : "";
-    const r = await axios.post(
-      `https://api.kite.trade/margins/basket${params}`,
-      req.body,
-      { headers: { ...headers(), "Content-Type": "application/json" } }
-    );
-    res.json(r.data);
-  } catch (err) {
-    res.status(err?.response?.status || 500).json(err?.response?.data || { status: "error", message: err.message });
-  }
-});
 
-// ── USER MARGINS ──────────────────────────────────────────────────
-router.get("/user/margins", async (req, res) => {
-  try {
-    const r = await axios.get("https://api.kite.trade/user/margins", { headers: headers() });
-    res.json(r.data);
-  } catch (err) {
-    res.status(err?.response?.status || 500).json(err?.response?.data || { status: "error", message: err.message });
-  }
-});
 
 // ── NSE CORPORATE ACTIONS PROXY ───────────────────────────────────
 let _nseSession = { cookies: "", ts: 0 };

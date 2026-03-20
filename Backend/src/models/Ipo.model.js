@@ -3,9 +3,12 @@ import mongoose from "mongoose";
 const ipoSchema = new mongoose.Schema(
   {
     companyName:        { type: String, required: true, trim: true },
-    logo:               { type: String, trim: true, maxlength: 3, default: "" },
+    // logo = 2-char initials fallback (auto-generated)
+    // logoUrl = Cloudinary full image URL (uploaded by admin)
+    logo:               { type: String, trim: true, default: "" },
+    logoUrl:            { type: String, default: "" },       // ← Cloudinary image URL
+    logoPublicId:       { type: String, default: "" },       // ← Cloudinary public_id for deletion
     industry:           { type: String, trim: true, default: "" },
-    // "listed" removed — only upcoming | open | closed
     status:             { type: String, enum: ["upcoming","open","closed"], default: "upcoming" },
     category:           { type: String, enum: ["Mainboard","SME"], default: "Mainboard" },
     exchange:           { type: String, enum: ["NSE / BSE","NSE","BSE","NSE SME","BSE SME"], default: "NSE / BSE" },
@@ -13,6 +16,7 @@ const ipoSchema = new mongoose.Schema(
     closeDate:          { type: String, required: true },
     allotmentDate:      { type: String, default: "" },
     refundDate:         { type: String, default: "" },
+    upiDate:            { type: String, default: "" },       // ← Separate UPI/mandate date
     listingDate:        { type: String, default: "" },
     priceRange:         { type: String, required: true },
     lotSize:            { type: Number, required: true, min: 1 },
@@ -23,7 +27,6 @@ const ipoSchema = new mongoose.Schema(
     gmp:                { type: Number, default: null },
     rating:             { type: Number, min: 1, max: 5, default: 3 },
     rhpLink:            { type: String, default: "" },
-    // SWOT Analysis — admin-entered arrays of strings
     swot: {
       strengths:     { type: [String], default: [] },
       weaknesses:    { type: [String], default: [] },
@@ -34,7 +37,7 @@ const ipoSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Auto-generate logo from company name if not set
+// Auto-generate logo initials from company name if not manually set
 ipoSchema.pre("save", function (next) {
   if (!this.logo && this.companyName) {
     this.logo = this.companyName

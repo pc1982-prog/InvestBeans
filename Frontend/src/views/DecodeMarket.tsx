@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef } from "react";
-import { Sparkles, TrendingUp, Plus } from "lucide-react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { Sparkles, TrendingUp, Plus, CheckCircle, XCircle, X } from "lucide-react";
 import InsightCard from "@/components/InsightCard";
 import AdminInsightForm from "@/components/AdminInsightForm";
 import InsightModal from "@/components/InsightModal";
@@ -9,34 +9,83 @@ import { toggleInsightLike } from "@/services/insightService";
 import { useTheme } from "@/controllers/Themecontext";
 import { useNavigate } from "react-router-dom";
 
-// ✅ Added "commodities" to the union
 type ActiveTab = "domestic" | "global" | "commodities";
 interface DecodeMarketProps { activeTab: ActiveTab }
 interface InsightData {
-  _id: string; title: string; description: string; investBeansInsight: string;
+  _id: string; title: string; description: string;
+  investBeansInsight: {
+    summary: string; marketSignificance: string; impactArea: string;
+    stocksImpacted: string; shortTermView: string; longTermView: string;
+    keyRisk: string; impactScore: number;
+  };
   sentiment: "positive" | "negative" | "neutral"; category: string;
-  marketType: "domestic" | "global" | "commodities"; views: number; likes: number; isLiked: boolean;
-  readTime: string; isPublished: boolean; publishedAt: string;
+  marketType: "domestic" | "global" | "commodities"; views: number;
+  likes: number; isLiked: boolean; readTime: string;
+  isPublished: boolean; publishedAt: string;
   author: { _id: string; name: string; email: string };
   credits: { source: string; author?: string; url?: string; publishedDate?: string };
 }
+
+// ── Toast ─────────────────────────────────────────────────────────────────────
+interface ToastState { message: string; type: "success" | "error"; visible: boolean }
+
+const Toast = ({ toast, onClose }: { toast: ToastState; onClose: () => void }) => {
+  if (!toast.visible) return null;
+  const isSuccess = toast.type === "success";
+  return (
+    <div
+      className="fixed bottom-6 right-4 sm:right-6 z-[9999] flex items-center gap-3 px-4 py-3 rounded-2xl shadow-2xl animate-slide-up"
+      style={{
+        background: isSuccess ? "rgba(16,185,129,0.12)" : "rgba(239,68,68,0.12)",
+        border: isSuccess ? "1px solid rgba(16,185,129,0.35)" : "1px solid rgba(239,68,68,0.35)",
+        backdropFilter: "blur(12px)",
+        minWidth: 240,
+        maxWidth: 340,
+      }}
+    >
+      {isSuccess
+        ? <CheckCircle className="w-5 h-5 flex-shrink-0" style={{ color: "#10b981" }} />
+        : <XCircle    className="w-5 h-5 flex-shrink-0" style={{ color: "#ef4444" }} />
+      }
+      <span className="text-sm font-medium flex-1" style={{ color: isSuccess ? "#10b981" : "#ef4444" }}>
+        {toast.message}
+      </span>
+      <button onClick={onClose} className="flex-shrink-0 opacity-60 hover:opacity-100 transition-opacity">
+        <X className="w-4 h-4" style={{ color: isSuccess ? "#10b981" : "#ef4444" }} />
+      </button>
+    </div>
+  );
+};
 
 const INITIAL_VISIBLE = 6;
 
 const DecodeMarket = ({ activeTab }: DecodeMarketProps) => {
   const { isAdmin } = useAuth();
-  const { theme } = useTheme();
-  const isLight = theme === "light";
-  const navigate = useNavigate();
+  const { theme }   = useTheme();
+  const isLight     = theme === "light";
+  const navigate    = useNavigate();
 
-  const [insights, setInsights] = useState<InsightData[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [insights, setInsights]           = useState<InsightData[]>([]);
+  const [loading, setLoading]             = useState(true);
   const [selectedInsight, setSelectedInsight] = useState<InsightData | null>(null);
   const [showInsightModal, setShowInsightModal] = useState(false);
   const [showAdminForm, setShowAdminForm] = useState(false);
   const [editingInsight, setEditingInsight] = useState<InsightData | null>(null);
   const [loadingInsight, setLoadingInsight] = useState(false);
+  const [toast, setToast] = useState<ToastState>({ message: "", type: "success", visible: false });
   const hasFetchedRef = useRef(false);
+  const toastTimer    = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const showToast = useCallback((message: string, type: "success" | "error" = "success") => {
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    setToast({ message, type, visible: true });
+    toastTimer.current = setTimeout(() => setToast(p => ({ ...p, visible: false })), 3500);
+  }, []);
+
+  const hideToast = () => {
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    setToast(p => ({ ...p, visible: false }));
+  };
 
   const fetchInsights = async () => {
     try {
@@ -58,7 +107,8 @@ const DecodeMarket = ({ activeTab }: DecodeMarketProps) => {
   const handleReadMore = async (id: string) => {
     const preview = insights.find(i => i._id === id);
     if (preview) setSelectedInsight(preview);
-    setShowInsightModal(true); setLoadingInsight(true);
+    setShowInsightModal(true);
+    setLoadingInsight(true);
     try {
       const res = await api.get(`/insights/${id}`);
       if (res.data?.success) setSelectedInsight(res.data.data);
@@ -74,23 +124,35 @@ const DecodeMarket = ({ activeTab }: DecodeMarketProps) => {
       if (selectedInsight?._id === id) setSelectedInsight({ ...selectedInsight, likes: res.likes, isLiked: res.isLiked });
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Failed";
-      alert(msg.includes("401") || msg.includes("login") ? "Please login to like insights" : msg);
+      showToast(msg.includes("401") || msg.includes("login") ? "Please login to like insights" : msg, "error");
       throw err;
     }
   };
 
-  const handleEdit = (insight: InsightData) => { setEditingInsight(insight); setShowAdminForm(true); };
-  const handleDelete = async (id: string) => {
-    try { await api.delete(`/insights/admin/${id}`); fetchInsights(); }
-    catch { alert("Failed to delete insight."); }
+  const handleEdit = (insight: InsightData) => {
+    setEditingInsight(insight);
+    setShowAdminForm(true);
   };
-  const handleFormSuccess = () => { fetchInsights(); setEditingInsight(null); };
 
-  // Only show first INITIAL_VISIBLE cards on this page
+  const handleDelete = async (id: string) => {
+    try {
+      await api.delete(`/insights/admin/${id}`);
+      await fetchInsights();
+      showToast("Insight deleted successfully", "success");
+    } catch {
+      showToast("Failed to delete insight", "error");
+    }
+  };
+
+  const handleFormSuccess = async (isEdit: boolean) => {
+    await fetchInsights();
+    setEditingInsight(null);
+    showToast(isEdit ? "Insight updated successfully" : "Insight created successfully", "success");
+  };
+
   const visibleInsights = insights.slice(0, INITIAL_VISIBLE);
-  const hasMore = insights.length > INITIAL_VISIBLE;
+  const hasMore         = insights.length > INITIAL_VISIBLE;
 
-  // ✅ Tab config for the 3 tabs
   const tabConfig = {
     domestic: {
       badge: { color: "#34d399", bg: "rgba(52,211,153,0.07)", border: "rgba(52,211,153,0.18)" },
@@ -117,22 +179,19 @@ const DecodeMarket = ({ activeTab }: DecodeMarketProps) => {
   return (
     <section id="decode-markets" className="mb-12 sm:mb-16 md:mb-20 relative overflow-hidden">
 
+      {/* Toast */}
+      <Toast toast={toast} onClose={hideToast} />
+
       {/* Ambient glows */}
-      <div
-        className="absolute top-0 right-0 w-[min(450px,80vw)] h-[min(450px,80vw)] rounded-full blur-[80px] sm:blur-[120px] pointer-events-none"
-        style={{ background: "radial-gradient(circle,rgba(212,168,67,0.05) 0%,transparent 70%)" }}
-      />
-      <div
-        className="absolute bottom-0 left-0 w-[min(350px,70vw)] h-[min(350px,70vw)] rounded-full blur-[60px] sm:blur-[100px] pointer-events-none"
-        style={{ background: "radial-gradient(circle,rgba(56,189,248,0.04) 0%,transparent 70%)" }}
-      />
+      <div className="absolute top-0 right-0 w-[min(450px,80vw)] h-[min(450px,80vw)] rounded-full blur-[80px] sm:blur-[120px] pointer-events-none"
+        style={{ background: "radial-gradient(circle,rgba(212,168,67,0.05) 0%,transparent 70%)" }} />
+      <div className="absolute bottom-0 left-0 w-[min(350px,70vw)] h-[min(350px,70vw)] rounded-full blur-[60px] sm:blur-[100px] pointer-events-none"
+        style={{ background: "radial-gradient(circle,rgba(56,189,248,0.04) 0%,transparent 70%)" }} />
 
       <div className="relative z-10">
 
-        {/* ── Section header ─────────────────────────────────────────────── */}
+        {/* Section header */}
         <div className="text-center mb-8 sm:mb-10 relative px-4 sm:px-6 lg:px-8">
-
-          {/* Desktop only — button floats right */}
           {isAdmin && (
             <div className="hidden sm:flex absolute top-1/2 right-4 sm:right-6 lg:right-8 -translate-y-1/2">
               <button
@@ -145,16 +204,12 @@ const DecodeMarket = ({ activeTab }: DecodeMarketProps) => {
             </div>
           )}
 
-          {/* Badge */}
-          <div
-            className="inline-flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full mb-4 sm:mb-5"
-            style={{ background: "rgba(81,148,246,0.1)", border: "1px solid rgba(81,148,246,0.2)" }}
-          >
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full mb-4 sm:mb-5"
+            style={{ background: "rgba(81,148,246,0.1)", border: "1px solid rgba(81,148,246,0.2)" }}>
             <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#5194F6]" />
             <span className="text-[11px] sm:text-xs font-semibold text-[#5194F6] uppercase tracking-wide">Market Intelligence</span>
           </div>
 
-          {/* Heading */}
           <h2 className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4 leading-tight ${isLight ? "text-navy" : "text-white"}`}>
             Decode the{" "}
             <span style={{ background: "linear-gradient(135deg,#5194F6,#7eb8ff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
@@ -162,15 +217,12 @@ const DecodeMarket = ({ activeTab }: DecodeMarketProps) => {
             </span>
           </h2>
 
-          {/* Subtitle */}
           <p className="text-slate-400 text-sm sm:text-base md:text-lg max-w-xl sm:max-w-2xl lg:max-w-3xl mx-auto leading-relaxed px-2 sm:px-0">
             Expert insights and analysis to help you understand market movements and make informed investment decisions
           </p>
         </div>
 
         <div className="px-4 sm:px-6 lg:px-8">
-
-          {/* Mobile only — button between heading and sub-header */}
           {isAdmin && (
             <div className="flex justify-center mb-4 sm:hidden">
               <button
@@ -183,7 +235,7 @@ const DecodeMarket = ({ activeTab }: DecodeMarketProps) => {
             </div>
           )}
 
-          {/* ── Sub-header ────────────────────────────────────────────────── */}
+          {/* Sub-header */}
           <div className="flex flex-col items-center gap-2 sm:gap-3 mb-6 sm:mb-8">
             <div
               className="inline-flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-medium"
@@ -200,13 +252,11 @@ const DecodeMarket = ({ activeTab }: DecodeMarketProps) => {
             </div>
           </div>
 
-          {/* ── Cards / Empty / Loading ───────────────────────────────── */}
+          {/* Cards */}
           {loading ? (
             <div className="text-center py-12 sm:py-16">
-              <div
-                className="inline-block animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12"
-                style={{ border: "2px solid rgba(212,168,67,0.15)", borderTopColor: "#5194F6" }}
-              />
+              <div className="inline-block animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12"
+                style={{ border: "2px solid rgba(212,168,67,0.15)", borderTopColor: "#5194F6" }} />
               <p className="mt-4 text-slate-400 text-sm">Loading insights...</p>
             </div>
           ) : insights.length === 0 ? (
@@ -224,14 +274,12 @@ const DecodeMarket = ({ activeTab }: DecodeMarketProps) => {
             </div>
           ) : (
             <>
-              {/* Desktop 2-col grid */}
               <div className="hidden lg:grid lg:grid-cols-2 gap-6 xl:gap-8">
                 {visibleInsights.map(insight => (
                   <InsightCard key={insight._id} insight={insight} isAdmin={isAdmin}
                     onReadMore={handleReadMore} onLike={handleLike} onEdit={handleEdit} onDelete={handleDelete} />
                 ))}
               </div>
-              {/* Mobile / tablet stack */}
               <div className="block lg:hidden space-y-4 sm:space-y-5">
                 {visibleInsights.map(insight => (
                   <InsightCard key={insight._id} insight={insight} isAdmin={isAdmin}
@@ -242,7 +290,6 @@ const DecodeMarket = ({ activeTab }: DecodeMarketProps) => {
           )}
         </div>
 
-        {/* ── Show More → navigate to full page ─────────────────────────── */}
         {hasMore && insights.length > 0 && (
           <div className="mt-8 sm:mt-12 text-center px-4">
             <button
@@ -265,7 +312,7 @@ const DecodeMarket = ({ activeTab }: DecodeMarketProps) => {
       <AdminInsightForm
         isOpen={showAdminForm}
         onClose={() => { setShowAdminForm(false); setEditingInsight(null); }}
-        onSuccess={handleFormSuccess}
+        onSuccess={(isEdit) => handleFormSuccess(isEdit)}
         editingInsight={editingInsight}
       />
     </section>

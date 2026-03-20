@@ -122,10 +122,6 @@ const NAV_SECTIONS = [
   { id:"options",    label:"F&O Instruments",   icon: Layers      },
   { id:"historical", label:"Historical Data",   icon: BookOpen    },
   { id:"corporate",  label:"Corporate Actions", icon: Building2   },
-  { id:"portfolio",  label:"Portfolio",         icon: PieChart    },
-  { id:"mf",         label:"Mutual Funds",      icon: Package     },
-  { id:"orders",     label:"Orders",            icon: FileText    },
-  { id:"margins",    label:"Margin Calculator", icon: Calculator  },
 ];
 
 // ── Helpers ───────────────────────────────────────────────────────
@@ -2484,10 +2480,6 @@ export default function DomesticView() {
             <OptionsSection   ticks={ticks}/>
             <HistoricalSection/>
             <CorporateSection/>
-            <PortfolioSection ticks={ticks}/>
-            <MFSection/>
-            <OrdersSection/>
-            <MarginSection/>
           </main>
         </div>
       </div>

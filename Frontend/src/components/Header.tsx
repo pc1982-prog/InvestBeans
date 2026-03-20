@@ -535,13 +535,13 @@ const Header = () => {
               </NavItem>
 
               {/* 3. DASHBOARDS */}
-              <NavItem label="Dashboards" dd={dashboards} theme={theme}>
+              {/* <NavItem label="Dashboards" dd={dashboards} theme={theme}>
                 <div className="min-w-[200px]">
                   <DropLink to="/dashboard" onClick={dashboards.close} theme={theme}>Bharat (India)</DropLink>
                   <DropLink to="/global" onClick={dashboards.close} theme={theme}>Global</DropLink>
                   <DropLink to="/dashboard" onClick={dashboards.close} theme={theme}>ETFs</DropLink>
                 </div>
-              </NavItem>
+              </NavItem> */}
 
               {/* 4. LEARN */}
               <NavItem label="Learn" dd={learn} theme={theme} href="/education">
@@ -780,11 +780,11 @@ const Header = () => {
                   <MobileLink to="/currency">Currency</MobileLink>
                 </MobileAccordion>
 
-                <MobileAccordion label="Dashboards" isOpen={mobileDashboardsOpen} toggle={() => setMobileDashboardsOpen((s) => !s)}>
+                {/* <MobileAccordion label="Dashboards" isOpen={mobileDashboardsOpen} toggle={() => setMobileDashboardsOpen((s) => !s)}>
                   <MobileLink to="/dashboard">Bharat (India)</MobileLink>
                   <MobileLink to="/global">Global</MobileLink>
                   <MobileLink to="/dashboard">ETFs</MobileLink>
-                </MobileAccordion>
+                </MobileAccordion> */}
 
                 <MobileAccordion label="Learn" isOpen={mobileLearnOpen} toggle={() => setMobileLearnOpen((s) => !s)}>
                   <MobileSectionLabel label="Financial" />

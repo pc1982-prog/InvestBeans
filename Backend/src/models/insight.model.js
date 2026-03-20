@@ -14,12 +14,60 @@ const insightSchema = new mongoose.Schema(
       trim: true,
       maxlength: [1000, "Description cannot exceed 1000 characters"],
     },
+
+    // ✅ Replaced plain string with structured object (Perfect Mobile Format)
     investBeansInsight: {
-      type: String,
-      required: [true, "InvestBeans Insight is required"],
-      trim: true,
-      maxlength: [2000, "InvestBeans Insight cannot exceed 2000 characters"],
+      summary: {
+        type: String,
+        required: [true, "Summary is required"],
+        trim: true,
+        maxlength: [500, "Summary cannot exceed 500 characters"],
+      },
+      marketSignificance: {
+        type: String,
+        required: [true, "Market Significance is required"],
+        trim: true,
+        maxlength: [600, "Market Significance cannot exceed 600 characters"],
+      },
+      impactArea: {
+        type: String,
+        required: [true, "Impact Area is required"],
+        trim: true,
+        maxlength: [300, "Impact Area cannot exceed 300 characters"],
+      },
+      stocksImpacted: {
+        type: String,
+        trim: true,
+        maxlength: [500, "Stocks Impacted cannot exceed 500 characters"],
+        default: "",
+      },
+      shortTermView: {
+        type: String,
+        required: [true, "Short-Term View is required"],
+        trim: true,
+        maxlength: [600, "Short-Term View cannot exceed 600 characters"],
+      },
+      longTermView: {
+        type: String,
+        required: [true, "Long-Term View is required"],
+        trim: true,
+        maxlength: [600, "Long-Term View cannot exceed 600 characters"],
+      },
+      keyRisk: {
+        type: String,
+        required: [true, "Key Risk is required"],
+        trim: true,
+        maxlength: [500, "Key Risk cannot exceed 500 characters"],
+      },
+      impactScore: {
+        type: Number,
+        required: [true, "Impact Score is required"],
+        min: [1, "Impact Score must be at least 1"],
+        max: [10, "Impact Score cannot exceed 10"],
+        default: 5,
+      },
     },
+
     credits: {
       source: {
         type: String,
@@ -46,6 +94,7 @@ const insightSchema = new mongoose.Schema(
         default: Date.now,
       },
     },
+
     sentiment: {
       type: String,
       enum: ["positive", "negative", "neutral"],
@@ -58,7 +107,6 @@ const insightSchema = new mongoose.Schema(
     },
     marketType: {
       type: String,
-      // ✅ Added "commodities" as a valid market type
       enum: ["domestic", "global", "commodities"],
       required: [true, "Market type is required"],
     },
@@ -70,10 +118,12 @@ const insightSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
-    likedBy: [{
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-    }],
+    likedBy: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
     readTime: {
       type: String,
       default: "5 min read",
@@ -97,7 +147,7 @@ const insightSchema = new mongoose.Schema(
   }
 );
 
-// Index for faster queries
+// Indexes for faster queries
 insightSchema.index({ marketType: 1, isPublished: 1, publishedAt: -1 });
 insightSchema.index({ category: 1 });
 insightSchema.index({ sentiment: 1 });
@@ -111,10 +161,10 @@ insightSchema.methods.incrementViews = function () {
 // Method to toggle like
 insightSchema.methods.toggleLike = function (userId) {
   const userIdStr = userId.toString();
-  const isLiked = this.likedBy.some(id => id.toString() === userIdStr);
+  const isLiked = this.likedBy.some((id) => id.toString() === userIdStr);
 
   if (isLiked) {
-    this.likedBy = this.likedBy.filter(id => id.toString() !== userIdStr);
+    this.likedBy = this.likedBy.filter((id) => id.toString() !== userIdStr);
     this.likes = Math.max(0, this.likes - 1);
   } else {
     this.likedBy.push(userId);
