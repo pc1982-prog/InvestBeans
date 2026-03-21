@@ -426,12 +426,14 @@ const UsdInrCard = ({ cardBg, cardBorder, isLight, liveValue, liveChange }) => {
 };
 
 // ─── Gold vs Silver Card ─────────────────────────────────────────────────────
-const GoldSilverCard = ({ cardBg, cardBorder, isLight, liveGold, liveGoldChange, liveSilver, liveSilverChange }) => {
+const GoldSilverCard = ({ cardBg, cardBorder, isLight, liveGold, liveGoldChange, liveSilver, liveSilverChange, goldSource, silverSource }) => {
   const gold = liveGold ?? null; const silver = liveSilver ?? null;
   const goldChg = liveGoldChange ?? null; const silverChg = liveSilverChange ?? null;
   const goldPos = (goldChg ?? 0) >= 0; const silverPos = (silverChg ?? 0) >= 0;
   const fmtPrice = (v) => v ? `₹${v.toLocaleString("en-IN")}` : "···";
   const fmtChg = (v, pos) => v != null ? `${pos ? "▲ +" : "▼ "}${Math.abs(v).toFixed(2)}%` : "···";
+  const srcLabel = (src) => src === "kite-ws" ? "Live MCX" : src === "kite-rest" ? "MCX REST" : src === "yahoo" ? "Yahoo est." : null;
+  const srcColor = (src) => src === "kite-ws" ? "#22c55e" : src === "kite-rest" ? "#4E91F6" : "#f59e0b";
   return (
     <div style={{ background: cardBg, border: cardBorder }} className="rounded-2xl relative overflow-hidden group hover:scale-[1.02] transition-all duration-300 cursor-pointer md:p-5">
       <div className="md:hidden" style={{ padding: "10px", position: "relative" }}>
@@ -459,18 +461,37 @@ const GoldSilverCard = ({ cardBg, cardBorder, isLight, liveGold, liveGoldChange,
         ))}
       </div>
       <div className="hidden md:block">
-        <div className="flex items-center gap-1.5 mb-4">
-          <span style={{ width: 8, height: 8, borderRadius: 2, background: "#4E91F6", display: "inline-block" }} />
-          <span style={{ fontSize: "11px", fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.12em", color: isLight ? "#1e3a5f" : "#ffffff" }}>GOLD vs SILVER</span>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-1.5">
+            <span style={{ width: 8, height: 8, borderRadius: 2, background: "#4E91F6", display: "inline-block" }} />
+            <span style={{ fontSize: "11px", fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.12em", color: isLight ? "#1e3a5f" : "#ffffff" }}>GOLD vs SILVER</span>
+          </div>
+          {/* Source badge — shows data origin */}
+          {(goldSource || silverSource) && (
+            <span style={{
+              fontSize: "9px", fontWeight: 700, padding: "2px 7px", borderRadius: 6,
+              background: `${srcColor(goldSource || silverSource)}18`,
+              color: srcColor(goldSource || silverSource),
+              border: `1px solid ${srcColor(goldSource || silverSource)}30`,
+            }}>
+              {srcLabel(goldSource || silverSource)}
+            </span>
+          )}
         </div>
         <div className="space-y-3">
           {[
-            { Icon: GoldBrickIcon, label: "Gold", price: fmtPrice(gold), chg: fmtChg(goldChg, goldPos), pos: goldPos, bar: "linear-gradient(90deg,#C9A84C,#f5d78e)", barW: "72%" },
-            { Icon: SilverBrickIcon, label: "Silver", price: fmtPrice(silver), chg: fmtChg(silverChg, silverPos), pos: silverPos, bar: "linear-gradient(90deg,#94a3b8,#cbd5e1)", barW: "58%" },
-          ].map(({ Icon, label, price, chg, pos, bar, barW }) => (
+            { Icon: GoldBrickIcon,   label: "Gold",   price: fmtPrice(gold),   chg: fmtChg(goldChg, goldPos),     pos: goldPos,   bar: "linear-gradient(90deg,#C9A84C,#f5d78e)", barW: "72%", unit: "per 10g" },
+            { Icon: SilverBrickIcon, label: "Silver", price: fmtPrice(silver), chg: fmtChg(silverChg, silverPos), pos: silverPos, bar: "linear-gradient(90deg,#94a3b8,#cbd5e1)", barW: "58%", unit: "per kg" },
+          ].map(({ Icon, label, price, chg, pos, bar, barW, unit }) => (
             <div key={label}>
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2"><Icon size={40} /><span className={`font-semibold text-sm ${isLight ? "text-navy/80" : "text-white/80"}`}>{label}</span></div>
+                <div className="flex items-center gap-2">
+                  <Icon size={40} />
+                  <div>
+                    <span className={`font-semibold text-sm ${isLight ? "text-navy/80" : "text-white/80"}`}>{label}</span>
+                    <span style={{ display: "block", fontSize: "9px", color: isLight ? "rgba(30,58,95,0.4)" : "rgba(255,255,255,0.35)", fontWeight: 600 }}>{unit}</span>
+                  </div>
+                </div>
                 <div className="flex items-center gap-1.5">
                   <span className={`text-base md:text-lg font-bold ${isLight ? "text-navy" : "text-white"}`}>{price}</span>
                   {pos ? <TrendingUp className="w-4 h-4 text-emerald-400 flex-shrink-0" /> : <TrendingDown className="w-4 h-4 text-red-400 flex-shrink-0" />}
@@ -526,7 +547,6 @@ const Hero = () => {
     usdInrRate: 84,
   });
 
-  // ── Bharat live data from Kite ──────────────────────────────────────────────
   const [bharatData, setBharatData] = useState({
     sensex: null,        // { price, chg }
     nifty50: null,       // { price, chg }
@@ -535,10 +555,12 @@ const Hero = () => {
     giftNiftyChange: null,
     usdInr: null,
     usdInrChange: null,
-    goldInr: null,       // MCX Gold ₹/10g from Kite
+    goldInr: null,       // MCX Gold ₹/10g — Kite WS > Kite REST > Yahoo
     goldChange: null,
-    silverInr: null,     // MCX Silver ₹/kg from Kite
+    goldSource: null,    // "kite-ws" | "kite-rest" | "yahoo"
+    silverInr: null,     // MCX Silver ₹/kg — Kite WS > Kite REST > Yahoo
     silverChange: null,
+    silverSource: null,
     fiiNet: null,        // FII net in Crores (negative = selling)
     diiNet: null,        // DII net in Crores (positive = buying)
     fiiDate: null,       // "DD-Mon-YYYY" from NSE
@@ -641,10 +663,12 @@ const Hero = () => {
           const { gold, silver } = json.data;
           setBharatData(prev => ({
             ...prev,
-            goldInr:     gold?.price_per_10g   ?? prev.goldInr,
-            goldChange:  gold?.change_percent  ?? prev.goldChange,
-            silverInr:   silver?.price_per_kg  ?? prev.silverInr,
+            goldInr:      gold?.price_per_10g   ?? prev.goldInr,
+            goldChange:   gold?.change_percent  ?? prev.goldChange,
+            goldSource:   gold?.source          ?? prev.goldSource,
+            silverInr:    silver?.price_per_kg  ?? prev.silverInr,
             silverChange: silver?.change_percent ?? prev.silverChange,
+            silverSource: silver?.source         ?? prev.silverSource,
           }));
         }
       } catch (_) {}
@@ -789,7 +813,8 @@ const Hero = () => {
                 liveChange={bharatData.usdInrChange} />
               <GoldSilverCard cardBg={cardBg} cardBorder={cardBorder} isLight={isLight}
                 liveGold={bharatData.goldInr} liveGoldChange={bharatData.goldChange}
-                liveSilver={bharatData.silverInr} liveSilverChange={bharatData.silverChange} />
+                liveSilver={bharatData.silverInr} liveSilverChange={bharatData.silverChange}
+                goldSource={bharatData.goldSource} silverSource={bharatData.silverSource} />
             </div>
           )}
 

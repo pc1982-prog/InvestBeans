@@ -422,4 +422,475 @@ router.get("/corporate-actions", (req, res) => {
   res.json({ status: "success", data: [], note: "Use /kite/nse/corporate-actions" });
 });
 
+const YF_HEADERS_LIVE = {
+  "User-Agent":      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+  "Accept":          "application/json, text/plain, */*",
+  "Accept-Language": "en-US,en;q=0.9",
+  "Origin":          "https://finance.yahoo.com",
+  "Referer":         "https://finance.yahoo.com/",
+  "Cache-Control":   "no-cache",
+};
+ 
+/**
+ * Fetch a single Yahoo Finance symbol.
+ * Returns { price, changePct, currency } or throws.
+ */
+async function fetchYahooSymbol(symbol) {
+  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=2d`;
+  const r   = await axios.get(url, { headers: YF_HEADERS_LIVE, timeout: 10000 });
+  const meta = r.data?.chart?.result?.[0]?.meta;
+  if (!meta?.regularMarketPrice) throw new Error(`Yahoo: no price for ${symbol}`);
+  const price     = meta.regularMarketPrice;
+  const prevClose = meta.chartPreviousClose ?? meta.previousClose ?? price;
+  const changePct = prevClose ? ((price - prevClose) / prevClose) * 100 : 0;
+  return { price, changePct, currency: meta.currency ?? "USD" };
+}
+ 
+ 
+// ─────────────────────────────────────────────────────────────────────────────
+// 1.  FII / DII  —  live from NSE API
+//     GET /api/v1/kite/fii-dii
+// ─────────────────────────────────────────────────────────────────────────────
+const _fiiDiiCache = { data: null, ts: 0 };
+ 
+router.get("/fii-dii", async (req, res) => {
+  // Cache for 5 min — NSE updates this only a few times per day
+  if (_fiiDiiCache.data && Date.now() - _fiiDiiCache.ts < 5 * 60 * 1000) {
+    return res.json({ status: "success", data: _fiiDiiCache.data, cached: true });
+  }
+ 
+  const fetchFromNse = async (cookies) => {
+    const r = await axios.get("https://www.nseindia.com/api/fiidiiTradeReact", {
+      timeout: 12000,
+      headers: {
+        ...NSE_COMMON,
+        Accept:             "application/json, text/plain, */*",
+        Referer:            "https://www.nseindia.com/market-data/fii-dii-activity",
+        Cookie:             cookies,
+        "sec-fetch-dest":   "empty",
+        "sec-fetch-mode":   "cors",
+        "sec-fetch-site":   "same-origin",
+        "X-Requested-With": "XMLHttpRequest",
+      },
+    });
+    const rows  = Array.isArray(r.data) ? r.data : (r.data?.data ?? []);
+    const parse = (v) => parseFloat(String(v ?? "0").replace(/,/g, "")) || 0;
+    const fiiRow = rows.find((d) => /FII|FPI/i.test(d.category));
+    const diiRow = rows.find((d) => /\bDII\b/i.test(d.category));
+    return {
+      fii: { buy: fiiRow ? parse(fiiRow.buyValue)  : null,
+             sell: fiiRow ? parse(fiiRow.sellValue) : null,
+             net:  fiiRow ? parse(fiiRow.netValue)  : null,
+             date: fiiRow?.date ?? null },
+      dii: { buy: diiRow ? parse(diiRow.buyValue)  : null,
+             sell: diiRow ? parse(diiRow.sellValue) : null,
+             net:  diiRow ? parse(diiRow.netValue)  : null,
+             date: diiRow?.date ?? null },
+    };
+  };
+ 
+  try {
+    const cookies = await getNseSession();
+    const data    = await fetchFromNse(cookies);
+    _fiiDiiCache.data = data;
+    _fiiDiiCache.ts   = Date.now();
+    return res.json({ status: "success", data });
+  } catch (err) {
+    console.warn("[FII-DII] First attempt failed:", err.message, "— retrying with fresh session");
+    try {
+      _nseSession.cookies = "";
+      _nseSession.ts      = 0;
+      const fresh = await getNseSession(true);
+      await new Promise((r) => setTimeout(r, 1200));
+      const data = await fetchFromNse(fresh);
+      _fiiDiiCache.data = data;
+      _fiiDiiCache.ts   = Date.now();
+      return res.json({ status: "success", data });
+    } catch (err2) {
+      console.error("[FII-DII] Both attempts failed:", err2.message);
+      if (_fiiDiiCache.data) {
+        return res.json({ status: "success", data: _fiiDiiCache.data, stale: true });
+      }
+      return res.status(500).json({ status: "error", message: err2.message });
+    }
+  }
+});
+ 
+ 
+// ─────────────────────────────────────────────────────────────────────────────
+// 2.  GIFT NIFTY  —  Kite NSE_IFSC first,  Yahoo Finance fallback
+//     GET /api/v1/kite/gift-nifty
+//
+// Primary:  Kite /quote for NSE_IFSC near-month NIFTY futures
+// Fallback: Yahoo ^NSEI  (Nifty 50 spot — best publicly available proxy)
+// ─────────────────────────────────────────────────────────────────────────────
+const _giftMeta  = { symbol: null, ts: 0 };
+const _giftCache = { data: null,   ts: 0 };
+ 
+async function resolveGiftNiftySymbol() {
+  const FOUR_H = 4 * 60 * 60 * 1000;
+  if (_giftMeta.symbol && Date.now() - _giftMeta.ts < FOUR_H) return _giftMeta.symbol;
+ 
+  console.log("[GIFT NIFTY] Fetching NSE_IFSC instrument list…");
+  const r     = await axios.get("https://api.kite.trade/instruments/NSE_IFSC", {
+    headers: headers(), timeout: 15000, responseType: "text",
+  });
+  const today = new Date().toISOString().split("T")[0];
+  const lines = r.data.split("\n");
+  const hdrs  = lines[0].split(",").map((h) => h.trim());
+  const col   = (row, name) => row[hdrs.indexOf(name)]?.trim() ?? "";
+ 
+  const contracts = lines
+    .slice(1).filter((l) => l.trim())
+    .map((l) => {
+      const p = l.split(",");
+      return { symbol: col(p, "tradingsymbol"), expiry: col(p, "expiry"), type: col(p, "instrument_type") };
+    })
+    .filter((c) => c.type === "FUT" && /^NIFTY[^A-Z]/i.test(c.symbol) && c.expiry >= today)
+    .sort((a, b) => a.expiry.localeCompare(b.expiry));
+ 
+  if (!contracts.length) throw new Error("No active GIFT NIFTY contracts on NSE_IFSC");
+  console.log(`[GIFT NIFTY] Resolved → ${contracts[0].symbol} (expiry: ${contracts[0].expiry})`);
+  _giftMeta.symbol = contracts[0].symbol;
+  _giftMeta.ts     = Date.now();
+  return _giftMeta.symbol;
+}
+ 
+router.get("/gift-nifty", async (req, res) => {
+  // 30-second cache
+  if (_giftCache.data && Date.now() - _giftCache.ts < 30 * 1000) {
+    return res.json({ status: "success", data: _giftCache.data, cached: true });
+  }
+ 
+  // ── Try Kite NSE_IFSC first ───────────────────────────────────────────────
+  try {
+    const sym        = await resolveGiftNiftySymbol();
+    const kiteSymbol = `NSE_IFSC:${sym}`;
+    const r          = await axios.get(
+      `https://api.kite.trade/quote?i=${encodeURIComponent(kiteSymbol)}`,
+      { headers: headers(), timeout: 8000 }
+    );
+    const q = r.data?.data?.[kiteSymbol];
+    if (!q) throw new Error(`No data for ${kiteSymbol} — plan may not include NSE_IFSC`);
+ 
+    const lastPrice = q.last_price;
+    const prevClose = q.ohlc?.close ?? null;
+    const changePct = q.change != null ? q.change
+      : (lastPrice && prevClose ? ((lastPrice - prevClose) / prevClose) * 100 : null);
+ 
+    const data = { symbol: sym, last_price: lastPrice, change_percent: changePct, ohlc: q.ohlc, source: "kite" };
+    _giftCache.data = data;
+    _giftCache.ts   = Date.now();
+    return res.json({ status: "success", data });
+ 
+  } catch (kiteErr) {
+    // 403 = not subscribed to NSE_IFSC; any other error → try Yahoo
+    console.warn(`[GIFT NIFTY] Kite failed (${kiteErr.message}) — falling back to Yahoo ^NSEI`);
+    _giftMeta.symbol = null; // force re-resolve next time
+ 
+    try {
+      const { price, changePct } = await fetchYahooSymbol("^NSEI");
+      const data = {
+        symbol:         "NIFTY 50 (Yahoo proxy)",
+        last_price:     price,
+        change_percent: changePct,
+        source:         "yahoo",
+      };
+      _giftCache.data = data;
+      _giftCache.ts   = Date.now();
+      return res.json({ status: "success", data });
+    } catch (yahooErr) {
+      console.error("[GIFT NIFTY] Yahoo fallback also failed:", yahooErr.message);
+      if (_giftCache.data) {
+        return res.json({ status: "success", data: _giftCache.data, stale: true });
+      }
+      return res.status(500).json({ status: "error", message: yahooErr.message });
+    }
+  }
+});
+ 
+ 
+// ─────────────────────────────────────────────────────────────────────────────
+// 3.  COMMODITIES  —  Gold & Silver  —  3-tier priority
+//     GET /api/v1/kite/commodities
+//
+//  Priority 1:  kiteWS.getMCXTicks()  — WebSocket, always real-time (sub-second)
+//               Gold tick key  = "MCX:GOLD",  price is natively ₹/10g
+//               Silver tick key = "MCX:SILVER", price is natively ₹/kg
+//
+//  Priority 2:  Kite REST /quote for MCX near-month futures  (60-second cache)
+//               Uses tradingsymbol prefix filter + excludes MINI/PETAL/GUINEA/TEN
+//               Percentage change = q.net_change (NOT q.change — that's absolute)
+//
+//  Fallback:    Yahoo Finance GC=F + SI=F with live USDINR=X
+//               Gold:   (GC=F ÷ 31.1035) × 10 × USDINR × GOLD_DUTY  → ₹/10g
+//               Silver: SI=F × 32.1507   × USDINR × SILVER_DUTY       → ₹/kg
+//               Duty factors: Gold ~18% (15% customs + 3% GST)
+//                             Silver ~13% (10% customs + 3% GST)
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Indian import duty factors (MCX prices include these; Yahoo prices don't)
+const GOLD_DUTY_FACTOR   = 1.18;  // 15% customs + 3% GST (approx)
+const SILVER_DUTY_FACTOR = 1.13;  // 10% customs + 3% GST (approx)
+
+const _mcxMeta  = { gold: null, silver: null, ts: 0 };
+const _mcxCache = { data: null, ts: 0 };
+
+async function resolveMcxSymbols() {
+  const FOUR_H = 4 * 60 * 60 * 1000;
+  if (_mcxMeta.gold && _mcxMeta.silver && Date.now() - _mcxMeta.ts < FOUR_H) {
+    return { gold: _mcxMeta.gold, silver: _mcxMeta.silver };
+  }
+
+  console.log("[MCX] Fetching MCX instrument list…");
+  const r     = await axios.get("https://api.kite.trade/instruments/MCX", {
+    headers: headers(), timeout: 15000, responseType: "text",
+  });
+  const today = new Date().toISOString().split("T")[0];
+  const lines = r.data.split("\n");
+  const hdrs  = lines[0].split(",").map((h) => h.trim());
+  const col   = (row, name) => row[hdrs.indexOf(name)]?.trim() ?? "";
+
+  const parsed = lines.slice(1).filter((l) => l.trim()).map((l) => {
+    const p = l.split(",");
+    return {
+      symbol:  col(p, "tradingsymbol"),
+      name:    col(p, "name").toUpperCase(),
+      expiry:  col(p, "expiry"),
+      type:    col(p, "instrument_type"),
+    };
+  }).filter((c) => c.type === "FUT" && c.expiry >= today);
+
+  // ── Gold: match tradingsymbol starting with "GOLD" but exclude variants ──
+  // GOLDM = mini (100g), GOLDPETAL (1g), GOLDGUINEA (8g), GOLDTENTH/TEN (10g)
+  // Standard GOLD (1kg lot) is quoted in ₹/10g — this is what we want
+  const goldContracts = parsed
+    .filter((c) =>
+      c.symbol.startsWith("GOLD") &&
+      !c.symbol.startsWith("GOLDM")       &&   // Mini
+      !c.symbol.includes("PETAL")         &&   // Petal
+      !c.symbol.includes("GUINEA")        &&   // Guinea
+      !c.symbol.includes("TEN")           &&   // TEN
+      !c.symbol.includes("MICRO")
+    )
+    .sort((a, b) => a.expiry.localeCompare(b.expiry));
+
+  // ── Silver: match tradingsymbol starting with "SILVER" but exclude SILVERM (mini) ──
+  const silverContracts = parsed
+    .filter((c) =>
+      c.symbol.startsWith("SILVER") &&
+      !c.symbol.startsWith("SILVERM")     &&   // Mini
+      !c.symbol.includes("MICRO")
+    )
+    .sort((a, b) => a.expiry.localeCompare(b.expiry));
+
+  if (!goldContracts.length || !silverContracts.length) {
+    throw new Error("MCX GOLD or SILVER standard contracts not found");
+  }
+
+  _mcxMeta.gold   = goldContracts[0].symbol;
+  _mcxMeta.silver = silverContracts[0].symbol;
+  _mcxMeta.ts     = Date.now();
+  console.log(`[MCX] Gold → ${_mcxMeta.gold} | Silver → ${_mcxMeta.silver}`);
+  return { gold: _mcxMeta.gold, silver: _mcxMeta.silver };
+}
+
+// ── Yahoo fallback — with import duty factors so price matches MCX reality ──
+async function commoditiesFromYahoo() {
+  console.log("[MCX] Falling back to Yahoo Finance (GC=F, SI=F, USDINR=X)…");
+
+  const [goldRes, silverRes, fxRes] = await Promise.allSettled([
+    fetchYahooSymbol("GC=F"),
+    fetchYahooSymbol("SI=F"),
+    fetchYahooSymbol("USDINR=X"),
+  ]);
+
+  const gold   = goldRes.status   === "fulfilled" ? goldRes.value   : null;
+  const silver = silverRes.status === "fulfilled" ? silverRes.value : null;
+  const fx     = fxRes.status     === "fulfilled" ? fxRes.value     : null;
+  const usdInr = fx?.price ?? 86;
+
+  // GC=F: USD/troy-oz → ₹/10g (MCX standard, including duty premium)
+  // Formula: (price_usd / 31.1035g_per_oz) × 10g × USDINR × duty_factor
+  const goldPer10g = gold?.price
+    ? Math.round((gold.price / 31.1035) * 10 * usdInr * GOLD_DUTY_FACTOR)
+    : null;
+
+  // SI=F: USD/troy-oz → ₹/kg (MCX standard, including duty premium)
+  // Formula: price_usd × 32.1507oz_per_kg × USDINR × duty_factor
+  const silverPerKg = silver?.price
+    ? Math.round(silver.price * 32.1507 * usdInr * SILVER_DUTY_FACTOR)
+    : null;
+
+  return {
+    gold: goldPer10g != null ? {
+      symbol:         "GC=F",
+      price_per_10g:  goldPer10g,
+      change_percent: gold?.changePct ?? null,
+      source:         "yahoo",
+      note:           "International price converted to INR with duty estimate",
+    } : null,
+    silver: silverPerKg != null ? {
+      symbol:         "SI=F",
+      price_per_kg:   silverPerKg,
+      change_percent: silver?.changePct ?? null,
+      source:         "yahoo",
+      note:           "International price converted to INR with duty estimate",
+    } : null,
+  };
+}
+
+router.get("/commodities", async (req, res) => {
+  const CACHE_TTL = 15 * 1000; // 15-second cache — WebSocket is primary anyway
+
+  if (_mcxCache.data && Date.now() - _mcxCache.ts < CACHE_TTL) {
+    return res.json({ status: "success", data: _mcxCache.data, cached: true });
+  }
+
+  // ═══════════════════════════════════════════════════════════════════
+  // PRIORITY 1: kiteWS WebSocket ticks (real-time, already subscribed)
+  // ═══════════════════════════════════════════════════════════════════
+  const wsTicks = kiteWS.getMCXTicks();
+  const wsGold   = wsTicks["MCX:GOLD"];
+  const wsSilver = wsTicks["MCX:SILVER"];
+
+  if (wsGold?.last_price > 0 && wsSilver?.last_price > 0) {
+    const wsAge = Math.max(
+      Date.now() - (wsGold.ts   ?? 0),
+      Date.now() - (wsSilver.ts ?? 0)
+    );
+
+    // Only use WebSocket if data is fresh (under 5 minutes)
+    if (wsAge < 5 * 60 * 1000) {
+      const prevGold   = wsGold.ohlc?.close   ?? wsGold.last_price;
+      const prevSilver = wsSilver.ohlc?.close ?? wsSilver.last_price;
+
+      const result = {
+        gold: {
+          symbol:         wsGold.symbol ?? "MCX:GOLD",
+          price_per_10g:  Math.round(wsGold.last_price),
+          change_percent: wsGold.change != null && wsGold.change !== 0
+            ? +wsGold.change.toFixed(2)
+            : prevGold > 0
+              ? +(((wsGold.last_price - prevGold) / prevGold) * 100).toFixed(2)
+              : null,
+          ohlc:   wsGold.ohlc ?? null,
+          oi:     wsGold.oi   ?? 0,
+          source: "kite-ws",
+        },
+        silver: {
+          symbol:         wsSilver.symbol ?? "MCX:SILVER",
+          price_per_kg:   Math.round(wsSilver.last_price),
+          change_percent: wsSilver.change != null && wsSilver.change !== 0
+            ? +wsSilver.change.toFixed(2)
+            : prevSilver > 0
+              ? +(((wsSilver.last_price - prevSilver) / prevSilver) * 100).toFixed(2)
+              : null,
+          ohlc:   wsSilver.ohlc ?? null,
+          oi:     wsSilver.oi   ?? 0,
+          source: "kite-ws",
+        },
+      };
+
+      _mcxCache.data = result;
+      _mcxCache.ts   = Date.now();
+      console.log(`[MCX] WebSocket: Gold ₹${result.gold.price_per_10g}/10g | Silver ₹${result.silver.price_per_kg}/kg`);
+      return res.json({ status: "success", data: result });
+    }
+    console.warn(`[MCX] WebSocket data is stale (${Math.round(wsAge / 1000)}s) — trying REST`);
+  }
+
+  // ═══════════════════════════════════════════════════════════════════
+  // PRIORITY 2: Kite REST API /quote (reliable but needs token)
+  // ═══════════════════════════════════════════════════════════════════
+  try {
+    const { gold: goldSym, silver: silverSym } = await resolveMcxSymbols();
+    const kiteGold   = `MCX:${goldSym}`;
+    const kiteSilver = `MCX:${silverSym}`;
+
+    const r   = await axios.get(
+      `https://api.kite.trade/quote?${symQS([kiteGold, kiteSilver])}`,
+      { headers: headers(), timeout: 8000 }
+    );
+    const raw = r.data?.data ?? {};
+
+    if (!raw[kiteGold] && !raw[kiteSilver]) {
+      throw new Error("Kite returned no MCX quote data — MCX segment may not be in plan");
+    }
+
+    const extract = (sym) => {
+      const q = raw[sym];
+      if (!q) return null;
+      const price     = q.last_price;
+      const prevClose = q.ohlc?.close ?? null;
+      // Kite REST: use net_change (%) first, fallback to manual calc from ohlc.close
+      const changePct = q.net_change != null
+        ? q.net_change
+        : (price && prevClose ? ((price - prevClose) / prevClose) * 100 : null);
+      return {
+        price,
+        change_percent: changePct != null ? +changePct.toFixed(2) : null,
+        ohlc:           q.ohlc ?? null,
+        oi:             q.oi   ?? 0,
+      };
+    };
+
+    const goldData   = extract(kiteGold);
+    const silverData = extract(kiteSilver);
+
+    let result = {
+      gold: goldData ? {
+        symbol:         goldSym,
+        price_per_10g:  Math.round(goldData.price),   // MCX: natively ₹/10g
+        change_percent: goldData.change_percent,
+        ohlc:           goldData.ohlc,
+        oi:             goldData.oi,
+        source:         "kite-rest",
+      } : null,
+      silver: silverData ? {
+        symbol:         silverSym,
+        price_per_kg:   Math.round(silverData.price), // MCX: natively ₹/kg
+        change_percent: silverData.change_percent,
+        ohlc:           silverData.ohlc,
+        oi:             silverData.oi,
+        source:         "kite-rest",
+      } : null,
+    };
+
+    // If one metal is missing, fill from Yahoo
+    if (!result.gold || !result.silver) {
+      console.warn("[MCX] Partial Kite data — filling gaps with Yahoo");
+      const yahoo = await commoditiesFromYahoo().catch(() => ({}));
+      if (!result.gold   && yahoo.gold)   result.gold   = yahoo.gold;
+      if (!result.silver && yahoo.silver) result.silver = yahoo.silver;
+    }
+
+    _mcxCache.data = result;
+    _mcxCache.ts   = Date.now();
+    console.log(`[MCX] REST: Gold ₹${result.gold?.price_per_10g}/10g | Silver ₹${result.silver?.price_per_kg}/kg (${goldSym} / ${silverSym})`);
+    return res.json({ status: "success", data: result });
+
+  } catch (kiteErr) {
+    // 403 / no MCX access / token expired → full Yahoo fallback
+    console.warn(`[MCX Commodities] Kite failed (${kiteErr.message}) — using Yahoo Finance`);
+    _mcxMeta.gold   = null;
+    _mcxMeta.silver = null;
+
+    try {
+      const data = await commoditiesFromYahoo();
+      if (!data.gold && !data.silver) throw new Error("Yahoo returned no data");
+      _mcxCache.data = data;
+      _mcxCache.ts   = Date.now();
+      console.log(`[MCX] Yahoo: Gold ₹${data.gold?.price_per_10g}/10g | Silver ₹${data.silver?.price_per_kg}/kg`);
+      return res.json({ status: "success", data });
+    } catch (yahooErr) {
+      console.error("[MCX Commodities] Yahoo fallback also failed:", yahooErr.message);
+      if (_mcxCache.data) {
+        return res.json({ status: "success", data: _mcxCache.data, stale: true });
+      }
+      return res.status(500).json({ status: "error", message: yahooErr.message });
+    }
+  }
+});
+
 export default router;

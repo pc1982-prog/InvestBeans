@@ -28,15 +28,18 @@ import PrivacyPolicy from "./views/Privacypolicy";
 import ChartPage from "./components/Chartpage";
 import IPOSection from "./views/Iposection";
 import IPOPage from "./views/Ipopage";
-import { ThemeProvider } from "@/controllers/Themecontext"
+import { ThemeProvider } from "@/controllers/Themecontext";
 import PricingPlan from "./views/Pricingplan";
 import CurrencyView from "./views/Currencyview";
 import DecodeMarketsPage from "./components/DecodeMarketsPage";
 
+// ── NEW: Full Commodities & ETFs view (replaces old MarketsView at /markets) ──
+import CommoditiesView from "@/views/Commoditiesview";
+
 const queryClient = new QueryClient();
 
 const App = () => (
-  <ThemeProvider>                          {/* ← ADDED: sabse bahar wrap karo */}
+  <ThemeProvider>
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <GlobalToastListener />
@@ -49,7 +52,13 @@ const App = () => (
               <Route path="/" element={<HomeController />} />
               <Route path="/domestic" element={<DomesticController />} />
               <Route path="/global" element={<GlobalController />} />
-              <Route path="/markets" element={<MarketsView />} />
+
+              {/* /markets → Full Commodities & ETFs view (5 tabs via ?tab= param) */}
+              <Route path="/markets" element={<CommoditiesView />} />
+
+              {/* Keep old MarketsView accessible at /markets-old if needed */}
+              <Route path="/markets-old" element={<MarketsView />} />
+
               <Route path="/currency" element={<CurrencyView />} />
               <Route path="/pricing" element={<PricingPlan />} />
               <Route path="/chart/:symbol" element={<ChartPage />} />
@@ -82,7 +91,7 @@ const App = () => (
         </TooltipProvider>
       </AuthProvider>
     </QueryClientProvider>
-  </ThemeProvider>                         // ← ADDED: closing tag
+  </ThemeProvider>
 );
 
 export default App;

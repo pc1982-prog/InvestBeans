@@ -25,6 +25,11 @@ import {
   ChevronLeft,
   Sun,
   Moon,
+  Flame,
+  Package,
+  Globe,
+  Activity,
+  Lightbulb,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useGlobalMarkets } from "@/hooks/useGlobalMarkets";
@@ -103,7 +108,6 @@ const MarketTickerInline = () => {
 
   if (allMarkets.length === 0) return null;
 
-  // ── Per-mode scroll button style ──
   const btnCls = isLight
     ? "absolute z-10 bg-slate-200/80 hover:bg-slate-300 text-slate-500 hover:text-slate-800 p-1 rounded-full transition-colors"
     : "absolute z-10 bg-white/10 hover:bg-white/20 text-white/70 hover:text-white p-1 rounded-full transition-colors";
@@ -248,6 +252,51 @@ const DropBtn = ({
   </DropdownMenuItem>
 );
 
+// ── Commodity tab link — goes to /markets?tab=TAB_ID ──────────────────────────
+const CommodityTabLink = ({
+  to,
+  icon: Icon,
+  label,
+  desc,
+  onClick,
+  theme,
+}: {
+  to: string;
+  icon: React.ElementType;
+  label: string;
+  desc: string;
+  onClick?: () => void;
+  theme: "dark" | "light";
+}) => {
+  const navigate = useNavigate();
+  return (
+    <DropdownMenuItem asChild>
+      <button
+        onClick={() => { onClick?.(); navigate(to); }}
+        className="w-full text-left px-3 py-2 rounded-md transition cursor-pointer flex items-center gap-2.5"
+        style={{ color: theme === "light" ? "rgba(30,58,95,0.80)" : "rgba(200,223,248,0.80)" }}
+        onMouseEnter={e => {
+          (e.currentTarget as HTMLElement).style.color = "#5194F6";
+          (e.currentTarget as HTMLElement).style.background = "rgba(78,145,246,0.10)";
+        }}
+        onMouseLeave={e => {
+          (e.currentTarget as HTMLElement).style.color = theme === "light" ? "rgba(30,58,95,0.80)" : "rgba(200,223,248,0.80)";
+          (e.currentTarget as HTMLElement).style.background = "transparent";
+        }}
+      >
+        <div className="w-6 h-6 rounded-md flex items-center justify-center shrink-0"
+          style={{ background: "rgba(81,148,246,0.12)" }}>
+          <Icon className="w-3.5 h-3.5" style={{ color: "#5194F6" }} />
+        </div>
+        <div className="min-w-0">
+          <p className="text-[13px] font-medium leading-none">{label}</p>
+          <p className="text-[10px] mt-0.5 opacity-60 truncate">{desc}</p>
+        </div>
+      </button>
+    </DropdownMenuItem>
+  );
+};
+
 // ─── Desktop nav item wrapper — handles hover without blink ───────────────────
 const NavItem = ({
   label,
@@ -322,21 +371,23 @@ const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Desktop dropdowns — each has its own smooth hover state
-  const about = useHoverDropdown();
-  const segments = useHoverDropdown();
+  const about      = useHoverDropdown();
+  const segments   = useHoverDropdown();
+  const commodities = useHoverDropdown();
   const dashboards = useHoverDropdown();
-  const learn = useHoverDropdown();
-  const events = useHoverDropdown();
-  const help = useHoverDropdown();
-  const userMenu = useHoverDropdown();
+  const learn      = useHoverDropdown();
+  const events     = useHoverDropdown();
+  const help       = useHoverDropdown();
+  const userMenu   = useHoverDropdown();
 
   // Mobile accordions
-  const [mobileAboutOpen, setMobileAboutOpen] = useState(false);
-  const [mobileSegmentsOpen, setMobileSegmentsOpen] = useState(false);
+  const [mobileAboutOpen,      setMobileAboutOpen]      = useState(false);
+  const [mobileSegmentsOpen,   setMobileSegmentsOpen]   = useState(false);
+  const [mobileCommodOpen,     setMobileCommodOpen]     = useState(false);
   const [mobileDashboardsOpen, setMobileDashboardsOpen] = useState(false);
-  const [mobileLearnOpen, setMobileLearnOpen] = useState(false);
-  const [mobileEventsOpen, setMobileEventsOpen] = useState(false);
-  const [mobileHelpOpen, setMobileHelpOpen] = useState(false);
+  const [mobileLearnOpen,      setMobileLearnOpen]      = useState(false);
+  const [mobileEventsOpen,     setMobileEventsOpen]     = useState(false);
+  const [mobileHelpOpen,       setMobileHelpOpen]       = useState(false);
 
   const closeMobile = () => setIsMobileMenuOpen(false);
 
@@ -456,9 +507,18 @@ const Header = () => {
     ? "min-w-[160px] p-2 bg-white/96 text-navy rounded-xl shadow-lg ring-1 ring-black/[0.07] border border-slate-200/80 backdrop-blur-xl"
     : "min-w-[160px] p-2 bg-[#101528]/98 text-white rounded-xl shadow-lg ring-1 ring-[#1C3656]/70 border border-[#1C3656]/50 backdrop-blur-xl";
 
+  // ── Commodities tab definitions (matching CommoditiesView tabs) ───────────
+  const COMMODITY_TABS = [
+    { id: "domestic",     label: "Domestic Commodities", desc: "MCX · Gold · Silver · Crude · NatGas · Copper", icon: Flame    },
+    { id: "dom-etfs",     label: "Domestic ETFs",        desc: "NSE/BSE · AMFI NAV · Gold & Silver ETFs",      icon: Package  },
+    { id: "global",       label: "Global Commodities",   desc: "CME · COMEX · LME · COT · EIA · OPEC",        icon: Globe    },
+    { id: "global-etfs",  label: "Global ETFs",          desc: "GLD · SLV · USO · DBC · TIP · PDBC",          icon: Activity },
+    { id: "intelligence", label: "Intelligence Layer",   desc: "Regime · Hedge Engine · Allocation",           icon: Lightbulb},
+  ];
+
   return (
     <div className="sticky top-0 z-50">
-      {/* ── Market Ticker Bar (always dark — industry standard) ── */}
+      {/* ── Market Ticker Bar ── */}
       <div className={tickerBg}>
         <MarketTickerInline />
       </div>
@@ -466,7 +526,7 @@ const Header = () => {
       <header className={`${headerBg} backdrop-blur-sm`}>
         <nav className="container mx-auto px-3 sm:px-4 md:px-6 py-2 flex items-center justify-between min-h-[52px] sm:min-h-[56px]">
 
-          {/* ── Left: logo + nav ──────────────────────────────────────────────── */}
+          {/* ── Left: logo + nav ──────────────────────────────────────────── */}
           <div className="flex items-center gap-1.5 sm:gap-3 md:gap-5">
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -480,7 +540,6 @@ const Header = () => {
             </button>
 
             <Link to="/" className="flex items-center shrink-0">
-              {/* Logo with right-half tinted #5194F6 using a stacked SVG overlay */}
               <div className="relative inline-flex items-center shrink-0">
                 <img
                   src={isLight ? "/images/investbeans logo-03.png" : "/images/Untitled-6-04.png"}
@@ -489,7 +548,6 @@ const Header = () => {
                     !isLight ? "brightness-[1.3] contrast-[1.5]" : ""
                   }`}
                 />
-                {/* Right-half blue tint overlay — clips to right 50% */}
                 <div
                   aria-hidden="true"
                   style={{
@@ -514,7 +572,7 @@ const Header = () => {
               {/* 1. ABOUT */}
               <NavItem label="About" dd={about} theme={theme} href="/team">
                 <div className="min-w-[260px]">
-                  <DropBtn theme={theme} onClick={() => { scrollToSection("our-story"); about.close(); }}>Our Story </DropBtn>
+                  <DropBtn theme={theme} onClick={() => { scrollToSection("our-story"); about.close(); }}>Our Story</DropBtn>
                   <DropBtn theme={theme} onClick={() => { scrollToSection("mission"); about.close(); }}>Mission, Vision & Values</DropBtn>
                   <DropBtn theme={theme} onClick={() => { scrollToSection("team-members"); about.close(); }}>Team</DropBtn>
                   <DropBtn theme={theme} onClick={() => { scrollToSection("why-us"); about.close(); }}>Why Us</DropBtn>
@@ -528,32 +586,55 @@ const Header = () => {
                 <div className="min-w-[200px]">
                   <DropSection label="Equity" theme={theme} />
                   <DropLink to="/domestic" onClick={segments.close} theme={theme}>Domestic</DropLink>
-                  <DropLink to="/global" onClick={segments.close} theme={theme}>Global</DropLink>
-                  <DropLink to="/markets" onClick={segments.close} theme={theme}>Commodities</DropLink>
+                  <DropLink to="/global"   onClick={segments.close} theme={theme}>Global</DropLink>
                   <DropLink to="/currency" onClick={segments.close} theme={theme}>Currency</DropLink>
+                  <DropdownMenuSeparator className="my-1" />
+                  <DropSection label="Commodities & ETFs" theme={theme} />
+                  {/* Commodities overview — goes to /markets with no tab param */}
+                  <DropLink to="/markets" onClick={segments.close} theme={theme}>Overview</DropLink>
                 </div>
               </NavItem>
 
-              {/* 3. DASHBOARDS */}
-              {/* <NavItem label="Dashboards" dd={dashboards} theme={theme}>
-                <div className="min-w-[200px]">
-                  <DropLink to="/dashboard" onClick={dashboards.close} theme={theme}>Bharat (India)</DropLink>
-                  <DropLink to="/global" onClick={dashboards.close} theme={theme}>Global</DropLink>
-                  <DropLink to="/dashboard" onClick={dashboards.close} theme={theme}>ETFs</DropLink>
+              {/* 3. COMMODITIES & ETFs — dedicated dropdown with all 5 tabs */}
+              <NavItem label="Commodities" dd={commodities} theme={theme} href="/markets">
+                <div className="min-w-[280px]">
+                  <p className={`text-[10px] font-bold uppercase tracking-widest px-3 pt-2 pb-1 ${
+                    theme === "light" ? "text-navy/45" : "text-white/40"
+                  }`}>Commodities & ETFs</p>
+
+                  {COMMODITY_TABS.map(tab => (
+                    <CommodityTabLink
+                      key={tab.id}
+                      to={`/markets?tab=${tab.id}`}
+                      icon={tab.icon}
+                      label={tab.label}
+                      desc={tab.desc}
+                      onClick={commodities.close}
+                      theme={theme}
+                    />
+                  ))}
+
+                  {/* Footer chip inside dropdown */}
+                  <div className="mx-2 mt-2 mb-1 px-3 py-2 rounded-lg"
+                    style={{ background: "rgba(81,148,246,0.07)", border: "1px solid rgba(81,148,246,0.15)" }}>
+                    <p className={`text-[10px] font-medium ${theme === "light" ? "text-slate-500" : "text-slate-400"}`}>
+                      Live MCX · AMFI NAV · CFTC COT · EIA · Yahoo Finance
+                    </p>
+                  </div>
                 </div>
-              </NavItem> */}
+              </NavItem>
 
               {/* 4. LEARN */}
               <NavItem label="Learn" dd={learn} theme={theme} href="/education">
                 <div className="min-w-[220px]">
                   <DropSection label="Financial" theme={theme} />
-                  <DropLink to="/education#financial-ebooks" onClick={learn.close} theme={theme}>E-books</DropLink>
-                  <DropLink to="/education#financial-tutorials" onClick={learn.close} theme={theme}>Tutorials</DropLink>
+                  <DropLink to="/education#financial-ebooks"        onClick={learn.close} theme={theme}>E-books</DropLink>
+                  <DropLink to="/education#financial-tutorials"     onClick={learn.close} theme={theme}>Tutorials</DropLink>
                   <DropLink to="/education#financial-certifications" onClick={learn.close} theme={theme}>Certifications</DropLink>
                   <DropdownMenuSeparator className="my-1" />
                   <DropSection label="Non-Financial" theme={theme} />
-                  <DropLink to="/education#nonfinancial-ebooks" onClick={learn.close} theme={theme}>E-books</DropLink>
-                  <DropLink to="/education#nonfinancial-tutorials" onClick={learn.close} theme={theme}>Tutorials</DropLink>
+                  <DropLink to="/education#nonfinancial-ebooks"     onClick={learn.close} theme={theme}>E-books</DropLink>
+                  <DropLink to="/education#nonfinancial-tutorials"  onClick={learn.close} theme={theme}>Tutorials</DropLink>
                 </div>
               </NavItem>
 
@@ -561,7 +642,7 @@ const Header = () => {
               <NavItem label="Events" dd={events} theme={theme}>
                 <div className="min-w-[160px]">
                   <DropLink to="/domestic" onClick={events.close} theme={theme}>Domestic</DropLink>
-                  <DropLink to="/global" onClick={events.close} theme={theme}>Global</DropLink>
+                  <DropLink to="/global"   onClick={events.close} theme={theme}>Global</DropLink>
                 </div>
               </NavItem>
 
@@ -587,7 +668,7 @@ const Header = () => {
                 >Blogs</Link>
               </li>
 
-              {/* 8. HELP — direct link only */}
+              {/* 8. HELP */}
               <li>
                 <Link
                   to="/help-center"
@@ -595,9 +676,7 @@ const Header = () => {
                   style={{ color: isLight ? "#1e3a5f" : "#c8dff8" }}
                   onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#5194F6"; }}
                   onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = isLight ? "#1e3a5f" : "#c8dff8"; }}
-                >
-                  Help
-                </Link>
+                >Help</Link>
               </li>
 
             </ul>
@@ -606,7 +685,7 @@ const Header = () => {
           {/* ── Right: theme toggle + user menu ──────────────────────────── */}
           <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3">
 
-            {/* ── Dark / Light Toggle Button ─────────────────────────────── */}
+            {/* ── Dark / Light Toggle ─────────────────────────────────────── */}
             <button
               onClick={toggleTheme}
               aria-label={isLight ? "Switch to dark mode" : "Switch to light mode"}
@@ -616,11 +695,7 @@ const Header = () => {
                   : "bg-[#1C3656]/60 hover:bg-[#1C3656] text-[#5194F6] border border-[#1C3656]"
               }`}
             >
-              {isLight ? (
-                <Moon className="w-4 h-4" />
-              ) : (
-                <Sun className="w-4 h-4" />
-              )}
+              {isLight ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
             </button>
 
             {isAuthenticated && user ? (
@@ -670,6 +745,15 @@ const Header = () => {
                         </div>
                       )}
                     </div>
+                    <DropdownMenuItem asChild>
+                      <Link
+                        to="/dashboard"
+                        className="flex items-center gap-2 w-full px-3 py-2 rounded-md text-sm font-medium hover:bg-[#5194F6]/10 hover:text-[#5194F6] transition"
+                        onClick={userMenu.close}
+                      >
+                        <User className="w-4 h-4" /> My Dashboard
+                      </Link>
+                    </DropdownMenuItem>
                     <DropdownMenuSeparator className="my-2" />
                     <DropdownMenuItem asChild>
                       <button
@@ -693,26 +777,14 @@ const Header = () => {
                           <User className={`w-5 h-5 ${userIconCls}`} />
                         </button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent
-                        align="end"
-                        sideOffset={8}
-                        className={dropdownContentCls}
-                      >
+                      <DropdownMenuContent align="end" sideOffset={8} className={dropdownContentCls}>
                         <DropdownMenuItem asChild>
-                          <Link
-                            to="/signin"
-                            className="block px-3 py-2 rounded-md text-sm font-medium hover:bg-[#5194F6]/10 hover:text-[#5194F6] transition"
-                            onClick={userMenu.close}
-                          >
+                          <Link to="/signin" className="block px-3 py-2 rounded-md text-sm font-medium hover:bg-[#5194F6]/10 hover:text-[#5194F6] transition" onClick={userMenu.close}>
                             Login
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
-                          <Link
-                            to="/signup"
-                            className="block px-3 py-2 rounded-md text-sm font-medium hover:bg-[#5194F6]/10 hover:text-[#5194F6] transition"
-                            onClick={userMenu.close}
-                          >
+                          <Link to="/signup" className="block px-3 py-2 rounded-md text-sm font-medium hover:bg-[#5194F6]/10 hover:text-[#5194F6] transition" onClick={userMenu.close}>
                             Sign up
                           </Link>
                         </DropdownMenuItem>
@@ -728,26 +800,12 @@ const Header = () => {
                         <User className={`w-5 h-5 ${userIconCls}`} />
                       </button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent
-                      align="end"
-                      sideOffset={8}
-                      className={dropdownContentCls}
-                    >
+                    <DropdownMenuContent align="end" sideOffset={8} className={dropdownContentCls}>
                       <DropdownMenuItem asChild>
-                        <Link
-                          to="/signin"
-                          className="block px-3 py-2 rounded-md text-sm font-medium hover:bg-[#5194F6]/10 hover:text-[#5194F6] transition"
-                        >
-                          Login
-                        </Link>
+                        <Link to="/signin" className="block px-3 py-2 rounded-md text-sm font-medium hover:bg-[#5194F6]/10 hover:text-[#5194F6] transition">Login</Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
-                        <Link
-                          to="/signup"
-                          className="block px-3 py-2 rounded-md text-sm font-medium hover:bg-[#5194F6]/10 hover:text-[#5194F6] transition"
-                        >
-                          Sign up
-                        </Link>
+                        <Link to="/signup" className="block px-3 py-2 rounded-md text-sm font-medium hover:bg-[#5194F6]/10 hover:text-[#5194F6] transition">Sign up</Link>
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -763,8 +821,8 @@ const Header = () => {
             <div className="container mx-auto px-4 py-4">
               <ul className="space-y-1">
 
-                <MobileAccordion label="About" isOpen={mobileAboutOpen} toggle={() => setMobileAboutOpen((s) => !s)}>
-                  <MobileScrollBtn id="our-story">Our Story </MobileScrollBtn>
+                <MobileAccordion label="About" isOpen={mobileAboutOpen} toggle={() => setMobileAboutOpen(s => !s)}>
+                  <MobileScrollBtn id="our-story">Our Story</MobileScrollBtn>
                   <MobileScrollBtn id="mission">Mission, Vision & Values</MobileScrollBtn>
                   <MobileScrollBtn id="team-members">Team</MobileScrollBtn>
                   <MobileScrollBtn id="why-us">Why Us</MobileScrollBtn>
@@ -772,21 +830,26 @@ const Header = () => {
                   <MobileScrollBtn id="certifications">Trust and Compliance</MobileScrollBtn>
                 </MobileAccordion>
 
-                <MobileAccordion label="Segments" isOpen={mobileSegmentsOpen} toggle={() => setMobileSegmentsOpen((s) => !s)}>
+                <MobileAccordion label="Segments" isOpen={mobileSegmentsOpen} toggle={() => setMobileSegmentsOpen(s => !s)}>
                   <MobileSectionLabel label="Equity" />
                   <MobileLink to="/domestic">Domestic</MobileLink>
                   <MobileLink to="/global">Global</MobileLink>
-                  <MobileLink to="/markets">Commodities</MobileLink>
                   <MobileLink to="/currency">Currency</MobileLink>
                 </MobileAccordion>
 
-                {/* <MobileAccordion label="Dashboards" isOpen={mobileDashboardsOpen} toggle={() => setMobileDashboardsOpen((s) => !s)}>
-                  <MobileLink to="/dashboard">Bharat (India)</MobileLink>
-                  <MobileLink to="/global">Global</MobileLink>
-                  <MobileLink to="/dashboard">ETFs</MobileLink>
-                </MobileAccordion> */}
+                {/* ── Commodities & ETFs — mobile accordion with all 5 tabs ── */}
+                <MobileAccordion label="Commodities & ETFs" isOpen={mobileCommodOpen} toggle={() => setMobileCommodOpen(s => !s)}>
+                  <MobileSectionLabel label="Domestic" />
+                  <MobileLink to="/markets?tab=domestic">Domestic Commodities</MobileLink>
+                  <MobileLink to="/markets?tab=dom-etfs">Domestic ETFs</MobileLink>
+                  <MobileSectionLabel label="Global" />
+                  <MobileLink to="/markets?tab=global">Global Commodities</MobileLink>
+                  <MobileLink to="/markets?tab=global-etfs">Global ETFs</MobileLink>
+                  <MobileSectionLabel label="Intelligence" />
+                  <MobileLink to="/markets?tab=intelligence">Intelligence Layer</MobileLink>
+                </MobileAccordion>
 
-                <MobileAccordion label="Learn" isOpen={mobileLearnOpen} toggle={() => setMobileLearnOpen((s) => !s)}>
+                <MobileAccordion label="Learn" isOpen={mobileLearnOpen} toggle={() => setMobileLearnOpen(s => !s)}>
                   <MobileSectionLabel label="Financial" />
                   <MobileLink to="/education#financial-ebooks">E-books</MobileLink>
                   <MobileLink to="/education#financial-tutorials">Tutorials</MobileLink>
@@ -796,7 +859,7 @@ const Header = () => {
                   <MobileLink to="/education#nonfinancial-tutorials">Tutorials</MobileLink>
                 </MobileAccordion>
 
-                <MobileAccordion label="Events" isOpen={mobileEventsOpen} toggle={() => setMobileEventsOpen((s) => !s)}>
+                <MobileAccordion label="Events" isOpen={mobileEventsOpen} toggle={() => setMobileEventsOpen(s => !s)}>
                   <MobileLink to="/domestic">Domestic</MobileLink>
                   <MobileLink to="/global">Global</MobileLink>
                 </MobileAccordion>
@@ -809,9 +872,7 @@ const Header = () => {
                     onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#5194F6"; }}
                     onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = isLight ? "rgba(30,58,95,0.90)" : "#c8dff8"; }}
                     onClick={closeMobile}
-                  >
-                    IPO
-                  </Link>
+                  >IPO</Link>
                 </li>
 
                 <li>
@@ -822,12 +883,10 @@ const Header = () => {
                     onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#5194F6"; }}
                     onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = isLight ? "rgba(30,58,95,0.90)" : "#c8dff8"; }}
                     onClick={closeMobile}
-                  >
-                    Blogs
-                  </Link>
+                  >Blogs</Link>
                 </li>
 
-                <MobileAccordion label="Help" isOpen={mobileHelpOpen} toggle={() => setMobileHelpOpen((s) => !s)}>
+                <MobileAccordion label="Help" isOpen={mobileHelpOpen} toggle={() => setMobileHelpOpen(s => !s)}>
                   <MobileLink to="/help-center">FAQs</MobileLink>
                   <MobileLink to="/help-center">Contact Us</MobileLink>
                 </MobileAccordion>

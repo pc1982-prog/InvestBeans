@@ -34,7 +34,7 @@ const DELAY_LABEL: Record<Period, string> = {
   '1W': '~15 min delayed · 30 min bars',
   '1M': 'End-of-day · daily bars',
   '3M': 'End-of-day · daily bars',
-  '1Y': 'End-of-day · weekly bars',
+  '1Y': 'End-of-day · monthly bars',
 };
 // Auto-refresh interval for live periods (15 minutes in ms)
 const AUTO_REFRESH_MS = 15 * 60 * 1000;
@@ -211,7 +211,7 @@ const CleanChart = ({
         secondsVisible: false,
         fixLeftEdge:    true,
         fixRightEdge:   true,
-        barSpacing:     10,   // bigger candles, less gap
+        barSpacing: period === '1Y' ? 18 : 10,  // bigger candles, less gap
         rightOffset:    3,
       },
       // ── INTERACTION ──────────────────────────────────────────

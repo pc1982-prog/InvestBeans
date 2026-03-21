@@ -26,28 +26,31 @@ if (!process.env.SESSION_SECRET || process.env.SESSION_SECRET.length < 32) {
 if (IS_PRODUCTION) { app.set("trust proxy", 1); console.log("✅ Trust proxy enabled"); }
 
 const allowedOrigins = [
-  "http://localhost:8080","http://127.0.0.1:8080",
-  "http://localhost:5173","http://127.0.0.1:5173",
+  "http://localhost:8080", "http://127.0.0.1:8080",
+  "http://localhost:5173", "http://127.0.0.1:5173",
   FRONTEND_URL, "https://companytask-1-1.onrender.com/",
 ].filter(Boolean);
 const uniqueOrigins = [...new Set(allowedOrigins)];
 console.log("✅ Allowed CORS origins:", uniqueOrigins);
 
 app.use(cors({
-  origin: (origin, cb) => { if (!origin || uniqueOrigins.includes(origin)) cb(null, true); else { console.warn("⚠️ Blocked CORS:", origin); cb(null, true); } },
+  origin: (origin, cb) => {
+    if (!origin || uniqueOrigins.includes(origin)) cb(null, true);
+    else { console.warn("⚠️ Blocked CORS:", origin); cb(null, true); }
+  },
   credentials: true,
-  methods: ["GET","POST","PUT","DELETE","PATCH","OPTIONS"],
-  allowedHeaders: ["Content-Type","Authorization","Cookie"],
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
   exposedHeaders: ["Set-Cookie"],
   preflightContinue: false,
   optionsSuccessStatus: 204,
 }));
 
 app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Credentials","true");
+  res.header("Access-Control-Allow-Credentials", "true");
   res.header("Access-Control-Allow-Origin", req.headers.origin || "http://localhost:8080");
-  res.header("Access-Control-Allow-Methods","GET,POST,PUT,DELETE,PATCH,OPTIONS");
-  res.header("Access-Control-Allow-Headers","Content-Type,Authorization,Cookie");
+  res.header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,PATCH,OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Content-Type,Authorization,Cookie");
   if (req.method === "OPTIONS") return res.sendStatus(200);
   next();
 });
@@ -58,7 +61,7 @@ app.use(cookieParser());
 
 const sessionStore = MongoStore.create({
   mongoUrl: MONGODB_URI, collectionName: "sessions",
-  ttl: 7*24*60*60, autoRemove: "native", touchAfter: 24*3600, stringify: false,
+  ttl: 7 * 24 * 60 * 60, autoRemove: "native", touchAfter: 24 * 3600, stringify: false,
 });
 sessionStore.on("create",  id  => console.log("✅ Session created:", id));
 sessionStore.on("destroy", id  => console.log("🗑️  Session destroyed:", id));
@@ -72,10 +75,13 @@ const sessionConfig = {
   saveUninitialized: false,
   rolling: true,
   proxy: IS_PRODUCTION,
-  cookie: { httpOnly:true, secure:false, sameSite:"lax", maxAge:7*24*60*60*1000, path:"/", domain:undefined },
+  cookie: {
+    httpOnly: true, secure: false, sameSite: "lax",
+    maxAge: 7 * 24 * 60 * 60 * 1000, path: "/", domain: undefined,
+  },
 };
 
-// ✅ FIX: Socket.IO paths ke liye session + passport SKIP karo
+// ✅ Socket.IO paths ke liye session + passport SKIP karo
 app.use((req, res, next) => {
   if (req.path.startsWith("/socket.io")) return next();
   session(sessionConfig)(req, res, next);
@@ -106,11 +112,15 @@ if (!IS_PRODUCTION) {
 }
 
 app.get("/health", (req, res) => res.status(200).json({
-  success: true, message: "Server is running",
+  success: true,
+  message: "Server is running",
   environment: process.env.NODE_ENV || "development",
   timestamp: new Date().toISOString(),
 }));
 
+// ══════════════════════════════════════════════════════════════════════
+// Route imports
+// ══════════════════════════════════════════════════════════════════════
 import userRouter          from "./routes/user.routes.js";
 import googleAuthRouter    from "./routes/googleAuth.routes.js";
 import blogRouter          from "./routes/blog.routes.js";
@@ -122,11 +132,15 @@ import ipoRouter           from "./routes/Ipo.routes.js";
 import testimonialRouter   from "./routes/Testimonial.routes.js";
 import subscriberRouter    from "./routes/Subscriber.routes.js";
 import KiteRouter          from "./routes/kite.routes.js";
+import commoditiesRouter   from "./routes/Commodities.routes.js";   // ← COMMODITIES (NEW)
 import paymentRouter       from "./routes/Payment.routes.js";
-import kiteTestRouter from "./routes/Kite_test.js";
+import kiteTestRouter      from "./routes/Kite_test.js";
 
+// ══════════════════════════════════════════════════════════════════════
+// Route registration
+// ══════════════════════════════════════════════════════════════════════
 
-app.use("/api/v1/kite", kiteTestRouter);
+app.use("/api/v1/kite",            kiteTestRouter);     // kite test (keep first)
 
 app.use("/api/v1/users",           userRouter);
 app.use("/auth",                   googleAuthRouter);
@@ -137,6 +151,17 @@ app.use("/api/v1",                 paymentRouter);
 app.use("/api/v1/markets",         globalMarketsRouter);
 app.use("/api/v1/markets",         marketHistoryRouter);
 app.use("/api/v1/kite",            KiteRouter);
+
+// ── Commodities & ETFs — Full integration (MCX, AMFI, COT, EIA) ───────────
+// Endpoints:
+//   GET /api/v1/commodities/all            → Full data (5-min cache)
+//   GET /api/v1/commodities/oi/:commodity  → OI + PCR + COT for one commodity
+//   GET /api/v1/commodities/nav/:keyword   → AMFI NAV lookup
+//   GET /api/v1/commodities/eia            → EIA crude inventory + rig count
+//   GET /api/v1/commodities/cot            → CFTC COT report all commodities
+//   GET /api/v1/commodities/silver-inflows → Silver ETF monthly inflow history
+app.use("/api/v1/commodities",     commoditiesRouter);
+
 app.use("/api/v1/subscribe",       subscriberRouter);
 app.use("/api/v1/ipo",             ipoRouter);
 app.use("/api/v1/testimonials",    testimonialRouter);

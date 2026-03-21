@@ -23,7 +23,9 @@ const PERIOD_PARAMS = {
   "1W":  { interval: "30m",  range: "5d"  },   // 30-min candles (more data points)
   "1M":  { interval: "1d",   range: "1mo" },   // daily candles, 1 month
   "3M":  { interval: "1d",   range: "3mo" },   // daily candles, 3 months
-  "1Y":  { interval: "1wk",  range: "1y"  },   // weekly candles, 1 year
+  "1Y":  { interval: "1mo",  range: "1y"  }, 
+  "2Y":  { interval: "1mo",  range: "2y"  },   // 24 monthly bars
+"5Y":  { interval: "3mo",  range: "5y"  },  // weekly candles, 1 year
 };
 
 // Per-period cache: key = "SYMBOL_PERIOD"
