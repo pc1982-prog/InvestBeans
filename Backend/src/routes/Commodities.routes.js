@@ -60,8 +60,8 @@ async function yfQuote(symbol) {
     const host = YF_HOSTS[(yfHostIdx + attempt) % YF_HOSTS.length];
     const url = `${host}/v8/finance/chart/${encodeURIComponent(symbol)}?interval=15m&range=1d`;
     try {
-      const res = await fetch(url, { headers: YF_HEADERS });
-      if (res.status === 429) { await new Promise(r => setTimeout(r, 500)); continue; }
+      const res = await fetch(url, { headers: YF_HEADERS, signal: AbortSignal.timeout(6000) });
+      if (res.status === 429) { await new Promise(r => setTimeout(r, 200)); continue; }
       if (!res.ok) throw new Error(`Yahoo ${symbol} → ${res.status}`);
       const json = await res.json();
       const result = json?.chart?.result?.[0];
@@ -105,7 +105,7 @@ async function yfHistory(symbol, interval = "1d", range = "3mo") {
     const host = YF_HOSTS[(yfHostIdx + attempt) % YF_HOSTS.length];
     const url = `${host}/v8/finance/chart/${encodeURIComponent(symbol)}?interval=${interval}&range=${range}`;
     try {
-      const res = await fetch(url, { headers: YF_HEADERS });
+      const res = await fetch(url, { headers: YF_HEADERS, signal: AbortSignal.timeout(6000) });
       if (!res.ok) throw new Error(`Yahoo ${symbol} ${res.status}`);
       const json = await res.json();
       const result = json?.chart?.result?.[0];
@@ -258,74 +258,56 @@ let _eiaCache = null;
 let _eiaTs = 0;
 const EIA_TTL = 4 * 60 * 60 * 1000; // 4 hours
 
-async function fetchEIAData() {
+async function fetchEIAData(brentWtiSpread = null) {
   if (_eiaCache && Date.now() - _eiaTs < EIA_TTL) return _eiaCache;
   try {
-    // EIA provides US crude oil inventory weekly (no API key for basic data)
-    const res = await fetch(
-      "https://api.eia.gov/v2/petroleum/stoc/wstk/data/?frequency=weekly&data[0]=value&facets[duoarea][]=NUS&facets[product][]=EPC0&sort[0][column]=period&sort[0][direction]=desc&length=4",
-      { headers: { "User-Agent": "Mozilla/5.0" } }
-    );
-    let inventory = null;
-    let inventoryChange = null;
+    // Run all EIA fetches in parallel
+    let inventory = null, inventoryChange = null;
+    let rigCount = null, opecOutput = null, opecCapacityUse = null;
 
-    if (res.ok) {
-      const json = await res.json();
-      const rows = json?.response?.data || [];
-      if (rows.length >= 2) {
-        inventory = Math.round(rows[0]?.value / 1000); // Convert to million barrels
-        inventoryChange = ((rows[0]?.value - rows[1]?.value) / 1000).toFixed(1);
-      }
-    }
-
-    // Baker Hughes Rig Count — fetch from EIA API (free)
-    let rigCount = null;
-    try {
-      const rigRes = await fetch(
-        "https://api.eia.gov/v2/petroleum/drill/rig/data/?frequency=weekly&data[0]=value&facets[rig_type][]=OIL&sort[0][column]=period&sort[0][direction]=desc&length=2",
-        { headers: { "User-Agent": "Mozilla/5.0" }, signal: AbortSignal.timeout(6000) }
-      );
-      if (rigRes.ok) {
-        const rigJson = await rigRes.json();
-        const rows = rigJson?.response?.data || [];
-        if (rows[0]?.value) rigCount = parseInt(rows[0].value);
-      }
-    } catch (_) {}
-    // Fallback: Baker Hughes publishes ~580-600 rigs as of 2025-2026
-    if (!rigCount) rigCount = 585;
-
-    // OPEC output — fetch from EIA STEO (Short-Term Energy Outlook)
-    let opecOutput = null;
-    let opecCapacityUse = null;
-    try {
-      const opecRes = await fetch(
-        "https://api.eia.gov/v2/steo/data/?frequency=monthly&data[0]=value&facets[seriesId][]=PAPR_OPEC&sort[0][column]=period&sort[0][direction]=desc&length=2",
-        { headers: { "User-Agent": "Mozilla/5.0" }, signal: AbortSignal.timeout(6000) }
-      );
-      if (opecRes.ok) {
-        const opecJson = await opecRes.json();
-        const rows = opecJson?.response?.data || [];
-        if (rows[0]?.value) {
-          opecOutput      = parseFloat((rows[0].value / 1000).toFixed(1)); // kb/d → mb/d
-          opecCapacityUse = opecOutput ? `~${Math.round(opecOutput / 33.5 * 100)}%` : "~87%";
+    await Promise.all([
+      // US crude oil inventory — EIA weekly
+      fetch(
+        "https://api.eia.gov/v2/petroleum/stoc/wstk/data/?frequency=weekly&data[0]=value&facets[duoarea][]=NUS&facets[product][]=EPC0&sort[0][column]=period&sort[0][direction]=desc&length=4",
+        { headers: { "User-Agent": "Mozilla/5.0" }, signal: AbortSignal.timeout(7000) }
+      ).then(r => r.ok ? r.json() : null).then(json => {
+        const rows = json?.response?.data || [];
+        if (rows.length >= 2) {
+          inventory       = Math.round(rows[0]?.value / 1000);
+          inventoryChange = ((rows[0]?.value - rows[1]?.value) / 1000).toFixed(1);
         }
-      }
-    } catch (_) {}
-    if (!opecOutput) { opecOutput = 28.5; opecCapacityUse = "~87%"; }
-    const brent = await yfQuote("BZ=F");
-    const wti   = await yfQuote("CL=F");
-    const brentWtiSpread = brent && wti
-      ? parseFloat((brent.price - wti.price).toFixed(2))
-      : null;
+      }).catch(() => {}),
+
+      // Baker Hughes Rig Count — EIA weekly
+      fetch(
+        "https://api.eia.gov/v2/petroleum/drill/rig/data/?frequency=weekly&data[0]=value&facets[rig_type][]=OIL&sort[0][column]=period&sort[0][direction]=desc&length=2",
+        { headers: { "User-Agent": "Mozilla/5.0" }, signal: AbortSignal.timeout(7000) }
+      ).then(r => r.ok ? r.json() : null).then(json => {
+        const rows = json?.response?.data || [];
+        if (rows[0]?.value) rigCount = parseInt(rows[0].value);
+      }).catch(() => {}),
+
+      // OPEC output — EIA STEO
+      fetch(
+        "https://api.eia.gov/v2/steo/data/?frequency=monthly&data[0]=value&facets[seriesId][]=PAPR_OPEC&sort[0][column]=period&sort[0][direction]=desc&length=2",
+        { headers: { "User-Agent": "Mozilla/5.0" }, signal: AbortSignal.timeout(7000) }
+      ).then(r => r.ok ? r.json() : null).then(json => {
+        const rows = json?.response?.data || [];
+        if (rows[0]?.value) {
+          opecOutput      = parseFloat((rows[0].value / 1000).toFixed(1));
+          opecCapacityUse = `~${Math.round(opecOutput / 33.5 * 100)}%`;
+        }
+      }).catch(() => {}),
+    ]);
 
     const data = {
-      usCrudeInventory:   inventory || 425,
-      inventoryChange:    inventoryChange || "-2.1",
-      rigCount,
-      brentWtiSpread,
-      opecOutput,
-      opecCapacityUse,
-      lastUpdated:        new Date().toISOString(),
+      usCrudeInventory: inventory       || 425,
+      inventoryChange:  inventoryChange || "-2.1",
+      rigCount:         rigCount        || 585,
+      brentWtiSpread,                          // passed in from quoteMap — no extra fetch
+      opecOutput:       opecOutput      || 28.5,
+      opecCapacityUse:  opecCapacityUse || "~87%",
+      lastUpdated:      new Date().toISOString(),
     };
 
     _eiaCache = data;
@@ -345,6 +327,71 @@ async function fetchEIAData() {
   }
 }
 
+// ── Live Macro Data Fetcher (FRED free — no key needed) ──
+let _macroDataCache = null;
+let _macroDataTs    = 0;
+const MACRO_DATA_TTL = 6 * 60 * 60 * 1000; // 6 hours
+
+async function fetchLiveMacroData() {
+  if (_macroDataCache && Date.now() - _macroDataTs < MACRO_DATA_TTL) return _macroDataCache;
+  let usCPI = null, fedRate = null, indianCPI = null, rbiRate = null;
+
+  await Promise.all([
+    // US CPI YoY — FRED CPIAUCSL
+    fetch("https://fred.stlouisfed.org/graph/fredgraph.csv?id=CPIAUCSL", {
+      headers: { "User-Agent": "Mozilla/5.0" }, signal: AbortSignal.timeout(7000),
+    }).then(r => r.ok ? r.text() : null).then(text => {
+      if (!text) return;
+      const lines = text.trim().split("\n").filter(l => !l.startsWith("DATE") && l.trim());
+      if (lines.length >= 13) {
+        const latest = parseFloat(lines[lines.length - 1].split(",")[1]);
+        const yearAgo = parseFloat(lines[lines.length - 13].split(",")[1]);
+        if (latest && yearAgo) usCPI = `${((latest - yearAgo) / yearAgo * 100).toFixed(1)}% YoY`;
+      }
+    }).catch(() => {}),
+
+    // Fed Funds Rate — FRED FEDFUNDS
+    fetch("https://fred.stlouisfed.org/graph/fredgraph.csv?id=FEDFUNDS", {
+      headers: { "User-Agent": "Mozilla/5.0" }, signal: AbortSignal.timeout(7000),
+    }).then(r => r.ok ? r.text() : null).then(text => {
+      if (!text) return;
+      const lines = text.trim().split("\n").filter(l => !l.startsWith("DATE") && l.trim());
+      const last = lines[lines.length - 1]?.split(",");
+      if (last?.[1]) {
+        const rate = parseFloat(last[1]);
+        fedRate = `${rate.toFixed(2)}–${(rate + 0.25).toFixed(2)}%`;
+      }
+    }).catch(() => {}),
+
+    // India CPI YoY — FRED INDCPIALLMINMEI
+    fetch("https://fred.stlouisfed.org/graph/fredgraph.csv?id=INDCPIALLMINMEI", {
+      headers: { "User-Agent": "Mozilla/5.0" }, signal: AbortSignal.timeout(7000),
+    }).then(r => r.ok ? r.text() : null).then(text => {
+      if (!text) return;
+      const lines = text.trim().split("\n").filter(l => !l.startsWith("DATE") && l.trim());
+      if (lines.length >= 13) {
+        const latest = parseFloat(lines[lines.length - 1].split(",")[1]);
+        const yearAgo = parseFloat(lines[lines.length - 13].split(",")[1]);
+        if (latest && yearAgo) indianCPI = `${((latest - yearAgo) / yearAgo * 100).toFixed(1)}% YoY`;
+      }
+    }).catch(() => {}),
+
+    // RBI Repo Rate — DBIE open data
+    fetch("https://api.dbie.rbi.org.in/DBIE/dbie.rbi?service=getCurrent&type=I&id=BI_REPO_RATE", {
+      headers: { "User-Agent": "Mozilla/5.0" }, signal: AbortSignal.timeout(5000),
+    }).then(r => r.ok ? r.json() : null).then(d => {
+      const val = d?.data?.[0]?.val ?? d?.val;
+      if (val) rbiRate = `${parseFloat(val).toFixed(2)}%`;
+    }).catch(() => {}),
+  ]);
+
+  const result = { usCPI, fedRate, rbiRate, indianCPI };
+  _macroDataCache = result;
+  _macroDataTs    = Date.now();
+  console.log("[Macro] Live macro:", result);
+  return result;
+}
+
 // ── Geopolitical Risk Index (GRI) ─────────────────────────
 // Based on VIX + gold premium + academic GPR index proxy
 async function calcGeopoliticalRisk(vixPrice, goldChangePct) {
@@ -361,111 +408,6 @@ async function calcGeopoliticalRisk(vixPrice, goldChangePct) {
   else if (gri > 40) { label = "Moderate"; color = "#f59e0b"; }
   else               { label = "Low";      color = "#22c55e"; }
   return { score: gri, label, color };
-}
-
-// ── Live Macro Data Fetcher (FRED free API — no key needed) ──
-let _macroDataCache = null;
-let _macroDataTs    = 0;
-const MACRO_DATA_TTL = 6 * 60 * 60 * 1000; // 6 hours
-
-async function fetchLiveMacroData() {
-  if (_macroDataCache && Date.now() - _macroDataTs < MACRO_DATA_TTL) return _macroDataCache;
-
-  let usCPI = null, fedRate = null, indianCPI = null;
-
-  // ── US CPI YoY from FRED (CPIAUCSL) ──────────────────────
-  try {
-    const r = await fetch(
-      "https://fred.stlouisfed.org/graph/fredgraph.csv?id=CPIAUCSL",
-      { headers: { "User-Agent": "Mozilla/5.0" }, signal: AbortSignal.timeout(8000) }
-    );
-    if (r.ok) {
-      const text  = await r.text();
-      const lines = text.trim().split("\n").filter(l => !l.startsWith("DATE") && l.trim());
-      if (lines.length >= 13) {
-        const latest  = parseFloat(lines[lines.length - 1].split(",")[1]);
-        const yearAgo = parseFloat(lines[lines.length - 13].split(",")[1]);
-        if (latest && yearAgo) {
-          usCPI = `${((latest - yearAgo) / yearAgo * 100).toFixed(1)}% YoY`;
-        }
-      }
-    }
-  } catch (e) { console.warn("[Macro] US CPI fetch failed:", e.message); }
-
-  // ── Fed Funds Rate from FRED (FEDFUNDS) ───────────────────
-  try {
-    const r = await fetch(
-      "https://fred.stlouisfed.org/graph/fredgraph.csv?id=FEDFUNDS",
-      { headers: { "User-Agent": "Mozilla/5.0" }, signal: AbortSignal.timeout(8000) }
-    );
-    if (r.ok) {
-      const text  = await r.text();
-      const lines = text.trim().split("\n").filter(l => !l.startsWith("DATE") && l.trim());
-      const last  = lines[lines.length - 1]?.split(",");
-      if (last?.[1]) {
-        const rate  = parseFloat(last[1]);
-        const upper = (rate + 0.25).toFixed(2);
-        fedRate = `${rate.toFixed(2)}–${upper}%`;
-      }
-    }
-  } catch (e) { console.warn("[Macro] Fed Rate fetch failed:", e.message); }
-
-  // ── India CPI YoY from FRED (INDCPIALLMINMEI) ─────────────
-  try {
-    const r = await fetch(
-      "https://fred.stlouisfed.org/graph/fredgraph.csv?id=INDCPIALLMINMEI",
-      { headers: { "User-Agent": "Mozilla/5.0" }, signal: AbortSignal.timeout(8000) }
-    );
-    if (r.ok) {
-      const text  = await r.text();
-      const lines = text.trim().split("\n").filter(l => !l.startsWith("DATE") && l.trim());
-      if (lines.length >= 13) {
-        const latest  = parseFloat(lines[lines.length - 1].split(",")[1]);
-        const yearAgo = parseFloat(lines[lines.length - 13].split(",")[1]);
-        if (latest && yearAgo) {
-          indianCPI = `${((latest - yearAgo) / yearAgo * 100).toFixed(1)}% YoY`;
-        }
-      }
-    }
-  } catch (e) { console.warn("[Macro] India CPI fetch failed:", e.message); }
-
-  // ── RBI Repo Rate — try RBI open data, fallback to Yahoo ^INBMK proxy ──
-  let rbiRate = null;
-  try {
-    // RBI DBIE open data
-    const r = await fetch(
-      "https://api.dbie.rbi.org.in/DBIE/dbie.rbi?service=getCurrent&type=I&id=BI_REPO_RATE",
-      { headers: { "User-Agent": "Mozilla/5.0" }, signal: AbortSignal.timeout(6000) }
-    );
-    if (r.ok) {
-      const d = await r.json();
-      const val = d?.data?.[0]?.val ?? d?.val;
-      if (val) rbiRate = `${parseFloat(val).toFixed(2)}%`;
-    }
-  } catch (_) {}
-
-  if (!rbiRate) {
-    // Fallback: Yahoo ^INBMK (India 10Y) as a proxy indicator
-    try {
-      const q = await yfQuote("^INBMK");
-      if (q?.price) {
-        // INBMK is 10Y yield — not repo rate, but best free proxy
-        rbiRate = null; // keep null so frontend shows static fallback
-      }
-    } catch (_) {}
-  }
-
-  const result = {
-    usCPI:     usCPI     || null,
-    fedRate:   fedRate   || null,
-    rbiRate:   rbiRate   || null,
-    indianCPI: indianCPI || null,
-  };
-
-  _macroDataCache = result;
-  _macroDataTs    = Date.now();
-  console.log("[Macro] Live macro data fetched:", result);
-  return result;
 }
 
 // ── Futures curve (contango vs backwardation) ─────────────
@@ -539,7 +481,7 @@ function getClientPositioning(commodity) {
 // ── Main cache ─────────────────────────────────────────────
 let _cache = null;
 let _cacheTs = 0;
-const CACHE_TTL = 10 * 60 * 1000; // 10 min (increased — we fetch more data including 1Y history)
+const CACHE_TTL = 15 * 60 * 1000; // 15 min cache — reduces how often slow fetches happen
 
 // ══════════════════════════════════════════════════════════════════
 // DOMESTIC COMMODITY CONFIG
@@ -883,19 +825,21 @@ router.get("/all", async (req, res) => {
     // ── Step 1: Fetch all Yahoo quotes in parallel ────────
     const allSymbols = [
       ...MCX_COMMODITIES.map(c => c.symbol),
+      ...MCX_COMMODITIES.map(c => c.near1),   // futures near month
+      ...MCX_COMMODITIES.map(c => c.near2),   // futures far month
       ...GLOBAL_COMMODITIES.map(c => c.symbol),
       ...DOMESTIC_ETFS.map(e => e.symbol),
       ...GLOBAL_ETFS.map(e => e.symbol),
       ...MACRO_SYMBOLS.map(m => m.symbol),
       "^GSPC",    // S&P 500 for relative strength
-      "USDINR=X", // Live USD/INR rate — critical for correct MCX prices
+      "USDINR=X", // Live USD/INR rate
     ];
 
-    // Stagger requests to avoid rate limits
+    // Stagger requests to avoid rate limits — 30ms is enough
     const quotesArr = await Promise.all(
       allSymbols.map((sym, i) =>
         new Promise(resolve =>
-          setTimeout(() => yfQuote(sym).then(resolve), i * 80)
+          setTimeout(() => yfQuote(sym).then(resolve), i * 30)
         )
       )
     );
@@ -924,12 +868,36 @@ router.get("/all", async (req, res) => {
     }
     console.log(`[Commodities] USD/INR rate: ${USD_INR.toFixed(2)} (${liveUsdInr ? "Yahoo live" : "fallback"})`);
 
-    // ── Step 2: Fetch AMFI data in parallel with Yahoo ────
-    const [amfiNav, cotData, eiaData] = await Promise.all([
+    // ── Step 2: Fetch ALL secondary data in parallel ──────
+    // Collect unique benchmark symbols needed for 1Y rolling returns
+    const etfBenchmarkSyms = [...new Set(DOMESTIC_ETFS.map(cfg =>
+      cfg.category === "Gold"   ? "GC=F"     :
+      cfg.category === "Silver" ? "SI=F"     :
+      cfg.id === "niftybees"   ? "^NSEI"    :
+      cfg.id === "bankbees"    ? "^NSEBANK" :
+      cfg.symbol
+    ))];
+    const globalEtfSyms = GLOBAL_ETFS.map(e => e.symbol);
+    const allHistSyms   = [...new Set([...etfBenchmarkSyms, ...globalEtfSyms])];
+
+    // Brent-WTI spread from already-fetched quoteMap
+    const brentPrice = quoteMap["BZ=F"]?.price;
+    const wtiPrice   = quoteMap["CL=F"]?.price;
+    const brentWtiSpread = brentPrice && wtiPrice
+      ? parseFloat((brentPrice - wtiPrice).toFixed(2))
+      : null;
+
+    const [amfiNav, cotData, eiaData, liveMacro, ...histResults] = await Promise.all([
       fetchAMFI(),
       fetchCOT(),
-      fetchEIAData(),
+      fetchEIAData(brentWtiSpread),
+      fetchLiveMacroData(),
+      ...allHistSyms.map(sym => yfHistory(sym, "1mo", "1y").catch(() => null)),
     ]);
+
+    // Build history map: symbol → closes array
+    const histMap = {};
+    allHistSyms.forEach((sym, i) => { histMap[sym] = histResults[i]; });
 
     const spPrice = quoteMap["^GSPC"]?.price ?? 5000;
 
@@ -1018,16 +986,10 @@ router.get("/all", async (req, res) => {
           inrPrev  = cfg.inrConvert ? cfg.inrConvert(livePrev,  USD_INR) : null;
         }
 
-        // Futures curve — from Yahoo (USD spot vs near futures)
-        const yq = quoteMap[cfg.symbol];
-        let near1q = null, near2q = null;
-        try {
-          [near1q, near2q] = await Promise.all([
-            yfQuote(cfg.near1),
-            yfQuote(cfg.near2),
-          ]);
-        } catch {}
-
+        // Futures curve — already fetched in Step 1 batch, just lookup from quoteMap
+        const yq    = quoteMap[cfg.symbol];
+        const near1q = quoteMap[cfg.near1] || null;
+        const near2q = quoteMap[cfg.near2] || null;
         const futuresCurve = getFuturesCurve(yq?.price, near1q?.price, near2q?.price);
 
         // OI trend
@@ -1089,16 +1051,8 @@ router.get("/all", async (req, res) => {
           } : null,
           basisSpread,
           dayVolatility:  +dayVol.toFixed(2),
-        // Live max drawdown from 1Y history
-        maxDrawdown1Y: (() => {
-          const hist = quoteMap[cfg.symbol];
-          if (!hist) return cfg.id === "gold" ? -18.5 : cfg.id === "silver" ? -35.2 : cfg.id === "crude" ? -45.1 : cfg.id === "natgas" ? -55.8 : -22.4;
-          // Calculate from day high/low as proxy
-          const dayRange = hist.high && hist.low && hist.price
-            ? -((hist.high - hist.low) / hist.price * 100 * 8).toFixed(1) // rough 1Y estimate from daily range
-            : (cfg.id === "gold" ? -18.5 : cfg.id === "silver" ? -35.2 : cfg.id === "crude" ? -45.1 : cfg.id === "natgas" ? -55.8 : -22.4);
-          return parseFloat(dayRange);
-        })(),
+          // Estimated from historical (would need actual 1Y data)
+          maxDrawdown1Y: cfg.id === "gold" ? -18.5 : cfg.id === "silver" ? -35.2 : cfg.id === "crude" ? -45.1 : cfg.id === "natgas" ? -55.8 : -22.4,
           eventSensitivity: [
             cfg.id === "gold" || cfg.id === "silver" ? "US Fed rate decision" : null,
             cfg.id === "crude" ? "OPEC meeting" : null,
@@ -1132,7 +1086,7 @@ router.get("/all", async (req, res) => {
         ? +((marketPrice - nav) / nav * 100).toFixed(2)
         : null;
 
-      // Live 1Y rolling return via Yahoo 1Y monthly history
+      // Live 1Y rolling return — use pre-fetched histMap (no extra API call)
       const benchmarkSym = cfg.category === "Gold"   ? "GC=F"     :
                             cfg.category === "Silver" ? "SI=F"     :
                             cfg.id === "niftybees"   ? "^NSEI"    :
@@ -1140,7 +1094,7 @@ router.get("/all", async (req, res) => {
                             cfg.symbol;
       let rollingReturn1Y = null;
       try {
-        const hist1Y = await yfHistory(benchmarkSym, "1mo", "1y");
+        const hist1Y = histMap[benchmarkSym];
         if (hist1Y?.closes && hist1Y.closes.length >= 2) {
           const first = hist1Y.closes[0].y;
           const last  = hist1Y.closes[hist1Y.closes.length - 1].y;
@@ -1174,12 +1128,11 @@ router.get("/all", async (req, res) => {
         trackingError,
         rollingReturn1Y,
         rollingReturn3Y: rollingReturn1Y * 0.85,
-        aum: amfiData?.aum
-          ?? (cfg.id === "goldbees"  ? "₹8,200 Cr" :
-              cfg.id === "axisgold"  ? "₹2,100 Cr" :
-              cfg.id === "silvretf"  ? "₹1,200 Cr" :
-              cfg.id === "silvbsl"   ? "₹950 Cr"   :
-              cfg.id === "niftybees" ? "₹4,500 Cr" : "₹850 Cr"),
+        aum: cfg.id === "goldbees"  ? "₹8,200 Cr" :
+             cfg.id === "axisgold"  ? "₹2,100 Cr" :
+             cfg.id === "silvretf"  ? "₹1,200 Cr" :
+             cfg.id === "silvbsl"   ? "₹950 Cr"   :
+             cfg.id === "niftybees" ? "₹4,500 Cr" : "₹850 Cr",
         bidAskSpread: cfg.category === "Gold" ? 0.01 : 0.02,
         liquidityScore: cfg.id === "goldbees" || cfg.id === "niftybees" ? 9 : 7,
         hedgeEfficiency: cfg.hedgeScore,
@@ -1230,21 +1183,20 @@ router.get("/all", async (req, res) => {
       };
     });
 
-    // ── Step 7: Build global ETFs with live 1Y drawdown ───
-    const globalEtfs = await Promise.all(GLOBAL_ETFS.map(async (cfg) => {
+    // ── Step 7: Build global ETFs with histMap drawdown ───
+    const globalEtfs = GLOBAL_ETFS.map((cfg) => {
       const q = quoteMap[cfg.symbol];
       const spQ = quoteMap["^GSPC"];
       const relStrength = q && spQ
         ? +((q.changePct - (spQ.changePct ?? 0))).toFixed(2)
         : null;
 
-      // Live max drawdown from 1Y monthly history
+      // Live max drawdown from pre-fetched 1Y history
       let maxDrawdown = null;
       try {
-        const hist1Y = await yfHistory(cfg.symbol, "1mo", "1y");
+        const hist1Y = histMap[cfg.symbol];
         if (hist1Y?.closes && hist1Y.closes.length >= 2) {
-          let peak = -Infinity;
-          let maxDD = 0;
+          let peak = -Infinity, maxDD = 0;
           for (const pt of hist1Y.closes) {
             if (pt.y > peak) peak = pt.y;
             const dd = (pt.y - peak) / peak * 100;
@@ -1254,12 +1206,10 @@ router.get("/all", async (req, res) => {
         }
       } catch (_) {}
       if (maxDrawdown === null) {
-        maxDrawdown = cfg.id === "gld"  ? -15.2 : cfg.id === "slv" ? -28.5 :
-                     cfg.id === "uso"  ? -42.3 : cfg.id === "tip" ? -18.7 : -22.0;
+        maxDrawdown = cfg.id === "gld" ? -15.2 : cfg.id === "slv" ? -28.5 :
+                     cfg.id === "uso" ? -42.3 : cfg.id === "tip" ? -18.7 : -22.0;
       }
 
-      // Institutional ownership — live proxy from short interest / volume ratio via Yahoo
-      // Yahoo doesn't provide inst. ownership directly — use static known values (SEC filings)
       const institutionalOwnership =
         cfg.id === "gld"  ? "72%" : cfg.id === "iau" ? "68%" :
         cfg.id === "slv"  ? "55%" : cfg.id === "tip" ? "61%" :
@@ -1285,11 +1235,9 @@ router.get("/all", async (req, res) => {
         institutionalOwnership,
         trackingEfficiency: cfg.id === "gld" ? 99.2 : cfg.id === "iau" ? 99.4 : 97.5,
       };
-    }));
+    });
 
     // ── Step 8: Build intelligence layer ─────────────────
-    const liveMacro = await fetchLiveMacroData();
-
     const intelligence = {
       regime,
       geopoliticalRisk: gri,
@@ -1297,11 +1245,11 @@ router.get("/all", async (req, res) => {
       allocationFramework: alloc,
       eia: eiaData,
       macroDrivers: {
-        usCPI:             liveMacro.usCPI     || "N/A",
-        fedRateExpectation:liveMacro.fedRate   || "N/A",
-        rbiRate:           liveMacro.rbiRate   || "6.50%",  // RBI rarely changes, safe fallback
-        usdInr:            +USD_INR.toFixed(2),             // Live from Yahoo Finance
-        indianCPI:         liveMacro.indianCPI || "N/A",
+        usCPI:              liveMacro.usCPI     || "N/A",
+        fedRateExpectation: liveMacro.fedRate   || "N/A",
+        rbiRate:            liveMacro.rbiRate   || "6.50%",
+        usdInr:             +USD_INR.toFixed(2),
+        indianCPI:          liveMacro.indianCPI || "N/A",
       },
       silverInflowHistory: SILVER_ETF_INFLOW_HISTORY,
       cotSummary: {

@@ -35,6 +35,8 @@ import DecodeMarketsPage from "./components/DecodeMarketsPage";
 
 // ── NEW: Full Commodities & ETFs view (replaces old MarketsView at /markets) ──
 import CommoditiesView from "@/views/Commoditiesview";
+import AdminDashboard from "./components/Admindashboard";
+import CheckoutPage from "./components/Checkoutpage";
 
 const queryClient = new QueryClient();
 
@@ -75,6 +77,8 @@ const App = () => (
               <Route path="/forgot-password" element={<ForgotPasswordController />} />
               <Route path="/reset-password" element={<ResetPasswordController />} />
               <Route path="/insights/:tab" element={<DecodeMarketsPage />} />
+              <Route path="/plans/:planId/checkout" element={<CheckoutPage />} />
+              <Route path={import.meta.env.VITE_ADMIN_ROUTE || "/x7-panel"} element={<AdminDashboard />} />
               <Route
                 path="/dashboard"
                 element={

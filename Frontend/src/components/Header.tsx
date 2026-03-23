@@ -704,10 +704,24 @@ const Header = () => {
                   <DropdownMenuTrigger asChild>
                     <button
                       onClick={userMenu.toggle}
-                      className={`flex items-center gap-3 p-1.5 rounded-full transition-all focus:outline-none focus:ring-2 focus:ring-[#5194F6]/40 ${
+                      className={`relative flex items-center gap-3 p-1.5 rounded-full transition-all focus:outline-none focus:ring-2 focus:ring-[#5194F6]/40 ${
                         isLight ? "hover:bg-navy/8" : "hover:bg-[#1C3656]/60"
                       }`}
                     >
+                      {/* Admin shield badge — top-right of avatar */}
+                      {isAdmin && (
+                        <span style={{
+                          position: "absolute", top: 0, right: 0,
+                          width: 16, height: 16, borderRadius: "50%",
+                          background: "linear-gradient(135deg,#f59e0b,#d97706)",
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                          zIndex: 10,
+                          border: `2px solid ${isLight ? "white" : "#101528"}`,
+                          boxShadow: "0 2px 6px rgba(245,158,11,0.5)",
+                        }}>
+                          <Shield size={8} color="white" />
+                        </span>
+                      )}
                       <Avatar className={`h-9 w-9 border-2 ring-2 ${isLight ? "border-slate-300 ring-slate-200" : "border-[#1C3656] ring-[#5194F6]/20"}`}>
                         <AvatarImage src={user?.image} alt={user.name} className="object-cover" />
                         <AvatarFallback className="bg-gradient-to-br from-[#5194F6] to-[#5194F6]/60 text-white font-semibold">
@@ -723,9 +737,9 @@ const Header = () => {
                   <DropdownMenuContent
                     align="end"
                     sideOffset={8}
-                    className="min-w-[240px] p-2 bg-white text-navy rounded-xl shadow-xl ring-1 ring-black/10"
+                    className={`min-w-[240px] p-2 rounded-xl shadow-xl ring-1 ${isLight ? "bg-white text-navy ring-black/10" : "bg-[#0f1829] text-white ring-white/10"}`}
                   >
-                    <div className="px-3 py-3 border-b border-gray-200">
+                    <div className={`px-3 py-3 border-b ${isLight ? "border-gray-200" : "border-white/10"}`}>
                       <div className="flex items-center gap-3 mb-2">
                         <Avatar className="h-10 w-10 border-2 border-gray-200">
                           <AvatarImage src={user?.image} alt={user.name} className="object-cover" />
@@ -734,8 +748,8 @@ const Header = () => {
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold text-navy truncate">{user.name}</p>
-                          <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                          <p className={`text-sm font-semibold ${isLight ? "text-black" : "text-white"} truncate`}>{user.name}</p>
+                          <p className={`text-xs ${isLight ? "text-black" : "text-white"} truncate`}>{user.email}</p>
                         </div>
                       </div>
                       {isAdmin && (
@@ -748,13 +762,39 @@ const Header = () => {
                     <DropdownMenuItem asChild>
                       <Link
                         to="/dashboard"
-                        className="flex items-center gap-2 w-full px-3 py-2 rounded-md text-sm font-medium hover:bg-[#5194F6]/10 hover:text-[#5194F6] transition"
+                        className={`flex items-center gap-2 w-full px-3 py-2 mt-1 rounded-md text-sm font-medium transition ${isLight ? "hover:bg-[#5194F6]/10 hover:text-[#5194F6]" : "hover:bg-[#5194F6]/15 hover:text-[#5194F6] text-white"}`}
                         onClick={userMenu.close}
                       >
                         <User className="w-4 h-4" /> My Dashboard
                       </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuSeparator className="my-2" />
+
+                    {/* ── Admin Dashboard — visible only to admins, below My Dashboard ── */}
+                    {isAdmin && (
+                      <>
+                        <DropdownMenuSeparator className={`my-1 ${isLight ? "bg-gray-200" : "bg-white/10"}`} />
+                        <DropdownMenuItem asChild>
+                          <button
+                            onClick={() => { userMenu.close(); navigate(import.meta.env.VITE_ADMIN_ROUTE || "/x7-panel"); }}
+                            style={{
+                              display: "flex", alignItems: "center", gap: 8,
+                              width: "100%", padding: "8px 12px", borderRadius: 8,
+                              fontSize: 13, fontWeight: 700, cursor: "pointer",
+                              border: "none",
+                              background: "linear-gradient(135deg,rgba(245,158,11,0.10),rgba(217,119,6,0.06))",
+                              color: "#b45309",
+                            }}
+                          >
+                            <div style={{ width: 22, height: 22, borderRadius: 6, background: "rgba(245,158,11,0.18)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                              <Shield size={12} color="#d97706" />
+                            </div>
+                            Admin Dashboard
+                          </button>
+                        </DropdownMenuItem>
+                      </>
+                    )}
+
+                    <DropdownMenuSeparator className={`my-1 ${isLight ? "bg-gray-200" : "bg-white/10"}`} />
                     <DropdownMenuItem asChild>
                       <button
                         onClick={() => { userMenu.close(); handleSignOut(); }}

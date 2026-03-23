@@ -7,6 +7,7 @@ import MongoStore from "connect-mongo";
 import passport from "passport";
 import { configurePassport } from "./config/passport.config.js";
 import { errorHandler, notFound } from "./middlewares/errorHandler.middleware.js";
+import { adminLimiter, authLimiter,} from "./middlewares/Ratelimit.middleware.js";
 
 const app = express();
 
@@ -24,6 +25,13 @@ if (!process.env.SESSION_SECRET || process.env.SESSION_SECRET.length < 32) {
 }
 
 if (IS_PRODUCTION) { app.set("trust proxy", 1); console.log("✅ Trust proxy enabled"); }
+app.use((req, res, next) => {
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("X-Frame-Options", "DENY");
+  res.setHeader("X-XSS-Protection", "1; mode=block");
+  res.removeHeader("X-Powered-By");
+  next();
+});
 
 const allowedOrigins = [
   "http://localhost:8080", "http://127.0.0.1:8080",
@@ -56,8 +64,13 @@ app.use((req, res, next) => {
 });
 
 app.use(express.json({ limit: "20kb" }));
+
+
 app.use(express.urlencoded({ extended: true, limit: "20kb" }));
 app.use(cookieParser());
+
+
+
 
 const sessionStore = MongoStore.create({
   mongoUrl: MONGODB_URI, collectionName: "sessions",
@@ -135,6 +148,8 @@ import KiteRouter          from "./routes/kite.routes.js";
 import commoditiesRouter   from "./routes/Commodities.routes.js";   // ← COMMODITIES (NEW)
 import paymentRouter       from "./routes/Payment.routes.js";
 import kiteTestRouter      from "./routes/Kite_test.js";
+import adminRouter from "./routes/Admin.routes.js";
+
 
 // ══════════════════════════════════════════════════════════════════════
 // Route registration
@@ -142,8 +157,10 @@ import kiteTestRouter      from "./routes/Kite_test.js";
 
 app.use("/api/v1/kite",            kiteTestRouter);     // kite test (keep first)
 
-app.use("/api/v1/users",           userRouter);
-app.use("/auth",                   googleAuthRouter);
+// app.use("/api/v1/users",           userRouter);
+// app.use("/auth",                   googleAuthRouter);
+app.use("/api/v1/users", authLimiter, userRouter);
+app.use("/auth",         authLimiter, googleAuthRouter);
 app.use("/api/v1/blogs",           blogRouter);
 app.use("/api/v1/beans-of-wisdom", beansOfWisdom);
 app.use("/api/v1/insights",        insightRouter);
@@ -165,6 +182,7 @@ app.use("/api/v1/commodities",     commoditiesRouter);
 app.use("/api/v1/subscribe",       subscriberRouter);
 app.use("/api/v1/ipo",             ipoRouter);
 app.use("/api/v1/testimonials",    testimonialRouter);
+app.use(`/api/v1/${process.env.ADMIN_API_SEGMENT || "xp-insights-42"}`, adminLimiter, adminRouter);
 
 app.use(notFound);
 app.use(errorHandler);
