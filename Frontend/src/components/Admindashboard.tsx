@@ -371,6 +371,11 @@ export default function AdminDashboard() {
   const isLight   = theme === "light";
   const t         = tok(isLight);
 
+  // API constants — hooks se PEHLE define karo
+  const API   = import.meta.env.VITE_API_URL || "";
+  const SEG   = import.meta.env.VITE_ADMIN_SEGMENT || "xp-insights-42";
+  const ADMIN = `${API}/${SEG}`;
+
   const [users,setUsers]     = useState<AdminUser[]>([]);
   const [stats,setStats]     = useState<AdminStats|null>(null);
   const [loading,setLoading] = useState(true);
@@ -382,12 +387,6 @@ export default function AdminDashboard() {
   const [grantT,setGrantT]   = useState<{userId:string;name:string}|null>(null);
   const [isMobile,setIsMobile] = useState(window.innerWidth < 768);
   const [navOpen,setNavOpen]   = useState(false);
-
-  if (!isAdmin) return <div/>;
-
-  const API    = import.meta.env.VITE_API_URL || "";
-  const SEG    = import.meta.env.VITE_ADMIN_SEGMENT || "xp-insights-42";
-  const ADMIN  = `${API}/api/v1/${SEG}`;
 
   useEffect(()=>{
     const fn=()=>setIsMobile(window.innerWidth<768);
@@ -404,11 +403,14 @@ export default function AdminDashboard() {
       ]);
       setUsers(ur.data.data.users||[]);
       setStats(sr.data.data);
-    } catch(e){console.error(e);}
+    } catch(e){console.error("Admin load error:",e);}
     finally{setLoading(false);}
   },[ADMIN]);
 
   useEffect(()=>{load();},[load]);
+
+  // ── Security gate — SAARE hooks ke BAAD ──────────────────────────────────
+  if (!isAdmin) return <div/>;
 
   const doGrant = async(userId:string,body:any)=>{
     await axios.patch(`${ADMIN}/subscription/${userId}`,body,{withCredentials:true});

@@ -6,6 +6,8 @@ import { getAllBlogs, getAdminBlogs, deleteBlog, getBlogById, toggleLike, Blog }
 import { Loader2, Plus, Edit2, Trash2, Eye, Search, Tag, Calendar, TrendingUp, Sparkles, Heart, AlertCircle, CheckCircle } from 'lucide-react';
 import { useAuth } from '@/controllers/AuthContext';
 import { useTheme } from '@/controllers/Themecontext';
+import { ChevronDown } from "lucide-react";
+
 import axios from 'axios';
 
 // ── Email validation ──────────────────────────────────────────────────────────
@@ -32,6 +34,18 @@ const BlogsView = () => {
   const isLight = theme === "light";
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+const dropdownRef = useRef<HTMLDivElement>(null);
+
+useEffect(() => {
+  const handler = (e: MouseEvent) => {
+    if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+      setIsDropdownOpen(false);
+    }
+  };
+  document.addEventListener("mousedown", handler);
+  return () => document.removeEventListener("mousedown", handler);
+}, []);
 
   const [blogs, setBlogs] = useState<Blog[]>(() => {
     // Load from sessionStorage on mount
@@ -357,29 +371,71 @@ const BlogsView = () => {
 
           {/* Filters Section */}
           <div className={`mb-10 sm:mb-12 space-y-6 rounded-2xl p-6 ${isLight ? "bg-white border border-slate-200 shadow-sm" : "border border-white/10 bg-white/5 backdrop-blur-2xl"}`}>
-            <div className="flex flex-col lg:flex-row gap-4">
-              <div className="flex-1 relative group">
-                <Search className={`absolute left-5 top-1/2 transform -translate-y-1/2 transition-colors group-focus-within:text-blue-400 ${isLight ? "text-slate-400" : "text-slate-400"}`} size={22} />
-                <input
-                  type="text"
-                  placeholder="Search blogs by title, description..."
-                  value={searchQuery}
-                  onChange={(e) => {
-                    setSearchQuery(e.target.value);
-                    setCurrentPage(1);
-                  }}
-                  className={`w-full pl-14 pr-6 py-4 rounded-xl focus:ring-2 focus:ring-blue-500/40 transition-all text-base font-medium focus:outline-none ${isLight ? "bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 focus:border-blue-400" : "bg-white/5 border border-white/10 text-white placeholder-slate-500 focus:border-blue-500/50"}`}
-                />
-              </div>
-              <select
-                value={sortOrder}
-                onChange={(e) => setSortOrder(e.target.value as 'asc' | 'desc')}
-                className={`lg:w-56 px-6 py-4 rounded-xl focus:ring-2 focus:ring-blue-500/40 transition-all font-semibold text-base cursor-pointer focus:outline-none ${isLight ? "bg-white border border-slate-200 text-slate-700" : "bg-slate-800 border border-white/10 text-white"}`}
-              >
-                <option value="desc">📅 Newest First</option>
-                <option value="asc">📅 Oldest First</option>
-              </select>
-            </div>
+          <div className="flex flex-col lg:flex-row gap-4">
+  <div className="flex-1 relative group">
+    <Search className={`absolute left-5 top-1/2 transform -translate-y-1/2 transition-colors group-focus-within:text-blue-400 ${isLight ? "text-slate-400" : "text-slate-400"}`} size={22} />
+    <input
+      type="text"
+      placeholder="Search blogs by title, description..."
+      value={searchQuery}
+      onChange={(e) => {
+        setSearchQuery(e.target.value);
+        setCurrentPage(1);
+      }}
+      className={`w-full pl-14 pr-6 py-4 rounded-xl focus:ring-2 focus:ring-blue-500/40 transition-all text-base font-medium focus:outline-none ${isLight ? "bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 focus:border-blue-400" : "bg-white/5 border border-white/10 text-white placeholder-slate-500 focus:border-blue-500/50"}`}
+    />
+  </div>
+
+  {/* ✅ Native select hataya — custom dropdown */}
+  <div className="relative lg:w-56" ref={dropdownRef}>
+    <button
+      type="button"
+      onClick={() => setIsDropdownOpen((p) => !p)}
+      className={`w-full flex items-center justify-between gap-2 px-6 py-4 rounded-xl border font-semibold text-base cursor-pointer transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/40 ${
+        isLight
+          ? "bg-white border-slate-200 text-slate-700 hover:border-blue-400"
+          : "bg-slate-800 border-white/10 text-white hover:border-blue-500/50"
+      }`}
+    >
+      <span>📅 {sortOrder === "desc" ? "Newest First" : "Oldest First"}</span>
+      <ChevronDown
+        size={16}
+        className={`transition-transform duration-200 ${isDropdownOpen ? "rotate-180" : ""}`}
+      />
+    </button>
+
+    {isDropdownOpen && (
+      <div className={`absolute z-50 mt-2 w-full rounded-xl border shadow-xl overflow-hidden ${
+        isLight
+          ? "bg-white border-slate-200 shadow-slate-200/60"
+          : "bg-slate-800 border-white/10 shadow-black/40"
+      }`}>
+        {[
+          { value: "desc", label: "📅 Newest First" },
+          { value: "asc",  label: "📅 Oldest First"  },
+        ].map((opt) => (
+          <button
+            key={opt.value}
+            type="button"
+            onClick={() => {
+              setSortOrder(opt.value as "asc" | "desc");
+              setIsDropdownOpen(false);
+              setCurrentPage(1);
+            }}
+            className={`w-full text-left px-6 py-3 text-sm font-medium transition-colors ${
+              sortOrder === opt.value
+                ? isLight ? "bg-blue-50 text-blue-600" : "bg-blue-500/20 text-blue-400"
+                : isLight ? "text-slate-700 hover:bg-slate-50" : "text-slate-300 hover:bg-white/5"
+            }`}
+          >
+            {opt.label}
+            {sortOrder === opt.value && <span className="float-right text-blue-400">✓</span>}
+          </button>
+        ))}
+      </div>
+    )}
+  </div>
+</div>
 
             <div>
               <h3 className={`text-sm font-bold uppercase tracking-wider mb-4 flex items-center gap-2 ${isLight ? "text-slate-500" : "text-white/60"}`}>

@@ -4,7 +4,7 @@ import {
   getAdminStats,
   grantSubscription,
   revokeSubscription,
-} from "../controllers/Admin.controller .js";
+} from "../controllers/Admin.controller .js ";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 import { verifyAdmin } from "../middlewares/admin.middleware.js";
 

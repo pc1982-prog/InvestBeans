@@ -7,6 +7,7 @@ import mongoose from "mongoose";
 import crypto from "crypto";
 import { ADMIN_EMAILS } from "../middlewares/admin.middleware.js";
 import { sendPasswordResetEmail, sendPasswordResetConfirmation } from "../utils/email.utils.js";
+import { Subscription } from "../models/Subscription.model.js";
 
 const generateAccessAndRefreshTokens = async (userId) => {
     try {
@@ -235,11 +236,36 @@ const getCurrentUser = asyncHandler(async (req, res) => {
         name: safeUserData.name || safeUserData.displayName || 'User'
     };
 
+    // Subscription fetch karo — admin grant ya payment dono se aata hai
+    const subscription = await Subscription.findOne({
+        userId: user._id,
+        status: "active",
+        endDate: { $gt: new Date() },
+    }).select("plan status endDate startDate amount daysRemaining").lean();
+
+    const daysRemaining = subscription?.endDate
+        ? Math.max(0, Math.ceil((new Date(subscription.endDate) - Date.now()) / 86_400_000))
+        : 0;
+
     return res
         .status(200)
         .json(new ApiResponse(
             200,
-            normalizedData,
+            {
+                ...normalizedData,
+                subscription: subscription
+                    ? {
+                        plan: subscription.plan,
+                        status: subscription.status,
+                        startDate: subscription.startDate,
+                        endDate: subscription.endDate,
+                        amount: subscription.amount,
+                        daysRemaining,
+                        hasAccess: true,
+                      }
+                    : null,
+                hasSubscription: !!subscription,
+            },
             "Current user fetched successfully"
         ));
 });
