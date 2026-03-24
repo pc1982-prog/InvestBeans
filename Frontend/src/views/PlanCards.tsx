@@ -4,9 +4,13 @@ import { Check, Star, BookOpen, BarChart3, Lightbulb } from "lucide-react";
 const PLANS = [
   {
     id: "foundation",
-    color: "#22c55e",
-    colorDim: "rgba(34,197,94,0.12)",
-    colorBorder: "rgba(34,197,94,0.3)",
+    color: "#0A3656",
+    colorLight: "#0A3656",
+    colorDark: "#74A8C9",
+    colorDimDark: "rgba(116,168,201,0.14)",
+    colorBorderDark: "rgba(116,168,201,0.30)",
+    colorDim: "rgba(10,54,86,0.12)",
+    colorBorder: "rgba(10,54,86,0.30)",
     badge: "For Beginners",
     name: "Foundation",
     tagline: "Build Your Market Foundation",
@@ -28,9 +32,13 @@ const PLANS = [
   },
   {
     id: "command",
-    color: "#3b82f6",
-    colorDim: "rgba(59,130,246,0.12)",
-    colorBorder: "rgba(59,130,246,0.3)",
+    color: "#12466e",
+    colorLight: "#12466e",
+    colorDark: "#8FBDD9",
+    colorDimDark: "rgba(143,189,217,0.14)",
+    colorBorderDark: "rgba(143,189,217,0.34)",
+    colorDim: "rgba(18,70,110,0.14)",
+    colorBorder: "rgba(18,70,110,0.34)",
     badge: "Most Popular",
     name: "Command",
     tagline: "Take Command of Market Data",
@@ -52,9 +60,13 @@ const PLANS = [
   },
   {
     id: "edge",
-    color: "#a855f7",
-    colorDim: "rgba(168,85,247,0.12)",
-    colorBorder: "rgba(168,85,247,0.3)",
+    color: "#1d5b87",
+    colorLight: "#1d5b87",
+    colorDark: "#9bc1da",
+    colorDimDark: "rgba(155,193,218,0.14)",
+    colorBorderDark: "rgba(155,193,218,0.34)",
+    colorDim: "rgba(29,91,135,0.14)",
+    colorBorder: "rgba(29,91,135,0.34)",
     badge: "For Serious Investors",
     name: "Edge",
     tagline: "Where Insight Becomes Advantage",
@@ -79,25 +91,28 @@ const PLANS = [
 // ─── SINGLE PLAN CARD ─────────────────────────────────────────────────────────
 function PlanCard({ plan, isLight = true, onCta }) {
   const Icon = plan.icon;
+  const pColor = isLight ? plan.colorLight : plan.colorDark;
+  const pDim   = isLight ? plan.colorDim   : plan.colorDimDark;
+  const pBdr   = isLight ? plan.colorBorder : plan.colorBorderDark;
 
   const cardBg = isLight
-    ? plan.popular ? "linear-gradient(145deg,#ffffff,#f0f7ff)" : "#ffffff"
-    : plan.popular ? "linear-gradient(145deg,#0f1f3d,#0d1a35)" : "rgba(13,30,54,0.7)";
+    ? plan.popular ? "linear-gradient(145deg,#FCFDFE,#f3f8fc)" : "#FCFDFE"
+    : plan.popular ? "linear-gradient(145deg,#072134,#041421)" : "rgba(6,27,43,0.72)";
 
   const cardBorder = plan.popular
-    ? `2px solid ${plan.color}`
-    : isLight ? "1.5px solid rgba(13,37,64,0.1)" : "1.5px solid rgba(255,255,255,0.08)";
+    ? `2px solid ${pColor}`
+    : isLight ? "1.5px solid rgba(4,20,33,0.10)" : "1.5px solid rgba(124,166,194,0.20)";
 
   const cardShadow = plan.popular
-    ? `0 20px 60px ${plan.colorDim}, 0 4px 20px rgba(0,0,0,0.1)`
-    : isLight ? "0 4px 24px rgba(13,37,64,0.07)" : "0 4px 24px rgba(0,0,0,0.3)";
+    ? `0 20px 60px ${pDim}, 0 4px 20px rgba(0,0,0,0.1)`
+    : isLight ? "0 6px 24px rgba(4,20,33,0.08)" : "0 4px 24px rgba(0,0,0,0.3)";
 
-  const nameColor    = isLight ? "#0d1b2a" : "#e8edf5";
-  const taglineColor = isLight ? "rgba(13,37,64,0.7)" : "rgba(203,213,225,1)";
-  const quoteColor   = isLight ? "rgba(13,37,64,0.5)" : "rgba(148,163,184,1)";
-  const benefitColor = isLight ? "rgba(13,37,64,0.75)" : "rgba(203,213,225,1)";
-  const noteColor    = isLight ? "rgba(13,37,64,0.4)" : "rgba(148,163,184,0.7)";
-  const dividerColor = isLight ? "rgba(13,37,64,0.07)" : "rgba(255,255,255,0.07)";
+  const nameColor    = isLight ? "#041421" : "#e8edf5";
+  const taglineColor = isLight ? "rgba(4,20,33,0.70)" : "rgba(203,213,225,1)";
+  const quoteColor   = isLight ? "rgba(4,20,33,0.55)" : "rgba(148,163,184,1)";
+  const benefitColor = isLight ? "rgba(4,20,33,0.78)" : "rgba(203,213,225,1)";
+  const noteColor    = isLight ? "rgba(4,20,33,0.45)" : "rgba(148,163,184,0.7)";
+  const dividerColor = isLight ? "rgba(4,20,33,0.08)" : "rgba(255,255,255,0.07)";
 
   return (
     <div
@@ -125,11 +140,11 @@ function PlanCard({ plan, isLight = true, onCta }) {
       {plan.popular && (
         <div style={{
           position: "absolute", top: "-14px", left: "50%", transform: "translateX(-50%)",
-          background: `linear-gradient(135deg,${plan.color},#60a5fa)`,
+          background: `linear-gradient(135deg,${pColor},#4f7fa2)`,
           color: "#fff", fontSize: "11px", fontWeight: 800,
           padding: "5px 18px", borderRadius: "100px",
           letterSpacing: "0.08em", textTransform: "uppercase",
-          boxShadow: `0 4px 16px ${plan.colorDim}`,
+          boxShadow: `0 4px 16px ${pDim}`,
           whiteSpace: "nowrap",
           display: "flex", alignItems: "center", gap: "5px",
         }}>
@@ -141,15 +156,15 @@ function PlanCard({ plan, isLight = true, onCta }) {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "20px" }}>
         <div style={{
           width: "48px", height: "48px", borderRadius: "14px",
-          background: plan.colorDim, border: `1.5px solid ${plan.colorBorder}`,
+          background: pDim, border: `1.5px solid ${pBdr}`,
           display: "flex", alignItems: "center", justifyContent: "center",
         }}>
-          <Icon size={22} style={{ color: plan.color }} />
+          <Icon size={22} style={{ color: pColor }} />
         </div>
         <span style={{
           fontSize: "10px", fontWeight: 700, letterSpacing: "0.07em",
-          textTransform: "uppercase", color: plan.color,
-          background: plan.colorDim, border: `1px solid ${plan.colorBorder}`,
+          textTransform: "uppercase", color: pColor,
+          background: pDim, border: `1px solid ${pBdr}`,
           borderRadius: "100px", padding: "4px 12px",
         }}>
           {plan.badge}
@@ -172,7 +187,7 @@ function PlanCard({ plan, isLight = true, onCta }) {
 
       {/* ── Price ── */}
       <div style={{ marginBottom: "22px" }}>
-        <span style={{ fontSize: "36px", fontWeight: 900, color: plan.color, letterSpacing: "-0.03em", lineHeight: 1 }}>
+        <span style={{ fontSize: "36px", fontWeight: 900, color: pColor, letterSpacing: "-0.03em", lineHeight: 1 }}>
           {plan.price}
         </span>
         <br />
@@ -187,10 +202,10 @@ function PlanCard({ plan, isLight = true, onCta }) {
           <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: "10px" }}>
             <div style={{
               width: "18px", height: "18px", borderRadius: "50%", flexShrink: 0, marginTop: "1px",
-              background: plan.colorDim, border: `1px solid ${plan.colorBorder}`,
+              background: pDim, border: `1px solid ${pBdr}`,
               display: "flex", alignItems: "center", justifyContent: "center",
             }}>
-              <Check size={10} strokeWidth={3} style={{ color: plan.color }} />
+              <Check size={10} strokeWidth={3} style={{ color: pColor }} />
             </div>
             <span style={{ fontSize: "13px", color: benefitColor, lineHeight: 1.5 }}>{b}</span>
           </div>
@@ -209,21 +224,21 @@ function PlanCard({ plan, isLight = true, onCta }) {
           width: "100%", padding: "14px", borderRadius: "14px", fontSize: "14px",
           fontWeight: 700, cursor: "pointer",
           background: plan.popular
-            ? `linear-gradient(135deg,${plan.color},#60a5fa)`
-            : plan.colorDim,
-          color: plan.popular ? "#fff" : plan.color,
-          border: plan.popular ? "none" : `1.5px solid ${plan.colorBorder}`,
-          boxShadow: plan.popular ? `0 6px 20px ${plan.colorDim}` : "none",
+            ? `linear-gradient(135deg,${pColor},#4f7fa2)`
+            : pDim,
+          color: plan.popular ? "#fff" : pColor,
+          border: plan.popular ? "none" : `1.5px solid ${pBdr}`,
+          boxShadow: plan.popular ? `0 6px 20px ${pDim}` : "none",
           transition: "all 0.2s ease",
           letterSpacing: "0.02em",
         }}
         onMouseEnter={e => {
           e.currentTarget.style.transform = "translateY(-2px)";
-          e.currentTarget.style.boxShadow = `0 10px 28px ${plan.colorDim}`;
+          e.currentTarget.style.boxShadow = `0 10px 28px ${pDim}`;
         }}
         onMouseLeave={e => {
           e.currentTarget.style.transform = "translateY(0)";
-          e.currentTarget.style.boxShadow = plan.popular ? `0 6px 20px ${plan.colorDim}` : "none";
+          e.currentTarget.style.boxShadow = plan.popular ? `0 6px 20px ${pDim}` : "none";
         }}
       >
         {plan.cta}

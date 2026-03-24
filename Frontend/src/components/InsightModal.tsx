@@ -60,28 +60,31 @@ const InsightModal = ({ isOpen, onClose, insight, loading = false }: InsightModa
 
   // ── Theme tokens ──────────────────────────────────────────────────────────
   const modalBg      = isLight ? "linear-gradient(160deg,#f0f7fe 0%,#e8f2fd 100%)" : "linear-gradient(160deg,rgba(13,19,36,0.99) 0%,rgba(10,15,28,0.99) 100%)";
-  const modalBorder  = isLight ? "1px solid rgba(13,37,64,0.12)" : "1px solid rgba(81,148,246,0.18)";
-  const blueTopLine  = "linear-gradient(90deg,transparent,rgba(81,148,246,0.55),transparent)";
+  const modalBorder  = isLight ? "1px solid rgba(13,37,64,0.12)" : "1px solid rgba(10,54,86,0.20)";
+  const blueTopLine  = "linear-gradient(90deg,transparent,rgba(10,54,86,0.55),transparent)";
   const headerBg     = isLight ? "rgba(232,242,253,0.97)" : "rgba(13,19,36,0.98)";
-  const headerBorder = isLight ? "1px solid rgba(13,37,64,0.08)" : "1px solid rgba(81,148,246,0.12)";
+  const headerBorder = isLight ? "1px solid rgba(13,37,64,0.08)" : "1px solid rgba(10,54,86,0.15)";
   const titleColor   = isLight ? "#0d1b2a" : "white";
   const metaColor    = isLight ? "rgba(13,37,64,0.5)" : "rgba(148,163,184,1)";
   const closeBg      = isLight ? "rgba(13,37,64,0.06)" : "rgba(255,255,255,0.06)";
   const closeColor   = isLight ? "rgba(13,37,64,0.45)" : "rgba(148,163,184,1)";
   const cardBg       = isLight ? "rgba(255,255,255,0.75)" : "rgba(255,255,255,0.03)";
-  const cardBorder   = isLight ? "1px solid rgba(13,37,64,0.09)" : "1px solid rgba(81,148,246,0.13)";
+  const cardBorder   = isLight ? "1px solid rgba(13,37,64,0.09)" : "1px solid rgba(10,54,86,0.16)";
   const bodyText     = isLight ? "rgba(13,37,64,0.72)" : "rgba(203,213,225,1)";
   const labelColor   = isLight ? "rgba(13,37,64,0.42)" : "rgba(100,116,139,1)";
-  const divider      = isLight ? "rgba(13,37,64,0.07)" : "rgba(81,148,246,0.10)";
+  const divider      = isLight ? "rgba(13,37,64,0.07)" : "rgba(10,54,86,0.12)";
   const footerBg     = isLight ? "rgba(232,242,253,0.98)" : "rgba(10,15,28,0.99)";
-  const footerBorder = isLight ? "1px solid rgba(13,37,64,0.08)" : "1px solid rgba(81,148,246,0.12)";
+  const footerBorder = isLight ? "1px solid rgba(13,37,64,0.08)" : "1px solid rgba(10,54,86,0.15)";
   const skeleton     = isLight ? "rgba(13,37,64,0.06)" : "rgba(255,255,255,0.07)";
 
   // ── Sentiment ─────────────────────────────────────────────────────────────
-  const ss = !insight ? { color: "#5194F6", bg: "rgba(81,148,246,0.08)", border: "rgba(81,148,246,0.20)" } : {
+  const neutralColor = isLight ? "#0A3656" : "#74A8C9";
+  const neutralBg    = isLight ? "rgba(10,54,86,0.08)" : "rgba(116,168,201,0.10)";
+  const neutralBdr   = isLight ? "rgba(10,54,86,0.20)" : "rgba(116,168,201,0.22)";
+  const ss = !insight ? { color: neutralColor, bg: neutralBg, border: neutralBdr } : {
     positive: { color: "#16a34a", bg: "rgba(52,211,153,0.1)",  border: "rgba(52,211,153,0.25)" },
     negative: { color: "#dc2626", bg: "rgba(251,113,133,0.1)", border: "rgba(251,113,133,0.25)" },
-    neutral:  { color: "#5194F6", bg: "rgba(81,148,246,0.08)", border: "rgba(81,148,246,0.20)" },
+    neutral:  { color: neutralColor, bg: neutralBg, border: neutralBdr },
   }[insight.sentiment];
 
   const sentimentIcon = () => {
@@ -96,13 +99,13 @@ const InsightModal = ({ isOpen, onClose, insight, loading = false }: InsightModa
 
   // ── Impact score ──────────────────────────────────────────────────────────
   const score       = structured?.impactScore ?? 0;
-  const scoreColor  = score >= 8 ? "#ef4444" : score >= 6 ? "#f59e0b" : score >= 4 ? "#5194F6" : "#10b981";
+  const scoreColor  = score >= 8 ? "#ef4444" : score >= 6 ? "#f59e0b" : score >= 4 ? "#0A3656" : "#10b981";
   const scoreLabel  = score >= 8 ? "High Impact" : score >= 6 ? "Medium-High" : score >= 4 ? "Moderate" : "Low Impact";
   const scoreEmoji  = score >= 8 ? "🔴" : score >= 6 ? "🟡" : score >= 4 ? "🔵" : "🟢";
 
   // ── Section card ──────────────────────────────────────────────────────────
   const Section = ({
-    icon, label, value, accent = "#5194F6", highlight = false,
+    icon, label, value, accent = "#0A3656", highlight = false,
   }: {
     icon: React.ReactNode; label: string; value?: string;
     accent?: string; highlight?: boolean;
@@ -254,8 +257,8 @@ const InsightModal = ({ isOpen, onClose, insight, loading = false }: InsightModa
                     </span>
                     <span className="px-2.5 py-1 rounded-full text-xs font-medium"
                       style={{
-                        background: isLight ? "rgba(13,37,64,0.06)" : "rgba(81,148,246,0.08)",
-                        border: isLight ? "1px solid rgba(13,37,64,0.10)" : "1px solid rgba(81,148,246,0.18)",
+                        background: isLight ? "rgba(13,37,64,0.06)" : "rgba(10,54,86,0.10)",
+                        border: isLight ? "1px solid rgba(13,37,64,0.10)" : "1px solid rgba(10,54,86,0.20)",
                         color: isLight ? "rgba(13,37,64,0.7)" : "rgba(129,174,249,1)",
                       }}>
                       {insight.category}
@@ -266,13 +269,13 @@ const InsightModal = ({ isOpen, onClose, insight, loading = false }: InsightModa
                   </h2>
                   <div className="flex flex-wrap items-center gap-3 text-xs" style={{ color: metaColor }}>
                     <div className="flex items-center gap-1">
-                      <Clock className="w-3 h-3 text-[#5194F6]/50" /><span>{insight.readTime}</span>
+                      <Clock className="w-3 h-3 text-[#0A3656]/50 dark:text-[#74A8C9]/50" /><span>{insight.readTime}</span>
                     </div>
                     <div className="flex items-center gap-1">
-                      <Eye className="w-3 h-3 text-[#5194F6]/50" /><span>{insight.views?.toLocaleString() || 0} views</span>
+                      <Eye className="w-3 h-3 text-[#0A3656]/50 dark:text-[#74A8C9]/50" /><span>{insight.views?.toLocaleString() || 0} views</span>
                     </div>
                     <div className="flex items-center gap-1">
-                      <Calendar className="w-3 h-3 text-[#5194F6]/50" /><span>{formatDate(insight.publishedAt)}</span>
+                      <Calendar className="w-3 h-3 text-[#0A3656]/50 dark:text-[#74A8C9]/50" /><span>{formatDate(insight.publishedAt)}</span>
                     </div>
                   </div>
                 </div>
@@ -289,7 +292,7 @@ const InsightModal = ({ isOpen, onClose, insight, loading = false }: InsightModa
               {structured ? (
                 /* ── Structured sections from backend ── */
                 <>
-                  <Section icon={<BarChart2 className="w-3 h-3" />}   label="Summary"             value={structured.summary}            accent="#5194F6" highlight />
+                  <Section icon={<BarChart2 className="w-3 h-3" />}   label="Summary"             value={structured.summary}            accent="#0A3656" highlight />
                   <Section icon={<TrendingUp className="w-3 h-3" />}   label="Market Significance"  value={structured.marketSignificance}  accent="#10b981" highlight />
                   <Section icon={<Building2 className="w-3 h-3" />}    label="Impact Area"          value={structured.impactArea}          accent="#f59e0b" />
                   <StocksSection value={structured.stocksImpacted} />
@@ -304,7 +307,7 @@ const InsightModal = ({ isOpen, onClose, insight, loading = false }: InsightModa
                 /* ── Fallback: legacy plain-text insight ── */
                 <div className="rounded-xl p-4" style={{ background: cardBg, border: cardBorder }}>
                   <h3 className="text-sm font-semibold mb-2 flex items-center gap-2" style={{ color: titleColor }}>
-                    <span className="w-1 h-4 rounded-full inline-block" style={{ background: "#5194F6" }} />
+                    <span className="w-1 h-4 rounded-full inline-block" style={{ background: "#0A3656" }} />
                     InvestBeans Insight
                   </h3>
                   <p className="leading-relaxed whitespace-pre-wrap text-sm" style={{ color: bodyText }}>
@@ -318,7 +321,7 @@ const InsightModal = ({ isOpen, onClose, insight, loading = false }: InsightModa
                 style={{ background: isLight ? "rgba(255,255,255,0.6)" : "rgba(255,255,255,0.03)", border: cardBorder }}>
                 <h3 className="text-[10px] font-bold uppercase tracking-wider mb-2.5 flex items-center gap-2" style={{ color: titleColor }}>
                   <span className="w-1 h-3.5 rounded-full inline-block"
-                    style={{ background: isLight ? "rgba(13,37,64,0.3)" : "rgba(81,148,246,0.5)" }} />
+                    style={{ background: isLight ? "rgba(13,37,64,0.3)" : "rgba(10,54,86,0.5)" }} />
                   Source & Credits
                 </h3>
                 <div className="flex flex-wrap items-start gap-x-5 gap-y-2">
@@ -350,7 +353,7 @@ const InsightModal = ({ isOpen, onClose, insight, loading = false }: InsightModa
                       <div className="flex items-end pb-0.5">
                         <a href={insight.credits.url} target="_blank" rel="noopener noreferrer"
                           className="inline-flex items-center gap-1 text-xs font-medium hover:opacity-80 transition-opacity"
-                          style={{ color: "#5194F6" }}>
+                          style={{ color: isLight ? "#0A3656" : "#74A8C9" }}>
                           View Source <ExternalLink className="w-3 h-3" />
                         </a>
                       </div>
@@ -364,7 +367,7 @@ const InsightModal = ({ isOpen, onClose, insight, loading = false }: InsightModa
             <div className="p-4 flex-shrink-0" style={{ background: footerBg, borderTop: footerBorder }}>
               <button onClick={onClose}
                 className="w-full h-11 rounded-xl font-semibold text-sm transition-all hover:opacity-90"
-                style={{ background: "linear-gradient(135deg,#5194F6,#3a7de0)", color: "#ffffff" }}>
+                style={{ background: "#0A3656", color: "#ffffff" }}>
                 Close
               </button>
             </div>

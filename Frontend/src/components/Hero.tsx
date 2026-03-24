@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Sparkles, TrendingUp, TrendingDown } from "lucide-react";
+import { TrendingUp, TrendingDown } from "lucide-react";
 import { useTheme } from "@/controllers/Themecontext";
 
 // ─── Icons ─────────────────────────────────────────────────────────────────────
@@ -136,26 +136,26 @@ async function fetchKiteQuote(API, symbols) {
 }
 
 // ─── SENSEX vs NIFTY Card ───────────────────────────────────────────────────
-const SensexNiftyCard = ({ cardBg, cardBorder, isLight, sensex, nifty }) => {
+const SensexNiftyCard = ({ cardBg, cardBorder, cardShadow, isLight, sensex, nifty }) => {
   const fmtVal = (v) => v ? v.toLocaleString("en-IN", { maximumFractionDigits: 2 }) : "···";
   const fmtChg = (pct) => pct != null ? `${pct >= 0 ? "+" : ""}${pct.toFixed(2)}%` : "···";
   const sensexPos = (sensex?.chg ?? 0) >= 0;
   const niftyPos = (nifty?.chg ?? 0) >= 0;
 
   return (
-    <div style={{ background: cardBg, border: cardBorder, boxShadow: isLight ? "0 2px 12px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04)" : "none" }} className="rounded-2xl relative overflow-hidden group hover:scale-[1.02] transition-all duration-300 cursor-pointer md:p-5">
+    <div style={{ background: cardBg, border: cardBorder, boxShadow: cardShadow, backdropFilter: "blur(12px)" }} className="rounded-2xl relative overflow-hidden group hover:border-blue-400/30 hover:-translate-y-0.5 transition-all duration-300 cursor-pointer md:p-5">
       <div className="md:hidden">
-        <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 3, background: "linear-gradient(180deg,#4E91F6,#7ab8fa)", borderRadius: "12px 0 0 12px" }} />
+        <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 3, background: isLight ? "#0A3656" : "#1F5F89", borderRadius: "8px 0 0 8px" }} />
         <div style={{ padding: "10px 10px 10px 14px" }}>
-          <div style={{ fontSize: "8px", fontWeight: 900, letterSpacing: "0.12em", textTransform: "uppercase", color: "#4E91F6", marginBottom: 8 }}>SENSEX · NIFTY 50</div>
+          <div style={{ fontSize: "8px", fontWeight: 900, letterSpacing: "0.12em", textTransform: "uppercase", color: isLight ? "#0A3656" : "#74A8C9", marginBottom: 8 }}>SENSEX · NIFTY 50</div>
           {[
             { label: "SENSEX", val: fmtVal(sensex?.price), chg: fmtChg(sensex?.chg), pos: sensexPos },
             { label: "NIFTY 50", val: fmtVal(nifty?.price), chg: fmtChg(nifty?.chg), pos: niftyPos },
           ].map(row => (
             <div key={row.label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 5 }}>
-              <span style={{ fontSize: "10px", fontWeight: 700, color: isLight ? "#1e3a5f" : "rgba(255,255,255,0.6)" }}>{row.label}</span>
+              <span style={{ fontSize: "10px", fontWeight: 700, color: isLight ? "#1f455f" : "rgba(255,255,255,0.6)" }}>{row.label}</span>
               <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                <span style={{ fontSize: "14px", fontWeight: 800, color: isLight ? "#0d1b2a" : "#fff" }}>{row.val}</span>
+                <span style={{ fontSize: "14px", fontWeight: 800, color: isLight ? "#041421" : "#fff" }}>{row.val}</span>
                 <span style={{ fontSize: "9px", fontWeight: 700, color: row.pos ? "#22c55e" : "#ef4444", background: row.pos ? "rgba(34,197,94,0.12)" : "rgba(239,68,68,0.12)", border: `1px solid ${row.pos ? "rgba(34,197,94,0.25)" : "rgba(239,68,68,0.25)"}`, borderRadius: 4, padding: "1px 5px" }}>{row.chg}</span>
               </div>
             </div>
@@ -171,8 +171,8 @@ const SensexNiftyCard = ({ cardBg, cardBorder, isLight, sensex, nifty }) => {
       </div>
       <div className="hidden md:block">
         <div className="flex items-center gap-1.5 mb-3">
-          <span style={{ width: 8, height: 8, borderRadius: 2, background: "#4E91F6", display: "inline-block" }} />
-          <span style={{ fontSize: "11px", fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.12em", color: isLight ? "#1e3a5f" : "#ffffff" }}>SENSEX vs NIFTY 50</span>
+          <span style={{ width: 7, height: 7, borderRadius: "50%", background: isLight ? "#0A3656" : "#74A8C9", display: "inline-block", boxShadow: isLight ? "0 0 6px rgba(10,54,86,0.45)" : "0 0 6px rgba(116,168,201,0.45)" }} />
+          <span style={{ fontSize: "11px", fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.12em", color: isLight ? "#1f455f" : "#ffffff" }}>SENSEX vs NIFTY 50</span>
         </div>
         <div className="space-y-2 mb-3">
           {[
@@ -197,7 +197,7 @@ const SensexNiftyCard = ({ cardBg, cardBorder, isLight, sensex, nifty }) => {
 };
 
 // ─── FII vs DII Card ────────────────────────────────────────────────────────
-const FiiDiiCard = ({ cardBg, cardBorder, isLight, fiiNet, diiNet, fiiDate }) => {
+const FiiDiiCard = ({ cardBg, cardBorder, cardShadow, isLight, fiiNet, diiNet, fiiDate }) => {
   // fiiNet < 0 → selling, diiNet > 0 → buying (values in Crores)
   const loading  = fiiNet == null || diiNet == null;
   const absFii   = Math.abs(fiiNet ?? 0);
@@ -217,10 +217,10 @@ const FiiDiiCard = ({ cardBg, cardBorder, isLight, fiiNet, diiNet, fiiDate }) =>
   const diiLabel = fmt(diiNet);
   const dateLabel = fiiDate ? `As of ${fiiDate}` : "";
   return (
-    <div style={{ background: cardBg, border: cardBorder }} className="rounded-2xl relative overflow-hidden group hover:scale-[1.02] transition-all duration-300 cursor-pointer md:p-5">
+    <div style={{ background: cardBg, border: cardBorder, boxShadow: cardShadow, backdropFilter: "blur(12px)" }} className="rounded-2xl relative overflow-hidden group hover:border-blue-400/30 hover:-translate-y-0.5 transition-all duration-300 cursor-pointer md:p-5">
       <div className="md:hidden" style={{ padding: "10px 10px 10px 14px", position: "relative" }}>
-        <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 3, background: "linear-gradient(180deg,#ef4444,#a855f7,#22c55e)", borderRadius: "12px 0 0 12px" }} />
-        <div style={{ fontSize: "8px", fontWeight: 900, letterSpacing: "0.12em", textTransform: "uppercase", color: "#4E91F6", marginBottom: 8 }}>FII · DII FLOW</div>
+        <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 3, background: isLight ? "#0A3656" : "#1F5F89", borderRadius: "8px 0 0 8px" }} />
+        <div style={{ fontSize: "8px", fontWeight: 900, letterSpacing: "0.12em", textTransform: "uppercase", color: isLight ? "#0A3656" : "#74A8C9", marginBottom: 8 }}>FII · DII FLOW</div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, marginBottom: 8 }}>
           <div style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: 8, padding: "6px 8px" }}>
             <div style={{ fontSize: "8px", fontWeight: 700, color: "rgba(239,68,68,0.7)", marginBottom: 2 }}>FII SELL</div>
@@ -244,8 +244,8 @@ const FiiDiiCard = ({ cardBg, cardBorder, isLight, fiiNet, diiNet, fiiDate }) =>
       </div>
       <div className="hidden md:block">
         <div className="flex items-center gap-1.5 mb-3">
-          <span style={{ width: 8, height: 8, borderRadius: 2, background: "#4E91F6", display: "inline-block" }} />
-          <span style={{ fontSize: "11px", fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.12em", color: isLight ? "#1e3a5f" : "#ffffff" }}>FII vs DII</span>
+          <span style={{ width: 7, height: 7, borderRadius: "50%", background: isLight ? "#0A3656" : "#74A8C9", display: "inline-block", boxShadow: isLight ? "0 0 6px rgba(10,54,86,0.45)" : "0 0 6px rgba(116,168,201,0.45)" }} />
+          <span style={{ fontSize: "11px", fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.12em", color: isLight ? "#1f455f" : "#ffffff" }}>FII vs DII</span>
         </div>
         <div className="flex justify-between items-end mb-4">
           <div><div className={`text-[11px] font-semibold mb-1 ${isLight ? "text-navy/50" : "text-white/40"}`}>FII</div><div className="text-lg md:text-xl font-bold text-red-400">{loading ? "···" : fiiLabel}</div></div>
@@ -266,19 +266,19 @@ const FiiDiiCard = ({ cardBg, cardBorder, isLight, fiiNet, diiNet, fiiDate }) =>
 };
 
 // ─── India VIX Card ─────────────────────────────────────────────────────────
-const IndiaVixCard = ({ cardBg, cardBorder, isLight, vixData }) => {
+const IndiaVixCard = ({ cardBg, cardBorder, cardShadow, isLight, vixData }) => {
   const vix = vixData?.price ?? 13.42;
   const vixChange = vixData?.chg ?? -3.10;
   const sliderPct = Math.min(100, Math.max(0, ((vix - 10) / 30) * 100));
   const fearLabel = vix < 15 ? "Low" : vix < 20 ? "Moderate" : "High";
   const fearColor = vix < 15 ? "#22c55e" : vix < 20 ? "#f59e0b" : "#ef4444";
   return (
-    <div style={{ background: cardBg, border: cardBorder }} className="rounded-2xl relative overflow-hidden group hover:scale-[1.02] transition-all duration-300 cursor-pointer md:p-5">
+    <div style={{ background: cardBg, border: cardBorder, boxShadow: cardShadow, backdropFilter: "blur(12px)" }} className="rounded-2xl relative overflow-hidden group hover:border-blue-400/30 hover:-translate-y-0.5 transition-all duration-300 cursor-pointer md:p-5">
       <div className="md:hidden" style={{ padding: "10px 10px 10px 14px", position: "relative" }}>
-        <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 3, background: `linear-gradient(180deg,${fearColor},${fearColor}44)`, borderRadius: "12px 0 0 12px" }} />
-        <div style={{ fontSize: "8px", fontWeight: 900, letterSpacing: "0.12em", textTransform: "uppercase", color: "#4E91F6", marginBottom: 6 }}>INDIA VIX</div>
+        <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 3, background: fearColor, borderRadius: "8px 0 0 8px" }} />
+        <div style={{ fontSize: "8px", fontWeight: 900, letterSpacing: "0.12em", textTransform: "uppercase", color: isLight ? "#0A3656" : "#74A8C9", marginBottom: 6 }}>INDIA VIX</div>
         <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginBottom: 8 }}>
-          <span style={{ fontSize: "32px", fontWeight: 900, color: isLight ? "#0d1b2a" : "#fff", letterSpacing: "-0.04em", lineHeight: 1 }}>{vix.toFixed ? vix.toFixed(2) : vix}</span>
+          <span style={{ fontSize: "32px", fontWeight: 900, color: isLight ? "#041421" : "#fff", letterSpacing: "-0.04em", lineHeight: 1 }}>{vix.toFixed ? vix.toFixed(2) : vix}</span>
           <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 }}>
             <span style={{ fontSize: "10px", fontWeight: 700, color: vixChange < 0 ? "#f87171" : "#4ade80" }}>
               {vixChange < 0 ? "▼" : "▲"} {Math.abs(vixChange).toFixed(2)}%
@@ -296,8 +296,8 @@ const IndiaVixCard = ({ cardBg, cardBorder, isLight, vixData }) => {
       </div>
       <div className="hidden md:block">
         <div className="flex items-center gap-1.5 mb-3">
-          <span style={{ width: 8, height: 8, borderRadius: 2, background: "#4E91F6", display: "inline-block" }} />
-          <span style={{ fontSize: "11px", fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.12em", color: isLight ? "#1e3a5f" : "#ffffff" }}>INDIA VIX</span>
+          <span style={{ width: 7, height: 7, borderRadius: "50%", background: isLight ? "#0A3656" : "#74A8C9", display: "inline-block", boxShadow: isLight ? "0 0 6px rgba(10,54,86,0.45)" : "0 0 6px rgba(116,168,201,0.45)" }} />
+          <span style={{ fontSize: "11px", fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.12em", color: isLight ? "#1f455f" : "#ffffff" }}>INDIA VIX</span>
         </div>
         <div className="flex items-end justify-between mb-3">
           <span className={`text-3xl md:text-4xl font-extrabold tracking-tight ${isLight ? "text-navy" : "text-white"}`}>{vix.toFixed ? vix.toFixed(2) : vix}</span>
@@ -321,7 +321,7 @@ const IndiaVixCard = ({ cardBg, cardBorder, isLight, vixData }) => {
 };
 
 // ─── GIFT NIFTY Card ─────────────────────────────────────────────────────────
-const GiftNiftyCard = ({ cardBg, cardBorder, isLight, liveGiftNifty, liveGiftChange }) => {
+const GiftNiftyCard = ({ cardBg, cardBorder, cardShadow, isLight, liveGiftNifty, liveGiftChange }) => {
   const price = liveGiftNifty ?? null;
   const change = liveGiftChange ?? null;
   const pos = (change ?? 0) >= 0;
@@ -329,23 +329,23 @@ const GiftNiftyCard = ({ cardBg, cardBorder, isLight, liveGiftNifty, liveGiftCha
   const displayChange = change != null ? `${pos ? "▲ +" : "▼ "}${Math.abs(change).toFixed(2)}%` : "···";
   const sentiment = change == null ? "Loading…" : pos ? "Positive Opening Indicated" : "Negative Opening Indicated";
   return (
-    <div style={{ background: cardBg, border: cardBorder }} className="rounded-2xl relative overflow-hidden group hover:scale-[1.02] transition-all duration-300 cursor-pointer md:p-5">
+    <div style={{ background: cardBg, border: cardBorder, boxShadow: cardShadow, backdropFilter: "blur(12px)" }} className="rounded-2xl relative overflow-hidden group hover:border-blue-400/30 hover:-translate-y-0.5 transition-all duration-300 cursor-pointer md:p-5">
       <div className="md:hidden" style={{ position: "relative" }}>
-        <div style={{ height: 3, background: "linear-gradient(90deg,#4E91F6,#7ab8fa,transparent)", borderRadius: "12px 12px 0 0" }} />
+        <div style={{ height: 3, background: isLight ? "#0A3656" : "#1F5F89", borderRadius: "8px 8px 0 0" }} />
         <div style={{ padding: "8px 10px 0 10px" }}>
-          <div style={{ fontSize: "8px", fontWeight: 900, letterSpacing: "0.12em", textTransform: "uppercase", color: "#4E91F6", marginBottom: 4 }}>GIFT NIFTY</div>
-          <div style={{ fontSize: "28px", fontWeight: 900, color: isLight ? "#0d1b2a" : "#fff", letterSpacing: "-0.03em", lineHeight: 1 }}>{displayPrice}</div>
+          <div style={{ fontSize: "8px", fontWeight: 900, letterSpacing: "0.12em", textTransform: "uppercase", color: isLight ? "#0A3656" : "#74A8C9", marginBottom: 4 }}>GIFT NIFTY</div>
+          <div style={{ fontSize: "28px", fontWeight: 900, color: isLight ? "#041421" : "#fff", letterSpacing: "-0.03em", lineHeight: 1 }}>{displayPrice}</div>
           <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 4, marginBottom: 2 }}>
             <span style={{ fontSize: "9px", fontWeight: 700, color: pos ? "#4ade80" : "#f87171" }}>{displayChange}</span>
             <span style={{ fontSize: "8px", color: isLight ? "rgba(13,37,64,0.45)" : "rgba(255,255,255,0.4)" }}>{sentiment}</span>
           </div>
         </div>
-        <Sparkline positive={pos} color="#4E91F6" />
+        <Sparkline positive={pos} color={isLight ? "#0A3656" : "#1F5F89"} />
       </div>
       <div className="hidden md:block">
         <div className="flex items-center gap-1.5 mb-3">
-          <span style={{ width: 8, height: 8, borderRadius: 2, background: "#4E91F6", display: "inline-block" }} />
-          <span style={{ fontSize: "11px", fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.12em", color: isLight ? "#1e3a5f" : "#ffffff" }}>GIFT NIFTY</span>
+          <span style={{ width: 7, height: 7, borderRadius: "50%", background: isLight ? "#0A3656" : "#74A8C9", display: "inline-block", boxShadow: isLight ? "0 0 6px rgba(10,54,86,0.45)" : "0 0 6px rgba(116,168,201,0.45)" }} />
+          <span style={{ fontSize: "11px", fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.12em", color: isLight ? "#1f455f" : "#ffffff" }}>GIFT NIFTY</span>
         </div>
         <div className="flex items-end justify-between mb-1">
           <div>
@@ -357,26 +357,26 @@ const GiftNiftyCard = ({ cardBg, cardBorder, isLight, liveGiftNifty, liveGiftCha
           </div>
         </div>
         <div className={`text-[11px] font-medium mb-2 ${isLight ? "text-navy/50" : "text-white/40"}`}>{sentiment}</div>
-        <Sparkline positive={pos} color="#4E91F6" />
+        <Sparkline positive={pos} color={isLight ? "#0A3656" : "#1F5F89"} />
       </div>
     </div>
   );
 };
 
 // ─── USD/INR Card ────────────────────────────────────────────────────────────
-const UsdInrCard = ({ cardBg, cardBorder, isLight, liveValue, liveChange }) => {
+const UsdInrCard = ({ cardBg, cardBorder, cardShadow, isLight, liveValue, liveChange }) => {
   const rate = liveValue ?? 84;
   const changeVal = liveChange ?? null;
   const pos = (changeVal ?? 0) >= 0;
   const sliderPct = Math.min(100, Math.max(0, ((rate - 82) / 8) * 100));
   return (
-    <div style={{ background: cardBg, border: cardBorder }} className="rounded-2xl relative overflow-hidden group hover:scale-[1.02] transition-all duration-300 cursor-pointer md:p-5">
+    <div style={{ background: cardBg, border: cardBorder, boxShadow: cardShadow, backdropFilter: "blur(12px)" }} className="rounded-2xl relative overflow-hidden group hover:border-blue-400/30 hover:-translate-y-0.5 transition-all duration-300 cursor-pointer md:p-5">
       <div className="md:hidden" style={{ padding: "10px 10px 10px 14px", position: "relative" }}>
-        <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 3, background: "linear-gradient(180deg,#3b82f6,#06b6d4)", borderRadius: "12px 0 0 12px" }} />
-        <div style={{ fontSize: "8px", fontWeight: 900, letterSpacing: "0.12em", textTransform: "uppercase", color: "#4E91F6", marginBottom: 5 }}>USD / INR</div>
+        <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 3, background: isLight ? "#0A3656" : "#1F5F89", borderRadius: "8px 0 0 8px" }} />
+        <div style={{ fontSize: "8px", fontWeight: 900, letterSpacing: "0.12em", textTransform: "uppercase", color: isLight ? "#0A3656" : "#74A8C9", marginBottom: 5 }}>USD / INR</div>
         <div style={{ display: "flex", alignItems: "baseline", gap: 3, marginBottom: 4 }}>
           <span style={{ fontSize: "11px", fontWeight: 700, color: isLight ? "rgba(13,37,64,0.5)" : "rgba(255,255,255,0.4)" }}>₹</span>
-          <span style={{ fontSize: "28px", fontWeight: 900, color: isLight ? "#0d1b2a" : "#fff", letterSpacing: "-0.03em", lineHeight: 1 }}>{rate.toFixed ? rate.toFixed(2) : rate}</span>
+          <span style={{ fontSize: "28px", fontWeight: 900, color: isLight ? "#041421" : "#fff", letterSpacing: "-0.03em", lineHeight: 1 }}>{rate.toFixed ? rate.toFixed(2) : rate}</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 8 }}>
           <span style={{ fontSize: "9px", fontWeight: 700, color: pos ? "#4ade80" : "#f87171" }}>
@@ -396,8 +396,8 @@ const UsdInrCard = ({ cardBg, cardBorder, isLight, liveValue, liveChange }) => {
       </div>
       <div className="hidden md:block">
         <div className="flex items-center gap-1.5 mb-3">
-          <span style={{ width: 8, height: 8, borderRadius: 2, background: "#4E91F6", display: "inline-block" }} />
-          <span style={{ fontSize: "11px", fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.12em", color: isLight ? "#1e3a5f" : "#ffffff" }}>USD / INR</span>
+          <span style={{ width: 7, height: 7, borderRadius: "50%", background: isLight ? "#0A3656" : "#74A8C9", display: "inline-block", boxShadow: isLight ? "0 0 6px rgba(10,54,86,0.45)" : "0 0 6px rgba(116,168,201,0.45)" }} />
+          <span style={{ fontSize: "11px", fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.12em", color: isLight ? "#1f455f" : "#ffffff" }}>USD / INR</span>
         </div>
         <div className="flex items-end justify-between mb-2">
           <div>
@@ -417,7 +417,7 @@ const UsdInrCard = ({ cardBg, cardBorder, isLight, liveValue, liveChange }) => {
           <div className="absolute top-1/2 -translate-y-1/2 w-4 h-4 bg-white rounded-full shadow-md border-2 border-slate-300 transition-all duration-700" style={{ left: `calc(${sliderPct}% - 8px)` }} />
         </div>
         <div className="flex justify-between mt-1">
-          <span className="text-[9px] text-blue-400/70">₹82</span>
+          <span className="text-[9px] text-[#7fb1cf]/80">₹82</span>
           <span className="text-[9px] text-red-400/70">₹90</span>
         </div>
       </div>
@@ -426,19 +426,19 @@ const UsdInrCard = ({ cardBg, cardBorder, isLight, liveValue, liveChange }) => {
 };
 
 // ─── Gold vs Silver Card ─────────────────────────────────────────────────────
-const GoldSilverCard = ({ cardBg, cardBorder, isLight, liveGold, liveGoldChange, liveSilver, liveSilverChange, goldSource, silverSource }) => {
+const GoldSilverCard = ({ cardBg, cardBorder, cardShadow, isLight, liveGold, liveGoldChange, liveSilver, liveSilverChange, goldSource, silverSource }) => {
   const gold = liveGold ?? null; const silver = liveSilver ?? null;
   const goldChg = liveGoldChange ?? null; const silverChg = liveSilverChange ?? null;
   const goldPos = (goldChg ?? 0) >= 0; const silverPos = (silverChg ?? 0) >= 0;
   const fmtPrice = (v) => v ? `₹${v.toLocaleString("en-IN")}` : "···";
   const fmtChg = (v, pos) => v != null ? `${pos ? "▲ +" : "▼ "}${Math.abs(v).toFixed(2)}%` : "···";
   const srcLabel = (src) => src === "kite-ws" ? "Live MCX" : src === "kite-rest" ? "MCX REST" : src === "yahoo" ? "Yahoo est." : null;
-  const srcColor = (src) => src === "kite-ws" ? "#22c55e" : src === "kite-rest" ? "#4E91F6" : "#f59e0b";
+  const srcColor = (src) => src === "kite-ws" ? "#22c55e" : src === "kite-rest" ? (isLight ? "#0A3656" : "#74A8C9") : "#f59e0b";
   return (
-    <div style={{ background: cardBg, border: cardBorder }} className="rounded-2xl relative overflow-hidden group hover:scale-[1.02] transition-all duration-300 cursor-pointer md:p-5">
+    <div style={{ background: cardBg, border: cardBorder, boxShadow: cardShadow, backdropFilter: "blur(12px)" }} className="rounded-2xl relative overflow-hidden group hover:border-blue-400/30 hover:-translate-y-0.5 transition-all duration-300 cursor-pointer md:p-5">
       <div className="md:hidden" style={{ padding: "10px", position: "relative" }}>
-        <div style={{ position: "absolute", top: 0, right: 0, width: 40, height: 40, background: "linear-gradient(135deg,rgba(78,145,246,0.13),transparent)", borderRadius: "0 12px 0 40px" }} />
-        <div style={{ fontSize: "8px", fontWeight: 900, letterSpacing: "0.12em", textTransform: "uppercase", color: "#4E91F6", marginBottom: 7 }}>GOLD · SILVER</div>
+        <div style={{ position: "absolute", top: 0, right: 0, width: 40, height: 40, background: isLight ? "rgba(37,99,235,0.06)" : "rgba(59,130,246,0.08)", borderRadius: "0 8px 0 40px" }} />
+        <div style={{ fontSize: "8px", fontWeight: 900, letterSpacing: "0.12em", textTransform: "uppercase", color: isLight ? "#0A3656" : "#74A8C9", marginBottom: 7 }}>GOLD · SILVER</div>
         {[
           { Icon: GoldBrickIcon, label: "Gold", price: fmtPrice(gold), chg: fmtChg(goldChg, goldPos), pos: goldPos, bar: "linear-gradient(90deg,#C9A84C,#f5d78e)", barW: "72%" },
           { Icon: SilverBrickIcon, label: "Silver", price: fmtPrice(silver), chg: fmtChg(silverChg, silverPos), pos: silverPos, bar: "linear-gradient(90deg,#94a3b8,#cbd5e1)", barW: "58%" },
@@ -447,10 +447,10 @@ const GoldSilverCard = ({ cardBg, cardBorder, isLight, liveGold, liveGoldChange,
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
                 <Icon size={20} />
-                <span style={{ fontSize: "10px", fontWeight: 700, color: isLight ? "#1e3a5f" : "rgba(255,255,255,0.7)" }}>{label}</span>
+                <span style={{ fontSize: "10px", fontWeight: 700, color: isLight ? "#1f455f" : "rgba(255,255,255,0.7)" }}>{label}</span>
               </div>
               <div style={{ textAlign: "right" }}>
-                <div style={{ fontSize: "13px", fontWeight: 800, color: isLight ? "#0d1b2a" : "#fff" }}>{price}</div>
+                <div style={{ fontSize: "13px", fontWeight: 800, color: isLight ? "#041421" : "#fff" }}>{price}</div>
                 <div style={{ fontSize: "8px", fontWeight: 700, color: pos ? "#4ade80" : "#f87171" }}>{chg}</div>
               </div>
             </div>
@@ -463,8 +463,8 @@ const GoldSilverCard = ({ cardBg, cardBorder, isLight, liveGold, liveGoldChange,
       <div className="hidden md:block">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-1.5">
-            <span style={{ width: 8, height: 8, borderRadius: 2, background: "#4E91F6", display: "inline-block" }} />
-            <span style={{ fontSize: "11px", fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.12em", color: isLight ? "#1e3a5f" : "#ffffff" }}>GOLD vs SILVER</span>
+            <span style={{ width: 7, height: 7, borderRadius: "50%", background: isLight ? "#0A3656" : "#74A8C9", display: "inline-block", boxShadow: isLight ? "0 0 6px rgba(10,54,86,0.45)" : "0 0 6px rgba(116,168,201,0.45)" }} />
+            <span style={{ fontSize: "11px", fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.12em", color: isLight ? "#1f455f" : "#ffffff" }}>GOLD vs SILVER</span>
           </div>
           {/* Source badge — shows data origin */}
           {(goldSource || silverSource) && (
@@ -510,25 +510,25 @@ const GoldSilverCard = ({ cardBg, cardBorder, isLight, liveGold, liveGoldChange,
 };
 
 // ─── US Stat Card ────────────────────────────────────────────────────────────
-const USStatCard = ({ label, value, positive, cardBg, cardBorder, isLight, path, section, onNavigate }) => {
+const USStatCard = ({ label, value, positive, cardBg, cardBorder, cardShadow, isLight, path, section, onNavigate }) => {
   const isUp = positive === true; const isDown = positive === false;
-  const color = isUp ? "#22c55e" : isDown ? "#ef4444" : "#4E91F6";
+  const color = isUp ? "#22c55e" : isDown ? "#ef4444" : (isLight ? "#0A3656" : "#74A8C9");
   const loading = value === "..." || value === "N/A";
   const clickable = !!path && !!section;
   return (
-    <div style={{ background: cardBg, border: cardBorder }}
-      className={`rounded-2xl p-3 sm:p-5 relative overflow-hidden group hover:scale-[1.02] transition-all duration-300 ${clickable ? "cursor-pointer hover:border-accent/40" : ""}`}
+    <div style={{ background: cardBg, border: cardBorder, boxShadow: cardShadow, backdropFilter: "blur(12px)" }}
+      className={`rounded-2xl p-3 sm:p-5 relative overflow-hidden group hover:border-blue-400/30 hover:-translate-y-0.5 transition-all duration-300 ${clickable ? "cursor-pointer" : ""}`}
       onClick={() => clickable && onNavigate?.(path, section)}>
       <div className="flex items-center gap-1.5 mb-3">
-        <span style={{ width: 8, height: 8, borderRadius: 2, background: "#4E91F6", display: "inline-block" }} />
-        <span style={{ fontSize: "10px", fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.10em", color: isLight ? "#1e3a5f" : "#ffffff" }}>{label}</span>
+        <span style={{ width: 7, height: 7, borderRadius: "50%", background: isLight ? "#0A3656" : "#74A8C9", display: "inline-block", boxShadow: isLight ? "0 0 6px rgba(10,54,86,0.45)" : "0 0 6px rgba(116,168,201,0.45)" }} />
+        <span style={{ fontSize: "10px", fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.10em", color: isLight ? "#1f455f" : "#ffffff" }}>{label}</span>
       </div>
       <div className="mb-3">
         <div className="text-2xl sm:text-3xl font-extrabold tracking-tight" style={{ color: loading ? (isLight ? "#64748b" : "#94a3b8") : color }}>{loading ? "—" : value}</div>
         <div className={`text-[10px] sm:text-[11px] mt-1 ${isLight ? "text-navy/40" : "text-white/35"}`}>Today's change</div>
       </div>
       <Sparkline positive={isUp} color={color} />
-      {clickable && <div style={{ fontSize: "10px", marginTop: "6px", color: "#4E91F6", opacity: 0.8, fontWeight: 600 }}>View details →</div>}
+      {clickable && <div style={{ fontSize: "10px", marginTop: "6px", color: isLight ? "#0A3656" : "#74A8C9", opacity: 0.85, fontWeight: 600 }}>View details →</div>}
     </div>
   );
 };
@@ -702,77 +702,98 @@ const Hero = () => {
 
   // ── Theme tokens ─────────────────────────────────────────────────────────
   const sectionStyle = isLight
-    ? { background: "linear-gradient(135deg,#f8fbff 0%,#ffffff 30%,#f4f8fe 60%,#f0f6ff 100%)" }
-    : { background: "linear-gradient(135deg,#101528 0%,#101528 40%,#101528 70%,#101528 100%)" };
+    ? { background: "linear-gradient(180deg, #FCFDFE 0%, #F2F7FB 40%, #EAF2F8 70%, #FCFDFE 100%)" }
+    : { background: "linear-gradient(180deg, #041421 0%, #072134 28%, #0A3656 54%, #1F5F89 68%, #062334 82%, #041421 100%)" };
   const sectionCls = isLight
-    ? "text-slate-900 py-10 md:py-16 lg:py-20 relative overflow-hidden"
-    : "text-white py-10 md:py-16 lg:py-20 relative overflow-hidden";
-  const cardBg = isLight ? "rgba(255,255,255,0.95)" : "rgba(28,57,91,0.25)";
-  const cardBorder = isLight ? "1px solid rgba(226,232,240,0.9)" : "1px solid rgba(78,145,246,0.18)";
+    ? "text-slate-900 pt-14 pb-10 md:pt-24 md:pb-14 lg:pt-28 lg:pb-16 relative overflow-hidden"
+    : "text-white pt-14 pb-10 md:pt-24 md:pb-14 lg:pt-28 lg:pb-16 relative overflow-hidden";
+  const cardBg = isLight ? "#FCFDFE" : "rgba(8,31,49,0.58)";
+  const cardBorder = isLight ? "1px solid rgba(4,20,33,0.11)" : "1px solid rgba(124,166,194,0.28)";
+  const cardShadow = isLight
+    ? "0 4px 16px rgba(4,20,33,0.08), 0 12px 28px rgba(4,20,33,0.06)"
+    : "0 10px 34px rgba(0,0,0,0.44), inset 0 1px 0 rgba(148,194,220,0.08)";
   const tabWrapStyle = isLight
-    ? { display: "inline-flex", alignItems: "center", gap: 6, background: "#fff", border: "1.5px solid #e2e8f0", borderRadius: 18, padding: 6, boxShadow: "0 4px 24px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.04)" }
-    : { display: "inline-flex", alignItems: "center", gap: 6, background: "#101528", border: "1.5px solid #1C395B", borderRadius: 18, padding: 6, boxShadow: "0 4px 32px rgba(78,145,246,0.12)" };
-  const activeTabStyle = { background: "linear-gradient(135deg,#1d4ed8,#4E91F6,#6366f1)", color: "#fff", fontWeight: 700, boxShadow: "0 4px 20px rgba(78,145,246,0.50)", border: "none" };
+    ? { display: "inline-flex", alignItems: "center", gap: 4, background: "#FCFDFE", border: "1px solid rgba(4,20,33,0.10)", borderRadius: 10, padding: 4, boxShadow: "0 1px 6px rgba(4,20,33,0.06)" } as const
+    : { display: "inline-flex", alignItems: "center", gap: 4, background: "rgba(8,31,49,0.62)", border: "1px solid rgba(124,166,194,0.30)", borderRadius: 10, padding: 4, boxShadow: "0 2px 12px rgba(0,0,0,0.34)" } as const;
+  const activeTabStyle = { background: "linear-gradient(135deg,#0A3656,#1F5F89)", color: "#fff", fontWeight: 600, border: "none", boxShadow: "0 2px 8px rgba(10,54,86,0.50)" } as const;
   const inactiveTabStyle = isLight
-    ? { background: "#f8fafc", color: "#475569", fontWeight: 600, border: "1.5px solid #e2e8f0" }
-    : { background: "rgba(28,57,91,0.35)", color: "#c8dff8", fontWeight: 600, border: "1.5px solid #1C395B" };
+    ? { background: "transparent", color: "#35566f", fontWeight: 500, border: "none", boxShadow: "none" }
+    : { background: "transparent", color: "#90b4ce", fontWeight: 500, border: "none", boxShadow: "none" };
   const inactiveHoverStyle = isLight
-    ? { background: "#f1f5f9", color: "#1e293b", border: "1.5px solid #cbd5e1" }
-    : { background: "#1C395B", color: "#4E91F6", border: "1.5px solid #4E91F6" };
+    ? { background: "rgba(4,20,33,0.06)", color: "#041421", border: "none", boxShadow: "none" }
+    : { background: "rgba(124,166,194,0.22)", color: "#d4e3ef", border: "none", boxShadow: "none" };
 
   return (
     <section className={sectionCls} style={sectionStyle}>
-      {/* Blobs */}
-      <div style={{ position: "absolute", top: 0, right: 0, width: "32rem", height: "32rem", borderRadius: "50%", background: isLight ? "rgba(59,130,246,0.07)" : "rgba(78,145,246,0.08)", filter: "blur(80px)", pointerEvents: "none" }} />
-      <div style={{ position: "absolute", bottom: 0, left: 0, width: "32rem", height: "32rem", borderRadius: "50%", background: isLight ? "rgba(99,102,241,0.06)" : "rgba(28,57,91,0.60)", filter: "blur(80px)", pointerEvents: "none" }} />
-      <div style={{ position: "absolute", top: "40%", left: "30%", width: "20rem", height: "20rem", borderRadius: "50%", background: isLight ? "rgba(14,165,233,0.04)" : "rgba(78,145,246,0.05)", filter: "blur(60px)", pointerEvents: "none" }} />
-      {/* Grid */}
-      <div className="absolute inset-0 pointer-events-none"
-        style={{ backgroundImage: isLight ? `linear-gradient(#94a3b8 1px,transparent 1px),linear-gradient(90deg,#94a3b8 1px,transparent 1px)` : `linear-gradient(#1C395B 1px,transparent 1px),linear-gradient(90deg,#1C395B 1px,transparent 1px)`, backgroundSize: "40px 40px", opacity: isLight ? 0.035 : 0.12 }} />
+      {/* Ambient glow — top center */}
+      <div style={{
+        position: "absolute", top: "-25%", left: "50%", transform: "translateX(-50%)",
+        width: "900px", height: "700px", borderRadius: "50%",
+        background: isLight
+          ? "radial-gradient(ellipse, rgba(31,95,137,0.11) 0%, transparent 66%)"
+          : "radial-gradient(ellipse, rgba(31,95,137,0.34) 0%, rgba(10,54,86,0.16) 36%, rgba(20,40,80,0.04) 55%, transparent 72%)",
+        pointerEvents: "none", zIndex: 0,
+      }} />
+      {/* Ambient glow — left edge (dark only) */}
+      {!isLight && <div style={{
+        position: "absolute", top: "20%", left: "-8%",
+        width: "400px", height: "500px", borderRadius: "50%",
+        background: "radial-gradient(ellipse, rgba(31,95,137,0.12) 0%, transparent 70%)",
+        pointerEvents: "none", zIndex: 0, filter: "blur(40px)",
+      }} />}
+      {/* Ambient glow — right edge (dark only) */}
+      {!isLight && <div style={{
+        position: "absolute", top: "40%", right: "-5%",
+        width: "350px", height: "400px", borderRadius: "50%",
+        background: "radial-gradient(ellipse, rgba(16,185,129,0.04) 0%, transparent 70%)",
+        pointerEvents: "none", zIndex: 0, filter: "blur(40px)",
+      }} />}
 
       <div className="container mx-auto px-4 sm:px-6 relative z-10">
         <div className="max-w-5xl mx-auto text-center animate-fade-in">
 
-          {/* Icons — colored to match the heading blue gradient */}
-          <div className="flex justify-center items-end gap-4 md:gap-6 mb-5 md:mb-8">
-            <PieChartIcon className="w-7 h-7 md:w-9 md:h-9" style={{ color: isLight ? "#1d4ed8" : "#4E91F6", filter: isLight ? "drop-shadow(0 0 10px rgba(78,145,246,0.5))" : "drop-shadow(0 0 14px rgba(78,145,246,0.80))" }} />
-            <GrowthPlantIcon className="w-9 h-9 md:w-11 md:h-11" style={{ color: isLight ? "#4E91F6" : "#7ab8fa", filter: isLight ? "drop-shadow(0 0 12px rgba(78,145,246,0.55))" : "drop-shadow(0 0 18px rgba(122,184,250,0.85))" }} />
-            <IndexChartIcon className="w-7 h-7 md:w-9 md:h-9" style={{ color: isLight ? "#6366f1" : "#a5c8ff", filter: isLight ? "drop-shadow(0 0 10px rgba(99,102,241,0.5))" : "drop-shadow(0 0 14px rgba(165,200,255,0.75))" }} />
+          {/* Professional badge */}
+          <div className="flex justify-center mb-5 md:mb-6">
+            <span style={{
+              display: "inline-flex", alignItems: "center", gap: 6,
+              padding: "6px 16px", borderRadius: 20,
+              fontSize: 11, fontWeight: 600, letterSpacing: "0.06em",
+              textTransform: "uppercase" as const,
+              background: isLight ? "rgba(252,253,254,0.92)" : "rgba(10,54,86,0.24)",
+              color: isLight ? "#1F5F89" : "#9bc1da",
+              border: isLight ? "1px solid rgba(4,20,33,0.10)" : "1px solid rgba(128,180,210,0.24)",
+              boxShadow: isLight ? "0 1px 5px rgba(4,20,33,0.05)" : "0 2px 8px rgba(0,0,0,0.22)",
+            }}>
+              <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#22c55e", display: "inline-block", boxShadow: "0 0 8px rgba(34,197,94,0.6)" }} />
+              Live Market Intelligence
+            </span>
           </div>
 
           <h1
-  key={theme}
-  className="font-extrabold tracking-tight mb-3 md:mb-4 px-2"
-  style={{
-    fontSize: "clamp(0.95rem, 3.8vw, 3.2rem)",  // ← mobile pe chota
-    lineHeight: 1.3,
-    paddingBottom: "0.15em",
-    background: isLight
-      ? "linear-gradient(90deg,#1d4ed8,#4E91F6,#3b82f6,#6366f1)"
-      : "linear-gradient(90deg,#4E91F6,#7ab8fa,#a5c8ff,#4E91F6)",
-    WebkitBackgroundClip: "text",
-    WebkitTextFillColor: "transparent",
-    backgroundClip: "text",
-    color: "transparent",
-    display: "block",
-    whiteSpace: "nowrap",                        // ← ek line force
-    overflow: "visible",
-  }}
->
-  Baazigar Banein… Sattebaaz Nahi
-</h1>
+            key={theme}
+            className="font-extrabold tracking-tight mb-3 md:mb-5 px-2"
+            style={{
+              fontSize: "clamp(1.5rem, 4.5vw, 3.5rem)",
+              lineHeight: 1.15,
+              color: isLight ? "#041421" : "#e8edf5",
+            }}
+          >
+            Baazigar Banein… Sattebaaz Nahi
+          </h1>
+
           {/* ── Subtitle ── */}
           <p
-            className="mx-auto mb-7 md:mb-10 max-w-2xl"
+            className="mx-auto max-w-2xl"
             style={{
-              fontSize: "clamp(0.78rem, 1.6vw, 1.05rem)",
+              fontSize: "clamp(0.875rem, 1.6vw, 1.1rem)",
               lineHeight: 1.7,
               letterSpacing: "0.01em",
-              color: isLight ? "rgba(30,58,95,0.62)" : "rgba(200,223,248,0.55)",
+              color: isLight ? "#35566f" : "#94a3b8",
+              marginBottom: 0,
             }}>
             Daily research-backed stock insights —{" "}
             <span style={{
-              color: isLight ? "#4E91F6" : "#7ab8fa",
+              color: isLight ? "#1F5F89" : "#9bc1da",
               fontWeight: 600,
             }}>
               where every pick is powered by analysis
@@ -780,38 +801,44 @@ const Hero = () => {
             , not assumptions.
           </p>
 
-          {/* Tab Switcher */}
-          <div style={tabWrapStyle} className="mx-auto">
-            {["bharat", "us"].map((key) => {
-              const active = activeTab === key;
-              return (
-                <button key={key} onClick={() => setActiveTab(key)}
-                  style={{ ...(active ? activeTabStyle : inactiveTabStyle), display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, padding: "9px 16px", borderRadius: 12, cursor: "pointer", transition: "all 0.2s ease", outline: "none", transform: active ? "scale(1.02)" : "scale(1)", whiteSpace: "nowrap" }}
-                  onMouseEnter={e => { if (!active) Object.assign(e.currentTarget.style, inactiveHoverStyle); }}
-                  onMouseLeave={e => { if (!active) Object.assign(e.currentTarget.style, inactiveTabStyle); }}>
-                  {active && <Sparkles style={{ width: 12, height: 12, flexShrink: 0 }} strokeWidth={2.5} />}
-                  <span style={{ fontSize: 14, lineHeight: 1 }}>{key === "bharat" ? "🇮🇳" : "🇺🇸"}</span>
-                  <span style={{ fontSize: 13, lineHeight: 1, fontWeight: 600 }}>{key === "bharat" ? "Bharat Stats" : "US Stats"}</span>
-                </button>
-              );
-            })}
+          {/* Divider + Tab Switcher */}
+          <div className="flex flex-col items-center" style={{ marginTop: 28 }}>
+            <div style={{
+              width: 48, height: 2, borderRadius: 1,
+              background: isLight ? "rgba(31,95,137,0.28)" : "rgba(128,180,210,0.30)",
+              marginBottom: 20,
+            }} />
+            <div style={tabWrapStyle}>
+              {["bharat", "us"].map((key) => {
+                const active = activeTab === key;
+                return (
+                  <button key={key} onClick={() => setActiveTab(key)}
+                    style={{ ...(active ? activeTabStyle : inactiveTabStyle), display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, padding: "8px 18px", borderRadius: 8, cursor: "pointer", transition: "all 0.15s ease", outline: "none", whiteSpace: "nowrap" }}
+                    onMouseEnter={e => { if (!active) Object.assign(e.currentTarget.style, inactiveHoverStyle); }}
+                    onMouseLeave={e => { if (!active) Object.assign(e.currentTarget.style, inactiveTabStyle); }}>
+                    <span style={{ fontSize: 14, lineHeight: 1 }}>{key === "bharat" ? "🇮🇳" : "🇺🇸"}</span>
+                    <span style={{ fontSize: 13, lineHeight: 1, fontWeight: active ? 600 : 500 }}>{key === "bharat" ? "Bharat Stats" : "US Stats"}</span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           {/* ── BHARAT grid ── */}
           {activeTab === "bharat" && (
-            <div className="mt-6 md:mt-10 grid grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 md:gap-4 max-w-5xl mx-auto pb-4 md:pb-0 px-1 sm:px-0">
-              <SensexNiftyCard cardBg={cardBg} cardBorder={cardBorder} isLight={isLight}
+            <div className="mt-8 md:mt-10 grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-5 max-w-5xl mx-auto pb-4 md:pb-0 px-1 sm:px-0">
+              <SensexNiftyCard cardBg={cardBg} cardBorder={cardBorder} cardShadow={cardShadow} isLight={isLight}
                 sensex={bharatData.sensex} nifty={bharatData.nifty50} />
-              <FiiDiiCard cardBg={cardBg} cardBorder={cardBorder} isLight={isLight}
+              <FiiDiiCard cardBg={cardBg} cardBorder={cardBorder} cardShadow={cardShadow} isLight={isLight}
                 fiiNet={bharatData.fiiNet} diiNet={bharatData.diiNet} fiiDate={bharatData.fiiDate} />
-              <IndiaVixCard cardBg={cardBg} cardBorder={cardBorder} isLight={isLight}
+              <IndiaVixCard cardBg={cardBg} cardBorder={cardBorder} cardShadow={cardShadow} isLight={isLight}
                 vixData={bharatData.indiaVix} />
-              <GiftNiftyCard cardBg={cardBg} cardBorder={cardBorder} isLight={isLight}
+              <GiftNiftyCard cardBg={cardBg} cardBorder={cardBorder} cardShadow={cardShadow} isLight={isLight}
                 liveGiftNifty={bharatData.giftNifty} liveGiftChange={bharatData.giftNiftyChange} />
-              <UsdInrCard cardBg={cardBg} cardBorder={cardBorder} isLight={isLight}
+              <UsdInrCard cardBg={cardBg} cardBorder={cardBorder} cardShadow={cardShadow} isLight={isLight}
                 liveValue={bharatData.usdInr ?? usData.usdInrRate}
                 liveChange={bharatData.usdInrChange} />
-              <GoldSilverCard cardBg={cardBg} cardBorder={cardBorder} isLight={isLight}
+              <GoldSilverCard cardBg={cardBg} cardBorder={cardBorder} cardShadow={cardShadow} isLight={isLight}
                 liveGold={bharatData.goldInr} liveGoldChange={bharatData.goldChange}
                 liveSilver={bharatData.silverInr} liveSilverChange={bharatData.silverChange}
                 goldSource={bharatData.goldSource} silverSource={bharatData.silverSource} />
@@ -820,14 +847,14 @@ const Hero = () => {
 
           {/* ── US grid ── */}
           {activeTab === "us" && (
-            <div className="mt-6 md:mt-10 grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 md:gap-4 max-w-5xl mx-auto pb-4 md:pb-0 px-1 sm:px-0">
-              <USStatCard label="NASDAQ" value={usData.nasdaq} positive={usData.nasdaqPos} cardBg={cardBg} cardBorder={cardBorder} isLight={isLight}
+            <div className="mt-8 md:mt-10 grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-5 max-w-5xl mx-auto pb-4 md:pb-0 px-1 sm:px-0">
+              <USStatCard label="NASDAQ" value={usData.nasdaq} positive={usData.nasdaqPos} cardBg={cardBg} cardBorder={cardBorder} cardShadow={cardShadow} isLight={isLight}
                 path="/global" section="section-us" onNavigate={(p, s) => navigate(`${p}?scrollTo=${s}`)} />
-              <USStatCard label="USD / INR" value={usData.usdInr} positive={usData.usdInrPos} cardBg={cardBg} cardBorder={cardBorder} isLight={isLight}
+              <USStatCard label="USD / INR" value={usData.usdInr} positive={usData.usdInrPos} cardBg={cardBg} cardBorder={cardBorder} cardShadow={cardShadow} isLight={isLight}
                 path="/global" section="section-forex" onNavigate={(p, s) => navigate(`${p}?scrollTo=${s}`)} />
-              <USStatCard label="Gold" value={usData.gold} positive={usData.goldPos} cardBg={cardBg} cardBorder={cardBorder} isLight={isLight}
+              <USStatCard label="Gold" value={usData.gold} positive={usData.goldPos} cardBg={cardBg} cardBorder={cardBorder} cardShadow={cardShadow} isLight={isLight}
                 path="/global" section="section-commodities" onNavigate={(p, s) => navigate(`${p}?scrollTo=${s}`)} />
-              <USStatCard label="Dow Jones" value={usData.dow} positive={usData.dowPos} cardBg={cardBg} cardBorder={cardBorder} isLight={isLight}
+              <USStatCard label="Dow Jones" value={usData.dow} positive={usData.dowPos} cardBg={cardBg} cardBorder={cardBorder} cardShadow={cardShadow} isLight={isLight}
                 path="/global" section="section-us" onNavigate={(p, s) => navigate(`${p}?scrollTo=${s}`)} />
             </div>
           )}

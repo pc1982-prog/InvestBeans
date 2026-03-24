@@ -35,8 +35,8 @@ function TradingViewWidget({
       theme: finalTheme,
       style: '1',
       locale: 'en',
-      backgroundColor: finalTheme === 'light' ? '#F8F7F4' : '#0F0F0F',
-      gridColor: finalTheme === 'light' ? 'rgba(13,39,66,0.06)' : 'rgba(242,242,242,0.06)',
+      backgroundColor: finalTheme === 'light' ? '#ffffff' : '#0a0f1e',
+      gridColor: finalTheme === 'light' ? 'rgba(37,99,235,0.06)' : 'rgba(242,242,242,0.06)',
       allow_symbol_change: true,
       calendar: false,
       details: false,
@@ -71,8 +71,8 @@ function TradingViewWidget({
         height,
         borderRadius: 12,
         overflow: 'hidden',
-        border: '1px solid #1E3050',
-        boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+        border: finalTheme === 'light' ? '1px solid rgba(0,0,0,0.08)' : '1px solid rgba(45,65,100,0.3)',
+        boxShadow: finalTheme === 'light' ? '0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04)' : '0 8px 32px rgba(0,0,0,0.4)',
       }}
     />
   );

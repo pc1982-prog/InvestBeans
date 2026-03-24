@@ -58,8 +58,8 @@ const InsightCard = ({ insight, isAdmin = false, onReadMore, onLike, onEdit, onD
         };
       default:
         return {
-          borderAccent: "rgba(81,148,246,0.25)",
-          badge: { color: "#5194F6", background: "rgba(81,148,246,0.1)", border: "1px solid rgba(81,148,246,0.25)" },
+          borderAccent: "rgba(31,95,137,0.25)",
+          badge: { color: "#1F5F89", background: "rgba(31,95,137,0.1)", border: "1px solid rgba(31,95,137,0.25)" },
           icon: <Eye className="w-3.5 h-3.5" />,
         };
     }
@@ -77,19 +77,19 @@ const InsightCard = ({ insight, isAdmin = false, onReadMore, onLike, onEdit, onD
     ? "0 4px 20px rgba(13,37,64,0.08)"
     : "0 4px 24px rgba(0,0,0,0.35)";
   const hoverGlow = isLight
-    ? "radial-gradient(ellipse at top right,rgba(81,148,246,0.07) 0%,transparent 60%)"
-    : "radial-gradient(ellipse at top right,rgba(81,148,246,0.08) 0%,transparent 60%)";
+    ? "radial-gradient(ellipse at top right,rgba(31,95,137,0.08) 0%,transparent 60%)"
+    : "radial-gradient(ellipse at top right,rgba(31,95,137,0.12) 0%,transparent 60%)";
 
   // ── Text & UI tokens ──
-  const categoryBg     = isLight ? "rgba(81,148,246,0.07)"  : "rgba(81,148,246,0.1)";
-  const categoryBorder = isLight ? "1px solid rgba(81,148,246,0.18)" : "1px solid rgba(81,148,246,0.22)";
-  const categoryColor  = isLight ? "#3a7de8"               : "rgba(129,174,249,1)";
+  const categoryBg     = isLight ? "rgba(31,95,137,0.07)"  : "rgba(31,95,137,0.14)";
+  const categoryBorder = isLight ? "1px solid rgba(31,95,137,0.18)" : "1px solid rgba(31,95,137,0.24)";
+  const categoryColor  = isLight ? "#1F5F89"               : "rgba(129,174,249,1)";
   const titleColor     = isLight ? "#0d1b2a"               : "white";
   const descColor      = isLight ? "rgba(13,37,64,0.6)"    : "rgba(148,163,184,1)";
-  const dividerColor   = isLight ? "rgba(81,148,246,0.1)"  : "rgba(81,148,246,0.12)";
+  const dividerColor   = isLight ? "rgba(31,95,137,0.10)"  : "rgba(31,95,137,0.14)";
   const metaColor      = isLight ? "rgba(13,37,64,0.45)"   : "rgba(100,116,139,1)";
   const statsColor     = isLight ? "rgba(13,37,64,0.5)"    : "rgba(100,116,139,1)";
-  const likedColor     = "#5194F6";
+  const likedColor     = "#1F5F89";
 
   const formatTimestamp = (iso: string) => {
     const d = new Date(iso);
@@ -122,7 +122,7 @@ const InsightCard = ({ insight, isAdmin = false, onReadMore, onLike, onEdit, onD
       {/* Blue left accent strip */}
       <div
         className="absolute left-0 top-0 bottom-0 w-[3px] rounded-l-2xl"
-        style={{ background: "linear-gradient(180deg,#5194F6,#3a7de8,rgba(81,148,246,0.3))" }}
+        style={{ background: "linear-gradient(180deg,#0A3656,#1F5F89,rgba(116,168,201,0.35))" }}
       />
 
       <div className="relative z-10 p-6 md:p-7 pl-7 md:pl-8">
@@ -145,7 +145,7 @@ const InsightCard = ({ insight, isAdmin = false, onReadMore, onLike, onEdit, onD
 
         {/* ── Title ── */}
         <h3
-          className="text-lg md:text-xl font-bold mb-3 leading-snug line-clamp-1 transition-colors duration-300 group-hover:text-[#5194F6]"
+          className="text-lg md:text-xl font-bold mb-3 leading-snug line-clamp-1 transition-colors duration-300 group-hover:text-[#1F5F89]"
           style={{ color: titleColor }}
         >
           {title}
@@ -172,7 +172,7 @@ const InsightCard = ({ insight, isAdmin = false, onReadMore, onLike, onEdit, onD
           style={{ borderTop: `1px solid ${dividerColor}`, color: metaColor }}
         >
           <div className="flex items-center gap-1.5">
-            <Clock className="w-3 h-3" style={{ color: "rgba(81,148,246,0.5)" }} />
+            <Clock className="w-3 h-3" style={{ color: "rgba(31,95,137,0.55)" }} />
             <span>{publishedAt ? formatTimestamp(publishedAt) : "Date not available"}</span>
           </div>
           {readTime && (
@@ -207,9 +207,9 @@ const InsightCard = ({ insight, isAdmin = false, onReadMore, onLike, onEdit, onD
               onClick={() => onReadMore(_id)}
               className="flex-1 inline-flex items-center justify-center px-4 py-2.5 rounded-full font-semibold text-sm transition-all duration-300 hover:opacity-90 hover:shadow-lg active:scale-95"
               style={{
-                background: "linear-gradient(135deg,#5194F6,#3a7de8)",
+                background: "linear-gradient(135deg,#0A3656,#1F5F89)",
                 color: "white",
-                boxShadow: "0 2px 10px rgba(81,148,246,0.3)",
+                boxShadow: "0 2px 10px rgba(31,95,137,0.3)",
               }}
             >
               View Details
@@ -222,8 +222,8 @@ const InsightCard = ({ insight, isAdmin = false, onReadMore, onLike, onEdit, onD
                   variant="outline"
                   size="icon"
                   className={`flex-shrink-0 ${isLight
-                    ? "border-[#5194F6]/15 bg-white text-[#5194F6]/60 hover:bg-[#5194F6]/8 hover:text-[#5194F6] hover:border-[#5194F6]/35"
-                    : "border-[#5194F6]/15 bg-[#5194F6]/5 text-slate-400 hover:bg-[#5194F6]/12 hover:text-[#5194F6] hover:border-[#5194F6]/30"
+                    ? "border-[#1F5F89]/15 bg-white text-[#1F5F89]/60 hover:bg-[#1F5F89]/8 hover:text-[#1F5F89] hover:border-[#1F5F89]/35"
+                    : "border-[#1F5F89]/15 bg-[#1F5F89]/5 text-slate-400 hover:bg-[#1F5F89]/12 hover:text-[#1F5F89] hover:border-[#1F5F89]/30"
                   }`}
                 >
                   <Edit className="w-4 h-4" />

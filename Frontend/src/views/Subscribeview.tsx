@@ -158,7 +158,7 @@ const Subscribeview = ({
 
             <h3 className={`text-3xl md:text-4xl font-bold mb-3 ${headingCls}`}>
               You're{" "}
-              <span style={{ background: "linear-gradient(135deg,#5194F6,#3a7de0)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+              <span className="text-[#0A3656] dark:text-[#9bc1da]">
                 In!
               </span>
             </h3>
@@ -167,14 +167,14 @@ const Subscribeview = ({
 
             <div
               className="inline-flex items-center gap-2 px-4 py-2 rounded-full mt-4 text-sm"
-              style={{ background: "rgba(81,148,246,0.10)", border: "1px solid rgba(81,148,246,0.25)" }}
+              style={{ background: "rgba(10,54,86,0.10)", border: "1px solid rgba(10,54,86,0.25)" }}
             >
-              <Mail className="w-4 h-4 text-[#5194F6]" />
-              <span className="text-[#5194F6] font-medium">Check your inbox for a welcome email 🫘</span>
+              <Mail className="w-4 h-4 text-[#0A3656] dark:text-[#74A8C9]" />
+              <span className="text-[#0A3656] dark:text-[#74A8C9] font-medium">Check your inbox for a welcome email 🫘</span>
             </div>
 
             <p className={`text-xs mt-6 ${subTextCls}`}>
-              Subscribed as <strong className="text-[#5194F6]">{email.trim().toLowerCase()}</strong>
+              Subscribed as <strong className="text-[#0A3656] dark:text-[#74A8C9]">{email.trim().toLowerCase()}</strong>
             </p>
           </div>
         </div>
@@ -189,7 +189,7 @@ const Subscribeview = ({
         className="rounded-2xl p-8 sm:p-10 md:p-12 relative overflow-hidden"
         style={{ background: sectionWrapBg, border: sectionWrapBorder }}
       >
-        {/* Blue top line */}
+          {/* Top line */}
         <div className="absolute top-0 left-0 right-0 h-px" style={{ background: sectionTopLine }} />
 
         {/* Ambient glow */}
@@ -202,9 +202,9 @@ const Subscribeview = ({
           {/* Mail icon */}
           <div
             className="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-5 mx-auto"
-            style={{ background: "rgba(81,148,246,0.10)", border: "1px solid rgba(81,148,246,0.25)" }}
+            style={{ background: "rgba(10,54,86,0.10)", border: "1px solid rgba(10,54,86,0.25)" }}
           >
-            <Mail className="w-7 h-7 text-[#5194F6]" />
+            <Mail className="w-7 h-7 text-[#0A3656] dark:text-[#74A8C9]" />
           </div>
 
           {/* Heading */}
@@ -212,9 +212,7 @@ const Subscribeview = ({
           
            className={`text-3xl md:text-4xl font-bold mb-3 ${headingCls}`}>
             Stay Ahead in the{" "}
-            <span
-            
-             style={{ background: "linear-gradient(135deg,#5194F6,#3a7de0)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+            <span className="text-[#0A3656] dark:text-[#9bc1da]">
               Market
             </span>
           </h3>
@@ -227,10 +225,10 @@ const Subscribeview = ({
           {isAuthenticated && user?.email && (
             <div
               className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-5 text-xs"
-              style={{ background: "rgba(81,148,246,0.08)", border: "1px solid rgba(81,148,246,0.20)" }}
+              style={{ background: "rgba(10,54,86,0.08)", border: "1px solid rgba(10,54,86,0.20)" }}
             >
-              <CheckCircle className="w-3.5 h-3.5 text-[#5194F6]" />
-              <span className="text-[#5194F6]">Using your account email</span>
+              <CheckCircle className="w-3.5 h-3.5 text-[#0A3656] dark:text-[#74A8C9]" />
+              <span className="text-[#0A3656] dark:text-[#74A8C9]">Using your account email</span>
             </div>
           )}
 
@@ -261,8 +259,8 @@ const Subscribeview = ({
             <button
               onClick={handleSubmit}
               disabled={status === "loading" || !!fieldError}
-              className="h-12 px-6 rounded-xl font-semibold text-sm text-white whitespace-nowrap flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed transition-all hover:bg-[#3a7de0] hover:shadow-lg hover:shadow-[#5194F6]/25"
-              style={{ background: "linear-gradient(135deg,#5194F6,#3a7de0)", minWidth: "130px" }}
+              className="h-12 px-6 rounded-xl font-semibold text-sm text-white whitespace-nowrap flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed transition-all hover:bg-[#072a44] hover:shadow-lg hover:shadow-[#0A3656]/25"
+              style={{ background: "#0A3656", minWidth: "130px" }}
               aria-label="Subscribe"
             >
               {status === "loading" ? (
