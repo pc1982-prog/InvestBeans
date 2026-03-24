@@ -376,6 +376,19 @@ export default function AdminDashboard() {
   const SEG   = import.meta.env.VITE_ADMIN_SEGMENT || "xp-insights-42";
   const ADMIN = `${API}/${SEG}`;
 
+  // Token cookie ya localStorage se lo — dono try karo
+  const getAuthHeaders = () => {
+    const fromCookie = document.cookie
+      .split(";")
+      .map(c => c.trim())
+      .find(c => c.startsWith("accessToken="))
+      ?.split("=")[1];
+    const fromStorage = localStorage.getItem("accessToken")
+      || sessionStorage.getItem("accessToken");
+    const token = fromCookie || fromStorage || "";
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  };
+
   const [users,setUsers]     = useState<AdminUser[]>([]);
   const [stats,setStats]     = useState<AdminStats|null>(null);
   const [loading,setLoading] = useState(true);
@@ -397,9 +410,10 @@ export default function AdminDashboard() {
   const load = useCallback(async()=>{
     setLoading(true);
     try {
+      const cfg = { withCredentials:true, headers: getAuthHeaders() };
       const [ur,sr] = await Promise.all([
-        axios.get(`${ADMIN}/users`,{withCredentials:true}),
-        axios.get(`${ADMIN}/stats`,{withCredentials:true}),
+        axios.get(`${ADMIN}/users`, cfg),
+        axios.get(`${ADMIN}/stats`, cfg),
       ]);
       setUsers(ur.data.data.users||[]);
       setStats(sr.data.data);
@@ -413,12 +427,16 @@ export default function AdminDashboard() {
   if (!isAdmin) return <div/>;
 
   const doGrant = async(userId:string,body:any)=>{
-    await axios.patch(`${ADMIN}/subscription/${userId}`,body,{withCredentials:true});
+    await axios.patch(`${ADMIN}/subscription/${userId}`, body, {
+      withCredentials:true, headers: getAuthHeaders(),
+    });
     await load();
   };
   const doRevoke = async(userId:string)=>{
     if(!confirm("Revoke subscription?")) return;
-    await axios.delete(`${ADMIN}/subscription/${userId}`,{withCredentials:true});
+    await axios.delete(`${ADMIN}/subscription/${userId}`, {
+      withCredentials:true, headers: getAuthHeaders(),
+    });
     await load();
   };
 

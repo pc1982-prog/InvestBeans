@@ -79,14 +79,14 @@ const App = () => (
               <Route path="/insights/:tab" element={<DecodeMarketsPage />} />
               <Route path="/plans/:planId/checkout" element={<CheckoutPage />} />
               <Route path={import.meta.env.VITE_ADMIN_ROUTE || "/x7-panel"} element={<AdminDashboard />} />
-              <Route
+              {/* <Route
                 path="/dashboard"
                 element={
                   <ProtectedRoute>
                     <DashboardController />
                   </ProtectedRoute>
                 }
-              />
+              /> */}
               <Route path="/signin" element={<SignInController />} />
               <Route path="/signup" element={<SignUpController />} />
               <Route path="*" element={<NotFoundController />} />

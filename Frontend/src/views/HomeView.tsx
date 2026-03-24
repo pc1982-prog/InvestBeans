@@ -99,27 +99,6 @@ const HomeView = ({ activeTab, onChangeTab }: HomeViewProps) => {
 
         <div className="container mx-auto px-6 py-16">
 
-          {/* ── Premium Charts (authenticated) ─────────────────────────── */}
-          {isAuthenticated && (
-            <section className="mb-20 animate-fade-in">
-              <div className="mb-6">
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-4" style={goldBadge}>
-                  <Sparkles className="w-4 h-4 text-[#5194F6]" />
-                  <span className="text-xs font-semibold text-[#5194F6] uppercase tracking-wide">Premium</span>
-                </div>
-                <h2 className={`text-3xl font-bold mb-1 ${headingCls}`}>
-                  InvestBeans Live Premium Charts
-                </h2>
-                <p className={`text-sm ${subTextCls}`}>Exclusive charts for subscribers</p>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <StockWidget symbol="RELIANCE" market="NSE" />
-                <StockWidget symbol="TCS" market="NSE" />
-                <StockWidget symbol="AAPL" market="US" />
-                <StockWidget symbol="TSLA" market="US" />
-              </div>
-            </section>
-          )}
 
           {/* ── Live Dashboard ──────────────────────────────────────────── */}
           <section className="mb-20 relative overflow-hidden">

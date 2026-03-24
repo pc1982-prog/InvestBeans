@@ -10,30 +10,17 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/controllers/AuthContext";
-import { useEffect, useRef, useState, useCallback } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
-  Menu,
-  X,
-  ChevronDown,
-  User,
-  LogOut,
-  Shield,
-  ChevronRight,
-  TrendingUp,
-  TrendingDown,
-  ChevronLeft,
-  Sun,
-  Moon,
-  Flame,
-  Package,
-  Globe,
-  Activity,
-  Lightbulb,
+  Menu, X, ChevronDown, User, LogOut, Shield, ChevronRight,
+  TrendingUp, TrendingDown,
+  Sun, Moon, Flame, Package, Globe, Activity, Lightbulb,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useGlobalMarkets } from "@/hooks/useGlobalMarkets";
-import { useTheme } from '@/controllers/Themecontext'
+import { useTheme } from '@/controllers/Themecontext';
+import { useKiteTicks } from "@/hooks/useKiteTicks";
 
 // ─── Hook: smooth hover dropdown (no blink) ───────────────────────────────────
 function useHoverDropdown(closeDelay = 150) {
@@ -62,126 +49,199 @@ function useHoverDropdown(closeDelay = 150) {
   return { open, setOpen, enter, leave, toggle, close };
 }
 
+// ─── Indian Indices — live via WebSocket ─────────────────────────────────────
+const KITE_TICKER_SYMS = [
+  { key: "NSE:NIFTY 50",   label: "Nifty 50",   flag: "🇮🇳" },
+  { key: "BSE:SENSEX",     label: "Sensex",      flag: "🇮🇳" },
+  { key: "NSE:NIFTY BANK", label: "Nifty Bank",  flag: "🇮🇳" },
+  { key: "NSE:NIFTY AUTO", label: "Nifty Auto",  flag: "🇮🇳" },
+
+];
+
+interface IndianTick {
+  key: string; label: string; flag: string;
+  price?: string; change?: number;
+}
+
+function useIndianTicker(): IndianTick[] {
+  const _API = (import.meta.env.VITE_API_URL || "http://localhost:8000").replace(/\/api\/v1\/?$/, "");
+  const API  = `${_API}/api/v1`;
+
+  // Shared WebSocket — same connection as DomesticView
+  const { ticks: wsTicks } = useKiteTicks();
+
+  // One-time REST seed for instant display before WS warms up
+  const [seed, setSeed] = useState<Record<string, { price: number; change: number }>>({});
+  useEffect(() => {
+    const qs = KITE_TICKER_SYMS.map(s => `i=${encodeURIComponent(s.key)}`).join("&");
+    fetch(`${API}/kite/ohlc?${qs}`)
+      .then(r => r.ok ? r.json() : fetch(`${API}/kite/quote?${qs}`).then(r2 => r2.json()))
+      .then(json => {
+        const raw = json?.data || {};
+        const map: Record<string, { price: number; change: number }> = {};
+        KITE_TICKER_SYMS.forEach(sym => {
+          const d = raw[sym.key]; if (!d) return;
+          const price = d.last_price ?? d.ohlc?.close ?? null;
+          const prev  = d.ohlc?.close ?? null;
+          const chg   = d.change != null ? d.change : price && prev ? ((price - prev) / prev) * 100 : 0;
+          if (price != null) map[sym.key] = { price, change: chg ?? 0 };
+        });
+        setSeed(map);
+      })
+      .catch(() => {});
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return KITE_TICKER_SYMS.map(sym => {
+    const ws = wsTicks[sym.key];
+    if (ws?.last_price) {
+      const prev = ws.ohlc?.close ?? null;
+      const chg  = ws.change != null && ws.change !== 0 ? ws.change
+        : prev && ws.last_price ? ((ws.last_price - prev) / prev) * 100 : 0;
+      return { ...sym, price: ws.last_price.toLocaleString("en-IN", { maximumFractionDigits: 2 }), change: chg };
+    }
+    const r = seed[sym.key];
+    return r ? { ...sym, price: r.price.toLocaleString("en-IN", { maximumFractionDigits: 2 }), change: r.change } : { ...sym };
+  });
+}
+
 // ─── Market Ticker ─────────────────────────────────────────────────────────────
+//
+// KEY FIX: Replaced rAF loop with CSS @keyframes animation — exactly like
+// DomesticView's TickerBar. rAF wrote style.transform on the same node React
+// renders, causing conflicts and jerk on every data update. CSS animation runs
+// entirely in the browser compositor — React re-renders never touch it.
+//
+// Data updates are throttled (400 ms buffer, same as useFastTicks) so the
+// children's text changes are smooth and never cause a layout shift.
+
+// Throttle hook: buffers incoming data, flushes every `ms` ms.
+// This means React re-renders only happen every 400ms max — not on every WS tick.
+function useThrottledMarkets<T>(live: T[], ms = 400): T[] {
+  const buf = useRef<T[]>(live);
+  const [disp, setDisp] = useState<T[]>(live);
+  // Always keep buffer fresh without triggering render
+  useEffect(() => { buf.current = live; });
+  // Flush buffer → display on interval
+  useEffect(() => {
+    const id = setInterval(() => setDisp([...buf.current]), ms);
+    return () => clearInterval(id);
+  }, [ms]);
+  return disp;
+}
+
 const MarketTickerInline = () => {
   const { data } = useGlobalMarkets();
   const { theme } = useTheme();
   const isLight = theme === "light";
-  const [isPaused, setIsPaused] = useState(false);
-  const tickerRef = useRef<HTMLDivElement>(null);
-  const animationRef = useRef<number>();
   const navigate = useNavigate();
 
-  const allMarkets = [
-    ...(data?.indices.us || []),
+  // ── Indian data from Kite WebSocket ──────────────────────────────────────
+  const indianItems = useIndianTicker();
+
+  // ── Global data from existing hook ───────────────────────────────────────
+  const globalMarkets = [
+    ...(data?.indices.us     || []),
     ...(data?.indices.europe || []),
-    ...(data?.indices.asia || []),
+    ...(data?.indices.asia   || []),
   ].map((market) => ({
-    symbol: market.symbol,
-    name: market.name,
-    value: market.price.toLocaleString("en-US", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }),
-    change: `${market.changePercent > 0 ? "+" : ""}${market.changePercent.toFixed(2)}%`,
+    symbol:     market.symbol,
+    name:       market.name,
+    value:      market.price.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+    change:     `${market.changePercent > 0 ? "+" : ""}${market.changePercent.toFixed(2)}%`,
     isPositive: market.changePercent >= 0,
+    route:      "/global" as const,
+    flag:       "",
   }));
 
-  useEffect(() => {
-    if (!tickerRef.current || isPaused || allMarkets.length === 0) return;
-    const element = tickerRef.current;
-    let currentScroll = element.scrollLeft;
-    const animate = () => {
-      if (!isPaused && tickerRef.current) {
-        const maxScroll = element.scrollWidth - element.clientWidth;
-        currentScroll += 0.5;
-        if (currentScroll >= maxScroll / 2) currentScroll = 0;
-        element.scrollLeft = currentScroll;
-        animationRef.current = requestAnimationFrame(animate);
-      }
-    };
-    animationRef.current = requestAnimationFrame(animate);
-    return () => {
-      if (animationRef.current) cancelAnimationFrame(animationRef.current);
-    };
-  }, [isPaused, allMarkets.length]);
+  // ── Merge: Indian first, then Global ─────────────────────────────────────
+  const indianFormatted = indianItems.map(item => ({
+    symbol:     item.key,
+    name:       item.label,
+    value:      item.price ?? "···",
+    change:     item.change != null
+      ? `${item.change >= 0 ? "+" : ""}${item.change.toFixed(2)}%`
+      : "···",
+    isPositive: (item.change ?? 0) >= 0,
+    route:      "/domestic" as const,
+    flag:       item.flag,
+  }));
+
+  // Throttled display — absorbs rapid WS ticks, flushes every 400ms
+  const allMarkets = useThrottledMarkets([...indianFormatted, ...globalMarkets]);
 
   if (allMarkets.length === 0) return null;
 
-  const btnCls = isLight
-    ? "absolute z-10 bg-slate-200/80 hover:bg-slate-300 text-slate-500 hover:text-slate-800 p-1 rounded-full transition-colors"
-    : "absolute z-10 bg-white/10 hover:bg-white/20 text-white/70 hover:text-white p-1 rounded-full transition-colors";
+  // Double for seamless CSS loop — same as DomesticView
+  const doubled = [...allMarkets, ...allMarkets];
 
   return (
-    <div className="relative flex items-center">
-      <button
-        onClick={() => tickerRef.current?.scrollBy({ left: -200, behavior: "smooth" })}
-        className={`${btnCls} left-2`}
-        onMouseEnter={() => setIsPaused(true)}
-        onMouseLeave={() => setIsPaused(false)}
-      >
-        <ChevronLeft className="w-4 h-4" />
-      </button>
-      <div className="flex-1 overflow-hidden mx-10">
-        <div
-          ref={tickerRef}
-          className="flex items-center gap-8 overflow-x-auto"
-          onMouseEnter={() => setIsPaused(true)}
-          onMouseLeave={() => setIsPaused(false)}
-          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-        >
-          {[...allMarkets, ...allMarkets].map((market, index) => (
-            <div
-              key={`${market.name}-${index}`}
-              onClick={() =>
-                navigate("/global", {
-                  state: { symbol: market.symbol, name: market.name },
-                })
-              }
-              className="flex items-center gap-4 whitespace-nowrap group hover:scale-110 transition-transform cursor-pointer"
-            >
-              <div className="flex items-center gap-2">
-                <span
-                  className="text-sm font-medium transition-colors group-hover:text-[#5194F6]"
-                  style={{ color: isLight ? "rgba(30,58,95,0.65)" : "rgba(255,255,255,0.65)" }}
-                >
-                  {market.name}
-                </span>
-                <span
-                  className="font-bold text-sm"
-                  style={{ color: isLight ? "#0d1b2a" : "rgba(255,255,255,0.92)" }}
-                >
-                  {market.value}
-                </span>
-              </div>
-              <div className={`flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-                market.isPositive
-                  ? isLight
-                    ? "bg-emerald-100 text-emerald-700 border border-emerald-300/60"
-                    : "bg-emerald-500/20 text-emerald-300 border border-emerald-400/30"
-                  : isLight
-                    ? "bg-red-100 text-red-700 border border-red-300/60"
-                    : "bg-red-500/20 text-red-300 border border-red-400/30"
-              }`}>
-                {market.isPositive ? (
-                  <TrendingUp className="w-3 h-3" />
-                ) : (
-                  <TrendingDown className="w-3 h-3" />
-                )}
-                {market.change}
-              </div>
+    <div style={{ overflow: "hidden", width: "100%" }}>
+      {/* CSS keyframe animation — runs in compositor, React can never jerk it */}
+      <style>{`
+        @keyframes mktTicker {
+          from { transform: translateX(0); }
+          to   { transform: translateX(-50%); }
+        }
+        .mkt-ticker-strip {
+          display: inline-flex;
+          align-items: center;
+          width: max-content;
+          animation: mktTicker 55s linear infinite;
+        }
+        .mkt-ticker-strip:hover {
+          animation-play-state: paused;
+        }
+      `}</style>
+
+      <div className="mkt-ticker-strip">
+        {doubled.map((market, index) => (
+          <div
+            key={`${market.symbol || market.name}-${index < allMarkets.length ? "a" : "b"}`}
+            onClick={() => navigate(market.route)}
+            title={`View on ${market.route === "/domestic" ? "Domestic" : "Global"} Markets`}
+            className="flex items-center gap-4 whitespace-nowrap group hover:scale-110 transition-transform cursor-pointer"
+            style={{ padding: "0 6px" }}
+          >
+            <div className="flex items-center gap-2">
+              {market.flag && (
+                <span className="text-xs opacity-70">{market.flag}</span>
+              )}
+              <span
+                className="text-sm font-medium transition-colors group-hover:text-[#5194F6]"
+                style={{ color: isLight ? "rgba(30,58,95,0.65)" : "rgba(255,255,255,0.65)" }}
+              >
+                {market.name}
+              </span>
+              <span
+                className="font-bold text-sm"
+                style={{ color: isLight ? "#0d1b2a" : "rgba(255,255,255,0.92)" }}
+              >
+                {market.value}
+              </span>
             </div>
-          ))}
-        </div>
+            <div className={`flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+              market.isPositive
+                ? isLight
+                  ? "bg-emerald-100 text-emerald-700 border border-emerald-300/60"
+                  : "bg-emerald-500/20 text-emerald-300 border border-emerald-400/30"
+                : isLight
+                  ? "bg-red-100 text-red-700 border border-red-300/60"
+                  : "bg-red-500/20 text-red-300 border border-red-400/30"
+            }`}>
+              {market.isPositive ? (
+                <TrendingUp className="w-3 h-3" />
+              ) : (
+                <TrendingDown className="w-3 h-3" />
+              )}
+              {market.change}
+            </div>
+
+            {/* Separator dot — exactly as original */}
+            <span style={{ opacity: 0.25, fontSize: 10, color: isLight ? "#1e3a5f" : "#fff" }}>•</span>
+          </div>
+        ))}
       </div>
-      <button
-        onClick={() => tickerRef.current?.scrollBy({ left: 200, behavior: "smooth" })}
-        className={`${btnCls} right-2`}
-        onMouseEnter={() => setIsPaused(true)}
-        onMouseLeave={() => setIsPaused(false)}
-      >
-        <ChevronRight className="w-4 h-4" />
-      </button>
     </div>
   );
 };
@@ -587,42 +647,13 @@ const Header = () => {
                   <DropSection label="Equity" theme={theme} />
                   <DropLink to="/domestic" onClick={segments.close} theme={theme}>Domestic</DropLink>
                   <DropLink to="/global"   onClick={segments.close} theme={theme}>Global</DropLink>
+                  <DropLink to="/markets"   onClick={segments.close} theme={theme}>Commodities</DropLink>
                   <DropLink to="/currency" onClick={segments.close} theme={theme}>Currency</DropLink>
-                  <DropdownMenuSeparator className="my-1" />
-                  <DropSection label="Commodities & ETFs" theme={theme} />
-                  {/* Commodities overview — goes to /markets with no tab param */}
-                  <DropLink to="/markets" onClick={segments.close} theme={theme}>Overview</DropLink>
+               
                 </div>
               </NavItem>
 
-              {/* 3. COMMODITIES & ETFs — dedicated dropdown with all 5 tabs */}
-              <NavItem label="Commodities" dd={commodities} theme={theme} href="/markets">
-                <div className="min-w-[280px]">
-                  <p className={`text-[10px] font-bold uppercase tracking-widest px-3 pt-2 pb-1 ${
-                    theme === "light" ? "text-navy/45" : "text-white/40"
-                  }`}>Commodities & ETFs</p>
-
-                  {COMMODITY_TABS.map(tab => (
-                    <CommodityTabLink
-                      key={tab.id}
-                      to={`/markets?tab=${tab.id}`}
-                      icon={tab.icon}
-                      label={tab.label}
-                      desc={tab.desc}
-                      onClick={commodities.close}
-                      theme={theme}
-                    />
-                  ))}
-
-                  {/* Footer chip inside dropdown */}
-                  <div className="mx-2 mt-2 mb-1 px-3 py-2 rounded-lg"
-                    style={{ background: "rgba(81,148,246,0.07)", border: "1px solid rgba(81,148,246,0.15)" }}>
-                    <p className={`text-[10px] font-medium ${theme === "light" ? "text-slate-500" : "text-slate-400"}`}>
-                      Live MCX · AMFI NAV · CFTC COT · EIA · Yahoo Finance
-                    </p>
-                  </div>
-                </div>
-              </NavItem>
+           
 
               {/* 4. LEARN */}
               <NavItem label="Learn" dd={learn} theme={theme} href="/education">
@@ -685,7 +716,6 @@ const Header = () => {
           {/* ── Right: theme toggle + user menu ──────────────────────────── */}
           <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3">
 
-            {/* ── Dark / Light Toggle ─────────────────────────────────────── */}
             <button
               onClick={toggleTheme}
               aria-label={isLight ? "Switch to dark mode" : "Switch to light mode"}
@@ -708,7 +738,6 @@ const Header = () => {
                         isLight ? "hover:bg-navy/8" : "hover:bg-[#1C3656]/60"
                       }`}
                     >
-                      {/* Admin shield badge — top-right of avatar */}
                       {isAdmin && (
                         <span style={{
                           position: "absolute", top: 0, right: 0,
@@ -759,17 +788,7 @@ const Header = () => {
                         </div>
                       )}
                     </div>
-                    <DropdownMenuItem asChild>
-                      <Link
-                        to="/dashboard"
-                        className={`flex items-center gap-2 w-full px-3 py-2 mt-1 rounded-md text-sm font-medium transition ${isLight ? "hover:bg-[#5194F6]/10 hover:text-[#5194F6]" : "hover:bg-[#5194F6]/15 hover:text-[#5194F6] text-white"}`}
-                        onClick={userMenu.close}
-                      >
-                        <User className="w-4 h-4" /> My Dashboard
-                      </Link>
-                    </DropdownMenuItem>
 
-                    {/* ── Admin Dashboard — visible only to admins, below My Dashboard ── */}
                     {isAdmin && (
                       <>
                         <DropdownMenuSeparator className={`my-1 ${isLight ? "bg-gray-200" : "bg-white/10"}`} />
@@ -808,7 +827,6 @@ const Header = () => {
               </li>
             ) : (
               <>
-                {/* Desktop guest */}
                 <div className="hidden md:block">
                   <li onMouseEnter={userMenu.enter} onMouseLeave={userMenu.leave} className="list-none">
                     <DropdownMenu open={userMenu.open} onOpenChange={userMenu.setOpen}>
@@ -832,7 +850,6 @@ const Header = () => {
                     </DropdownMenu>
                   </li>
                 </div>
-                {/* Mobile guest */}
                 <div className="md:hidden">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -874,21 +891,11 @@ const Header = () => {
                   <MobileSectionLabel label="Equity" />
                   <MobileLink to="/domestic">Domestic</MobileLink>
                   <MobileLink to="/global">Global</MobileLink>
+                  <MobileLink to="/markets">Commodities</MobileLink>
                   <MobileLink to="/currency">Currency</MobileLink>
                 </MobileAccordion>
 
-                {/* ── Commodities & ETFs — mobile accordion with all 5 tabs ── */}
-                <MobileAccordion label="Commodities & ETFs" isOpen={mobileCommodOpen} toggle={() => setMobileCommodOpen(s => !s)}>
-                  <MobileSectionLabel label="Domestic" />
-                  <MobileLink to="/markets?tab=domestic">Domestic Commodities</MobileLink>
-                  <MobileLink to="/markets?tab=dom-etfs">Domestic ETFs</MobileLink>
-                  <MobileSectionLabel label="Global" />
-                  <MobileLink to="/markets?tab=global">Global Commodities</MobileLink>
-                  <MobileLink to="/markets?tab=global-etfs">Global ETFs</MobileLink>
-                  <MobileSectionLabel label="Intelligence" />
-                  <MobileLink to="/markets?tab=intelligence">Intelligence Layer</MobileLink>
-                </MobileAccordion>
-
+              
                 <MobileAccordion label="Learn" isOpen={mobileLearnOpen} toggle={() => setMobileLearnOpen(s => !s)}>
                   <MobileSectionLabel label="Financial" />
                   <MobileLink to="/education#financial-ebooks">E-books</MobileLink>

@@ -18,9 +18,6 @@ export default function PrivacyPolicy() {
   const accentCard = isLight
     ? 'bg-blue-50 border-l-4 border-[#5194F6]'
     : 'bg-[#5194F6]/08 border-l-4 border-[#5194F6]';
-  const rightBorderCard = isLight
-    ? 'bg-blue-50 border-l-4 border-[#5194F6]'
-    : 'bg-white/5 border-l-4 border-[#5194F6]';
   const numberBadge = `flex-shrink-0 w-12 h-12 rounded-lg bg-[#5194F6]/15 flex items-center justify-center text-[#5194F6] font-bold text-xl group-hover:bg-[#5194F6] group-hover:text-white transition-colors duration-300`;
 
   return (
@@ -57,173 +54,209 @@ export default function PrivacyPolicy() {
               Privacy Policy
             </h1>
           </div>
-          <p className={`text-lg ${t3}`}>Last Updated: February 5, 2026</p>
+          <p className={`text-lg ${t3}`}>Effective Date: [Insert Date] &nbsp;|&nbsp; Last Updated: [Insert Date]</p>
           <div className="mt-6 h-1 w-24 bg-gradient-to-r from-[#5194F6] to-[#3a7de0] rounded-full" />
+        </div>
+
+        {/* Legal Framework Banner */}
+        <div className={`mb-10 rounded-xl p-5 flex flex-wrap gap-3 items-center ${isLight ? 'bg-blue-50 border border-blue-100' : 'bg-[#5194F6]/10 border border-[#5194F6]/20'}`}>
+          <span className={`text-sm font-semibold ${t1}`}>Governed by Indian Law:</span>
+          {['Information Technology Act, 2000', 'IT (SPDI) Rules, 2011', 'DPDP Act, 2023'].map(law => (
+            <span key={law} className="text-xs bg-[#5194F6]/15 text-[#5194F6] font-medium px-3 py-1 rounded-full">{law}</span>
+          ))}
         </div>
 
         {/* Introduction */}
         <section className={`mb-12 rounded-xl p-8 ${sectionCard}`}>
           <p className={`text-lg leading-relaxed ${t2}`}>
-            At InvestBeans, we are committed to protecting your privacy and ensuring the security of your personal information.
-            This Privacy Policy explains how we collect, use, disclose, and safeguard your data when you use our platform.
-            We believe in transparency and want you to understand your rights and our practices.
+            This Privacy Policy ("Policy") is issued by <strong className={t1}>InvestBeans</strong>, a proprietorship firm based in India ("we," "our," "us").
+            This Policy governs how we collect, use, store, process, and disclose personal data in compliance with applicable Indian laws.
+            By accessing our website, mobile applications, or any services ("Services"), you agree to this Policy.
           </p>
         </section>
 
         {/* Sections */}
         <div className="space-y-10">
 
-          {/* 1 – Information We Collect */}
+          {/* 1 – Regulatory Position & SEBI Disclaimer */}
           <section className="group">
             <div className="flex items-start gap-4">
               <div className={numberBadge}>1</div>
               <div className="flex-1">
                 <h2 className={`text-2xl font-bold mb-4 ${t1}`} style={{ fontFamily: 'Georgia, serif' }}>
-                  Information We Collect
+                  Regulatory Position &amp; SEBI Disclaimer
                 </h2>
                 <div className={`space-y-4 leading-relaxed ${t2}`}>
-                  <p className={`font-semibold ${t1}`}>Personal Information You Provide:</p>
                   <ul className="list-disc pl-6 space-y-2">
-                    <li><strong>Account Information:</strong> Name, email address, phone number, username, and password</li>
-                    <li><strong>Profile Information:</strong> Investment experience level, trading preferences, financial goals</li>
-                    <li><strong>Payment Information:</strong> Billing details, payment method information (processed securely through third-party payment processors)</li>
-                    <li><strong>Communication Data:</strong> Messages sent through our platform, feedback, and support inquiries</li>
+                    <li>InvestBeans provides <strong>financial education, research insights, and general market information.</strong></li>
+                    <li>We do <strong>not</strong> execute trades on behalf of clients.</li>
+                    <li>We do <strong>not</strong> hold client funds or securities.</li>
+                    <li>Any information shared is for <strong>educational and informational purposes only.</strong></li>
                   </ul>
-                  <p className={`font-semibold mt-6 ${t1}`}>Information Collected Automatically:</p>
-                  <ul className="list-disc pl-6 space-y-2">
-                    <li><strong>Usage Data:</strong> Pages visited, features used, time spent on platform, interaction patterns</li>
-                    <li><strong>Device Information:</strong> IP address, browser type, operating system, device identifiers</li>
-                    <li><strong>Cookies and Tracking:</strong> We use cookies and similar technologies to enhance your experience</li>
-                  </ul>
+                  <div className={`rounded-lg p-5 mt-4 border-l-4 border-amber-400 ${isLight ? 'bg-amber-50 text-amber-900' : 'bg-amber-500/10 text-white/80'}`}>
+                    <p className="font-semibold mb-2">⚠️ SEBI Registration Notice</p>
+                    <p className="text-sm">
+                      We are NISM-certified and are in the process of obtaining SEBI registration. Until such registration is obtained:
+                    </p>
+                    <ul className="list-disc pl-5 mt-2 text-sm space-y-1">
+                      <li>No content should be construed as investment advice or recommendation under SEBI regulations.</li>
+                      <li>Users are advised to consult a SEBI-registered investment advisor before making any investment decisions.</li>
+                    </ul>
+                  </div>
                 </div>
               </div>
             </div>
           </section>
 
-          {/* 2 – How We Use Your Information */}
+          {/* 2 – Information We Collect */}
           <section className="group">
             <div className="flex items-start gap-4">
               <div className={numberBadge}>2</div>
               <div className="flex-1">
                 <h2 className={`text-2xl font-bold mb-4 ${t1}`} style={{ fontFamily: 'Georgia, serif' }}>
-                  How We Use Your Information
+                  Information We Collect
                 </h2>
-                <div className={`space-y-4 leading-relaxed ${t2}`}>
-                  <p>We use the information we collect for the following purposes:</p>
-                  <div className={`rounded-lg p-6 space-y-3 ${accentCard}`}>
-                    <p><strong>✓ Service Delivery:</strong> Provide and maintain our educational platform, mentorship programs, and research insights</p>
-                    <p><strong>✓ Personalization:</strong> Customize content and recommendations based on your interests and experience level</p>
-                    <p><strong>✓ Communication:</strong> Send you updates, newsletters, educational content, and respond to inquiries</p>
-                    <p><strong>✓ Payment Processing:</strong> Process subscriptions and handle billing matters</p>
-                    <p><strong>✓ Platform Improvement:</strong> Analyze usage patterns to enhance features and user experience</p>
-                    <p><strong>✓ Security:</strong> Detect and prevent fraud, abuse, and security incidents</p>
-                    <p><strong>✓ Legal Compliance:</strong> Comply with applicable laws and regulations</p>
+                <div className={`space-y-6 leading-relaxed ${t2}`}>
+
+                  <div className={`rounded-lg p-5 ${innerCard}`}>
+                    <p className={`font-semibold mb-3 ${t1}`}>2.1 Personal Data</p>
+                    <ul className="list-disc pl-6 space-y-1 text-sm">
+                      <li>Name</li>
+                      <li>Email address</li>
+                      <li>Phone number</li>
+                      <li>Date of birth</li>
+                      <li>Risk profile &amp; investment preferences</li>
+                    </ul>
                   </div>
+
+                  <div className={`rounded-lg p-5 ${innerCard}`}>
+                    <p className={`font-semibold mb-2 ${t1}`}>2.2 Sensitive Personal Data</p>
+                    <p className="text-sm mb-2 italic">Collected only when necessary and with explicit consent:</p>
+                    <ul className="list-disc pl-6 space-y-1 text-sm">
+                      <li>Financial capacity information</li>
+                      <li>Account-related data (if voluntarily shared)</li>
+                    </ul>
+                  </div>
+
+                  <div className={`rounded-lg p-5 ${innerCard}`}>
+                    <p className={`font-semibold mb-3 ${t1}`}>2.3 Non-Personal Data</p>
+                    <ul className="list-disc pl-6 space-y-1 text-sm">
+                      <li>IP address</li>
+                      <li>Device and browser details</li>
+                      <li>Usage analytics</li>
+                      <li>Cookies and tracking data</li>
+                    </ul>
+                  </div>
+
                 </div>
               </div>
             </div>
           </section>
 
-          {/* 3 – Information Sharing */}
+          {/* 3 – How We Use Your Data */}
           <section className="group">
             <div className="flex items-start gap-4">
               <div className={numberBadge}>3</div>
               <div className="flex-1">
                 <h2 className={`text-2xl font-bold mb-4 ${t1}`} style={{ fontFamily: 'Georgia, serif' }}>
-                  Information Sharing and Disclosure
+                  How We Use Your Data
                 </h2>
-                <div className={`space-y-4 leading-relaxed ${t2}`}>
-                  <p>We respect your privacy and do not sell your personal information. We may share your information only in the following circumstances:</p>
-                  <ul className="list-disc pl-6 space-y-2">
-                    <li><strong>Service Providers:</strong> We work with trusted third-party providers who assist with payment processing, email delivery, analytics, and hosting services.</li>
-                    <li><strong>Legal Requirements:</strong> We may disclose information when required by law, court order, or government request.</li>
-                    <li><strong>Business Transfers:</strong> In the event of a merger, acquisition, or sale of assets, your information may be transferred.</li>
-                    <li><strong>With Your Consent:</strong> We may share your information with third parties when you explicitly consent.</li>
-                  </ul>
+                <div className={`space-y-3 leading-relaxed ${t2}`}>
+                  <p>We use your data to:</p>
+                  <div className={`rounded-lg p-6 space-y-3 ${accentCard}`}>
+                    <p><strong>✓ Educational Content:</strong> Provide educational content and market insights</p>
+                    <p><strong>✓ Personalization:</strong> Personalize learning and trading experience</p>
+                    <p><strong>✓ Communication:</strong> Share updates, newsletters, and alerts</p>
+                    <p><strong>✓ Platform Improvement:</strong> Improve platform performance</p>
+                    <p><strong>✓ Security:</strong> Ensure security and prevent fraud</p>
+                    <p><strong>✓ Legal Compliance:</strong> Comply with legal obligations</p>
+                  </div>
                 </div>
               </div>
             </div>
           </section>
 
-          {/* 4 – Data Security */}
+          {/* 4 – Communication Platforms */}
           <section className="group">
             <div className="flex items-start gap-4">
               <div className={numberBadge}>4</div>
               <div className="flex-1">
                 <h2 className={`text-2xl font-bold mb-4 ${t1}`} style={{ fontFamily: 'Georgia, serif' }}>
-                  Data Security
+                  Communication Platforms
                 </h2>
                 <div className={`space-y-4 leading-relaxed ${t2}`}>
-                  <p>We implement robust security measures to protect your personal information from unauthorized access, alteration, disclosure, or destruction.</p>
-                  <div className="grid md:grid-cols-2 gap-4">
+                  <p>By registering with InvestBeans, you consent to receive communications via:</p>
+                  <div className="grid md:grid-cols-3 gap-4">
                     {[
-                      { icon: '🔒', title: 'Encryption', desc: 'SSL/TLS encryption for data transmission' },
-                      { icon: '🛡️', title: 'Access Controls', desc: 'Restricted access to personal data' },
-                      { icon: '🔐', title: 'Secure Storage', desc: 'Encrypted databases and secure servers' },
-                      { icon: '👁️', title: 'Monitoring', desc: 'Regular security audits and monitoring' },
+                      { icon: '💬', label: 'WhatsApp' },
+                      { icon: '📢', label: 'Telegram Channels / Groups' },
+                      { icon: '📧', label: 'Email & SMS' },
                     ].map(item => (
-                      <div key={item.title} className={`rounded-lg p-5 ${innerCard}`}>
-                        <div className={`font-semibold mb-2 ${t1}`}>{item.icon} {item.title}</div>
-                        <p className="text-sm">{item.desc}</p>
+                      <div key={item.label} className={`rounded-lg p-4 text-center ${innerCard}`}>
+                        <div className="text-2xl mb-2">{item.icon}</div>
+                        <p className={`font-medium text-sm ${t1}`}>{item.label}</p>
                       </div>
                     ))}
                   </div>
-                  <p className={`border-l-4 border-amber-400/60 p-4 rounded-r mt-4 ${isLight ? 'bg-amber-50 text-amber-800' : 'bg-amber-500/10 text-white/70'}`}>
-                    While we strive to protect your information, no method of transmission over the internet is 100% secure. We cannot guarantee absolute security but are committed to maintaining the highest standards of data protection.
-                  </p>
+                  <div className={`rounded-lg p-5 border-l-4 border-amber-400 ${isLight ? 'bg-amber-50 text-amber-900' : 'bg-amber-500/10 text-white/80'}`}>
+                    <p className="font-semibold mb-2">⚠️ Important</p>
+                    <ul className="list-disc pl-5 text-sm space-y-1">
+                      <li>Messages shared are informational and educational in nature.</li>
+                      <li>They should not be treated as buy/sell recommendations.</li>
+                      <li>We are not responsible for trades executed based on such communications.</li>
+                    </ul>
+                    <p className="text-sm mt-3">Users may <strong>opt-out</strong> at any time.</p>
+                  </div>
                 </div>
               </div>
             </div>
           </section>
 
-          {/* 5 – Your Privacy Rights */}
+          {/* 5 – AI & Algorithm Usage Disclaimer */}
           <section className="group">
             <div className="flex items-start gap-4">
               <div className={numberBadge}>5</div>
               <div className="flex-1">
                 <h2 className={`text-2xl font-bold mb-4 ${t1}`} style={{ fontFamily: 'Georgia, serif' }}>
-                  Your Privacy Rights
+                  AI &amp; Algorithm Usage Disclaimer
                 </h2>
                 <div className={`space-y-4 leading-relaxed ${t2}`}>
-                  <p>You have the following rights regarding your personal information:</p>
-                  <div className="space-y-4">
-                    {[
-                      { title: 'Right to Access', desc: 'Request a copy of the personal information we hold about you' },
-                      { title: 'Right to Correction', desc: 'Request correction of inaccurate or incomplete information' },
-                      { title: 'Right to Deletion', desc: 'Request deletion of your personal information, subject to certain exceptions' },
-                      { title: 'Right to Opt-Out', desc: 'Unsubscribe from marketing communications at any time' },
-                      { title: 'Right to Data Portability', desc: 'Request your data in a structured, commonly used format' },
-                    ].map(item => (
-                      <div key={item.title} className={`rounded-lg p-5 border-l-4 border-[#5194F6] ${isLight ? 'bg-blue-50' : 'bg-white/5'}`}>
-                        <h3 className={`font-semibold mb-2 ${t1}`}>{item.title}</h3>
-                        <p className="text-sm">{item.desc}</p>
-                      </div>
-                    ))}
+                  <p>InvestBeans may use AI tools, algorithms, or data models to:</p>
+                  <ul className="list-disc pl-6 space-y-2">
+                    <li>Analyze market trends</li>
+                    <li>Generate insights or summaries</li>
+                    <li>Improve user experience</li>
+                  </ul>
+                  <div className={`rounded-lg p-5 border-l-4 border-[#5194F6] ${isLight ? 'bg-blue-50' : 'bg-white/5'}`}>
+                    <p className={`font-semibold mb-2 ${t1}`}>Disclaimer</p>
+                    <ul className="list-disc pl-5 text-sm space-y-1">
+                      <li>Outputs are <strong>indicative, not guaranteed.</strong></li>
+                      <li>Markets are inherently uncertain.</li>
+                      <li>Users should apply <strong>independent judgment</strong> before acting on any AI-generated content.</li>
+                    </ul>
                   </div>
-                  <p className="mt-6">To exercise any of these rights, please contact us at privacy@investbeans.com. We will respond within 30 days.</p>
                 </div>
               </div>
             </div>
           </section>
 
-          {/* 6 – Cookies */}
+          {/* 6 – Data Sharing */}
           <section className="group">
             <div className="flex items-start gap-4">
               <div className={numberBadge}>6</div>
               <div className="flex-1">
                 <h2 className={`text-2xl font-bold mb-4 ${t1}`} style={{ fontFamily: 'Georgia, serif' }}>
-                  Cookies and Tracking Technologies
+                  Data Sharing
                 </h2>
                 <div className={`space-y-4 leading-relaxed ${t2}`}>
-                  <p>We use cookies and similar tracking technologies to enhance your experience on InvestBeans.</p>
-                  <p className={`font-semibold ${t1}`}>Types of cookies we use:</p>
+                  <p className={`font-semibold text-green-600`}>✅ We do not sell your data.</p>
+                  <p>We may share data with:</p>
                   <ul className="list-disc pl-6 space-y-2">
-                    <li><strong>Essential Cookies:</strong> Required for basic platform functionality and security</li>
-                    <li><strong>Performance Cookies:</strong> Help us understand how visitors interact with our platform</li>
-                    <li><strong>Functional Cookies:</strong> Remember your preferences and settings</li>
-                    <li><strong>Marketing Cookies:</strong> Used to deliver relevant advertisements (with your consent)</li>
+                    <li><strong>Technology and service providers</strong></li>
+                    <li><strong>Analytics tools</strong></li>
+                    <li><strong>Legal or regulatory authorities</strong> (when required by law)</li>
                   </ul>
-                  <p>You can control cookies through your browser settings. However, disabling certain cookies may affect some features.</p>
+                  <p>All third parties are bound by confidentiality obligations.</p>
                 </div>
               </div>
             </div>
@@ -238,64 +271,209 @@ export default function PrivacyPolicy() {
                   Data Retention
                 </h2>
                 <div className={`space-y-4 leading-relaxed ${t2}`}>
-                  <p>We retain your personal information for as long as necessary to provide our services and fulfill the purposes outlined in this Privacy Policy.</p>
-                  <p>Typical retention periods include account information for the duration of your active subscription plus 7 years for financial records, and usage data for up to 2 years.</p>
+                  <p>We retain your data only for:</p>
+                  <ul className="list-disc pl-6 space-y-2">
+                    <li>Service delivery purposes</li>
+                    <li>Legal and compliance requirements</li>
+                  </ul>
+                  <p>Data is <strong>deleted or anonymized</strong> when no longer required.</p>
                 </div>
               </div>
             </div>
           </section>
 
-          {/* 8 – Children's Privacy */}
+          {/* 8 – Data Security */}
           <section className="group">
             <div className="flex items-start gap-4">
               <div className={numberBadge}>8</div>
               <div className="flex-1">
                 <h2 className={`text-2xl font-bold mb-4 ${t1}`} style={{ fontFamily: 'Georgia, serif' }}>
-                  Children's Privacy
+                  Data Security
                 </h2>
                 <div className={`space-y-4 leading-relaxed ${t2}`}>
-                  <p className={`border-l-4 border-red-500 p-4 rounded-r ${isLight ? 'bg-red-50 text-red-800' : 'bg-red-500/10 text-white/70'}`}>
-                    InvestBeans is not intended for users under the age of 18. We do not knowingly collect personal information from children. If we become aware that we have collected information from a child under 18, we will delete that information promptly.
+                  <p>We implement reasonable security measures including:</p>
+                  <div className="grid md:grid-cols-3 gap-4">
+                    {[
+                      { icon: '🔒', title: 'Encryption', desc: 'Data encrypted in transit and at rest' },
+                      { icon: '🖥️', title: 'Secure Servers', desc: 'Hosted on protected infrastructure' },
+                      { icon: '🔑', title: 'Access Controls', desc: 'Restricted access to personal data' },
+                    ].map(item => (
+                      <div key={item.title} className={`rounded-lg p-5 ${innerCard}`}>
+                        <div className={`font-semibold mb-2 ${t1}`}>{item.icon} {item.title}</div>
+                        <p className="text-sm">{item.desc}</p>
+                      </div>
+                    ))}
+                  </div>
+                  <p className={`border-l-4 border-amber-400/60 p-4 rounded-r mt-2 text-sm ${isLight ? 'bg-amber-50 text-amber-800' : 'bg-amber-500/10 text-white/70'}`}>
+                    No digital system is 100% secure. We are committed to maintaining high standards of data protection.
                   </p>
                 </div>
               </div>
             </div>
           </section>
 
-          {/* 9 – International Transfers */}
+          {/* 9 – Your Rights (DPDP Act, 2023) */}
           <section className="group">
             <div className="flex items-start gap-4">
               <div className={numberBadge}>9</div>
               <div className="flex-1">
                 <h2 className={`text-2xl font-bold mb-4 ${t1}`} style={{ fontFamily: 'Georgia, serif' }}>
-                  International Data Transfers
+                  Your Rights <span className={`text-base font-normal ${t3}`}>(DPDP Act, 2023)</span>
                 </h2>
                 <div className={`space-y-4 leading-relaxed ${t2}`}>
-                  <p>Your information may be transferred to and processed in countries other than your country of residence. We ensure appropriate safeguards are in place in accordance with applicable data protection laws.</p>
+                  <p>Under the Digital Personal Data Protection Act, 2023, you have the right to:</p>
+                  <div className="space-y-3">
+                    {[
+                      { title: 'Access Your Data', desc: 'Request a copy of the personal information we hold about you.' },
+                      { title: 'Correct Inaccuracies', desc: 'Request correction of inaccurate or incomplete data.' },
+                      { title: 'Request Deletion', desc: 'Request deletion of your personal information, subject to legal exceptions.' },
+                      { title: 'Withdraw Consent', desc: 'Withdraw consent for data processing at any time.' },
+                      { title: 'File Grievances', desc: 'Lodge a complaint with our Grievance Officer or the Data Protection Board.' },
+                    ].map(item => (
+                      <div key={item.title} className={`rounded-lg p-5 border-l-4 border-[#5194F6] ${isLight ? 'bg-blue-50' : 'bg-white/5'}`}>
+                        <h3 className={`font-semibold mb-1 ${t1}`}>{item.title}</h3>
+                        <p className="text-sm">{item.desc}</p>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-sm mt-2">
+                    To exercise any of these rights, please contact us at{' '}
+                    <a href="mailto:support@investbeans.com" className="text-[#5194F6] hover:underline font-medium">support@investbeans.com</a>.
+                    We will respond within 30 days.
+                  </p>
                 </div>
               </div>
             </div>
           </section>
 
-          {/* 10 – Policy Changes */}
+          {/* 10 – Cookies Policy */}
           <section className="group">
             <div className="flex items-start gap-4">
               <div className={numberBadge}>10</div>
               <div className="flex-1">
                 <h2 className={`text-2xl font-bold mb-4 ${t1}`} style={{ fontFamily: 'Georgia, serif' }}>
-                  Changes to This Privacy Policy
+                  Cookies Policy
                 </h2>
                 <div className={`space-y-4 leading-relaxed ${t2}`}>
-                  <p>We may update this Privacy Policy from time to time to reflect changes in our practices or legal requirements. We will notify you of any material changes by posting the updated policy and updating the "Last Updated" date.</p>
+                  <p>We use cookies to enhance experience and analyze platform performance.</p>
+                  <ul className="list-disc pl-6 space-y-2">
+                    <li><strong>Essential Cookies:</strong> Required for basic platform functionality and security</li>
+                    <li><strong>Performance Cookies:</strong> Help us understand how visitors interact with our platform</li>
+                    <li><strong>Functional Cookies:</strong> Remember your preferences and settings</li>
+                  </ul>
+                  <p>You may disable cookies via your browser settings. However, disabling certain cookies may affect some features.</p>
                 </div>
               </div>
             </div>
           </section>
 
-          {/* 11 – Contact */}
+          {/* 11 – Third-Party Links */}
           <section className="group">
             <div className="flex items-start gap-4">
               <div className={numberBadge}>11</div>
+              <div className="flex-1">
+                <h2 className={`text-2xl font-bold mb-4 ${t1}`} style={{ fontFamily: 'Georgia, serif' }}>
+                  Third-Party Links
+                </h2>
+                <div className={`space-y-4 leading-relaxed ${t2}`}>
+                  <p>
+                    We may link to brokers or external platforms. We are <strong>not responsible</strong> for their privacy practices.
+                    Please review the privacy policies of any third-party sites you visit.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* 12 – Children's Privacy */}
+          <section className="group">
+            <div className="flex items-start gap-4">
+              <div className={numberBadge}>12</div>
+              <div className="flex-1">
+                <h2 className={`text-2xl font-bold mb-4 ${t1}`} style={{ fontFamily: 'Georgia, serif' }}>
+                  Children's Privacy
+                </h2>
+                <div className={`space-y-4 leading-relaxed ${t2}`}>
+                  <p className={`border-l-4 border-red-500 p-4 rounded-r ${isLight ? 'bg-red-50 text-red-800' : 'bg-red-500/10 text-white/70'}`}>
+                    Our Services are not intended for individuals under the age of 18. We do not knowingly collect personal information from minors.
+                    If we become aware that we have collected data from a child under 18, we will delete that information promptly.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* 13 – Grievance Officer */}
+          <section className="group">
+            <div className="flex items-start gap-4">
+              <div className={numberBadge}>13</div>
+              <div className="flex-1">
+                <h2 className={`text-2xl font-bold mb-4 ${t1}`} style={{ fontFamily: 'Georgia, serif' }}>
+                  Grievance Officer
+                </h2>
+                <div className={`space-y-4 leading-relaxed ${t2}`}>
+                  <p>As required under Indian law, we have appointed a Grievance Officer:</p>
+                  <div className={`rounded-lg p-6 ${innerCard}`}>
+                    <div className="space-y-2 text-sm">
+                      <p><strong className={t1}>Name:</strong> [Insert Name]</p>
+                      <p>
+                        <strong className={t1}>Email:</strong>{' '}
+                        <a href="mailto:support@investbeans.com" className="text-[#5194F6] hover:underline">support@investbeans.com</a>
+                      </p>
+                      <p><strong className={t1}>Contact:</strong> [Insert Phone]</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* 14 – Limitation of Liability */}
+          <section className="group">
+            <div className="flex items-start gap-4">
+              <div className={numberBadge}>14</div>
+              <div className="flex-1">
+                <h2 className={`text-2xl font-bold mb-4 ${t1}`} style={{ fontFamily: 'Georgia, serif' }}>
+                  Limitation of Liability
+                </h2>
+                <div className={`space-y-4 leading-relaxed ${t2}`}>
+                  <p>InvestBeans shall <strong>not be liable</strong> for:</p>
+                  <ul className="list-disc pl-6 space-y-2">
+                    <li>Any financial losses</li>
+                    <li>Trading decisions made by users</li>
+                    <li>Reliance on platform content or AI-generated insights</li>
+                  </ul>
+                  <p className={`border-l-4 border-red-500 p-4 rounded-r text-sm ${isLight ? 'bg-red-50 text-red-800' : 'bg-red-500/10 text-white/70'}`}>
+                    All market participation is at the user's own risk.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* 15 – Policy Updates */}
+          <section className="group">
+            <div className="flex items-start gap-4">
+              <div className={numberBadge}>15</div>
+              <div className="flex-1">
+                <h2 className={`text-2xl font-bold mb-4 ${t1}`} style={{ fontFamily: 'Georgia, serif' }}>
+                  Policy Updates
+                </h2>
+                <div className={`space-y-4 leading-relaxed ${t2}`}>
+                  <p>
+                    We may update this Policy at any time to reflect changes in our practices or legal requirements.
+                    Continued usage of our Services after any update implies acceptance of the revised Policy.
+                    We will update the "Effective Date" at the top of this page accordingly.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* 16 – Contact Us */}
+          <section className="group">
+            <div className="flex items-start gap-4">
+              <div className={numberBadge}>16</div>
               <div className="flex-1">
                 <h2 className={`text-2xl font-bold mb-4 ${t1}`} style={{ fontFamily: 'Georgia, serif' }}>
                   Contact Us
@@ -303,25 +481,36 @@ export default function PrivacyPolicy() {
                 <div className={`space-y-4 leading-relaxed ${t2}`}>
                   <p>If you have questions or concerns about this Privacy Policy or our data practices, please contact us:</p>
                   <div className="bg-gradient-to-r from-[#5194F6] to-[#3a7de0] rounded-lg p-6 text-white">
-                    <p className="font-semibold mb-3">InvestBeans Privacy Team</p>
-                    <p className="mb-2">📧 Email: privacy@investbeans.com</p>
-                    <p className="mb-2">📞 Phone: +91 [Your Phone Number]</p>
-                    <p>💬 Support: support@investbeans.com</p>
+                    <p className="font-semibold mb-3">InvestBeans</p>
+                    <p className="mb-2">📧 Email: <a href="mailto:support@investbeans.com" className="underline hover:opacity-80">support@investbeans.com</a></p>
+                    <p>📞 Phone: [Insert Phone]</p>
                   </div>
                 </div>
               </div>
             </div>
           </section>
+
         </div>
 
-        {/* Footer Notice */}
+        {/* Privacy Highlights Card */}
         <div className={`mt-16 p-6 rounded-xl border border-[#5194F6]/25 ${isLight ? 'bg-blue-50' : 'bg-white/5'}`}>
-          <p className={`text-sm leading-relaxed ${t2}`}>
-            <strong className="text-[#5194F6]">Your Trust Matters:</strong> At InvestBeans, we are committed to protecting
-            your privacy and handling your data responsibly. We believe in transparency and will always be clear about how
-            we use your information. If you have any questions, we're here to help.
-          </p>
+          <p className={`font-semibold mb-4 text-[#5194F6]`}>🔐 Privacy Highlights</p>
+          <div className="grid md:grid-cols-2 gap-3">
+            {[
+              'Your data is secure (सुरक्षित)',
+              "We don't sell your data",
+              'Used only to improve your experience',
+              'You can request deletion anytime',
+              'Educational insights, not financial advice',
+              'Compliant with DPDP Act, 2023',
+            ].map(item => (
+              <p key={item} className={`text-sm flex items-start gap-2 ${t2}`}>
+                <span className="text-green-500 font-bold mt-0.5">✓</span> {item}
+              </p>
+            ))}
+          </div>
         </div>
+
       </main>
 
       {/* Footer */}
