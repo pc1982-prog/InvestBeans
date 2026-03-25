@@ -285,7 +285,6 @@ const InsightModal = ({ isOpen, onClose, insight, loading = false }: InsightModa
 
               {structured ? (
                 <>
-<<<<<<< HEAD
                   {/*
                     ── STRATEGY: Teaser + Gate ──────────────────────────────
                     Summary aur Market Significance FREE mein dikhao —
@@ -377,30 +376,6 @@ const InsightModal = ({ isOpen, onClose, insight, loading = false }: InsightModa
                     </p>
                   </div>
                 </RequireSubscription>
-=======
-                  <Section icon={<BarChart2 className="w-3 h-3" />}   label="Summary"             value={structured.summary}            accent="#0A3656" highlight />
-                  <Section icon={<TrendingUp className="w-3 h-3" />}   label="Market Significance"  value={structured.marketSignificance}  accent="#10b981" highlight />
-                  <Section icon={<Building2 className="w-3 h-3" />}    label="Impact Area"          value={structured.impactArea}          accent="#f59e0b" />
-                  <StocksSection value={structured.stocksImpacted} />
-                  <Section icon={<LineChart className="w-3 h-3" />}    label="Short-Term View"      value={structured.shortTermView}       accent="#8b5cf6" />
-                  <Section icon={<TrendingUp className="w-3 h-3" />}   label="Long-Term View"       value={structured.longTermView}        accent="#06b6d4" />
-                  <Section icon={<ShieldAlert className="w-3 h-3" />}  label="Key Risk"             value={structured.keyRisk}             accent="#ef4444" highlight />
-                  {structured.impactScore !== undefined && (
-                    <ImpactScoreCard score={structured.impactScore} />
-                  )}
-                </>
-              ) : legacyText ? (
-                /* ── Fallback: legacy plain-text insight ── */
-                <div className="rounded-xl p-4" style={{ background: cardBg, border: cardBorder }}>
-                  <h3 className="text-sm font-semibold mb-2 flex items-center gap-2" style={{ color: titleColor }}>
-                    <span className="w-1 h-4 rounded-full inline-block" style={{ background: "#0A3656" }} />
-                    InvestBeans Insight
-                  </h3>
-                  <p className="leading-relaxed whitespace-pre-wrap text-sm" style={{ color: bodyText }}>
-                    {legacyText}
-                  </p>
-                </div>
->>>>>>> feat/premium-dark-contrast-pass
               ) : null}
 
               {/* ── Credits — sab ko dikhta hai ── */}
