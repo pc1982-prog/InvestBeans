@@ -25,7 +25,7 @@ router.get(
 router.get(
   "/google/callback",
   passport.authenticate("google", {
-    failureRedirect: `${process.env.FRONTEND_URL}/signin?error=google_auth_failed`,
+    failureRedirect: `${process.env.FRONTEND_URL}signin?error=google_auth_failed`,
   }),
   async (req, res) => {
     console.log("✅ Google OAuth successful");

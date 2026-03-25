@@ -32,11 +32,13 @@ app.use((req, res, next) => {
   res.removeHeader("X-Powered-By");
   next();
 });
-
 const allowedOrigins = [
-  "http://localhost:8080", "http://127.0.0.1:8080",
-  "http://localhost:5173", "http://127.0.0.1:5173",
-  FRONTEND_URL, "https://companytask-1-1.onrender.com/",
+  "http://localhost:8080",
+  "http://127.0.0.1:8080", 
+  "http://localhost:5173",
+  "http://127.0.0.1:5173",
+  "https://investbeans.com",        // ✅ Custom domain
+  "https://api.investbeans.com",    // ✅ Backend API domain
 ].filter(Boolean);
 const uniqueOrigins = [...new Set(allowedOrigins)];
 console.log("✅ Allowed CORS origins:", uniqueOrigins);
