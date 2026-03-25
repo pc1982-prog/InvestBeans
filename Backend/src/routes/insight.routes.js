@@ -16,7 +16,7 @@ import { validateInsight, validateMongoId } from "../middlewares/validation.midd
 import {
   optionalAuth,
   checkSubscription,
-} from "../middlewares/stripInsightForNonSubscriber.middleware.js";
+} from "../middlewares/Stripinsightfornonsubscriber.middleware.js";
 
 const router = Router();
 

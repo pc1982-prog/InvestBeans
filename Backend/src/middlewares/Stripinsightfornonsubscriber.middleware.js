@@ -1,18 +1,3 @@
-// middlewares/stripInsightForNonSubscriber.middleware.js
-//
-// PURPOSE:
-//   GET /insights (list route) pe lagao.
-//   Non-subscribers ke liye sensitive fields server-side pe strip kar do.
-//   Frontend pe data hi nahi aayega — inspect/Network tab se bhi nahi milega.
-//
-// USAGE in insight.routes.js:
-//   import { stripInsightForNonSubscriber } from "../middlewares/stripInsightForNonSubscriber.middleware.js";
-//   router.route("/").get(optionalAuth, stripInsightForNonSubscriber, getAllInsights);
-//
-// NOTE:
-//   - optionalAuth = verifyJWT but without throwing on missing token (guest users ke liye)
-//   - req.isSubscriber = true/false yahan set hota hai
-//   - insight.controller.js mein getAllInsights ko req.isSubscriber padna hoga
 
 import { Subscription } from "../models/Subscription.model.js";
 import jwt from "jsonwebtoken";
