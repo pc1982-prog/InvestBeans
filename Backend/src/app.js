@@ -82,6 +82,19 @@ sessionStore.on("create",  id  => console.log("✅ Session created:", id));
 sessionStore.on("destroy", id  => console.log("🗑️  Session destroyed:", id));
 sessionStore.on("error",   err => console.error("❌ Session store error:", err));
 
+// const sessionConfig = {
+//   secret: process.env.SESSION_SECRET,
+//   name: "investbeans.sid",
+//   store: sessionStore,
+//   resave: false,
+//   saveUninitialized: false,
+//   rolling: true,
+//   proxy: IS_PRODUCTION,
+//   cookie: {
+//     httpOnly: true, secure: false, sameSite: "lax",
+//     maxAge: 7 * 24 * 60 * 60 * 1000, path: "/", domain: undefined,
+//   },
+// };
 const sessionConfig = {
   secret: process.env.SESSION_SECRET,
   name: "investbeans.sid",
@@ -91,8 +104,12 @@ const sessionConfig = {
   rolling: true,
   proxy: IS_PRODUCTION,
   cookie: {
-    httpOnly: true, secure: false, sameSite: "lax",
-    maxAge: 7 * 24 * 60 * 60 * 1000, path: "/", domain: undefined,
+    httpOnly: true,
+    secure: IS_PRODUCTION,      // ✅ Production mein true, dev mein false
+    sameSite: IS_PRODUCTION ? "none" : "lax",  // ✅ Cross-site OAuth ke liye
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+    path: "/",
+    domain: undefined,
   },
 };
 
