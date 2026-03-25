@@ -1,20 +1,27 @@
-// models/subscription.model.js
-// ✅ Added userId index — critical for performance at scale
-// Without it: every verifySubscription call does full collection scan
+// models/Subscription.model.js
+// ✅ Updated: email field added, userId optional, pending_email status added
+// This allows admin to grant subscription to any email — even before user registers
 
 import mongoose from "mongoose";
 
 const subscriptionSchema = new mongoose.Schema(
   {
     userId: {
-      type:     mongoose.Schema.Types.ObjectId,
-      required: true,
-      index:    true, // ✅ PERFORMANCE — fast lookup by user
+      type:    mongoose.Schema.Types.ObjectId,
+      index:   true,
+      default: null,  // ✅ null allowed when admin grants by email before user registers
+    },
+    email: {
+      type:      String,
+      default:   null,
+      index:     true,  // ✅ Fast lookup when user logs in for first time
+      lowercase: true,
+      trim:      true,
     },
     plan: {
-      type:    String,
-      enum:    ["free", "foundation", "command", "edge", "basic", "pro", "elite"],
-      default: "free",
+      type:     String,
+      enum:     ["free", "foundation", "command", "edge", "basic", "pro", "elite"],
+      default:  "free",
       required: true,
     },
     amount: {
@@ -27,10 +34,13 @@ const subscriptionSchema = new mongoose.Schema(
       default: "INR",
     },
     status: {
-      type:    String,
-      enum:    ["active", "expired", "revoked", "pending", "failed"],
+      type:  String,
+      enum:  ["active", "expired", "revoked", "pending", "failed", "pending_email"],
+      //                                                              ↑ NEW STATUS
+      // pending_email = admin ne email se grant kiya, user abhi registered nahi
+      // Jab user register/login karega → automatically "active" ho jayega
       default: "pending",
-      index:   true, // ✅ Fast filter by status
+      index:   true,
     },
     startDate: {
       type:    Date,
@@ -39,7 +49,7 @@ const subscriptionSchema = new mongoose.Schema(
     endDate: {
       type:     Date,
       required: true,
-      index:    true, // ✅ Fast expiry checks
+      index:    true,
     },
     razorpayOrderId: {
       type:    String,
@@ -58,8 +68,9 @@ const subscriptionSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// ✅ Compound index — most common query pattern in verifySubscription middleware
-subscriptionSchema.index({ userId: 1, status: 1, endDate: 1 });
+// ✅ Compound indexes — fast queries
+subscriptionSchema.index({ userId: 1, status: 1, endDate: 1 }); // verifySubscription main query
+subscriptionSchema.index({ email: 1, status: 1 });               // pending_email activation lookup
 
 // Virtual: days remaining
 subscriptionSchema.virtual("daysRemaining").get(function () {

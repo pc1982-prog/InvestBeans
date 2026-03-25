@@ -1,9 +1,13 @@
+// InsightModal.tsx — UPDATED
+// RequireSubscription wrap kiya body sections around
+
 import {
   X, Clock, Eye, Calendar, ExternalLink,
   TrendingUp, TrendingDown, Zap, BarChart2,
   Building2, LineChart, ShieldAlert,
 } from "lucide-react";
 import { useTheme } from "@/controllers/Themecontext";
+import RequireSubscription from "@/components/RequireSubscription";
 
 interface StructuredInsight {
   summary?: string;
@@ -23,7 +27,6 @@ interface InsightModalProps {
     _id: string;
     title: string;
     description: string;
-    // ✅ Now a real object from backend, not a string
     investBeansInsight: StructuredInsight | string;
     credits: { source: string; author?: string; url?: string; publishedDate?: string };
     sentiment: "positive" | "negative" | "neutral";
@@ -36,7 +39,6 @@ interface InsightModalProps {
   loading?: boolean;
 }
 
-// Helper: hex → "r,g,b" for rgba()
 function hexToRgb(hex: string): string {
   const c = hex.replace("#", "");
   return `${parseInt(c.slice(0,2),16)},${parseInt(c.slice(2,4),16)},${parseInt(c.slice(4,6),16)}`;
@@ -49,9 +51,6 @@ const InsightModal = ({ isOpen, onClose, insight, loading = false }: InsightModa
   if (!isOpen) return null;
   const showLoading = loading && !insight;
 
-  // ── Resolve structured data ───────────────────────────────────────────────
-  // Backend now returns investBeansInsight as a plain object.
-  // Fallback: if legacy string is returned, display as plain text.
   const ibi = insight?.investBeansInsight;
   const structured: StructuredInsight | null =
     ibi && typeof ibi === "object" ? ibi as StructuredInsight : null;
@@ -94,13 +93,11 @@ const InsightModal = ({ isOpen, onClose, insight, loading = false }: InsightModa
   const formatDate = (s: string) =>
     new Date(s).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
 
-  // ── Impact score ──────────────────────────────────────────────────────────
   const score       = structured?.impactScore ?? 0;
   const scoreColor  = score >= 8 ? "#ef4444" : score >= 6 ? "#f59e0b" : score >= 4 ? "#5194F6" : "#10b981";
   const scoreLabel  = score >= 8 ? "High Impact" : score >= 6 ? "Medium-High" : score >= 4 ? "Moderate" : "Low Impact";
   const scoreEmoji  = score >= 8 ? "🔴" : score >= 6 ? "🟡" : score >= 4 ? "🔵" : "🟢";
 
-  // ── Section card ──────────────────────────────────────────────────────────
   const Section = ({
     icon, label, value, accent = "#5194F6", highlight = false,
   }: {
@@ -132,7 +129,6 @@ const InsightModal = ({ isOpen, onClose, insight, loading = false }: InsightModa
     );
   };
 
-  // ── Stocks as pills ───────────────────────────────────────────────────────
   const StocksSection = ({ value }: { value?: string }) => {
     if (!value?.trim()) return null;
     const stocks = value.split(/[,\n]+/).map(s => s.trim()).filter(Boolean);
@@ -163,7 +159,6 @@ const InsightModal = ({ isOpen, onClose, insight, loading = false }: InsightModa
     );
   };
 
-  // ── Impact score card ─────────────────────────────────────────────────────
   const ImpactScoreCard = ({ score }: { score: number }) => (
     <div className="rounded-xl p-3.5"
       style={{
@@ -185,7 +180,6 @@ const InsightModal = ({ isOpen, onClose, insight, loading = false }: InsightModa
           <span className="text-xs" style={{ color: labelColor }}>/10</span>
         </div>
       </div>
-      {/* Progress bar */}
       <div className="w-full h-2 rounded-full mb-2"
         style={{ background: isLight ? "rgba(13,37,64,0.08)" : "rgba(255,255,255,0.08)" }}>
         <div className="h-2 rounded-full transition-all duration-700"
@@ -243,7 +237,7 @@ const InsightModal = ({ isOpen, onClose, insight, loading = false }: InsightModa
           </>
         ) : insight ? (
           <>
-            {/* ═══ HEADER ═══ */}
+            {/* ═══ HEADER — sab ko dikhta hai (title, sentiment, meta) ═══ */}
             <div className="sticky top-0 z-10 p-5 flex-shrink-0" style={{ background: headerBg, borderBottom: headerBorder }}>
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">
@@ -287,33 +281,101 @@ const InsightModal = ({ isOpen, onClose, insight, loading = false }: InsightModa
             <div className="flex-1 overflow-y-auto p-4 space-y-2.5">
 
               {structured ? (
-                /* ── Structured sections from backend ── */
                 <>
-                  <Section icon={<BarChart2 className="w-3 h-3" />}   label="Summary"             value={structured.summary}            accent="#5194F6" highlight />
-                  <Section icon={<TrendingUp className="w-3 h-3" />}   label="Market Significance"  value={structured.marketSignificance}  accent="#10b981" highlight />
-                  <Section icon={<Building2 className="w-3 h-3" />}    label="Impact Area"          value={structured.impactArea}          accent="#f59e0b" />
-                  <StocksSection value={structured.stocksImpacted} />
-                  <Section icon={<LineChart className="w-3 h-3" />}    label="Short-Term View"      value={structured.shortTermView}       accent="#8b5cf6" />
-                  <Section icon={<TrendingUp className="w-3 h-3" />}   label="Long-Term View"       value={structured.longTermView}        accent="#06b6d4" />
-                  <Section icon={<ShieldAlert className="w-3 h-3" />}  label="Key Risk"             value={structured.keyRisk}             accent="#ef4444" highlight />
-                  {structured.impactScore !== undefined && (
-                    <ImpactScoreCard score={structured.impactScore} />
-                  )}
+                  {/*
+                    ── STRATEGY: Teaser + Gate ──────────────────────────────
+                    Summary aur Market Significance FREE mein dikhao —
+                    baaki sab subscriber-only.
+                    Is se user ko value milti hai + subscribe karne ka reason.
+                  */}
+
+                  {/* ✅ FREE — ye sab ko dikhta hai */}
+                  <Section
+                    icon={<BarChart2 className="w-3 h-3" />}
+                    label="Summary"
+                    value={structured.summary}
+                    accent="#5194F6"
+                    highlight
+                  />
+                  <Section
+                    icon={<TrendingUp className="w-3 h-3" />}
+                    label="Market Significance"
+                    value={structured.marketSignificance}
+                    accent="#10b981"
+                    highlight
+                  />
+
+                  {/* 🔒 LOCKED — sirf subscribers ko dikhta hai */}
+                  {/*
+                    mode="blur"   → Sections blurred dikhte hain, shape visible
+                    mode="hidden" → Ek placeholder card aata hai
+                    mode="overlay"→ Cards dikhte hain but opaque cover ke neeche
+
+                    Yahan "blur" use kiya — user ko andaaza milta hai kitna content hai
+                    aur subscribe karne ka temptation badta hai
+                  */}
+                  <RequireSubscription
+                    mode="blur"
+                    title="Full Analysis Locked"
+                    description="Subscribe to unlock impact area, stock picks, short & long term views, key risks, and impact score."
+                    ctaText="Unlock Full Analysis"
+                    ctaHref="/pricing"
+                  >
+                    {/* Ye sab blur ke andar — shape dikhti hai, text nahi */}
+                    <div className="space-y-2.5">
+                      <Section
+                        icon={<Building2 className="w-3 h-3" />}
+                        label="Impact Area"
+                        value={structured.impactArea}
+                        accent="#f59e0b"
+                      />
+                      <StocksSection value={structured.stocksImpacted} />
+                      <Section
+                        icon={<LineChart className="w-3 h-3" />}
+                        label="Short-Term View"
+                        value={structured.shortTermView}
+                        accent="#8b5cf6"
+                      />
+                      <Section
+                        icon={<TrendingUp className="w-3 h-3" />}
+                        label="Long-Term View"
+                        value={structured.longTermView}
+                        accent="#06b6d4"
+                      />
+                      <Section
+                        icon={<ShieldAlert className="w-3 h-3" />}
+                        label="Key Risk"
+                        value={structured.keyRisk}
+                        accent="#ef4444"
+                        highlight
+                      />
+                      {structured.impactScore !== undefined && (
+                        <ImpactScoreCard score={structured.impactScore} />
+                      )}
+                    </div>
+                  </RequireSubscription>
                 </>
               ) : legacyText ? (
-                /* ── Fallback: legacy plain-text insight ── */
-                <div className="rounded-xl p-4" style={{ background: cardBg, border: cardBorder }}>
-                  <h3 className="text-sm font-semibold mb-2 flex items-center gap-2" style={{ color: titleColor }}>
-                    <span className="w-1 h-4 rounded-full inline-block" style={{ background: "#5194F6" }} />
-                    InvestBeans Insight
-                  </h3>
-                  <p className="leading-relaxed whitespace-pre-wrap text-sm" style={{ color: bodyText }}>
-                    {legacyText}
-                  </p>
-                </div>
+                /* ── Fallback: legacy plain-text insight — poora lock karo ── */
+                <RequireSubscription
+                  mode="blur"
+                  title="Insight Locked"
+                  description="Subscribe to read the full InvestBeans analysis."
+                  ctaText="Subscribe Now"
+                >
+                  <div className="rounded-xl p-4" style={{ background: cardBg, border: cardBorder }}>
+                    <h3 className="text-sm font-semibold mb-2 flex items-center gap-2" style={{ color: titleColor }}>
+                      <span className="w-1 h-4 rounded-full inline-block" style={{ background: "#5194F6" }} />
+                      InvestBeans Insight
+                    </h3>
+                    <p className="leading-relaxed whitespace-pre-wrap text-sm" style={{ color: bodyText }}>
+                      {legacyText}
+                    </p>
+                  </div>
+                </RequireSubscription>
               ) : null}
 
-              {/* ── Credits ── */}
+              {/* ── Credits — sab ko dikhta hai ── */}
               <div className="rounded-xl p-3.5 mt-1"
                 style={{ background: isLight ? "rgba(255,255,255,0.6)" : "rgba(255,255,255,0.03)", border: cardBorder }}>
                 <h3 className="text-[10px] font-bold uppercase tracking-wider mb-2.5 flex items-center gap-2" style={{ color: titleColor }}>

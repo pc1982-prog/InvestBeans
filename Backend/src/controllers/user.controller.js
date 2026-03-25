@@ -1,3 +1,7 @@
+// controllers/user.controller.js
+// ✅ Updated: activatePendingSubscription helper added
+//            Called on BOTH register and login — auto-activates admin-granted pending plans
+
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { User } from "../models/user.model.js";
@@ -9,412 +13,344 @@ import { ADMIN_EMAILS } from "../middlewares/admin.middleware.js";
 import { sendPasswordResetEmail, sendPasswordResetConfirmation } from "../utils/email.utils.js";
 import { Subscription } from "../models/Subscription.model.js";
 
-const generateAccessAndRefreshTokens = async (userId) => {
-    try {
-        if (!mongoose.Types.ObjectId.isValid(userId)) {
-            throw new ApiError(400, "Invalid user ID format");
-        }
+// ─────────────────────────────────────────────────────────────────────────────
+// HELPER: pending_email subscription ko activate karo
+// Jab user register ya login kare — agar admin ne pehle unhe grant kiya tha
+// ─────────────────────────────────────────────────────────────────────────────
+const activatePendingSubscription = async (userId, email) => {
+  try {
+    const pending = await Subscription.findOne({
+      email:  email.toLowerCase(),
+      userId: null,
+      status: "pending_email",
+    });
 
-        const user = await User.findById(userId);
-        
-        if (!user) {
-            throw new ApiError(404, "User not found");
-        }
-
-        const accessToken = user.generateAccessToken();
-        const refreshToken = user.generateRefreshToken();
-
-        user.refreshToken = refreshToken;
-        await user.save({ validateBeforeSave: false });
-
-        return { accessToken, refreshToken };
-    } catch (error) {
-        if (error instanceof ApiError) {
-            throw error;
-        }
-        throw new ApiError(
-            500,
-            "Something went wrong while generating tokens",
-            [error.message]
-        );
+    if (pending) {
+      pending.userId = userId;
+      pending.status = "active";
+      await pending.save();
+      console.log(`✅ Pending subscription activated for: ${email} → userId: ${userId}`);
     }
+  } catch (err) {
+    // Subscription fail ho toh bhi login/register fail mat karo
+    // Sirf log karo — user ka experience affect nahi hona chahiye
+    console.error("⚠️ Could not activate pending subscription:", err.message);
+  }
 };
 
-const registerUser = asyncHandler(async (req, res) => {
-    const { name, email, password } = req.body;
-
-    if (!name || name.trim() === "") {
-        throw new ApiError(400, "Name is required");
-    }
-    if (!email || email.trim() === "") {
-        throw new ApiError(400, "Email is required");
-    }
-    if (!password || password.trim() === "") {
-        throw new ApiError(400, "Password is required");
+// ─────────────────────────────────────────────────────────────────────────────
+// Token generation
+// ─────────────────────────────────────────────────────────────────────────────
+const generateAccessAndRefreshTokens = async (userId) => {
+  try {
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      throw new ApiError(400, "Invalid user ID format");
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-        throw new ApiError(400, "Invalid email format");
-    }
-
-    if (password.length < 6) {
-        throw new ApiError(400, "Password must be at least 6 characters long");
-    }
-
-    const existedUser = await User.findOne({ email: email.toLowerCase() });
-
-    if (existedUser) {
-        throw new ApiError(409, "User with this email already exists");
-    }
-
-    const user = await User.create({
-        name: name.trim(),
-        email: email.toLowerCase().trim(),
-        password,
-    });
-
-    const createdUser = await User.findById(user._id).select(
-        "-password -refreshToken"
-    );
-
-    if (!createdUser) {
-        throw new ApiError(500, "Failed to create user. Please try again");
-    }
-
-    return res
-        .status(201)
-        .json(new ApiResponse(201, createdUser, "User registered successfully"));
-});
-
-const loginUser = asyncHandler(async (req, res) => {
-    const { email, password } = req.body;
-
-    if (!email) {
-        throw new ApiError(400, "Email is required");
-    }
-
-    if (!password) {
-        throw new ApiError(400, "Password is required");
-    }
-
-    const user = await User.findOne({ email: email.toLowerCase() });
-
+    const user = await User.findById(userId);
     if (!user) {
-        throw new ApiError(404, "User does not exist with this email");
+      throw new ApiError(404, "User not found");
     }
 
-    const isPasswordValid = await user.isPasswordCorrect(password);
+    const accessToken  = user.generateAccessToken();
+    const refreshToken = user.generateRefreshToken();
 
-    if (!isPasswordValid) {
-        throw new ApiError(401, "Invalid email or password");
-    }
-
-    const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(user._id);
-
-    const loggedInUser = await User.findById(user._id).select("-password -refreshToken");
-
-    const options = {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-    };
-
-    return res
-        .status(200)
-        .cookie("accessToken", accessToken, options)
-        .cookie("refreshToken", refreshToken, options)
-        .json(
-            new ApiResponse(
-                200,
-                {
-                    user: loggedInUser, accessToken, refreshToken
-                },
-                "User logged In Successfully"
-            )
-        );
-});
-
-const logoutUser = asyncHandler(async (req, res) => {
-    await User.findByIdAndUpdate(
-        req.user._id,
-        {
-            $unset: {
-                refreshToken: 1
-            }
-        },
-        {
-            new: true
-        }
-    )
-
-    const options = {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-    }
-
-    return res
-        .status(200)
-        .clearCookie("accessToken", options)
-        .clearCookie("refreshToken", options)
-        .json(new ApiResponse(200, {}, "User logged Out"))
-});
-
-const refreshAccessToken = asyncHandler(async (req, res) => {
-    const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken
-
-    if (!incomingRefreshToken) {
-        throw new ApiError(401, "unauthorized request")
-    }
-
-    try {
-        const decodedToken = jwt.verify(
-            incomingRefreshToken,
-            process.env.REFRESH_TOKEN_SECRET
-        )
-
-        const user = await User.findById(decodedToken?._id)
-
-        if (!user) {
-            throw new ApiError(401, "Invalid refresh token")
-        }
-
-        if (incomingRefreshToken !== user?.refreshToken) {
-            throw new ApiError(401, "Refresh token is expired or used")
-        }
-
-        const options = {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-        }
-
-        const {accessToken, newRefreshToken} = await generateAccessAndRefreshTokens(user._id)
-
-        return res
-            .status(200)
-            .cookie("accessToken", accessToken, options)
-            .cookie("refreshToken", newRefreshToken, options)
-            .json(
-                new ApiResponse(
-                    200,
-                    {accessToken, refreshToken: newRefreshToken},
-                    "Access token refreshed"
-                )
-            )
-    } catch (error) {
-        throw new ApiError(401, error?.message || "Invalid refresh token")
-    }
-
-});
-
-const getCurrentUser = asyncHandler(async (req, res) => {
-    const user = req.user;
-
-    if (!user) {
-        throw new ApiError(401, "User not found");
-    }
-
-    const isAdmin = ADMIN_EMAILS.includes(user.email.toLowerCase());
-
-    let userData;
-    
-    if (typeof user.toObject === 'function') {
-        userData = user.toObject();
-    } else if (user._doc) {
-        userData = user._doc;
-    } else {
-        userData = user;
-    }
-
-    const { password, refreshToken, __v, resetPasswordToken, resetPasswordExpires, ...safeUserData } = userData;
-
-    const normalizedData = {
-        ...safeUserData,
-        isAdmin,
-        name: safeUserData.name || safeUserData.displayName || 'User'
-    };
-
-    // Subscription fetch karo — admin grant ya payment dono se aata hai
-    const subscription = await Subscription.findOne({
-        userId: user._id,
-        status: "active",
-        endDate: { $gt: new Date() },
-    }).select("plan status endDate startDate amount daysRemaining").lean();
-
-    const daysRemaining = subscription?.endDate
-        ? Math.max(0, Math.ceil((new Date(subscription.endDate) - Date.now()) / 86_400_000))
-        : 0;
-
-    return res
-        .status(200)
-        .json(new ApiResponse(
-            200,
-            {
-                ...normalizedData,
-                subscription: subscription
-                    ? {
-                        plan: subscription.plan,
-                        status: subscription.status,
-                        startDate: subscription.startDate,
-                        endDate: subscription.endDate,
-                        amount: subscription.amount,
-                        daysRemaining,
-                        hasAccess: true,
-                      }
-                    : null,
-                hasSubscription: !!subscription,
-            },
-            "Current user fetched successfully"
-        ));
-});
-
-//  NEW: Forgot Password - Send reset email
-const forgotPassword = asyncHandler(async (req, res) => {
-    const { email } = req.body;
-
-    if (!email || !email.trim()) {
-        throw new ApiError(400, "Email is required");
-    }
-
-    // Find user by email
-    const user = await User.findOne({ email: email.toLowerCase().trim() });
-
-    if (!user) {
-        // Don't reveal if user exists or not (security best practice)
-        return res
-            .status(200)
-            .json(new ApiResponse(
-                200,
-                {},
-                "If an account exists with this email, a password reset link has been sent"
-            ));
-    }
-
-    // Generate reset token
-    const resetToken = user.createPasswordResetToken();
+    user.refreshToken = refreshToken;
     await user.save({ validateBeforeSave: false });
 
-    try {
-        // Send reset email
-        await sendPasswordResetEmail(user.email, resetToken, user.name);
+    return { accessToken, refreshToken };
+  } catch (error) {
+    if (error instanceof ApiError) throw error;
+    throw new ApiError(500, "Something went wrong while generating tokens", [error.message]);
+  }
+};
 
-        console.log(`âœ… Password reset email sent to: ${user.email}`);
-        console.log(`ðŸ”— Reset token (for dev): ${resetToken}`);
+// ─────────────────────────────────────────────────────────────────────────────
+// POST /api/v1/users/register
+// ─────────────────────────────────────────────────────────────────────────────
+const registerUser = asyncHandler(async (req, res) => {
+  const { name, email, password } = req.body;
 
-        return res
-            .status(200)
-            .json(new ApiResponse(
-                200,
-                { email: user.email },
-                "Password reset link has been sent to your email"
-            ));
-    } catch (error) {
-        // If email fails, clear the reset token
-        user.resetPasswordToken = undefined;
-        user.resetPasswordExpires = undefined;
-        await user.save({ validateBeforeSave: false });
+  if (!name || name.trim() === "")     throw new ApiError(400, "Name is required");
+  if (!email || email.trim() === "")   throw new ApiError(400, "Email is required");
+  if (!password || password.trim() === "") throw new ApiError(400, "Password is required");
 
-        console.error('âŒ Error sending reset email:', error);
-        throw new ApiError(500, "Failed to send reset email. Please try again later.");
-    }
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email))         throw new ApiError(400, "Invalid email format");
+  if (password.length < 6)             throw new ApiError(400, "Password must be at least 6 characters long");
+
+  const existedUser = await User.findOne({ email: email.toLowerCase() });
+  if (existedUser)                     throw new ApiError(409, "User with this email already exists");
+
+  const user = await User.create({
+    name:  name.trim(),
+    email: email.toLowerCase().trim(),
+    password,
+  });
+
+  const createdUser = await User.findById(user._id).select("-password -refreshToken");
+  if (!createdUser) throw new ApiError(500, "Failed to create user. Please try again");
+
+  // ✅ NEW: Check karo — agar admin ne pehle is email ko subscription di thi
+  await activatePendingSubscription(createdUser._id, createdUser.email);
+
+  return res
+    .status(201)
+    .json(new ApiResponse(201, createdUser, "User registered successfully"));
 });
 
-// âœ… NEW: Verify Reset Token (optional - for frontend validation)
-const verifyResetToken = asyncHandler(async (req, res) => {
-    const { token } = req.params;
+// ─────────────────────────────────────────────────────────────────────────────
+// POST /api/v1/users/login
+// ─────────────────────────────────────────────────────────────────────────────
+const loginUser = asyncHandler(async (req, res) => {
+  const { email, password } = req.body;
 
-    if (!token) {
-        throw new ApiError(400, "Reset token is required");
-    }
+  if (!email)    throw new ApiError(400, "Email is required");
+  if (!password) throw new ApiError(400, "Password is required");
 
-    // Hash the token to compare with database
-    const hashedToken = crypto
-        .createHash('sha256')
-        .update(token)
-        .digest('hex');
+  const user = await User.findOne({ email: email.toLowerCase() });
+  if (!user) throw new ApiError(404, "User does not exist with this email");
 
-    // Find user with valid token
-    const user = await User.findOne({
-        resetPasswordToken: hashedToken,
-        resetPasswordExpires: { $gt: Date.now() }
-    });
+  const isPasswordValid = await user.isPasswordCorrect(password);
+  if (!isPasswordValid) throw new ApiError(401, "Invalid email or password");
 
-    if (!user) {
-        throw new ApiError(400, "Reset link is invalid or has expired");
-    }
+  // ✅ NEW: Check karo — agar admin ne pehle is email ko subscription di thi
+  // Login hone se pehle activate karo taaki getCurrentUser mein turant dikh jaye
+  await activatePendingSubscription(user._id, user.email);
+
+  const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(user._id);
+  const loggedInUser = await User.findById(user._id).select("-password -refreshToken");
+
+  const options = {
+    httpOnly: true,
+    secure:   process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+  };
+
+  return res
+    .status(200)
+    .cookie("accessToken", accessToken, options)
+    .cookie("refreshToken", refreshToken, options)
+    .json(
+      new ApiResponse(
+        200,
+        { user: loggedInUser, accessToken, refreshToken },
+        "User logged In Successfully"
+      )
+    );
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// POST /api/v1/users/logout
+// ─────────────────────────────────────────────────────────────────────────────
+const logoutUser = asyncHandler(async (req, res) => {
+  await User.findByIdAndUpdate(
+    req.user._id,
+    { $unset: { refreshToken: 1 } },
+    { new: true }
+  );
+
+  const options = {
+    httpOnly: true,
+    secure:   process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+  };
+
+  return res
+    .status(200)
+    .clearCookie("accessToken", options)
+    .clearCookie("refreshToken", options)
+    .json(new ApiResponse(200, {}, "User logged Out"));
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// POST /api/v1/users/refresh-token
+// ─────────────────────────────────────────────────────────────────────────────
+const refreshAccessToken = asyncHandler(async (req, res) => {
+  const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken;
+
+  if (!incomingRefreshToken) throw new ApiError(401, "unauthorized request");
+
+  try {
+    const decodedToken = jwt.verify(incomingRefreshToken, process.env.REFRESH_TOKEN_SECRET);
+    const user = await User.findById(decodedToken?._id);
+
+    if (!user)                                         throw new ApiError(401, "Invalid refresh token");
+    if (incomingRefreshToken !== user?.refreshToken)   throw new ApiError(401, "Refresh token is expired or used");
+
+    const options = {
+      httpOnly: true,
+      secure:   process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    };
+
+    const { accessToken, newRefreshToken } = await generateAccessAndRefreshTokens(user._id);
 
     return res
-        .status(200)
-        .json(new ApiResponse(200, { valid: true }, "Reset token is valid"));
+      .status(200)
+      .cookie("accessToken", accessToken, options)
+      .cookie("refreshToken", newRefreshToken, options)
+      .json(new ApiResponse(200, { accessToken, refreshToken: newRefreshToken }, "Access token refreshed"));
+  } catch (error) {
+    throw new ApiError(401, error?.message || "Invalid refresh token");
+  }
 });
 
-// âœ… NEW: Reset Password - Update password with token
-const resetPassword = asyncHandler(async (req, res) => {
-    const { token, newPassword } = req.body;
+// ─────────────────────────────────────────────────────────────────────────────
+// GET /api/v1/users/current-user
+// ─────────────────────────────────────────────────────────────────────────────
+const getCurrentUser = asyncHandler(async (req, res) => {
+  const user = req.user;
+  if (!user) throw new ApiError(401, "User not found");
 
-    if (!token || !newPassword) {
-        throw new ApiError(400, "Token and new password are required");
-    }
+  const isAdmin = ADMIN_EMAILS.includes(user.email.toLowerCase());
 
-    if (newPassword.length < 6) {
-        throw new ApiError(400, "Password must be at least 6 characters long");
-    }
+  let userData;
+  if (typeof user.toObject === "function") userData = user.toObject();
+  else if (user._doc)                       userData = user._doc;
+  else                                      userData = user;
 
-    // Hash the token to compare with database
-    const hashedToken = crypto
-        .createHash('sha256')
-        .update(token)
-        .digest('hex');
+  const { password, refreshToken, __v, resetPasswordToken, resetPasswordExpires, ...safeUserData } = userData;
 
-    // Find user with valid token
-    const user = await User.findOne({
-        resetPasswordToken: hashedToken,
-        resetPasswordExpires: { $gt: Date.now() }
-    });
+  const normalizedData = {
+    ...safeUserData,
+    isAdmin,
+    name: safeUserData.name || safeUserData.displayName || "User",
+  };
 
-    if (!user) {
-        throw new ApiError(400, "Reset link is invalid or has expired");
-    }
+  const subscription = await Subscription.findOne({
+    userId: user._id,
+    status: "active",
+    endDate: { $gt: new Date() },
+  }).select("plan status endDate startDate amount daysRemaining").lean();
 
-    // Update password
-    user.password = newPassword;
-    user.resetPasswordToken = undefined;
+  const daysRemaining = subscription?.endDate
+    ? Math.max(0, Math.ceil((new Date(subscription.endDate) - Date.now()) / 86_400_000))
+    : 0;
+
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        ...normalizedData,
+        subscription: subscription
+          ? {
+              plan:        subscription.plan,
+              status:      subscription.status,
+              startDate:   subscription.startDate,
+              endDate:     subscription.endDate,
+              amount:      subscription.amount,
+              daysRemaining,
+              hasAccess:   true,
+            }
+          : null,
+        hasSubscription: !!subscription,
+      },
+      "Current user fetched successfully"
+    )
+  );
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// POST /api/v1/users/forgot-password
+// ─────────────────────────────────────────────────────────────────────────────
+const forgotPassword = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+
+  if (!email || !email.trim()) throw new ApiError(400, "Email is required");
+
+  const user = await User.findOne({ email: email.toLowerCase().trim() });
+
+  if (!user) {
+    // Security: user exist karta hai ya nahi, reveal mat karo
+    return res
+      .status(200)
+      .json(new ApiResponse(200, {}, "If an account exists with this email, a password reset link has been sent"));
+  }
+
+  const resetToken = user.createPasswordResetToken();
+  await user.save({ validateBeforeSave: false });
+
+  try {
+    await sendPasswordResetEmail(user.email, resetToken, user.name);
+    console.log(`✅ Password reset email sent to: ${user.email}`);
+
+    return res
+      .status(200)
+      .json(new ApiResponse(200, { email: user.email }, "Password reset link has been sent to your email"));
+  } catch (error) {
+    user.resetPasswordToken   = undefined;
     user.resetPasswordExpires = undefined;
-    
-    // Clear refresh token for security
-    user.refreshToken = undefined;
-
-    await user.save();
-
-    console.log(`âœ… Password reset successful for: ${user.email}`);
-
-    // Send confirmation email (optional)
-    try {
-        await sendPasswordResetConfirmation(user.email, user.name);
-    } catch (error) {
-        console.error('âš ï¸ Failed to send confirmation email:', error);
-        // Don't throw error - password was already reset
-    }
-
-    return res
-        .status(200)
-        .json(new ApiResponse(
-            200,
-            {},
-            "Password has been reset successfully. You can now sign in with your new password."
-        ));
+    await user.save({ validateBeforeSave: false });
+    console.error("❌ Error sending reset email:", error);
+    throw new ApiError(500, "Failed to send reset email. Please try again later.");
+  }
 });
 
+// ─────────────────────────────────────────────────────────────────────────────
+// GET /api/v1/users/verify-reset-token/:token
+// ─────────────────────────────────────────────────────────────────────────────
+const verifyResetToken = asyncHandler(async (req, res) => {
+  const { token } = req.params;
+  if (!token) throw new ApiError(400, "Reset token is required");
+
+  const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+
+  const user = await User.findOne({
+    resetPasswordToken:   hashedToken,
+    resetPasswordExpires: { $gt: Date.now() },
+  });
+
+  if (!user) throw new ApiError(400, "Reset link is invalid or has expired");
+
+  return res.status(200).json(new ApiResponse(200, { valid: true }, "Reset token is valid"));
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// POST /api/v1/users/reset-password
+// ─────────────────────────────────────────────────────────────────────────────
+const resetPassword = asyncHandler(async (req, res) => {
+  const { token, newPassword } = req.body;
+
+  if (!token || !newPassword) throw new ApiError(400, "Token and new password are required");
+  if (newPassword.length < 6) throw new ApiError(400, "Password must be at least 6 characters long");
+
+  const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+
+  const user = await User.findOne({
+    resetPasswordToken:   hashedToken,
+    resetPasswordExpires: { $gt: Date.now() },
+  });
+
+  if (!user) throw new ApiError(400, "Reset link is invalid or has expired");
+
+  user.password             = newPassword;
+  user.resetPasswordToken   = undefined;
+  user.resetPasswordExpires = undefined;
+  user.refreshToken         = undefined; // Security: existing sessions invalidate
+
+  await user.save();
+  console.log(`✅ Password reset successful for: ${user.email}`);
+
+  try {
+    await sendPasswordResetConfirmation(user.email, user.name);
+  } catch (error) {
+    console.error("⚠️ Failed to send confirmation email:", error);
+    // Don't throw — password already reset
+  }
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, {}, "Password has been reset successfully. You can now sign in with your new password."));
+});
 
 export {
-    registerUser,
-    loginUser,
-    logoutUser,
-    refreshAccessToken,
-    getCurrentUser,
-    forgotPassword,
-    verifyResetToken,
-    resetPassword,
+  registerUser,
+  loginUser,
+  logoutUser,
+  refreshAccessToken,
+  getCurrentUser,
+  forgotPassword,
+  verifyResetToken,
+  resetPassword,
 };
