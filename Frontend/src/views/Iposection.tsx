@@ -209,25 +209,25 @@ function FormModal({
   };
 
   /* ── Design tokens (dark / light) ── */
-  const modalBg  = isDark ? '#101528'  : '#f0f7fe';
-  const modalBdr = isDark ? 'rgba(255,255,255,0.10)' : 'rgba(13,37,64,0.12)';
-  const blockBg  = isDark ? 'rgba(81,148,246,0.06)'  : 'rgba(81,148,246,0.06)';
-  const blockBdr = isDark ? 'rgba(81,148,246,0.18)'  : 'rgba(81,148,246,0.18)';
-  const bLabel   = isDark ? '#5194F6'  : '#2563eb';
-  const footBg   = isDark ? '#101528'  : '#f0f7fe';
+  const modalBg  = isDark ? '#041421'  : '#FCFDFE';
+  const modalBdr = isDark ? 'rgba(124,166,194,0.20)' : 'rgba(4,20,33,0.12)';
+  const blockBg  = isDark ? 'rgba(10,54,86,0.16)'  : 'rgba(10,54,86,0.06)';
+  const blockBdr = isDark ? 'rgba(124,166,194,0.25)'  : 'rgba(10,54,86,0.18)';
+  const bLabel   = isDark ? '#9bc1da'  : '#0A3656';
+  const footBg   = isDark ? '#041421'  : '#FCFDFE';
   const footBdr  = isDark ? 'rgba(255,255,255,0.10)' : 'rgba(13,37,64,0.10)';
   const inBg     = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.90)';
   const inBdr    = isDark ? 'rgba(255,255,255,0.12)' : 'rgba(13,37,64,0.18)';
-  const inTxt    = isDark ? '#ffffff'  : '#0d1b2a';
-  const lblClr   = isDark ? 'rgba(148,163,184,1)' : 'rgba(13,37,64,0.55)';
-  const hintClr  = isDark ? 'rgba(100,116,139,1)' : 'rgba(13,37,64,0.40)';
+  const inTxt    = isDark ? '#ffffff'  : '#041421';
+  const lblClr   = isDark ? 'rgba(148,163,184,1)' : 'rgba(4,20,33,0.55)';
+  const hintClr  = isDark ? 'rgba(100,116,139,1)' : 'rgba(4,20,33,0.42)';
   const starOff  = isDark ? 'rgb(209,213,219)' : 'rgba(13,37,64,0.20)';
   const cancelClr = isDark ? 'rgba(148,163,184,1)' : 'rgba(13,37,64,0.60)';
   const cancelBdr = isDark ? 'rgba(255,255,255,0.12)' : 'rgba(13,37,64,0.15)';
 
   /* CRITICAL: solid backgrounds on selects so option text is always visible */
-  const selBg  = isDark ? '#1C3656' : '#ffffff';
-  const selTxt = isDark ? '#ffffff' : '#0d1b2a';
+  const selBg  = isDark ? '#0A3656' : '#FCFDFE';
+  const selTxt = isDark ? '#ffffff' : '#041421';
 
   const IC = 'w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none transition-colors';
   const IS: React.CSSProperties = { background: inBg, border: `1px solid ${inBdr}`, color: inTxt, outline: 'none' };
@@ -247,7 +247,7 @@ function FormModal({
 
         {/* Header */}
         <div className="sticky top-0 p-5 flex items-center justify-between z-10 rounded-t-2xl"
-          style={{ background: 'linear-gradient(90deg,#101528,#5194F6)' }}>
+          style={{ background: 'linear-gradient(90deg,#041421,#0A3656)' }}>
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center">
               {initial ? <Edit3 className="w-4 h-4 text-white" /> : <Plus className="w-4 h-4 text-white" />}
@@ -280,17 +280,17 @@ function FormModal({
                 <div className="flex items-center gap-3">
                   {/* Preview circle */}
                   <div className="w-14 h-14 rounded-full flex-shrink-0 flex items-center justify-center overflow-hidden"
-                    style={{ background: 'rgba(81,148,246,0.12)', border: '2px solid rgba(81,148,246,0.25)' }}>
+                    style={{ background: 'rgba(10,54,86,0.12)', border: '2px solid rgba(10,54,86,0.25)' }}>
                     {logoPreview
                       ? <img src={logoPreview} alt="logo" className="w-full h-full object-cover" />
-                      : <span className="text-[#5194F6] font-bold text-lg">{form.logo || '?'}</span>
+                      : <span className="text-[#0A3656] dark:text-[#74A8C9] font-bold text-lg">{form.logo || '?'}</span>
                     }
                   </div>
                   {/* Upload button */}
                   <div className="flex-1">
                     <label className="flex items-center gap-2 cursor-pointer w-full px-3 py-2.5 rounded-lg text-sm transition-colors"
                       style={{ background: inBg, border: `1px solid ${inBdr}`, color: inTxt }}>
-                      <Upload className="w-4 h-4 flex-shrink-0" style={{ color: '#5194F6' }} />
+                      <Upload className="w-4 h-4 flex-shrink-0" style={{ color: isLight ? '#0A3656' : '#74A8C9' }} />
                       <span className="truncate" style={{ color: logoFile ? inTxt : 'rgba(148,163,184,0.8)' }}>
                         {logoFile ? logoFile.name : 'Upload image (JPG/PNG)'}
                       </span>
@@ -387,7 +387,7 @@ function FormModal({
                 <label className={LB} style={{ color: lblClr }}>
                   Min Investment *
                   {calcMin(form.priceRange, form.lotSize) && (
-                    <span className="ml-1 font-normal normal-case tracking-normal" style={{ color: '#5194F6', fontSize: 10 }}>
+                    <span className="ml-1 font-normal normal-case tracking-normal" style={{ color: isLight ? '#0A3656' : '#74A8C9', fontSize: 10 }}>
                       <Calculator className="inline w-3 h-3 mr-0.5" />auto
                     </span>
                   )}
@@ -396,7 +396,7 @@ function FormModal({
                   style={{
                     ...IS,
                     ...(calcMin(form.priceRange, form.lotSize)
-                      ? { borderColor: 'rgba(81,148,246,0.55)', color: '#5194F6', fontWeight: 600 }
+                      ? { borderColor: isLight ? 'rgba(10,54,86,0.55)' : 'rgba(116,168,201,0.55)', color: isLight ? '#0A3656' : '#74A8C9', fontWeight: 600 }
                       : {}),
                   }}
                   placeholder="Auto-calculated"
@@ -550,7 +550,7 @@ function FormModal({
           </button>
           <button onClick={submit} disabled={saving}
             className="flex-1 py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all disabled:opacity-60 disabled:cursor-not-allowed hover:shadow-lg"
-            style={{ background: 'linear-gradient(135deg,#5194F6,#3a7de0)', color: '#ffffff' }}>
+            style={{ background: '#0A3656', color: '#ffffff' }}>
             {saving
               ? <><Loader2 className="w-4 h-4 animate-spin" /><span>Saving...</span></>
               : <><Save className="w-4 h-4" />{initial ? 'Save Changes' : 'Add IPO'}</>}
@@ -578,14 +578,14 @@ function SwotAnalysis({ ipo, isLight = false }: { ipo: IPO; isLight?: boolean })
   const rows = [
     { k: 'strengths'     as const, l: 'Strengths',     col: '#16a34a', lightBg: 'rgba(220,252,231,0.8)', darkBg: 'rgba(34,197,94,0.08)',  lightBdr: 'rgba(134,239,172,0.6)', darkBdr: 'rgba(34,197,94,0.20)',  Icon: ShieldCheck   },
     { k: 'weaknesses'    as const, l: 'Weaknesses',    col: '#dc2626', lightBg: 'rgba(254,226,226,0.8)', darkBg: 'rgba(239,68,68,0.08)',  lightBdr: 'rgba(252,165,165,0.6)', darkBdr: 'rgba(239,68,68,0.20)',  Icon: ShieldAlert   },
-    { k: 'opportunities' as const, l: 'Opportunities', col: '#2563eb', lightBg: 'rgba(219,234,254,0.8)', darkBg: 'rgba(59,130,246,0.08)', lightBdr: 'rgba(147,197,253,0.6)', darkBdr: 'rgba(59,130,246,0.20)', Icon: TrendingUp    },
+    { k: 'opportunities' as const, l: 'Opportunities', col: '#0A3656', lightBg: 'rgba(10,54,86,0.08)', darkBg: 'rgba(10,54,86,0.16)', lightBdr: 'rgba(10,54,86,0.20)', darkBdr: 'rgba(124,166,194,0.25)', Icon: TrendingUp    },
     { k: 'threats'       as const, l: 'Threats',       col: '#d97706', lightBg: 'rgba(254,243,199,0.8)', darkBg: 'rgba(245,158,11,0.08)', lightBdr: 'rgba(253,211,77,0.6)',  darkBdr: 'rgba(245,158,11,0.20)', Icon: AlertTriangle },
   ];
 
   return (
     <div>
       <h3 className={`text-base font-bold mb-3 flex items-center gap-2 ${isLight ? 'text-slate-800' : 'text-white'}`}>
-        <BarChart3 className="w-4 h-4 text-[#5194F6]" />SWOT Analysis
+        <BarChart3 className="w-4 h-4 text-[#0A3656] dark:text-[#74A8C9]" />SWOT Analysis
       </h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {rows.map(({ k, l, col, lightBg, darkBg, lightBdr, darkBdr, Icon }) => {
@@ -627,21 +627,21 @@ function DetailModal({
 
   // ── Token map ──────────────────────────────────────────────────────────────
   const modalBg      = isLight ? '#ffffff' : 'linear-gradient(135deg,#1C3656 0%,#101528 100%)';
-  const modalBorder  = isLight ? '1px solid rgba(226,232,240,0.9)' : '1px solid rgba(81,148,246,0.15)';
+  const modalBorder  = isLight ? '1px solid rgba(4,20,33,0.10)' : '1px solid rgba(124,166,194,0.20)';
   const headerBg     = isLight ? '#f8fbff' : 'linear-gradient(135deg,#101528,#1C3656)';
-  const headerBorder = isLight ? '1px solid rgba(226,232,240,0.8)' : '1px solid rgba(81,148,246,0.20)';
-  const titleColor   = isLight ? '#0f172a' : 'white';
-  const metaColor    = isLight ? '#64748b' : '#94a3b8';
+  const headerBorder = isLight ? '1px solid rgba(4,20,33,0.10)' : '1px solid rgba(124,166,194,0.24)';
+  const titleColor   = isLight ? '#041421' : 'white';
+  const metaColor    = isLight ? '#36556d' : '#94a3b8';
   const categoryBorder = isLight ? '1px solid rgba(226,232,240,0.9)' : '1px solid rgba(255,255,255,0.15)';
   const tableBorder  = isLight ? '1px solid rgba(226,232,240,0.8)' : '1px solid rgba(255,255,255,0.08)';
   const rowEven      = isLight ? 'rgba(248,250,252,0.8)' : 'rgba(255,255,255,0.02)';
   const rowOdd       = isLight ? 'rgba(241,245,249,0.5)' : 'rgba(255,255,255,0.04)';
-  const rowLabel     = isLight ? '#64748b' : '#94a3b8';
-  const rowValue     = isLight ? '#0f172a' : 'white';
-  const sectionTitle = isLight ? '#0f172a' : 'white';
-  const perfLabel    = isLight ? '#64748b' : '#94a3b8';
-  const minInvBg     = isLight ? 'rgba(239,246,255,0.8)' : 'rgba(81,148,246,0.06)';
-  const minInvBdr    = isLight ? '1px solid rgba(219,234,254,0.9)' : '1px solid rgba(81,148,246,0.18)';
+  const rowLabel     = isLight ? '#36556d' : '#94a3b8';
+  const rowValue     = isLight ? '#041421' : 'white';
+  const sectionTitle = isLight ? '#041421' : 'white';
+  const perfLabel    = isLight ? '#36556d' : '#94a3b8';
+  const minInvBg     = isLight ? 'rgba(10,54,86,0.06)' : 'rgba(10,54,86,0.16)';
+  const minInvBdr    = isLight ? '1px solid rgba(10,54,86,0.16)' : '1px solid rgba(124,166,194,0.22)';
   const btnClose     = isLight
     ? 'text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-full p-2 transition-colors'
     : 'text-slate-400 hover:text-white hover:bg-white/10 rounded-full p-2 transition-colors';
@@ -656,7 +656,7 @@ function DetailModal({
         onClick={e => e.stopPropagation()}>
 
         {/* ── Top accent line ── */}
-        <div style={{ height: 3, background: 'linear-gradient(90deg,#5194F6,rgba(81,148,246,0.4),transparent)' }} />
+        <div style={{ height: 3, background: 'linear-gradient(90deg,#0A3656,rgba(127,177,207,0.4),transparent)' }} />
 
         {/* ── Header ── */}
         <div className="sticky top-0 p-5 md:p-6 z-10 rounded-t-2xl"
@@ -664,10 +664,10 @@ function DetailModal({
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-4">
               <div className="w-14 h-14 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0"
-                style={{ background: isLight ? 'rgba(239,246,255,0.9)' : 'rgba(81,148,246,0.15)', border: isLight ? '2px solid rgba(147,197,253,0.5)' : '2px solid rgba(81,148,246,0.30)' }}>
+                style={{ background: isLight ? 'rgba(10,54,86,0.06)' : 'rgba(10,54,86,0.24)', border: isLight ? '2px solid rgba(10,54,86,0.16)' : '2px solid rgba(124,166,194,0.30)' }}>
                 {ipo.logoUrl
                   ? <img src={ipo.logoUrl} alt={ipo.logo} className="w-full h-full object-cover" />
-                  : <span className="text-[#5194F6] font-bold text-xl">{ipo.logo}</span>
+                  : <span className="text-[#0A3656] dark:text-[#74A8C9] font-bold text-xl">{ipo.logo}</span>
                 }
               </div>
               <div>
@@ -706,7 +706,7 @@ function DetailModal({
           {/* Issue Details */}
           <div>
             <h3 className="text-base font-bold mb-3 flex items-center gap-2" style={{ color: sectionTitle }}>
-              <Zap className="w-4 h-4 text-[#5194F6]" />Issue Details
+              <Zap className="w-4 h-4 text-[#0A3656] dark:text-[#74A8C9]" />Issue Details
             </h3>
             <div className="rounded-xl overflow-hidden" style={{ border: tableBorder }}>
               {[
@@ -728,7 +728,7 @@ function DetailModal({
           {/* Important Dates */}
           <div>
             <h3 className="text-base font-bold mb-3 flex items-center gap-2" style={{ color: sectionTitle }}>
-              <Calendar className="w-4 h-4 text-[#5194F6]" />Important Dates
+              <Calendar className="w-4 h-4 text-[#0A3656] dark:text-[#74A8C9]" />Important Dates
             </h3>
             <div className="rounded-xl overflow-hidden" style={{ border: tableBorder }}>
               {[
@@ -752,7 +752,7 @@ function DetailModal({
           {(ipo.subscriptionStatus || ipo.gmp || ipo.listingGain != null) && (
             <div>
               <h3 className="text-base font-bold mb-3 flex items-center gap-2" style={{ color: sectionTitle }}>
-                <BarChart3 className="w-4 h-4 text-[#5194F6]" />Performance
+                <BarChart3 className="w-4 h-4 text-[#0A3656] dark:text-[#74A8C9]" />Performance
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 {ipo.subscriptionStatus && (
@@ -794,7 +794,7 @@ function DetailModal({
             onClick={() => ipo.rhpLink ? window.open(ipo.rhpLink, '_blank') : null}
             disabled={!ipo.rhpLink}
             className="w-full py-3 px-4 text-white rounded-lg font-semibold text-sm hover:shadow-lg hover:shadow-blue-500/25 transition-all flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
-            style={{ background: 'linear-gradient(135deg,#5194F6,#3a7de8)' }}>
+            style={{ background: '#0A3656' }}>
             <FileText className="w-4 h-4" />View RHP / DRHP
           </button>
         </div>
@@ -814,7 +814,7 @@ function IPOCard({
   return (
     <div className="rounded-xl hover:shadow-xl transition-all duration-300 overflow-hidden group hover:-translate-y-0.5 flex flex-col min-h-[360px]"
       style={{ background: isLight ? 'rgba(255,255,255,0.98)' : 'rgba(255,255,255,0.04)', border: isLight ? '1px solid rgba(226,232,240,0.9)' : '1px solid rgba(255,255,255,0.08)', boxShadow: isLight ? '0 2px 12px rgba(0,0,0,0.05)' : 'none' }}
-      onMouseEnter={e => (e.currentTarget.style.borderColor = 'rgba(81,148,246,0.40)')}
+      onMouseEnter={e => (e.currentTarget.style.borderColor = 'rgba(10,54,86,0.40)')}
       onMouseLeave={e => (e.currentTarget.style.borderColor = isLight ? 'rgba(226,232,240,0.9)' : 'rgba(255,255,255,0.08)')}>
 
       {/* Header */}
@@ -822,10 +822,10 @@ function IPOCard({
         <div className="flex items-center justify-between mb-2.5">
           <div className="flex items-center gap-2.5 min-w-0">
             <div className="w-10 h-10 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0"
-              style={{ background: 'linear-gradient(135deg,rgba(81,148,246,0.15),rgba(58,125,224,0.08))', border: '1px solid rgba(81,148,246,0.20)' }}>
+              style={{ background: 'linear-gradient(135deg,rgba(10,54,86,0.15),rgba(127,177,207,0.08))', border: '1px solid rgba(10,54,86,0.20)' }}>
               {ipo.logoUrl
                 ? <img src={ipo.logoUrl} alt={ipo.logo} className="w-full h-full object-cover" />
-                : <span className="text-[#5194F6] font-bold text-xs">{ipo.logo}</span>
+                : <span className="text-[#0A3656] dark:text-[#74A8C9] font-bold text-xs">{ipo.logo}</span>
               }
             </div>
             <div className="min-w-0">
@@ -836,8 +836,8 @@ function IPOCard({
           {isAdmin && (
             <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 ml-1">
               <button onClick={e => { e.stopPropagation(); onEdit(); }}
-                className="w-6 h-6 rounded-md flex items-center justify-center text-[#5194F6]"
-                style={{ background: 'rgba(81,148,246,0.10)' }}>
+                className="w-6 h-6 rounded-md flex items-center justify-center text-[#0A3656] dark:text-[#74A8C9]"
+                style={{ background: 'rgba(10,54,86,0.10)' }}>
                 <Edit3 className="w-3 h-3" />
               </button>
               <button onClick={e => { e.stopPropagation(); onDelete(); }}
@@ -867,7 +867,7 @@ function IPOCard({
           </div>
           <div>
             <p className={`text-[9px] uppercase tracking-wider ${isLight ? 'text-slate-400' : 'text-slate-500'}`}>Min. Investment</p>
-            <p className="text-xs font-bold text-[#5194F6] leading-tight mt-0.5">{ipo.minInvestment}</p>
+            <p className="text-xs font-bold text-[#0A3656] dark:text-[#74A8C9] leading-tight mt-0.5">{ipo.minInvestment}</p>
           </div>
           <div>
             <p className={`text-[9px] uppercase tracking-wider ${isLight ? 'text-slate-400' : 'text-slate-500'}`}>Issue Size</p>
@@ -892,7 +892,7 @@ function IPOCard({
               </span>
             )}
             {ipo.gmp != null && ipo.gmp > 0 && (
-              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-blue-500/10 border border-blue-500/20 rounded-full text-[10px] font-bold text-blue-400">
+              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-[#1F5F89]/10 border border-[#1F5F89]/20 rounded-full text-[10px] font-bold text-[#1F5F89]">
                 <Target className="w-2.5 h-2.5" />₹{ipo.gmp}
               </span>
             )}
@@ -914,7 +914,7 @@ function IPOCard({
       <div className="px-4 pb-4 pt-2">
         <button onClick={onViewDetail}
           className="w-full py-2 px-3 text-white rounded-lg font-semibold text-xs hover:shadow-md transition-all flex items-center justify-center gap-1.5 group/btn"
-          style={{ background: 'linear-gradient(135deg,#5194F6,#3a7de8)' }}>
+          style={{ background: '#0A3656' }}>
           View Details
           <ArrowRight className="w-3.5 h-3.5 group-hover/btn:translate-x-0.5 transition-transform" />
         </button>
@@ -938,7 +938,6 @@ const IPOSection = () => {
   const [sortBy,    setSortBy]   = useState<string>('default');
   const [loading,   setLoading]  = useState(true);
   const [error,     setError]    = useState<string | null>(null);
-  const [showAll,   setShowAll]  = useState(false);
 
   const [selectedIPO, setSelectedIPO] = useState<IPO | null>(null);
   const [detailOpen,  setDetailOpen]  = useState(false);
@@ -947,7 +946,7 @@ const IPOSection = () => {
   const [saving,      setSaving]      = useState(false);
   const [deleting,    setDeleting]    = useState(false);
 
-  const displayed = showAll ? ipos : ipos.slice(0, 3);
+  const displayed = ipos.slice(0, 4);
 
   const fetchIPOs = useCallback(async (tab: IPOStatus, sort: string = 'default') => {
     setLoading(true); setError(null);
@@ -960,10 +959,10 @@ const IPOSection = () => {
     finally { setLoading(false); }
   }, []);
 
-  useEffect(() => { setShowAll(false); fetchIPOs(activeTab, sortBy); }, [activeTab, sortBy, fetchIPOs]);
+  useEffect(() => { fetchIPOs(activeTab, sortBy); }, [activeTab, sortBy, fetchIPOs]);
 
   const switchTab = (tab: IPOStatus) => {
-    setActiveTab(tab); setShowAll(false);
+    setActiveTab(tab);
     setTimeout(() => document.getElementById('ipo-list-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
   };
 
@@ -1013,24 +1012,22 @@ const IPOSection = () => {
 
   return (
     <>
-      <div className="min-h-screen" style={{ background: isLight ? 'linear-gradient(160deg,#dce8f7 0%,#e8f2fd 45%,#dce8f7 100%)' : '#101528' }}>
+        <div className="min-h-screen" style={{ background: isLight ? '#FCFDFE' : '#041421' }}>
 
         {/* Hero */}
         <section className="relative overflow-hidden py-16 md:py-24"
-          style={{ background: isLight ? 'linear-gradient(135deg,#f8fbff 0%,#f0f7ff 50%,#f4f8fe 100%)' : '#101528', borderBottom: isLight ? '1px solid rgba(226,232,240,0.8)' : '1px solid rgba(81,148,246,0.08)' }}>
-          <div className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full blur-[130px] pointer-events-none" style={{ background: 'radial-gradient(circle,rgba(81,148,246,0.08) 0%,transparent 70%)' }} />
-          <div className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full blur-[100px] pointer-events-none"  style={{ background: 'radial-gradient(circle,rgba(56,189,248,0.05) 0%,transparent 70%)' }} />
+          style={{ background: isLight ? '#FCFDFE' : '#041421', borderBottom: isLight ? '1px solid rgba(4,20,33,0.10)' : '1px solid rgba(124,166,194,0.30)' }}>
 
           <div className="container mx-auto px-4 md:px-6 relative z-10">
             <div className="max-w-4xl mx-auto text-center">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-6"
-                style={{ background: 'rgba(81,148,246,0.08)', border: '1px solid rgba(81,148,246,0.18)' }}>
-                <Zap className="w-4 h-4 text-[#5194F6]" />
-                <span className="text-sm font-medium text-[#5194F6]">Live IPO Updates</span>
+                style={{ background: 'rgba(10,54,86,0.08)', border: '1px solid rgba(10,54,86,0.18)' }}>
+                <Zap className="w-4 h-4 text-[#0A3656] dark:text-[#74A8C9]" />
+                <span className="text-sm font-medium text-[#0A3656] dark:text-[#74A8C9]">Live IPO Updates</span>
               </div>
               <h1 className={`text-4xl md:text-5xl lg:text-6xl font-bold mb-6 ${isLight ? 'text-slate-900' : 'text-white'}`}>
                 Initial Public{' '}
-                <span style={{ background: 'linear-gradient(135deg,#5194F6,#7ab8fa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                <span className="text-[#0A3656] dark:text-[#9bc1da]">
                   Offerings
                 </span>
               </h1>
@@ -1041,14 +1038,14 @@ const IPOSection = () => {
               {/* Hero stat tiles */}
               <div className="grid grid-cols-3 gap-4 max-w-2xl mx-auto">
                 {([
-                  { s: 'open'     as IPOStatus, icon: <Building2  className="w-8 h-8 text-[#5194F6] mx-auto mb-2" /> },
-                  { s: 'upcoming' as IPOStatus, icon: <Clock      className="w-8 h-8 text-blue-400   mx-auto mb-2" /> },
+                  { s: 'open'     as IPOStatus, icon: <Building2  className="w-8 h-8 text-[#0A3656] dark:text-[#74A8C9] mx-auto mb-2" /> },
+                  { s: 'upcoming' as IPOStatus, icon: <Clock      className="w-8 h-8 text-[#74A8C9]   mx-auto mb-2" /> },
                   { s: 'closed'   as IPOStatus, icon: <Award      className="w-8 h-8 text-purple-400 mx-auto mb-2" /> },
                 ]).map(({ s, icon }) => (
                   <button key={s} onClick={() => switchTab(s)}
                     className="rounded-xl p-4 hover:scale-105 transition-all duration-200 cursor-pointer text-center group"
                     style={{ background: isLight ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.04)', border: isLight ? '1px solid rgba(226,232,240,0.9)' : '1px solid rgba(255,255,255,0.08)', boxShadow: isLight ? '0 2px 8px rgba(0,0,0,0.04)' : 'none' }}
-                    onMouseEnter={e => (e.currentTarget.style.borderColor = 'rgba(81,148,246,0.30)')}
+                    onMouseEnter={e => (e.currentTarget.style.borderColor = 'rgba(10,54,86,0.30)')}
                     onMouseLeave={e => (e.currentTarget.style.borderColor = isLight ? 'rgba(226,232,240,0.9)' : 'rgba(255,255,255,0.08)')}>
                     {icon}
                     <div className={`text-2xl font-bold ${isLight ? 'text-slate-800' : 'text-white'}`}>{counts[s]}</div>
@@ -1068,13 +1065,13 @@ const IPOSection = () => {
               {/* Status Tabs */}
               <div className="flex gap-1.5 overflow-x-auto flex-1 pb-0.5" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                 {(['open','upcoming','closed'] as IPOStatus[]).map(tab => (
-                  <button key={tab} onClick={() => { setActiveTab(tab); setShowAll(false); }}
+                  <button key={tab} onClick={() => { setActiveTab(tab); }}
                     className="flex-shrink-0 px-3.5 py-2 rounded-lg font-semibold text-xs sm:text-sm transition-all"
                     style={activeTab === tab
-                      ? { background: 'linear-gradient(135deg,#5194F6,#3a7de0)', color: '#ffffff' }
+                      ? { background: '#0A3656', color: '#ffffff' }
                       : isLight
                         ? { background: 'rgba(248,250,252,0.9)', color: '#64748b', border: '1px solid rgba(226,232,240,0.9)' }
-                        : { background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.65)', border: '1px solid rgba(81,148,246,0.15)' }}>
+                        : { background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.65)', border: '1px solid rgba(124,166,194,0.20)' }}>
                     {STATUS_CFG[tab].label}
                     <span className="ml-1 opacity-60">({counts[tab]})</span>
                   </button>
@@ -1084,11 +1081,11 @@ const IPOSection = () => {
               {/* Sort dropdown */}
               <select
                 value={sortBy}
-                onChange={e => { setSortBy(e.target.value); setShowAll(false); }}
+                onChange={e => { setSortBy(e.target.value); }}
                 className="flex-shrink-0 text-xs font-semibold rounded-xl px-3 py-2 focus:outline-none transition-all cursor-pointer"
                 style={isLight
                   ? { background: 'rgba(248,250,252,0.9)', color: '#64748b', border: '1px solid rgba(226,232,240,0.9)' }
-                  : { background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.65)', border: '1px solid rgba(81,148,246,0.15)' }}>
+                  : { background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.65)', border: '1px solid rgba(124,166,194,0.20)' }}>
                 <option value="default">Default</option>
                 <option value="gmp">GMP ↓</option>
                 <option value="rating">Rating ↓</option>
@@ -1099,7 +1096,7 @@ const IPOSection = () => {
               {isAdmin && (
                 <button onClick={() => { setEditIPO(null); setFormOpen(true); }}
                   className="hidden sm:flex flex-shrink-0 items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm hover:shadow-lg transition-all whitespace-nowrap"
-                  style={{ background: 'linear-gradient(135deg,#5194F6,#3a7de0)', color: '#ffffff' }}>
+                  style={{ background: '#0A3656', color: '#ffffff' }}>
                   <Plus className="w-4 h-4" />Add IPO
                 </button>
               )}
@@ -1114,7 +1111,7 @@ const IPOSection = () => {
             {isAdmin && (
               <button onClick={() => { setEditIPO(null); setFormOpen(true); }}
                 className="sm:hidden mt-2 w-full flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm hover:shadow-lg transition-all"
-                style={{ background: 'linear-gradient(135deg,#5194F6,#3a7de0)', color: '#ffffff' }}>
+                style={{ background: '#0A3656', color: '#ffffff' }}>
                 <Plus className="w-4 h-4" />Add IPO
               </button>
             )}
@@ -1122,7 +1119,7 @@ const IPOSection = () => {
 
           {loading && (
             <div className="flex flex-col items-center justify-center py-20 gap-3">
-              <Loader2 className="w-10 h-10 text-[#5194F6] animate-spin" />
+              <Loader2 className="w-10 h-10 text-[#0A3656] dark:text-[#74A8C9] animate-spin" />
               <p className={`text-sm ${isLight ? 'text-navy/60' : 'text-slate-400'}`}>Loading IPOs...</p>
             </div>
           )}
@@ -1135,7 +1132,7 @@ const IPOSection = () => {
               <br />
               <button onClick={() => fetchIPOs(activeTab)}
                 className="mt-2 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold"
-                style={{ background: 'rgba(81,148,246,0.10)', border: '1px solid rgba(81,148,246,0.20)', color: '#5194F6' }}>
+                style={{ background: isLight ? 'rgba(10,54,86,0.10)' : 'rgba(116,168,201,0.10)', border: isLight ? '1px solid rgba(10,54,86,0.20)' : '1px solid rgba(116,168,201,0.20)', color: isLight ? '#0A3656' : '#74A8C9' }}>
                 <RefreshCw className="w-4 h-4" />Try Again
               </button>
             </div>
@@ -1144,8 +1141,8 @@ const IPOSection = () => {
           {!loading && !error && ipos.length === 0 && (
             <div className="text-center py-16">
               <div className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-4"
-                style={{ background: 'rgba(81,148,246,0.08)', border: '1px solid rgba(81,148,246,0.15)' }}>
-                <Building2 className="w-10 h-10 text-[#5194F6]/40" />
+                style={{ background: 'rgba(10,54,86,0.08)', border: '1px solid rgba(10,54,86,0.15)' }}>
+                <Building2 className="w-10 h-10 text-[#0A3656] dark:text-[#74A8C9]/40" />
               </div>
               <h3 className={`text-xl font-semibold mb-2 ${isLight ? 'text-navy' : 'text-white'}`}>
                 No {STATUS_CFG[activeTab].label} IPOs found
@@ -1171,7 +1168,7 @@ const IPOSection = () => {
                 {isAdmin && (
                   <button onClick={() => { setEditIPO(null); setFormOpen(true); }}
                     className="inline-flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-sm"
-                    style={{ background: 'linear-gradient(135deg,#5194F6,#3a7de0)', color: '#ffffff' }}>
+                    style={{ background: '#0A3656', color: '#ffffff' }}>
                     <Plus className="w-4 h-4" />Add First IPO
                   </button>
                 )}
@@ -1191,23 +1188,10 @@ const IPOSection = () => {
                 ))}
               </div>
 
-              {ipos.length > 3 && (
-                <div className="mt-8 text-center flex items-center justify-center gap-3">
-                  <button onClick={() => setShowAll(p => !p)}
-                    className="inline-flex items-center gap-2 px-6 py-3 rounded-full transition-all duration-200 group"
-                    style={{ background: 'rgba(81,148,246,0.08)', border: '1px solid rgba(81,148,246,0.20)' }}>
-                    <span className="text-[#5194F6] font-semibold text-sm">
-                      {showAll ? 'Show Less' : `View All ${ipos.length} IPOs`}
-                    </span>
-                    <ChevronRight className={`w-4 h-4 text-[#5194F6] transition-transform duration-200 ${showAll ? 'rotate-90' : 'group-hover:translate-x-1'}`} />
-                  </button>
-                </div>
-              )}
-
-              <div className="mt-4 text-center">
+              <div className="mt-8 text-center">
                 <button onClick={() => navigate('/ipos')}
                   className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full font-bold text-sm hover:shadow-lg transition-all group"
-                  style={{ background: 'linear-gradient(135deg,#5194F6,#3a7de0)', color: '#ffffff' }}>
+                  style={{ background: '#0A3656', color: '#ffffff' }}>
                   Explore All IPOs
                   <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </button>
@@ -1217,18 +1201,18 @@ const IPOSection = () => {
 
           {/* Info Cards */}
           <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className={`p-6 rounded-2xl ${isLight ? "bg-blue-50 border border-blue-100" : ""}`} style={!isLight ? { background: 'rgba(56,189,248,0.05)', border: '1px solid rgba(56,189,248,0.15)' } : {}}>
-              <Shield className="w-10 h-10 text-blue-400 mb-4" />
+            <div className={`p-6 rounded-2xl ${isLight ? "bg-slate-50 border border-slate-200" : ""}`} style={!isLight ? { background: 'rgba(10,54,86,0.12)', border: '1px solid rgba(124,166,194,0.20)' } : {}}>
+              <Shield className="w-10 h-10 text-[#0A3656] dark:text-[#74A8C9] mb-4" />
               <h3 className={`text-lg font-bold mb-2 ${isLight ? 'text-slate-800' : 'text-white'}`}>SEBI Regulated</h3>
               <p className={`text-sm ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>All IPOs listed are SEBI-regulated with complete RHP transparency for informed decisions.</p>
             </div>
-            <div className={`p-6 rounded-2xl ${isLight ? "bg-emerald-50 border border-emerald-100" : ""}`} style={!isLight ? { background: 'rgba(52,211,153,0.05)', border: '1px solid rgba(52,211,153,0.15)' } : {}}>
+            <div className={`p-6 rounded-2xl ${isLight ? "bg-sky-50 border border-sky-100" : ""}`} style={!isLight ? { background: 'rgba(31,95,137,0.14)', border: '1px solid rgba(116,168,201,0.20)' } : {}}>
               <BarChart3 className="w-10 h-10 text-emerald-400 mb-4" />
               <h3 className={`text-lg font-bold mb-2 ${isLight ? 'text-slate-800' : 'text-white'}`}>Live GMP & Subscription</h3>
               <p className={`text-sm ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>Real-time grey market premium, subscription data, and day-wise allotment tracking.</p>
             </div>
-            <div className={`p-6 rounded-2xl ${isLight ? "bg-blue-50 border border-blue-100" : ""}`} style={!isLight ? { background: 'rgba(81,148,246,0.06)', border: '1px solid rgba(81,148,246,0.18)' } : {}}>
-              <FileText className="w-10 h-10 text-[#5194F6] mb-4" />
+            <div className={`p-6 rounded-2xl ${isLight ? "bg-slate-50 border border-slate-200" : ""}`} style={!isLight ? { background: 'rgba(10,54,86,0.12)', border: '1px solid rgba(124,166,194,0.20)' } : {}}>
+              <FileText className="w-10 h-10 text-[#0A3656] dark:text-[#74A8C9] mb-4" />
               <h3 className={`text-lg font-bold mb-2 ${isLight ? 'text-slate-800' : 'text-white'}`}>Expert Analysis</h3>
               <p className={`text-sm ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>Detailed IPO reviews, DRHP financials, and exclusive investbeans insight analysis by a certified experts.</p>
             </div>

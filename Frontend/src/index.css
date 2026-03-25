@@ -8,8 +8,15 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 0 0% 98%;
-    --foreground: 215 25% 15%;
+    /* Imperial Blue palette family */
+    --brand-ice: 210 43% 99%;   /* #FCFDFE */
+    --brand-deep: 205 79% 19%;  /* #0A3656 */
+    --brand-ocean: 204 64% 33%; /* ~#1F5F89 */
+    --brand-sky: 204 45% 62%;   /* ~#74A8C9 */
+    --brand-ink: 205 78% 8%;    /* #041421 */
+
+    --background: 210 43% 99%;
+    --foreground: 205 78% 8%;
 
     --card: 0 0% 100%;
     --card-foreground: 215 25% 15%;
@@ -17,17 +24,17 @@ All colors MUST be HSL.
     --popover: 0 0% 100%;
     --popover-foreground: 215 25% 15%;
 
-    --primary: 215 30% 15%;
+    --primary: 205 79% 19%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 215 25% 15%;
+    --secondary: 210 37% 96%;
+    --secondary-foreground: 205 78% 8%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215 16% 47%;
+    --muted: 210 37% 96%;
+    --muted-foreground: 205 24% 31%;
 
-    --accent: 35 90% 60%;
-    --accent-foreground: 215 25% 15%;
+    --accent: 205 79% 19%;
+    --accent-foreground: 0 0% 100%;
 
     --success: 142 76% 36%;
     --success-foreground: 0 0% 100%;
@@ -35,15 +42,15 @@ All colors MUST be HSL.
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 215 30% 15%;
+    --border: 207 31% 86%;
+    --input: 207 31% 86%;
+    --ring: 205 79% 19%;
 
     --radius: 0.5rem;
 
-    --navy: 215 30% 15%;
-    --navy-light: 215 25% 25%;
-    --navy-lighter: 215 20% 35%;
+    --navy: 205 79% 19%;
+    --navy-light: 205 52% 30%;
+    --navy-lighter: 205 35% 42%;
     --positive: 142 76% 36%;
     --positive-light: 142 76% 46%;
     --negative: 0 72% 51%;
@@ -51,16 +58,16 @@ All colors MUST be HSL.
     --neutral: 215 16% 47%;
 
     /* Gradients */
-    --gradient-hero: linear-gradient(135deg, hsl(215 30% 15%), hsl(215 25% 25%));
-    --gradient-accent: linear-gradient(135deg, hsl(35 90% 60%), hsl(35 90% 70%));
-    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%), hsl(210 40% 98%));
+    --gradient-hero: linear-gradient(135deg, hsl(var(--brand-deep)), hsl(var(--brand-ocean)));
+    --gradient-accent: linear-gradient(135deg, hsl(var(--brand-deep)), hsl(var(--brand-sky)));
+    --gradient-card: linear-gradient(180deg, hsl(var(--brand-ice)), hsl(206 42% 96%));
     
     /* Shadows */
     --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
     --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
     --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
     --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
-    --shadow-glow: 0 0 20px hsl(35 90% 60% / 0.3);
+    --shadow-glow: 0 0 24px hsl(var(--brand-ocean) / 0.2);
     
     /* Transitions */
     --transition-base: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -69,6 +76,48 @@ All colors MUST be HSL.
 }
 
 @layer base {
+  .dark {
+    --background: 205 78% 6%;
+    --foreground: 210 30% 94%;
+
+    --card: 205 65% 10%;
+    --card-foreground: 210 30% 92%;
+
+    --popover: 205 65% 10%;
+    --popover-foreground: 210 30% 92%;
+
+    --primary: 204 45% 62%;
+    --primary-foreground: 205 78% 8%;
+
+    --secondary: 205 50% 14%;
+    --secondary-foreground: 210 30% 92%;
+
+    --muted: 205 50% 14%;
+    --muted-foreground: 204 25% 64%;
+
+    --accent: 204 45% 62%;
+    --accent-foreground: 205 78% 8%;
+
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 100%;
+
+    --destructive: 0 62% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 205 40% 18%;
+    --input: 205 40% 18%;
+    --ring: 204 45% 62%;
+
+    --navy: 204 45% 62%;
+    --navy-light: 204 35% 50%;
+    --navy-lighter: 204 30% 60%;
+
+    --gradient-hero: linear-gradient(135deg, hsl(205 78% 6%), hsl(205 65% 14%));
+    --gradient-accent: linear-gradient(135deg, hsl(204 64% 33%), hsl(204 45% 62%));
+    --gradient-card: linear-gradient(180deg, hsl(205 65% 10%), hsl(205 60% 8%));
+    --shadow-glow: 0 0 24px hsl(204 45% 62% / 0.15);
+  }
+
   * {
     @apply border-border;
   }

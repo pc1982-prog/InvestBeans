@@ -272,7 +272,7 @@ export default function TestimonialForm({ isOpen, onClose, onSuccess, existing }
                         disabled={loading}
                         style={{
                             width: "100%", padding: "14px", borderRadius: "12px", fontSize: "15px", fontWeight: 700,
-                            border: "none", background: loading ? "rgba(81,148,246,0.5)" : "#5194F6",
+                            border: "none", background: loading ? "rgba(81,148,246,0.5)" : "#2563eb",
                             color: "#fff", cursor: loading ? "not-allowed" : "pointer",
                             display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
                         }}

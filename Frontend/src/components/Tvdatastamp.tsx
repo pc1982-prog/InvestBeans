@@ -40,12 +40,12 @@ const TVDataStamp: React.FC<TVDataStampProps> = ({ mode, type, isLight }) => {
   const exchange = mode === "domestic" ? "NSE / BSE" : "NASDAQ / NYSE";
   const label = type === "chart" ? "Live Chart" : "Live Heatmap";
 
-  const bg = isLight ? "rgba(255,255,255,0.82)" : "rgba(10,20,35,0.85)";
-  const borderTop = isLight ? "1px solid rgba(13,37,64,0.09)" : "1px solid rgba(255,255,255,0.07)";
+  const bg = isLight ? "rgba(255,255,255,0.95)" : "rgba(10,15,30,0.9)";
+  const borderTop = isLight ? "1px solid rgba(0,0,0,0.06)" : "1px solid rgba(255,255,255,0.07)";
   const textPrimary = isLight ? "#0d1b2a" : "#e2e8f0";
   const textMuted = isLight ? "rgba(13,27,42,0.5)" : "rgba(200,210,225,0.45)";
-  const tagBg = "rgba(212,168,67,0.1)";
-  const tagBorder = isLight ? "1px solid rgba(212,168,67,0.28)" : "1px solid rgba(212,168,67,0.22)";
+  const tagBg = isLight ? "rgba(37,99,235,0.06)" : "rgba(37,99,235,0.08)";
+  const tagBorder = isLight ? "1px solid rgba(37,99,235,0.15)" : "1px solid rgba(37,99,235,0.18)";
 
   return (
     <>
@@ -119,7 +119,7 @@ const TVDataStamp: React.FC<TVDataStampProps> = ({ mode, type, isLight }) => {
             style={{
               fontSize: 10,
               fontWeight: 600,
-              color: "#D4A843",
+              color: isLight ? "#0A3656" : "#9bc1da",
               background: tagBg,
               border: tagBorder,
               borderRadius: 99,

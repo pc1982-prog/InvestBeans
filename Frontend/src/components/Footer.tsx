@@ -7,19 +7,19 @@ const Footer = () => {
 
   // ── Theme-aware class helpers ───────────────────────────────────────────
   const footerBg = isLight
-    ? "bg-gradient-to-br from-[#f0f6ff] via-[#f8fbff] to-[#eef4fd] text-navy py-16 relative overflow-hidden"
+    ? "bg-gradient-to-br from-[#f3f8fc] via-[#FCFDFE] to-[#eef4f9] text-navy py-16 relative overflow-hidden"
     : "bg-gradient-to-br from-[#101528] to-[#1C395B] text-white py-16 relative overflow-hidden";
 
   const blob1 = isLight
     ? "absolute top-0 left-0 w-96 h-96 bg-blue-200/30 rounded-full blur-3xl"
-    : "absolute top-0 left-0 w-96 h-96 bg-[#4E91F6]/5 rounded-full blur-3xl";
+    : "absolute top-0 left-0 w-96 h-96 bg-[#0A3656]/8 rounded-full blur-3xl";
 
   const blob2 = isLight
     ? "absolute bottom-0 right-0 w-96 h-96 bg-indigo-200/25 rounded-full blur-3xl"
-    : "absolute bottom-0 right-0 w-96 h-96 bg-[#4E91F6]/5 rounded-full blur-3xl";
+    : "absolute bottom-0 right-0 w-96 h-96 bg-[#0A3656]/8 rounded-full blur-3xl";
 
   const disclaimerText = isLight
-    ? "text-sm md:text-base text-left leading-relaxed text-slate-600"
+    ? "text-sm md:text-base text-left leading-relaxed text-slate-700"
     : "text-sm md:text-base text-left leading-relaxed text-white/90";
 
   const hrCls = isLight
@@ -27,20 +27,20 @@ const Footer = () => {
     : "border-white/20 mt-4";
 
   const taglineCls = isLight
-    ? "text-sm text-slate-500 leading-relaxed mb-6 max-w-md"
+    ? "text-sm text-slate-600 leading-relaxed mb-6 max-w-md"
     : "text-sm text-white/85 leading-relaxed mb-6 max-w-md";
 
   const socialBtnCls = isLight
-    ? "w-10 h-10 bg-white hover:bg-[#4E91F6] rounded-xl flex items-center justify-center transition-all hover:scale-110 text-slate-500 hover:text-white shadow-sm border border-slate-200 hover:border-[#4E91F6] hover:shadow-md hover:shadow-blue-200/50"
-    : "w-10 h-10 bg-white/10 hover:bg-[#4E91F6] rounded-lg flex items-center justify-center transition-all hover:scale-110";
+    ? "w-10 h-10 bg-white hover:bg-[#0A3656] rounded-xl flex items-center justify-center transition-all hover:scale-110 text-slate-500 hover:text-white shadow-sm border border-slate-200 hover:border-[#0A3656] hover:shadow-md hover:shadow-blue-200/50"
+    : "w-10 h-10 bg-white/10 hover:bg-[#0A3656] rounded-lg flex items-center justify-center transition-all hover:scale-110";
 
   const sectionHeadingCls = isLight
-    ? "text-sm font-bold mb-5 text-[#4E91F6] uppercase tracking-widest"
-    : "text-lg font-semibold mb-4 text-[#4E91F6]";
+    ? "text-sm font-bold mb-5 text-[#0A3656] uppercase tracking-widest"
+    : "text-lg font-semibold mb-4 text-[#9bc1da]";
 
   const linkCls = isLight
-    ? "text-slate-500 hover:text-[#4E91F6] transition-all hover:translate-x-1 inline-block text-sm font-medium"
-    : "text-white/80 hover:text-white hover:text-[#4E91F6] transition-all hover:translate-x-1 inline-block";
+    ? "text-slate-600 hover:text-[#0A3656] transition-all hover:translate-x-1 inline-block text-sm font-medium"
+    : "text-white/80 hover:text-white hover:text-[#9bc1da] transition-all hover:translate-x-1 inline-block";
 
   const borderTopCls = isLight
     ? "border-t border-slate-200 pt-8"
@@ -57,9 +57,9 @@ const Footer = () => {
 
       {/* Disclaimer Section */}
       <div className="container mx-auto px-6 mb-6 relative z-15">
-        <div className={isLight ? "bg-blue-50/70 border border-blue-100 rounded-2xl px-5 py-4 mb-4" : ""}>
+        <div className={isLight ? "bg-slate-50/80 border border-slate-200 rounded-2xl px-5 py-4 mb-4" : ""}>
           <p className={disclaimerText}>
-            <span className="font-bold text-[#4E91F6]">Disclaimer:</span> InvestBeans provides educational content only and does not offer personalized investment advice.
+            <span className="font-bold text-[#0A3656] dark:text-[#74A8C9]">Disclaimer:</span> InvestBeans provides educational content only and does not offer personalized investment advice.
             All trading and investing decisions are the sole responsibility of the individual.
             Investments in financial markets are subject to risk, and past performance does not indicate future results.
           </p>
@@ -120,7 +120,7 @@ const Footer = () => {
       href="https://www.strategixworks.com/"
       target="_blank"
       rel="noopener noreferrer"
-      className="font-bold tracking-wide hover:underline transition-all duration-200 text-[#4E91F6] "
+      className="font-bold tracking-wide hover:underline transition-all duration-200 text-[#0A3656] dark:text-[#74A8C9] "
     >
       Strategix
     </a> — Delivering intelligent digital solutions.

@@ -208,14 +208,14 @@ const MarketTickerInline = () => {
                 <span className="text-xs opacity-70">{market.flag}</span>
               )}
               <span
-                className="text-sm font-medium transition-colors group-hover:text-[#5194F6]"
-                style={{ color: isLight ? "rgba(30,58,95,0.65)" : "rgba(255,255,255,0.65)" }}
+                className="text-sm font-medium transition-colors group-hover:text-[#1F5F89]"
+                style={{ color: isLight ? "rgba(4,20,33,0.72)" : "rgba(255,255,255,0.70)" }}
               >
                 {market.name}
               </span>
               <span
                 className="font-bold text-sm"
-                style={{ color: isLight ? "#0d1b2a" : "rgba(255,255,255,0.92)" }}
+                style={{ color: isLight ? "#041421" : "rgba(255,255,255,0.92)" }}
               >
                 {market.value}
               </span>
@@ -238,7 +238,7 @@ const MarketTickerInline = () => {
             </div>
 
             {/* Separator dot — exactly as original */}
-            <span style={{ opacity: 0.25, fontSize: 10, color: isLight ? "#1e3a5f" : "#fff" }}>•</span>
+            <span style={{ opacity: 0.25, fontSize: 10, color: isLight ? "#36556d" : "#fff" }}>•</span>
           </div>
         ))}
       </div>
@@ -269,13 +269,13 @@ const DropLink = ({
       to={to}
       onClick={onClick}
       className="block px-3 py-1.5 rounded-md text-[13px] font-medium transition cursor-pointer"
-      style={{ color: theme === "light" ? "rgba(30,58,95,0.80)" : "rgba(200,223,248,0.80)" }}
+      style={{ color: theme === "light" ? "rgba(4,20,33,0.84)" : "rgba(200,223,248,0.84)" }}
       onMouseEnter={e => {
-        (e.currentTarget as HTMLElement).style.color = "#5194F6";
-        (e.currentTarget as HTMLElement).style.background = "rgba(78,145,246,0.10)";
+        (e.currentTarget as HTMLElement).style.color = "#1F5F89";
+        (e.currentTarget as HTMLElement).style.background = "rgba(10,54,86,0.10)";
       }}
       onMouseLeave={e => {
-        (e.currentTarget as HTMLElement).style.color = theme === "light" ? "rgba(30,58,95,0.80)" : "rgba(200,223,248,0.80)";
+        (e.currentTarget as HTMLElement).style.color = theme === "light" ? "rgba(4,20,33,0.84)" : "rgba(200,223,248,0.84)";
         (e.currentTarget as HTMLElement).style.background = "transparent";
       }}
     >
@@ -297,13 +297,13 @@ const DropBtn = ({
     <button
       onClick={onClick}
       className="w-full text-left px-3 py-1.5 text-[13px] rounded-md transition cursor-pointer"
-      style={{ color: theme === "light" ? "rgba(30,58,95,0.80)" : "rgba(200,223,248,0.80)" }}
+      style={{ color: theme === "light" ? "rgba(4,20,33,0.84)" : "rgba(200,223,248,0.84)" }}
       onMouseEnter={e => {
-        (e.currentTarget as HTMLElement).style.color = "#5194F6";
-        (e.currentTarget as HTMLElement).style.background = "rgba(78,145,246,0.10)";
+        (e.currentTarget as HTMLElement).style.color = "#1F5F89";
+        (e.currentTarget as HTMLElement).style.background = "rgba(10,54,86,0.10)";
       }}
       onMouseLeave={e => {
-        (e.currentTarget as HTMLElement).style.color = theme === "light" ? "rgba(30,58,95,0.80)" : "rgba(200,223,248,0.80)";
+        (e.currentTarget as HTMLElement).style.color = theme === "light" ? "rgba(4,20,33,0.84)" : "rgba(200,223,248,0.84)";
         (e.currentTarget as HTMLElement).style.background = "transparent";
       }}
     >
@@ -334,19 +334,19 @@ const CommodityTabLink = ({
       <button
         onClick={() => { onClick?.(); navigate(to); }}
         className="w-full text-left px-3 py-2 rounded-md transition cursor-pointer flex items-center gap-2.5"
-        style={{ color: theme === "light" ? "rgba(30,58,95,0.80)" : "rgba(200,223,248,0.80)" }}
+        style={{ color: theme === "light" ? "rgba(4,20,33,0.84)" : "rgba(200,223,248,0.84)" }}
         onMouseEnter={e => {
-          (e.currentTarget as HTMLElement).style.color = "#5194F6";
-          (e.currentTarget as HTMLElement).style.background = "rgba(78,145,246,0.10)";
+          (e.currentTarget as HTMLElement).style.color = "#1F5F89";
+          (e.currentTarget as HTMLElement).style.background = "rgba(10,54,86,0.10)";
         }}
         onMouseLeave={e => {
-          (e.currentTarget as HTMLElement).style.color = theme === "light" ? "rgba(30,58,95,0.80)" : "rgba(200,223,248,0.80)";
+          (e.currentTarget as HTMLElement).style.color = theme === "light" ? "rgba(4,20,33,0.84)" : "rgba(200,223,248,0.84)";
           (e.currentTarget as HTMLElement).style.background = "transparent";
         }}
       >
         <div className="w-6 h-6 rounded-md flex items-center justify-center shrink-0"
-          style={{ background: "rgba(81,148,246,0.12)" }}>
-          <Icon className="w-3.5 h-3.5" style={{ color: "#5194F6" }} />
+          style={{ background: "rgba(10,54,86,0.12)" }}>
+          <Icon className="w-3.5 h-3.5" style={{ color: "#1F5F89" }} />
         </div>
         <div className="min-w-0">
           <p className="text-[13px] font-medium leading-none">{label}</p>
@@ -378,9 +378,9 @@ const NavItem = ({
         <DropdownMenuTrigger asChild>
           <button
             className="text-[13.5px] font-medium transition-colors px-2 py-1 rounded-md flex items-center gap-0.5 focus:outline-none whitespace-nowrap"
-            style={{ color: theme === "light" ? "#1e3a5f" : "#c8dff8" }}
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#5194F6"; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = theme === "light" ? "#1e3a5f" : "#c8dff8"; }}
+            style={{ color: theme === "light" ? "#041421" : "#c8dff8" }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#1F5F89"; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = theme === "light" ? "#041421" : "#c8dff8"; }}
             onClick={() => {
               if (href) { dd.close(); navigate(href); }
               else dd.toggle();
@@ -482,9 +482,9 @@ const Header = () => {
       <button
         onClick={toggle}
         className="w-full flex items-center justify-between font-medium py-3 px-3 rounded-md transition-colors"
-        style={{ color: isLight ? "#1e3a5f" : "#c8dff8" }}
-        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#5194F6"; }}
-        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = isLight ? "#1e3a5f" : "#c8dff8"; }}
+        style={{ color: isLight ? "#041421" : "#c8dff8" }}
+        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#1F5F89"; }}
+        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = isLight ? "#041421" : "#c8dff8"; }}
       >
         <span>{label}</span>
         <ChevronDown
@@ -513,9 +513,9 @@ const Header = () => {
     <Link
       to={to}
       className="block font-medium py-2 px-3 rounded-md text-sm transition-colors"
-      style={{ color: isLight ? "rgba(30,58,95,0.80)" : "rgba(200,223,248,0.90)" }}
-      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#5194F6"; }}
-      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = isLight ? "rgba(30,58,95,0.80)" : "rgba(200,223,248,0.90)"; }}
+      style={{ color: isLight ? "rgba(4,20,33,0.82)" : "rgba(200,223,248,0.90)" }}
+      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#1F5F89"; }}
+      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = isLight ? "rgba(4,20,33,0.82)" : "rgba(200,223,248,0.90)"; }}
       onClick={closeMobile}
     >
       {children}
@@ -536,9 +536,9 @@ const Header = () => {
     <button
       onClick={() => { scrollToSection(id); closeMobile(); }}
       className="block font-medium py-2 px-3 rounded-md w-full text-left text-sm transition-colors"
-      style={{ color: isLight ? "rgba(30,58,95,0.80)" : "rgba(200,223,248,0.90)" }}
-      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#5194F6"; }}
-      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = isLight ? "rgba(30,58,95,0.80)" : "rgba(200,223,248,0.90)"; }}
+      style={{ color: isLight ? "rgba(4,20,33,0.82)" : "rgba(200,223,248,0.90)" }}
+      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#1F5F89"; }}
+      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = isLight ? "rgba(4,20,33,0.82)" : "rgba(200,223,248,0.90)"; }}
     >
       {children}
     </button>
@@ -546,26 +546,26 @@ const Header = () => {
 
   // ── Theme-aware class helpers ─────────────────────────────────────────────
   const headerBg = isLight
-    ? "bg-white text-[#1e3a5f] shadow-sm border-b border-slate-200"
-    : "bg-[#101528] text-white shadow-lg border-b border-[#1C3656]/70";
+    ? "bg-[#FCFDFE] text-[#041421] shadow-sm border-b border-slate-200/85"
+    : "bg-[#041421] text-white shadow-lg border-b border-[#0b314d]/55";
 
   const tickerBg = isLight
-    ? "bg-white py-1.5 sm:py-2.5 border-b border-slate-200"
-    : "bg-[#0b0f1e] py-1.5 sm:py-2.5 border-b border-[#1C3656]/50";
+    ? "bg-[#FCFDFE] py-1.5 sm:py-2.5 border-b border-slate-200/85"
+    : "bg-[#03111d] py-1.5 sm:py-2.5 border-b border-[#0b314d]/45";
 
   const mobileBg = isLight
-    ? "md:hidden bg-white border-t border-slate-200"
-    : "md:hidden bg-[#101528] border-t border-[#1C3656]/70";
+    ? "md:hidden bg-[#FCFDFE] border-t border-slate-200/85"
+    : "md:hidden bg-[#041421]/95 border-t border-[#0b314d]/50";
 
   const userBtnCls = isLight
-    ? "p-2.5 rounded-full bg-navy/8 hover:bg-navy/15 transition-all hover:scale-110"
-    : "p-2.5 rounded-full bg-[#1C3656]/60 hover:bg-[#1C3656] text-[#5194F6] transition-all hover:scale-110 border border-[#1C3656]";
+    ? "p-2.5 rounded-full bg-[#0A3656]/8 hover:bg-[#0A3656]/15 transition-all hover:scale-110"
+    : "p-2.5 rounded-full bg-[#0A3656]/60 hover:bg-[#0A3656] text-[#9bc1da] transition-all hover:scale-110 border border-[#0A3656]";
 
-  const userIconCls = isLight ? "text-navy" : "text-[#5194F6]";
+  const userIconCls = isLight ? "text-[#041421]" : "text-[#9bc1da]";
 
   const dropdownContentCls = isLight
-    ? "min-w-[160px] p-2 bg-white/96 text-navy rounded-xl shadow-lg ring-1 ring-black/[0.07] border border-slate-200/80 backdrop-blur-xl"
-    : "min-w-[160px] p-2 bg-[#101528]/98 text-white rounded-xl shadow-lg ring-1 ring-[#1C3656]/70 border border-[#1C3656]/50 backdrop-blur-xl";
+    ? "min-w-[160px] p-2 bg-[#FCFDFE]/96 text-[#041421] rounded-xl shadow-lg ring-1 ring-black/[0.07] border border-slate-200/80 backdrop-blur-xl"
+    : "min-w-[160px] p-2 bg-[#041421]/96 text-white rounded-xl shadow-2xl ring-1 ring-[#2a5a7d]/45 border border-[#2a5a7d]/42 backdrop-blur-xl";
 
   // ── Commodities tab definitions (matching CommoditiesView tabs) ───────────
   const COMMODITY_TABS = [
@@ -583,7 +583,7 @@ const Header = () => {
         <MarketTickerInline />
       </div>
 
-      <header className={`${headerBg} backdrop-blur-sm`}>
+      <header className={`${headerBg} ${isLight ? "backdrop-blur-sm" : ""}`}>
         <nav className="container mx-auto px-3 sm:px-4 md:px-6 py-2 flex items-center justify-between min-h-[52px] sm:min-h-[56px]">
 
           {/* ── Left: logo + nav ──────────────────────────────────────────── */}
@@ -592,7 +592,7 @@ const Header = () => {
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="md:hidden transition-colors p-1.5 sm:p-2 rounded-md"
               style={{ color: isLight ? "#1e3a5f" : "#c8dff8" }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#5194F6"; }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#1F5F89"; }}
               onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = isLight ? "#1e3a5f" : "#c8dff8"; }}
               aria-label="Toggle menu"
             >
@@ -616,7 +616,7 @@ const Header = () => {
                     right: 0,
                     width: "50%",
                     height: "100%",
-                    background: "#5194F6",
+                    background: "#1F5F89",
                     mixBlendMode: "hue",
                     opacity: 0.85,
                     borderRadius: "0 4px 4px 0",
@@ -682,9 +682,9 @@ const Header = () => {
                 <Link
                   to="/ipos"
                   className="text-[13.5px] font-medium transition-colors px-2 py-1 rounded-md whitespace-nowrap"
-                  style={{ color: isLight ? "#1e3a5f" : "#c8dff8" }}
-                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#5194F6"; }}
-                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = isLight ? "#1e3a5f" : "#c8dff8"; }}
+                  style={{ color: isLight ? "#041421" : "#c8dff8" }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#1F5F89"; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = isLight ? "#041421" : "#c8dff8"; }}
                 >IPO</Link>
               </li>
 
@@ -693,9 +693,9 @@ const Header = () => {
                 <Link
                   to="/blogs"
                   className="text-[13.5px] font-medium transition-colors px-2 py-1 rounded-md whitespace-nowrap"
-                  style={{ color: isLight ? "#1e3a5f" : "#c8dff8" }}
-                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#5194F6"; }}
-                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = isLight ? "#1e3a5f" : "#c8dff8"; }}
+                  style={{ color: isLight ? "#041421" : "#c8dff8" }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#1F5F89"; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = isLight ? "#041421" : "#c8dff8"; }}
                 >Blogs</Link>
               </li>
 
@@ -704,9 +704,9 @@ const Header = () => {
                 <Link
                   to="/help-center"
                   className="text-[13.5px] font-medium transition-colors px-2 py-1 rounded-md whitespace-nowrap"
-                  style={{ color: isLight ? "#1e3a5f" : "#c8dff8" }}
-                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#5194F6"; }}
-                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = isLight ? "#1e3a5f" : "#c8dff8"; }}
+                  style={{ color: isLight ? "#041421" : "#c8dff8" }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#1F5F89"; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = isLight ? "#041421" : "#c8dff8"; }}
                 >Help</Link>
               </li>
 
@@ -719,10 +719,10 @@ const Header = () => {
             <button
               onClick={toggleTheme}
               aria-label={isLight ? "Switch to dark mode" : "Switch to light mode"}
-              className={`relative flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full transition-all duration-300 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-[#5194F6]/40 ${
+              className={`relative flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full transition-all duration-300 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-[#0A3656]/40 ${
                 isLight
                   ? "bg-slate-100 hover:bg-slate-200 text-navy shadow-sm border border-slate-300"
-                  : "bg-[#1C3656]/60 hover:bg-[#1C3656] text-[#5194F6] border border-[#1C3656]"
+                  : "bg-[#1C3656]/60 hover:bg-[#1C3656] text-[#9bc1da] border border-[#1C3656]"
               }`}
             >
               {isLight ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
@@ -734,7 +734,7 @@ const Header = () => {
                   <DropdownMenuTrigger asChild>
                     <button
                       onClick={userMenu.toggle}
-                      className={`relative flex items-center gap-3 p-1.5 rounded-full transition-all focus:outline-none focus:ring-2 focus:ring-[#5194F6]/40 ${
+                      className={`relative flex items-center gap-3 p-1.5 rounded-full transition-all focus:outline-none focus:ring-2 focus:ring-[#0A3656]/40 ${
                         isLight ? "hover:bg-navy/8" : "hover:bg-[#1C3656]/60"
                       }`}
                     >
@@ -751,9 +751,9 @@ const Header = () => {
                           <Shield size={8} color="white" />
                         </span>
                       )}
-                      <Avatar className={`h-9 w-9 border-2 ring-2 ${isLight ? "border-slate-300 ring-slate-200" : "border-[#1C3656] ring-[#5194F6]/20"}`}>
+                      <Avatar className={`h-9 w-9 border-2 ring-2 ${isLight ? "border-slate-300 ring-slate-200" : "border-[#1C3656] ring-[#0A3656]/20"}`}>
                         <AvatarImage src={user?.image} alt={user.name} className="object-cover" />
-                        <AvatarFallback className="bg-gradient-to-br from-[#5194F6] to-[#5194F6]/60 text-white font-semibold">
+                        <AvatarFallback className="bg-gradient-to-br from-[#0A3656] to-[#1F5F89] text-white font-semibold">
                           {getUserInitials()}
                         </AvatarFallback>
                       </Avatar>
@@ -772,7 +772,7 @@ const Header = () => {
                       <div className="flex items-center gap-3 mb-2">
                         <Avatar className="h-10 w-10 border-2 border-gray-200">
                           <AvatarImage src={user?.image} alt={user.name} className="object-cover" />
-                          <AvatarFallback className="bg-gradient-to-br from-[#5194F6] to-[#5194F6]/60 text-white font-semibold text-sm">
+                          <AvatarFallback className="bg-gradient-to-br from-[#0A3656] to-[#1F5F89] text-white font-semibold text-sm">
                             {getUserInitials()}
                           </AvatarFallback>
                         </Avatar>
@@ -837,12 +837,12 @@ const Header = () => {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" sideOffset={8} className={dropdownContentCls}>
                         <DropdownMenuItem asChild>
-                          <Link to="/signin" className="block px-3 py-2 rounded-md text-sm font-medium hover:bg-[#5194F6]/10 hover:text-[#5194F6] transition" onClick={userMenu.close}>
+                          <Link to="/signin" className="block px-3 py-2 rounded-md text-sm font-medium hover:bg-[#1F5F89]/10 hover:text-[#1F5F89] transition" onClick={userMenu.close}>
                             Login
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
-                          <Link to="/signup" className="block px-3 py-2 rounded-md text-sm font-medium hover:bg-[#5194F6]/10 hover:text-[#5194F6] transition" onClick={userMenu.close}>
+                          <Link to="/signup" className="block px-3 py-2 rounded-md text-sm font-medium hover:bg-[#1F5F89]/10 hover:text-[#1F5F89] transition" onClick={userMenu.close}>
                             Sign up
                           </Link>
                         </DropdownMenuItem>
@@ -859,10 +859,10 @@ const Header = () => {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" sideOffset={8} className={dropdownContentCls}>
                       <DropdownMenuItem asChild>
-                        <Link to="/signin" className="block px-3 py-2 rounded-md text-sm font-medium hover:bg-[#5194F6]/10 hover:text-[#5194F6] transition">Login</Link>
+                        <Link to="/signin" className="block px-3 py-2 rounded-md text-sm font-medium hover:bg-[#1F5F89]/10 hover:text-[#1F5F89] transition">Login</Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
-                        <Link to="/signup" className="block px-3 py-2 rounded-md text-sm font-medium hover:bg-[#5194F6]/10 hover:text-[#5194F6] transition">Sign up</Link>
+                        <Link to="/signup" className="block px-3 py-2 rounded-md text-sm font-medium hover:bg-[#1F5F89]/10 hover:text-[#1F5F89] transition">Sign up</Link>
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -915,9 +915,9 @@ const Header = () => {
                   <Link
                     to="/ipos"
                     className="block font-medium py-3 px-3 rounded-md transition-colors"
-                    style={{ color: isLight ? "rgba(30,58,95,0.90)" : "#c8dff8" }}
-                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#5194F6"; }}
-                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = isLight ? "rgba(30,58,95,0.90)" : "#c8dff8"; }}
+                    style={{ color: isLight ? "rgba(4,20,33,0.90)" : "#c8dff8" }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#1F5F89"; }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = isLight ? "rgba(4,20,33,0.90)" : "#c8dff8"; }}
                     onClick={closeMobile}
                   >IPO</Link>
                 </li>
@@ -926,9 +926,9 @@ const Header = () => {
                   <Link
                     to="/blogs"
                     className="block font-medium py-3 px-3 rounded-md transition-colors"
-                    style={{ color: isLight ? "rgba(30,58,95,0.90)" : "#c8dff8" }}
-                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#5194F6"; }}
-                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = isLight ? "rgba(30,58,95,0.90)" : "#c8dff8"; }}
+                    style={{ color: isLight ? "rgba(4,20,33,0.90)" : "#c8dff8" }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#1F5F89"; }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = isLight ? "rgba(4,20,33,0.90)" : "#c8dff8"; }}
                     onClick={closeMobile}
                   >Blogs</Link>
                 </li>
@@ -945,7 +945,7 @@ const Header = () => {
                       className={`w-full font-semibold transition-all shadow-sm ${
                         isLight
                           ? "bg-navy text-white hover:bg-navy/80"
-                          : "bg-[#1C3656] text-[#5194F6] border border-[#5194F6]/30 hover:bg-[#5194F6] hover:text-white"
+                          : "bg-[#1C3656] text-[#9bc1da] border border-[#0A3656]/30 hover:bg-[#0A3656] hover:text-white"
                       }`}
                     >
                       Log out
