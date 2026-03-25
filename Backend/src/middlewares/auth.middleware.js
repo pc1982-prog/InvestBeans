@@ -95,4 +95,29 @@ export const verifyJWTOrSession = asyncHandler(async (req, res, next) => {
         }
         throw new ApiError(401, error?.message || "Authentication failed");
     }
+
+    
 });
+
+
+// auth.middleware.js mein add karo — neeche existing code ke baad
+
+export const optionalJWT = async (req, res, next) => {
+    try {
+      const token =
+        req.cookies?.accessToken ||
+        req.header("Authorization")?.replace("Bearer ", "");
+  
+      if (!token) {
+        req.user = null;
+        return next();
+      }
+  
+      const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+      const user = await User.findById(decoded?._id).select("-password -refreshToken");
+      req.user = user || null;
+    } catch {
+      req.user = null; // expired/invalid token — treat as guest
+    }
+    next();
+  };
