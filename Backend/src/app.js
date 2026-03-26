@@ -168,6 +168,7 @@ import commoditiesRouter   from "./routes/Commodities.routes.js";   // ← COMMO
 import paymentRouter       from "./routes/Payment.routes.js";
 import kiteTestRouter      from "./routes/Kite_test.js";
 import adminRouter from "./routes/Admin.routes.js";
+import subscriptionRouter from "./routes/Subscription.routes.js";
 
 
 // ══════════════════════════════════════════════════════════════════════
@@ -187,7 +188,7 @@ app.use("/api/v1",                 paymentRouter);
 app.use("/api/v1/markets",         globalMarketsRouter);
 app.use("/api/v1/markets",         marketHistoryRouter);
 app.use("/api/v1/kite",            KiteRouter);
-
+app.use("/api/v1/subscriptions", subscriptionRouter);
 // ── Commodities & ETFs — Full integration (MCX, AMFI, COT, EIA) ───────────
 // Endpoints:
 //   GET /api/v1/commodities/all            → Full data (5-min cache)

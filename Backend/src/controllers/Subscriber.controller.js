@@ -2,25 +2,19 @@ import { Resend } from "resend";
 import { Subscriber } from "../models/Subscriber.model.js";
 import { getWelcomeEmailHTML } from "../utils/subscribeEmail.template.js";
 
-// Initialize Resend with API key from environment
+
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-// ─── Email validation regex (RFC 5322 simplified) ────────────────────────────
+
 const EMAIL_REGEX = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/;
 
-// ─── Disposable email domains blacklist (common ones) ────────────────────────
+
 const DISPOSABLE_DOMAINS = new Set([
     "mailinator.com", "guerrillamail.com", "10minutemail.com",
     "trashmail.com", "yopmail.com", "tempmail.com", "throwaway.email",
     "sharklasers.com", "guerrillamailblock.com",
 ]);
 
-/**
- * POST /api/v1/subscribe
- * Subscribe a user to the newsletter.
- * If user is logged in, their userId is linked.
- * Sends a welcome email via Resend.
- */
 export const subscribeNewsletter = async (req, res) => {
     try {
         const { email } = req.body;

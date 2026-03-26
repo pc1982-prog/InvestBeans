@@ -1,6 +1,8 @@
 import Layout from "@/components/Layout";
 import Hero from "@/components/Hero";
 import axios from "axios";
+import { useState, useEffect, useMemo } from "react";
+import type { UserSubscription } from "./PlanCards";
 import { Activity, TrendingUp } from "lucide-react";
 import { useAuth } from "@/controllers/AuthContext";
 import { useTheme } from "@/controllers/Themecontext";
@@ -21,6 +23,7 @@ type HomeViewProps = { activeTab: ActiveTab; onChangeTab: (tab: ActiveTab) => vo
 
 const HomeView = ({ activeTab, onChangeTab }: HomeViewProps) => {
   const { isAuthenticated } = useAuth();
+  const { subscriptions: userSubscriptions } = useUserSubscriptions(isAuthenticated);
   const { theme } = useTheme();
   const navigate = useNavigate();
   const isLight = theme === "light";
@@ -93,6 +96,44 @@ const HomeView = ({ activeTab, onChangeTab }: HomeViewProps) => {
     // @ts-ignore
     new Razorpay(options).open();
   };
+  function useUserSubscriptions(isAuthenticated: boolean) {
+    const [subscriptions, setSubscriptions] = useState<UserSubscription[]>([]);
+    const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+      // Guest users ke liye fetch mat karo
+      if (!isAuthenticated) { setSubscriptions([]); return; }
+
+      const API = import.meta.env.VITE_API_URL || "";
+
+      const fetchSubs = async () => {
+        setLoading(true);
+        try {
+          // GET /api/v1/subscriptions/my — user ki active + recently expired subs
+          const res = await fetch(`${API}/subscriptions/my`, {
+            credentials: "include",
+            headers: { Authorization: `Bearer ${localStorage.getItem("accessToken") || ""}` },
+          });
+
+          if (!res.ok) throw new Error("fetch failed");
+
+          const data = await res.json();
+          // data.subscriptions = array of { plan, status, endDate, daysRemaining }
+          setSubscriptions(data.subscriptions || []);
+        } catch (e) {
+          // Fail silently — worst case cards show without status
+          console.warn("Could not fetch subscriptions:", e);
+          setSubscriptions([]);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      fetchSubs();
+    }, [isAuthenticated]);
+
+    return { subscriptions, loading };
+  }
 
   return (
     <Layout>
@@ -143,149 +184,150 @@ const HomeView = ({ activeTab, onChangeTab }: HomeViewProps) => {
         )}
 
         <div style={{ position: "relative", zIndex: 1 }}>
-        <Hero />
+          <Hero />
 
-        <div className="container mx-auto px-6 py-16">
+          <div className="container mx-auto px-6 py-16">
 
 
-          {/* ── Live Dashboard ──────────────────────────────────────────── */}
-          <section className="mb-20 rounded-3xl p-5 md:p-7" style={sectionPanelStyle}>
-            <div>
-              <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-10">
-                <div className="mb-6 md:mb-0">
-                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg mb-4" style={goldBadge}>
-                    <Activity className="w-4 h-4" style={{ color: isLight ? OCEAN : SKY }} />
-                    <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: isLight ? OCEAN : SKY }}>
-                      {activeTab === "domestic" ? "Market Live" : "Live Data"}
-                    </span>
+            {/* ── Live Dashboard ──────────────────────────────────────────── */}
+            <section className="mb-20 rounded-3xl p-5 md:p-7" style={sectionPanelStyle}>
+              <div>
+                <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-10">
+                  <div className="mb-6 md:mb-0">
+                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg mb-4" style={goldBadge}>
+                      <Activity className="w-4 h-4" style={{ color: isLight ? OCEAN : SKY }} />
+                      <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: isLight ? OCEAN : SKY }}>
+                        {activeTab === "domestic" ? "Market Live" : "Live Data"}
+                      </span>
+                    </div>
+                    <h2 className={`text-4xl md:text-5xl font-bold mb-2 ${headingCls}`}>
+                      {activeTab === "domestic" ? "BharatPulse" : "Live Dashboard"}
+                    </h2>
+                    <p className={subTextCls}>
+                      {activeTab === "domestic"
+                        ? "Navigate Bharat's markets with live data, sharp analytics, and smart insights."
+                        : "Real-time market data and interactive charts at your fingertips."}
+                    </p>
                   </div>
-                  <h2 className={`text-4xl md:text-5xl font-bold mb-2 ${headingCls}`}>
-                    {activeTab === "domestic" ? "BharatPulse" : "Live Dashboard"}
-                  </h2>
-                  <p className={subTextCls}>
-                    {activeTab === "domestic"
-                      ? "Navigate Bharat's markets with live data, sharp analytics, and smart insights."
-                      : "Real-time market data and interactive charts at your fingertips."}
-                  </p>
-                </div>
 
-                <div className="flex gap-1 p-1 rounded-xl"
-                  style={{ background: tabContainerBg, border: tabContainerBorder }}>
-                  {(["domestic", "global"] as const).map((tab) => (
-                    <button key={tab} onClick={() => onChangeTab(tab)}
-                      className="px-5 py-2 rounded-lg text-sm font-medium transition-all capitalize"
-                      style={activeTab === tab
-                        ? { background: GOLD, color: "#ffffff" }
-                        : { color: tabInactiveCls }}>
-                      {tab}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-
-
-              <div className="w-full mb-8 overflow-hidden rounded-2xl" style={{ border: widgetBorder, boxShadow: isLight ? "0 10px 30px rgba(4,20,33,0.10)" : "0 10px 36px rgba(0,0,0,0.42)" }}>
-                <TradingViewWidget mode={activeTab} theme={isLight ? "light" : "dark"} height="600px" />
-                {/* ── Data freshness strip ── */}
-                <TVDataStamp mode={activeTab} type="chart" isLight={isLight} />
-              </div>
-
-
-              <div className="mb-8">
-                <h3 className={`text-2xl font-bold mb-6 text-center ${headingCls}`}>Market Heatmap</h3>
-                <div className="w-full rounded-t-2xl overflow-hidden" style={{ border: widgetBorder, borderBottom: "none", boxShadow: isLight ? "0 10px 30px rgba(4,20,33,0.10)" : "0 10px 36px rgba(0,0,0,0.42)" }}>
-                  <div className="h-[600px]">
-                    <StockHeatmapWidget dataSource={activeTab === "domestic" ? "SENSEX" : "World"} />
+                  <div className="flex gap-1 p-1 rounded-xl"
+                    style={{ background: tabContainerBg, border: tabContainerBorder }}>
+                    {(["domestic", "global"] as const).map((tab) => (
+                      <button key={tab} onClick={() => onChangeTab(tab)}
+                        className="px-5 py-2 rounded-lg text-sm font-medium transition-all capitalize"
+                        style={activeTab === tab
+                          ? { background: GOLD, color: "#ffffff" }
+                          : { color: tabInactiveCls }}>
+                        {tab}
+                      </button>
+                    ))}
                   </div>
                 </div>
-                <div className="w-full rounded-b-2xl overflow-hidden" style={{ border: widgetBorder, borderTop: "none" }}>
-                  <TVDataStamp
-                    mode={activeTab}
-                    type="heatmap"
-                    isLight={isLight}
-                  />
+
+
+
+                <div className="w-full mb-8 overflow-hidden rounded-2xl" style={{ border: widgetBorder, boxShadow: isLight ? "0 10px 30px rgba(4,20,33,0.10)" : "0 10px 36px rgba(0,0,0,0.42)" }}>
+                  <TradingViewWidget mode={activeTab} theme={isLight ? "light" : "dark"} height="600px" />
+                  {/* ── Data freshness strip ── */}
+                  <TVDataStamp mode={activeTab} type="chart" isLight={isLight} />
+                </div>
+
+
+                <div className="mb-8">
+                  <h3 className={`text-2xl font-bold mb-6 text-center ${headingCls}`}>Market Heatmap</h3>
+                  <div className="w-full rounded-t-2xl overflow-hidden" style={{ border: widgetBorder, borderBottom: "none", boxShadow: isLight ? "0 10px 30px rgba(4,20,33,0.10)" : "0 10px 36px rgba(0,0,0,0.42)" }}>
+                    <div className="h-[600px]">
+                      <StockHeatmapWidget dataSource={activeTab === "domestic" ? "SENSEX" : "World"} />
+                    </div>
+                  </div>
+                  <div className="w-full rounded-b-2xl overflow-hidden" style={{ border: widgetBorder, borderTop: "none" }}>
+                    <TVDataStamp
+                      mode={activeTab}
+                      type="heatmap"
+                      isLight={isLight}
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
-          </section>
-          {/* ── IPO Section ─────────────────────────────────────────────── */}
-          <section className="mt-2"><IPOSection /></section>
+            </section>
+            {/* ── IPO Section ─────────────────────────────────────────────── */}
+            <section className="mt-2"><IPOSection /></section>
 
-          {/* ── Decode Market ────────────────────────────────────────────── */}
-          <section className="mt-12 rounded-3xl p-5 md:p-7" style={sectionPanelStyle}>
-            <DecodeMarket activeTab={activeTab} />
-          </section>
+            {/* ── Decode Market ────────────────────────────────────────────── */}
+            <section className="mt-12 rounded-3xl p-5 md:p-7" style={sectionPanelStyle}>
+              <DecodeMarket activeTab={activeTab} />
+            </section>
 
 
-          {/* ── Beans of Wisdom ──────────────────────────────────────────── */}
-          <section className="mt-12 rounded-3xl p-5 md:p-7" style={sectionPanelStyle}>
-            <BeansOfWisdomView />
-          </section>
-          {/* ═══════════════════════════════════════════════════════════════
+            {/* ── Beans of Wisdom ──────────────────────────────────────────── */}
+            <section className="mt-12 rounded-3xl p-5 md:p-7" style={sectionPanelStyle}>
+              <BeansOfWisdomView />
+            </section>
+            {/* ═══════════════════════════════════════════════════════════════
               PRICING PLANS SECTION
           ═══════════════════════════════════════════════════════════════ */}
-          <section className="mt-16 mb-8 rounded-3xl p-5 md:p-7" style={sectionPanelStyle}>
+            <section className="mt-16 mb-8 rounded-3xl p-5 md:p-7" style={sectionPanelStyle}>
 
-            {/* ── Section Heading ── */}
-            <div className="text-center mb-4">
+              {/* ── Section Heading ── */}
+              <div className="text-center mb-4">
 
-              {/* Badge */}
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg mb-5" style={goldBadge}>
-                <TrendingUp className="w-4 h-4" style={{ color: isLight ? OCEAN : SKY }} />
-                <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: isLight ? OCEAN : SKY }}>
-                  Pricing Plans
-                </span>
+                {/* Badge */}
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg mb-5" style={goldBadge}>
+                  <TrendingUp className="w-4 h-4" style={{ color: isLight ? OCEAN : SKY }} />
+                  <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: isLight ? OCEAN : SKY }}>
+                    Pricing Plans
+                  </span>
+                </div>
+
+                {/* Main heading */}
+                <h2
+                  className={`text-4xl md:text-5xl font-extrabold mb-4 leading-tight tracking-tight ${headingCls}`}
+                >
+                  Invest Smarter,{" "}
+                  <span style={{ color: isLight ? OCEAN : SKY }}>
+                    Choose Your Plan
+                  </span>
+                </h2>
+
+                {/* Subtext */}
+                <p className={`text-base max-w-xl mx-auto leading-relaxed ${subTextCls}`}>
+                  From market basics to pro-level dashboards — pick the plan that
+                  powers your investing journey.
+                </p>
               </div>
 
-              {/* Main heading */}
-              <h2
-                className={`text-4xl md:text-5xl font-extrabold mb-4 leading-tight tracking-tight ${headingCls}`}
-              >
-                Invest Smarter,{" "}
-                <span style={{ color: isLight ? OCEAN : SKY }}>
-                  Choose Your Plan
-                </span>
-              </h2>
+              {/* ── Plan Cards ── */}
+              <PlanCards
+                isLight={isLight}
+                userSubscriptions={userSubscriptions}
+                onCta={(planId: string) => navigate(`/plans/${planId}/checkout`)}
+              />
 
-              {/* Subtext */}
-              <p className={`text-base max-w-xl mx-auto leading-relaxed ${subTextCls}`}>
-                From market basics to pro-level dashboards — pick the plan that
-                powers your investing journey.
-              </p>
+            </section>
+
+            {/* ── Testimonials ─────────────────────────────────────────────── */}
+            <div className="mt-14 rounded-3xl p-5 md:p-7" style={sectionPanelStyle}>
+              <TestimonialsPage />
             </div>
 
-            {/* ── Plan Cards ── */}
-            <PlanCards
-              isLight={isLight}
-              onCta={(planId: string) => navigate(`/plans/${planId}/checkout`)}
-            />
 
-          </section>
+            {/* ── Newsletter ───────────────────────────────────────────────── */}
+            <div className="mt-14 rounded-3xl p-5 md:p-7" style={sectionPanelStyle}>
+              <Subscribeview
+                sectionWrapBg={sectionWrapBg}
+                sectionWrapBorder={sectionWrapBorder}
+                sectionTopLine={sectionTopLine}
+                glow1="transparent"
+                headingCls={headingCls}
+                subTextCls={subTextCls}
+                GOLD={GOLD}
+                emailInputBg={emailInputBg}
+                emailInputBorder={emailInputBorder}
+                emailInputText={emailInputText}
+              />
+            </div>
 
-          {/* ── Testimonials ─────────────────────────────────────────────── */}
-          <div className="mt-14 rounded-3xl p-5 md:p-7" style={sectionPanelStyle}>
-            <TestimonialsPage />
           </div>
-
-
-          {/* ── Newsletter ───────────────────────────────────────────────── */}
-          <div className="mt-14 rounded-3xl p-5 md:p-7" style={sectionPanelStyle}>
-            <Subscribeview
-              sectionWrapBg={sectionWrapBg}
-              sectionWrapBorder={sectionWrapBorder}
-              sectionTopLine={sectionTopLine}
-              glow1="transparent"
-              headingCls={headingCls}
-              subTextCls={subTextCls}
-              GOLD={GOLD}
-              emailInputBg={emailInputBg}
-              emailInputBorder={emailInputBorder}
-              emailInputText={emailInputText}
-            />
-          </div>
-
-        </div>
         </div>
       </div>
     </Layout>
