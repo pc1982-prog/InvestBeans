@@ -213,7 +213,7 @@ function TestimonialCard({
       </p>
 
       {/* Author */}
-      <div style={{ display: "flex", alignItems: "center", gap: "12px", paddingTop: "4px" }}>
+      <div style={{ display: "flex", alignItems: isMobile ? "flex-start" : "center", gap: "12px", paddingTop: "4px", flexWrap: isMobile ? "wrap" : "nowrap" }}>
         <div style={{
           width: "40px", height: "40px", borderRadius: "50%",
           background: avatarBg, display: "flex", alignItems: "center", justifyContent: "center",
@@ -226,11 +226,19 @@ function TestimonialCard({
           <p style={{ margin: "2px 0 0", fontSize: "12px", color: roleColor }}>
             {[t.role, t.company].filter(Boolean).join(" · ")}
           </p>
+          {isMobile && (
+            <div style={{ display: "flex", alignItems: "center", gap: "6px", marginTop: "4px" }}>
+              <div style={{ width: "4px", height: "4px", borderRadius: "50%", background: sourceDotColor }} />
+              <span style={{ fontSize: "11px", color: sourceColor }}>{t.source}</span>
+            </div>
+          )}
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: "6px", flexShrink: 0 }}>
-          <div style={{ width: "4px", height: "4px", borderRadius: "50%", background: sourceDotColor }} />
-          <span style={{ fontSize: "11px", color: sourceColor }}>{t.source}</span>
-        </div>
+        {!isMobile && (
+          <div style={{ display: "flex", alignItems: "center", gap: "6px", flexShrink: 0 }}>
+            <div style={{ width: "4px", height: "4px", borderRadius: "50%", background: sourceDotColor }} />
+            <span style={{ fontSize: "11px", color: sourceColor }}>{t.source}</span>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -477,7 +485,7 @@ export default function TestimonialsPage() {
       </div>
 
       {/* ── Carousel ── */}
-      <div style={{ width: "100%", maxWidth: "1400px", margin: "0 auto", padding: isMobile ? "0 16px" : "0 20px", boxSizing: "border-box", display: "flex", flexDirection: "column", gap: "24px" }}>
+      <div style={{ width: "100%", maxWidth: "1400px", margin: "0 auto", padding: isMobile ? "0 12px" : "0 20px", boxSizing: "border-box", display: "flex", flexDirection: "column", gap: "24px" }}>
 
         {/* Loading spinner */}
         {loadingApi && (
@@ -509,7 +517,7 @@ export default function TestimonialsPage() {
               </button>
             )}
 
-            <div style={{ flex: 1, display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: isMobile ? "0" : "24px", minWidth: 0 }}>
+            <div style={{ flex: 1, display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: isMobile ? "16px" : "24px", minWidth: 0, width: "100%" }}>
               {visible.map(t => {
                 const isMyCard  = !!t._id && t.userId === user?._id;
                 const isApiCard = !!t._id;

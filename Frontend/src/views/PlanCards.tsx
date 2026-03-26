@@ -125,8 +125,6 @@ function PlanCard({ plan, isLight = true, onCta }) {
         position: "relative",
         display: "flex",
         flexDirection: "column",
-        marginTop: plan.popular ? "-10px" : "10px",
-        marginBottom: plan.popular ? "10px" : "0px",
         transition: "transform 0.2s ease, box-shadow 0.2s ease",
       }}
       onMouseEnter={e => {
@@ -252,12 +250,13 @@ export default function PlanCards({ isLight = true, onCta }) {
   return (
     <div style={{
       display: "grid",
-      gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+      gridTemplateColumns: "repeat(auto-fit, minmax(min(280px, 100%), 1fr))",
       gap: "24px",
       alignItems: "start",
       padding: "24px 16px",
       maxWidth: "1200px",
       margin: "0 auto",
+      boxSizing: "border-box" as const,
     }}>
       {PLANS.map(plan => (
         <PlanCard

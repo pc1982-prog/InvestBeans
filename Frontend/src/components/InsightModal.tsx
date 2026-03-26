@@ -205,12 +205,14 @@ const InsightModal = ({ isOpen, onClose, insight, loading = false }: InsightModa
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 animate-fade-in"
+      className="fixed inset-0 z-50 flex items-start sm:items-center justify-center p-3 pt-4 sm:p-4 animate-fade-in overflow-y-auto"
       style={{ background: "rgba(0,0,0,0.72)", backdropFilter: "blur(8px)" }}
+      onClick={onClose}
     >
       <div
-        className="relative w-full max-w-lg max-h-[92vh] rounded-2xl shadow-2xl overflow-hidden animate-scale-in flex flex-col"
+        className="relative w-full max-w-lg max-h-[92vh] sm:max-h-[92vh] rounded-2xl shadow-2xl overflow-hidden animate-scale-in flex flex-col my-auto sm:my-0"
         style={{ background: modalBg, border: modalBorder, boxShadow: "0 25px 60px rgba(0,0,0,0.5)" }}
+        onClick={e => e.stopPropagation()}
       >
         <div className="absolute top-0 left-0 right-0 h-px" style={{ background: blueTopLine }} />
 

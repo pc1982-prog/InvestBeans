@@ -317,6 +317,16 @@ router.get("/fo/instruments", async (req, res) => {
 
 // ── NSE CORPORATE ACTIONS PROXY ───────────────────────────────────
 let _nseSession = { cookies: "", ts: 0 };
+
+// Rotate UAs to reduce VPS IP detection on production
+const NSE_USER_AGENTS = [
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+  "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
+];
+let _uaIdx = 0;
+const getUA = () => NSE_USER_AGENTS[(_uaIdx++) % NSE_USER_AGENTS.length];
 const NSE_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
 const NSE_COMMON = {
   "User-Agent": NSE_UA, "Accept-Language": "en-IN,en-US;q=0.9,en;q=0.8",
@@ -334,27 +344,37 @@ function mergeCookies(existing, incoming = []) {
 
 async function refreshNseSession() {
   console.log("🔄 Refreshing NSE session...");
+  const ua = getUA();
+  const dynamicCommon = { ...NSE_COMMON, "User-Agent": ua };
+
   const r1 = await axios.get("https://www.nseindia.com/", {
     timeout: 15000,
-    headers: { ...NSE_COMMON, Accept: "text/html,application/xhtml+xml,*/*;q=0.8", "Cache-Control": "no-cache",
+    headers: { ...dynamicCommon, Accept: "text/html,application/xhtml+xml,*/*;q=0.8", "Cache-Control": "no-cache",
       "sec-fetch-dest": "document", "sec-fetch-mode": "navigate", "sec-fetch-site": "none", "Upgrade-Insecure-Requests": "1" },
   });
   let cookies = mergeCookies("", r1.headers["set-cookie"] || []);
-  await new Promise(r => setTimeout(r, 1500));
+  await new Promise(r => setTimeout(r, 1200));
+
+  // ✅ KEY FIX: Warm up the exact FII-DII page — NSE checks Referer chain
+  // Production servers get blocked because they skip this warm-up step
   try {
-    const r2 = await axios.get("https://www.nseindia.com/companies-listing/corporate-filings-actions", {
+    const r2 = await axios.get("https://www.nseindia.com/market-data/fii-dii-activity", {
       timeout: 12000,
-      headers: { ...NSE_COMMON, Accept: "text/html,application/xhtml+xml,*/*;q=0.8", Referer: "https://www.nseindia.com/",
-        Cookie: cookies, "sec-fetch-dest": "document", "sec-fetch-mode": "navigate", "sec-fetch-site": "same-origin", "Upgrade-Insecure-Requests": "1" },
+      headers: { ...dynamicCommon, Accept: "text/html,application/xhtml+xml,*/*;q=0.8",
+        Referer: "https://www.nseindia.com/",
+        Cookie: cookies, "sec-fetch-dest": "document", "sec-fetch-mode": "navigate",
+        "sec-fetch-site": "same-origin", "Upgrade-Insecure-Requests": "1" },
     });
     cookies = mergeCookies(cookies, r2.headers["set-cookie"] || []);
-  } catch (e) { console.warn("  NSE filings page warmup failed:", e.message); }
+  } catch (e) { console.warn("  NSE fii-dii page warmup failed:", e.message); }
+
+  await new Promise(r => setTimeout(r, 600));
   _nseSession = { cookies, ts: Date.now() };
   return cookies;
 }
 
 async function getNseSession(forceRefresh = false) {
-  const CACHE_MS = 8 * 60 * 1000;
+  const CACHE_MS = 6 * 60 * 1000;
   if (!forceRefresh && _nseSession.cookies && Date.now() - _nseSession.ts < CACHE_MS) return _nseSession.cookies;
   return refreshNseSession();
 }
@@ -453,17 +473,55 @@ async function fetchYahooSymbol(symbol) {
 // ─────────────────────────────────────────────────────────────────────────────
 const _fiiDiiCache = { data: null, ts: 0 };
  
+// ── Fallback: BSE also publishes FII/DII activity ──────────────────────────
+async function fetchFiiDiiFromBse() {
+  // BSE has a public JSON endpoint for FII/DII - no session needed
+  const today = new Date();
+  const pad = n => String(n).padStart(2, "0");
+  const fmt = d => `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}`;
+  const toDate = fmt(today);
+  const fromD = new Date(today); fromD.setDate(fromD.getDate() - 3);
+  const fromDate = fmt(fromD);
+
+  const r = await axios.get(
+    `https://api.bseindia.com/BseIndiaAPI/api/FiidiiFY/w?dtFrom=${fromDate}&dtTo=${toDate}&Etype=0`,
+    { timeout: 10000, headers: { "User-Agent": NSE_UA, Accept: "application/json",
+        Referer: "https://www.bseindia.com/", Origin: "https://www.bseindia.com" } }
+  );
+  const rows = r.data?.Table ?? r.data?.data ?? r.data ?? [];
+  if (!Array.isArray(rows) || rows.length === 0) throw new Error("BSE FII-DII: no data");
+
+  const parse = (v) => parseFloat(String(v ?? "0").replace(/,/g, "")) || 0;
+  // BSE row keys may differ — try both naming conventions
+  const fiiRow = rows.find(d => /FII|FPI/i.test(d.CATEGORY ?? d.category ?? ""));
+  const diiRow = rows.find(d => /\bDII\b/i.test(d.CATEGORY ?? d.category ?? ""));
+
+  return {
+    fii: { buy:  fiiRow ? parse(fiiRow.PURCHASES_VALUE  ?? fiiRow.buyValue)  : null,
+           sell: fiiRow ? parse(fiiRow.SALES_VALUE       ?? fiiRow.sellValue) : null,
+           net:  fiiRow ? parse(fiiRow.NET_INVESTMENT     ?? fiiRow.netValue)  : null,
+           date: fiiRow?.DATE ?? fiiRow?.date ?? null },
+    dii: { buy:  diiRow ? parse(diiRow.PURCHASES_VALUE  ?? diiRow.buyValue)  : null,
+           sell: diiRow ? parse(diiRow.SALES_VALUE       ?? diiRow.sellValue) : null,
+           net:  diiRow ? parse(diiRow.NET_INVESTMENT     ?? diiRow.netValue)  : null,
+           date: diiRow?.DATE ?? diiRow?.date ?? null },
+    source: "BSE",
+  };
+}
+
 router.get("/fii-dii", async (req, res) => {
-  // Cache for 5 min — NSE updates this only a few times per day
+  // Serve cache if fresh (5 min)
   if (_fiiDiiCache.data && Date.now() - _fiiDiiCache.ts < 5 * 60 * 1000) {
     return res.json({ status: "success", data: _fiiDiiCache.data, cached: true });
   }
  
   const fetchFromNse = async (cookies) => {
+    const ua = getUA();
     const r = await axios.get("https://www.nseindia.com/api/fiidiiTradeReact", {
       timeout: 12000,
       headers: {
         ...NSE_COMMON,
+        "User-Agent":       ua,
         Accept:             "application/json, text/plain, */*",
         Referer:            "https://www.nseindia.com/market-data/fii-dii-activity",
         Cookie:             cookies,
@@ -474,6 +532,7 @@ router.get("/fii-dii", async (req, res) => {
       },
     });
     const rows  = Array.isArray(r.data) ? r.data : (r.data?.data ?? []);
+    if (!rows.length) throw new Error("NSE FII-DII: empty response");
     const parse = (v) => parseFloat(String(v ?? "0").replace(/,/g, "")) || 0;
     const fiiRow = rows.find((d) => /FII|FPI/i.test(d.category));
     const diiRow = rows.find((d) => /\bDII\b/i.test(d.category));
@@ -486,34 +545,64 @@ router.get("/fii-dii", async (req, res) => {
              sell: diiRow ? parse(diiRow.sellValue) : null,
              net:  diiRow ? parse(diiRow.netValue)  : null,
              date: diiRow?.date ?? null },
+      source: "NSE",
     };
   };
  
+  // ── TIER 1: NSE (attempt 1 with existing session) ──────────────────────────
   try {
     const cookies = await getNseSession();
     const data    = await fetchFromNse(cookies);
     _fiiDiiCache.data = data;
     _fiiDiiCache.ts   = Date.now();
+    console.log("[FII-DII] ✅ NSE success");
     return res.json({ status: "success", data });
   } catch (err) {
-    console.warn("[FII-DII] First attempt failed:", err.message, "— retrying with fresh session");
-    try {
-      _nseSession.cookies = "";
-      _nseSession.ts      = 0;
-      const fresh = await getNseSession(true);
-      await new Promise((r) => setTimeout(r, 1200));
-      const data = await fetchFromNse(fresh);
-      _fiiDiiCache.data = data;
-      _fiiDiiCache.ts   = Date.now();
-      return res.json({ status: "success", data });
-    } catch (err2) {
-      console.error("[FII-DII] Both attempts failed:", err2.message);
-      if (_fiiDiiCache.data) {
-        return res.json({ status: "success", data: _fiiDiiCache.data, stale: true });
-      }
-      return res.status(500).json({ status: "error", message: err2.message });
-    }
+    console.warn("[FII-DII] Attempt 1 failed:", err.message);
   }
+
+  // ── TIER 2: NSE (attempt 2 with fresh session — different UA) ──────────────
+  try {
+    _nseSession.cookies = "";
+    _nseSession.ts      = 0;
+    await new Promise((r) => setTimeout(r, 1500));
+    const fresh = await getNseSession(true);
+    await new Promise((r) => setTimeout(r, 1000));
+    const data = await fetchFromNse(fresh);
+    _fiiDiiCache.data = data;
+    _fiiDiiCache.ts   = Date.now();
+    console.log("[FII-DII] ✅ NSE fresh session success");
+    return res.json({ status: "success", data });
+  } catch (err2) {
+    console.warn("[FII-DII] Attempt 2 (fresh session) failed:", err2.message);
+  }
+
+  // ── TIER 3: BSE fallback — no session needed, works from any IP ────────────
+  try {
+    const data = await fetchFiiDiiFromBse();
+    _fiiDiiCache.data = data;
+    _fiiDiiCache.ts   = Date.now();
+    console.log("[FII-DII] ✅ BSE fallback success");
+    return res.json({ status: "success", data });
+  } catch (err3) {
+    console.warn("[FII-DII] BSE fallback failed:", err3.message);
+  }
+
+  // ── TIER 4: Stale cache — serve old data rather than 500 ───────────────────
+  // Production mein stale data 500 se zyada better hai — UI gracefully degrade karti hai
+  if (_fiiDiiCache.data) {
+    const staleAge = Math.round((Date.now() - _fiiDiiCache.ts) / 60000);
+    console.warn(`[FII-DII] All sources failed — serving stale cache (${staleAge} min old)`);
+    return res.json({ status: "success", data: _fiiDiiCache.data, stale: true, staleMinutes: staleAge });
+  }
+
+  // ── No data at all ──────────────────────────────────────────────────────────
+  console.error("[FII-DII] ❌ All tiers failed, no cache available");
+  return res.status(500).json({
+    status: "error",
+    message: "FII-DII data temporarily unavailable. NSE blocks server IPs intermittently.",
+    tip: "Data will auto-recover. Retry in 2-3 minutes.",
+  });
 });
  
  

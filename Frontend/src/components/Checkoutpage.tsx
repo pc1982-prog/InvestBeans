@@ -2,12 +2,21 @@
  * CheckoutPage.tsx
  * Route: /plans/:planId/checkout
  *
+ * ✅ Production-ready Razorpay checkout page
+ *
  * Flow:
- *  PricingPlan.tsx → navigate("/plans/command/checkout")
- *  → Razorpay opens → payment success
- *  → backend paymentVerification → Subscription created
- *  → Admin Dashboard mein user dikhne lagta hai
- *  → verifySubscription middleware → Insights page access milta hai
+ *   PricingPlan/PlanCards → navigate("/plans/command/checkout")
+ *   → User sees order summary
+ *   → handlePayment():
+ *       1. GET /api/v1/getKey          → Razorpay publishable key
+ *       2. POST /api/v1/payment/process → Create Razorpay order (saves userId/planId in notes)
+ *       3. Razorpay modal opens
+ *       4. User pays
+ *       5. Razorpay POSTs to callback_url → backend verifies + creates Subscription
+ *       6. Backend redirects to /paymentsuccess?reference=pay_xxx
+ *
+ * Requires in index.html (public/):
+ *   <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
  */
 
 import { useEffect, useState } from "react";
@@ -17,35 +26,36 @@ import { useTheme } from "@/controllers/Themecontext";
 import axios from "axios";
 import Layout from "@/components/Layout";
 import {
-  BookOpen, BarChart3, Lightbulb, Shield, Check,
+  BookOpen, BarChart3, Lightbulb, Check,
   ArrowLeft, Lock, Zap, Clock,
 } from "lucide-react";
 
-// ─── Plan Data — exact match with PricingPlan.tsx plans ──────────────────────
+// ─── Plan config — single source of truth ─────────────────────────────────────
+// Keep in sync with: PlanCards.tsx, Pricingplan.tsx, paymentController.js PLAN_CONFIG
 const PLAN_DATA: Record<string, {
-  label: string;
-  color: string;
-  colorDim: string;
+  label:       string;
+  color:       string;
+  colorDim:    string;
   colorBorder: string;
-  icon: React.ElementType;
-  price: number;
+  icon:        React.ElementType;
+  price:       number;       // in rupees (integer)
   priceDisplay: string;
-  unit: string;
+  unit:        string;
   durationDays: number;
-  tagline: string;
-  features: string[];
+  tagline:     string;
+  features:    string[];
 }> = {
   foundation: {
-    label: "Foundation",
-    color: "#22c55e",
-    colorDim: "rgba(34,197,94,0.12)",
-    colorBorder: "rgba(34,197,94,0.3)",
-    icon: BookOpen,
-    price: 111,
+    label:       "Foundation",
+    color:       "#0A3656",
+    colorDim:    "rgba(10,54,86,0.12)",
+    colorBorder: "rgba(10,54,86,0.30)",
+    icon:        BookOpen,
+    price:       111,
     priceDisplay: "₹111",
-    unit: "per course / PDF",
+    unit:        "per course / PDF",
     durationDays: 365,
-    tagline: "Build Your Market Foundation",
+    tagline:     "Build Your Market Foundation",
     features: [
       "Financial E-Books access",
       "Non-Financial E-Books",
@@ -56,16 +66,16 @@ const PLAN_DATA: Record<string, {
     ],
   },
   command: {
-    label: "Command",
-    color: "#3b82f6",
-    colorDim: "rgba(59,130,246,0.12)",
-    colorBorder: "rgba(59,130,246,0.3)",
-    icon: BarChart3,
-    price: 888,
+    label:       "Command",
+    color:       "#12466e",
+    colorDim:    "rgba(18,70,110,0.14)",
+    colorBorder: "rgba(18,70,110,0.34)",
+    icon:        BarChart3,
+    price:       888,
     priceDisplay: "₹888",
-    unit: "per month",
+    unit:        "per month",
     durationDays: 30,
-    tagline: "Take Command of Market Data",
+    tagline:     "Take Command of Market Data",
     features: [
       "Equity Dashboard — Domestic",
       "Equity Dashboard — Global",
@@ -79,16 +89,16 @@ const PLAN_DATA: Record<string, {
     ],
   },
   edge: {
-    label: "Edge",
-    color: "#a855f7",
-    colorDim: "rgba(168,85,247,0.12)",
-    colorBorder: "rgba(168,85,247,0.3)",
-    icon: Lightbulb,
-    price: 99,
+    label:       "Edge",
+    color:       "#1d5b87",
+    colorDim:    "rgba(29,91,135,0.14)",
+    colorBorder: "rgba(29,91,135,0.34)",
+    icon:        Lightbulb,
+    price:       99,
     priceDisplay: "₹99",
-    unit: "per month",
+    unit:        "per month",
     durationDays: 30,
-    tagline: "Where Insight Becomes Advantage",
+    tagline:     "Where Insight Becomes Advantage",
     features: [
       "Domestic Market Research",
       "Global Market Research",
@@ -103,38 +113,41 @@ const PLAN_DATA: Record<string, {
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 export default function CheckoutPage() {
-  const { planId } = useParams<{ planId: string }>();
-  const { user, isAuthenticated } = useAuth();
-  const { theme } = useTheme();
-  const navigate  = useNavigate();
-  const isLight   = theme === "light";
-  const [loading, setLoading] = useState(false);
-  const [error, setError]     = useState<string | null>(null);
+  const { planId }                     = useParams<{ planId: string }>();
+  const { user, isAuthenticated }      = useAuth();
+  const { theme }                      = useTheme();
+  const navigate                       = useNavigate();
+  const isLight                        = theme === "light";
+  const [loading, setLoading]          = useState(false);
+  const [error, setError]              = useState<string | null>(null);
 
   const plan = PLAN_DATA[planId || ""];
+
+  // ✅ VITE_API_URL should be: https://api.investbeans.com/api/v1
+  // Do NOT add trailing slash in .env
   const API  = import.meta.env.VITE_API_URL || "";
 
-  // ── Guards ─────────────────────────────────────────────────────────────────
+  // ── Guard: must be logged in ───────────────────────────────────────────────
   useEffect(() => {
     if (!isAuthenticated) {
       navigate(`/signin?redirect=/plans/${planId}/checkout`);
     }
-  }, [isAuthenticated, planId]);
+  }, [isAuthenticated, planId, navigate]);
 
   // ── Theme tokens ──────────────────────────────────────────────────────────
   const pageBg  = isLight
     ? "linear-gradient(160deg,#f5f4f0 0%,#f8fbff 50%,#f5f4f0 100%)"
     : "linear-gradient(160deg,#060e1a 0%,#0a1628 50%,#060e1a 100%)";
-  const cardBg  = isLight ? "#ffffff"                      : "#0f1829";
-  const cardBg2 = isLight ? "#f8fafc"                      : "#0a1220";
-  const border  = isLight ? "rgba(226,232,240,0.9)"        : "rgba(255,255,255,0.07)";
-  const text    = isLight ? "#0f172a"                      : "#e2e8f0";
-  const muted   = isLight ? "#64748b"                      : "#64748b";
+  const cardBg  = isLight ? "#ffffff"                 : "#0f1829";
+  const cardBg2 = isLight ? "#f8fafc"                 : "#0a1220";
+  const border  = isLight ? "rgba(226,232,240,0.9)"   : "rgba(255,255,255,0.07)";
+  const text    = isLight ? "#0f172a"                 : "#e2e8f0";
+  const muted   = isLight ? "#64748b"                 : "#64748b";
   const shadow  = isLight
     ? "0 8px 40px rgba(0,0,0,0.07), 0 2px 8px rgba(0,0,0,0.04)"
     : "0 8px 40px rgba(0,0,0,0.5)";
 
-  // ── Invalid plan ──────────────────────────────────────────────────────────
+  // ── Invalid planId guard ──────────────────────────────────────────────────
   if (!plan) {
     return (
       <Layout>
@@ -144,7 +157,7 @@ export default function CheckoutPage() {
             onClick={() => navigate("/plans")}
             style={{
               marginTop: 16, padding: "10px 24px", borderRadius: 10,
-              background: "#5194F6", color: "white", border: "none",
+              background: "#12466e", color: "white", border: "none",
               fontSize: 13, fontWeight: 600, cursor: "pointer",
             }}
           >
@@ -157,94 +170,125 @@ export default function CheckoutPage() {
 
   const PlanIcon = plan.icon;
 
-  // ── Razorpay payment handler ──────────────────────────────────────────────
+  // ── Payment handler ───────────────────────────────────────────────────────
   const handlePayment = async () => {
     if (!user) { navigate("/signin"); return; }
     setLoading(true);
     setError(null);
 
     try {
-      // 1. Get Razorpay key
+      // Step 1 — Get Razorpay publishable key from backend
       const { data: keyData } = await axios.get(`${API}/getKey`, {
         withCredentials: true,
       });
 
-      // 2. Create order on backend (amount in rupees, backend converts to paise)
+      // Step 2 — Create Razorpay order on backend
+      // Backend saves userId, planId, durationDays in order.notes
+      // These are used in paymentVerification to create the Subscription
       const { data: orderData } = await axios.post(
         `${API}/payment/process`,
         {
-          amount: plan.price,          // backend multiplies ×100
-          userId: user._id,
-          planId,
+          amount:       plan.price,         // rupees — backend × 100 → paise
+          userId:       user._id,
+          planId:       planId,
           durationDays: plan.durationDays,
         },
         { withCredentials: true }
       );
 
-      // 3. Open Razorpay modal
+      if (!orderData.success || !orderData.order?.id) {
+        throw new Error(orderData.message || "Could not create order");
+      }
+
+      // Step 3 — Open Razorpay modal
       const options = {
         key:         keyData.key,
-        amount:      plan.price * 100,  // paise for display
+        amount:      plan.price * 100,   // paise (Razorpay needs this for display)
         currency:    "INR",
         name:        "InvestBeans",
         description: `${plan.label} Plan — ${plan.tagline}`,
+        image:       "/logo.png",         // optional: your logo
         order_id:    orderData.order.id,
-        // backend handles verification + subscription creation
-        callback_url: `${API}/api/v1/paymentVerification`,
+
+        // ✅ FIX: Was `${API}/api/v1/paymentVerification`
+        // If VITE_API_URL = "https://api.investbeans.com/api/v1"
+        // then correct is: `${API}/paymentVerification`
+        // (NOT adding /api/v1 again — it's already in the base URL)
+        callback_url: `${API}/paymentVerification`,
+
+        // redirect: true ensures Razorpay POSTs to callback_url
+        // (instead of calling handler function)
+        redirect: true,
+
         prefill: {
-          name:  user.name || user.displayName || "",
-          email: user.email || "",
-        },
-        notes: {
-          // These go into order.notes — backend reads them in paymentVerification
-          userId:      user._id,
-          planId,
-          durationDays: plan.durationDays,
+          name:    user.name || user.displayName || "",
+          email:   user.email || "",
+          contact: user.phone || "",
         },
         theme:  { color: plan.color },
-        modal:  { ondismiss: () => setLoading(false) },
+        modal: {
+          ondismiss: () => setLoading(false),
+          escape:    true,
+        },
       };
 
-      // @ts-ignore — window.Razorpay loaded via CDN in index.html
+      // window.Razorpay is loaded from CDN in index.html
+      // @ts-ignore
+      if (typeof window.Razorpay === "undefined") {
+        throw new Error("Razorpay SDK not loaded. Please check your internet connection.");
+      }
+
+      // @ts-ignore
       const rzp = new window.Razorpay(options);
+
       rzp.on("payment.failed", (resp: any) => {
-        setError(`Payment failed: ${resp.error.description}`);
+        console.error("Razorpay payment.failed:", resp.error);
+        setError(
+          resp.error?.description ||
+          "Payment failed. Please try a different payment method."
+        );
         setLoading(false);
       });
+
       rzp.open();
 
     } catch (e: any) {
-      console.error("Payment error:", e);
-      setError(e?.response?.data?.message || "Payment could not be started. Please try again.");
+      console.error("CheckoutPage handlePayment error:", e);
+      setError(
+        e?.response?.data?.message ||
+        e?.message ||
+        "Payment could not be started. Please try again."
+      );
       setLoading(false);
     }
   };
 
-  // ── UI ────────────────────────────────────────────────────────────────────
+  // ── Render ────────────────────────────────────────────────────────────────
   return (
     <Layout>
       <div style={{ background: pageBg, minHeight: "100vh", padding: "36px 16px 60px" }}>
         <div style={{ maxWidth: 540, margin: "0 auto" }}>
 
-          {/* Back button */}
+          {/* ── Back button ── */}
           <button
             onClick={() => navigate("/plans")}
             style={{
               display: "flex", alignItems: "center", gap: 6,
               background: "none", border: "none", cursor: "pointer",
-              color: muted, fontSize: 13, fontWeight: 600, marginBottom: 28, padding: 0,
+              color: muted, fontSize: 13, fontWeight: 600,
+              marginBottom: 28, padding: 0,
             }}
           >
             <ArrowLeft size={14} /> Back to plans
           </button>
 
-          {/* ── Main Card ── */}
+          {/* ── Main card ── */}
           <div style={{
             background: cardBg, border: `1px solid ${border}`,
-            borderRadius: 24, padding: "28px 24px",
-            boxShadow: shadow,
+            borderRadius: 24, padding: "28px 24px", boxShadow: shadow,
           }}>
-            {/* Plan Header */}
+
+            {/* Plan header */}
             <div style={{
               display: "flex", alignItems: "center", gap: 14,
               paddingBottom: 20, marginBottom: 20,
@@ -261,10 +305,15 @@ export default function CheckoutPage() {
                 <div style={{ fontSize: 20, fontWeight: 800, color: text, letterSpacing: "-0.02em" }}>
                   {plan.label} Plan
                 </div>
-                <div style={{ fontSize: 12, color: muted, marginTop: 2 }}>{plan.tagline}</div>
+                <div style={{ fontSize: 12, color: muted, marginTop: 2 }}>
+                  {plan.tagline}
+                </div>
               </div>
               <div style={{ textAlign: "right", flexShrink: 0 }}>
-                <div style={{ fontSize: 30, fontWeight: 900, color: plan.color, lineHeight: 1, letterSpacing: "-0.03em" }}>
+                <div style={{
+                  fontSize: 30, fontWeight: 900, color: plan.color,
+                  lineHeight: 1, letterSpacing: "-0.03em",
+                }}>
                   {plan.priceDisplay}
                 </div>
                 <div style={{ fontSize: 11, color: muted, marginTop: 2 }}>{plan.unit}</div>
@@ -281,8 +330,10 @@ export default function CheckoutPage() {
               <span style={{ fontSize: 13, fontWeight: 600, color: plan.color }}>
                 {plan.durationDays === 365 ? "1 year access" : `${plan.durationDays} days access`}
               </span>
-              <span style={{ fontSize: 12, color: plan.color, opacity: 0.7, marginLeft: "auto" }}>
-                Activates immediately after payment
+              <span style={{
+                fontSize: 11, color: plan.color, opacity: 0.7, marginLeft: "auto",
+              }}>
+                Activates instantly
               </span>
             </div>
 
@@ -323,16 +374,17 @@ export default function CheckoutPage() {
                   Billing to
                 </div>
                 <div style={{ fontSize: 13, fontWeight: 600, color: text }}>
-                  {user.name || user.displayName}
+                  {user.name || user.displayName || "—"}
                 </div>
                 <div style={{ fontSize: 12, color: muted, marginTop: 2 }}>{user.email}</div>
               </div>
             )}
 
-            {/* Error */}
+            {/* Error message */}
             {error && (
               <div style={{
-                background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)",
+                background: "rgba(239,68,68,0.08)",
+                border: "1px solid rgba(239,68,68,0.2)",
                 borderRadius: 10, padding: "10px 14px", marginBottom: 16,
                 fontSize: 13, color: "#dc2626",
               }}>
@@ -340,7 +392,7 @@ export default function CheckoutPage() {
               </div>
             )}
 
-            {/* ── Pay Button ── */}
+            {/* ── Pay button ── */}
             <button
               onClick={handlePayment}
               disabled={loading}
@@ -348,7 +400,7 @@ export default function CheckoutPage() {
                 width: "100%", padding: "15px 0", borderRadius: 14,
                 background: loading
                   ? `${plan.color}70`
-                  : `linear-gradient(135deg,${plan.color},${plan.color}cc)`,
+                  : `linear-gradient(135deg,${plan.color},${plan.color}bb)`,
                 border: "none", color: "white",
                 fontSize: 15, fontWeight: 800, letterSpacing: "0.01em",
                 cursor: loading ? "not-allowed" : "pointer",
@@ -357,7 +409,8 @@ export default function CheckoutPage() {
                 boxShadow: loading ? "none" : `0 6px 20px ${plan.colorDim}`,
               }}
               onMouseEnter={e => {
-                if (!loading) (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)";
+                if (!loading)
+                  (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)";
               }}
               onMouseLeave={e => {
                 (e.currentTarget as HTMLButtonElement).style.transform = "translateY(0)";
@@ -371,12 +424,12 @@ export default function CheckoutPage() {
                     borderTopColor: "white",
                     animation: "spin 0.8s linear infinite",
                   }} />
-                  Initiating payment…
+                  Opening payment…
                 </>
               ) : (
                 <>
                   <Zap size={16} />
-                  Pay {plan.priceDisplay} · Get {plan.label}
+                  Pay {plan.priceDisplay} · Activate {plan.label}
                 </>
               )}
             </button>
@@ -388,7 +441,7 @@ export default function CheckoutPage() {
             }}>
               <Lock size={11} color={muted} />
               <span style={{ fontSize: 11, color: muted }}>
-                Secured by Razorpay · 256-bit SSL encryption
+                Secured by Razorpay · 256-bit SSL
               </span>
             </div>
           </div>
@@ -398,10 +451,9 @@ export default function CheckoutPage() {
             fontSize: 11, color: muted, textAlign: "center",
             marginTop: 16, lineHeight: 1.6,
           }}>
-            Subscription activates instantly after payment confirmation.
+            Subscription activates instantly after payment.
             Your access will appear in your profile within seconds.
           </p>
-
         </div>
       </div>
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>

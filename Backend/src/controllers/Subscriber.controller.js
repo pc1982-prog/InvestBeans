@@ -86,7 +86,7 @@ export const subscribeNewsletter = async (req, res) => {
         try {
             const { data, error } = await resend.emails.send({
                 from: "InvestBeans <onboarding@resend.dev>",
-                to: ["abhishektiwari2960@gmail.com"],
+                to: [""],
                 subject: "🫘 Welcome to InvestBeans — You're In!",
                 html: getWelcomeEmailHTML(trimmedEmail),
                 text: `Welcome to InvestBeans! Thank you for subscribing. You'll receive daily market insights, stock analysis, IPO alerts, and expert tips. Visit us at https://investbeans.com`,

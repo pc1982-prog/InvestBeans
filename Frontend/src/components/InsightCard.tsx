@@ -125,10 +125,16 @@ const InsightCard = ({ insight, isAdmin = false, onReadMore, onLike, onEdit, onD
         style={{ background: "linear-gradient(180deg,#0A3656,#1F5F89,rgba(116,168,201,0.35))" }}
       />
 
-      <div className="relative z-10 p-6 md:p-7 pl-7 md:pl-8">
+      {/* Mobile top accent line */}
+      <div
+        className="absolute top-0 left-[3px] right-0 h-[1.5px] sm:hidden rounded-tr-2xl"
+        style={{ background: `linear-gradient(90deg,rgba(31,95,137,0.5),transparent)` }}
+      />
+
+      <div className="relative z-10 p-4 sm:p-6 md:p-7 pl-6 sm:pl-7 md:pl-8">
 
         {/* ── Header row: category + sentiment ── */}
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between gap-2 mb-4 flex-wrap">
           <span
             className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium"
             style={{ background: categoryBg, border: categoryBorder, color: categoryColor }}
@@ -145,7 +151,7 @@ const InsightCard = ({ insight, isAdmin = false, onReadMore, onLike, onEdit, onD
 
         {/* ── Title ── */}
         <h3
-          className="text-lg md:text-xl font-bold mb-3 leading-snug line-clamp-1 transition-colors duration-300 group-hover:text-[#1F5F89]"
+          className="text-base sm:text-lg md:text-xl font-bold mb-2.5 sm:mb-3 leading-snug line-clamp-2 sm:line-clamp-1 transition-colors duration-300 group-hover:text-[#1F5F89]"
           style={{ color: titleColor }}
         >
           {title}
@@ -153,11 +159,11 @@ const InsightCard = ({ insight, isAdmin = false, onReadMore, onLike, onEdit, onD
 
         {/* ── Description — strictly 2 lines with trailing ellipsis ── */}
         <p
-          className="mb-4 leading-relaxed text-sm"
+          className="mb-3 sm:mb-4 leading-relaxed text-sm"
           style={{
             color: descColor,
             display: "-webkit-box",
-            WebkitLineClamp: 2,
+            WebkitLineClamp: 3,
             WebkitBoxOrient: "vertical",
             overflow: "hidden",
             textOverflow: "ellipsis",
@@ -168,7 +174,7 @@ const InsightCard = ({ insight, isAdmin = false, onReadMore, onLike, onEdit, onD
 
         {/* ── Timestamp row ── */}
         <div
-          className="flex items-center gap-3 text-[11px] mb-5 pt-3"
+          className="flex items-start sm:items-center gap-2 sm:gap-3 text-[11px] mb-5 pt-3 flex-wrap"
           style={{ borderTop: `1px solid ${dividerColor}`, color: metaColor }}
         >
           <div className="flex items-center gap-1.5">
@@ -186,7 +192,7 @@ const InsightCard = ({ insight, isAdmin = false, onReadMore, onLike, onEdit, onD
         {/* ── Footer: stats + actions ── */}
         <div className="flex flex-col gap-3">
           {/* Views & Likes */}
-          <div className="flex items-center gap-4 text-xs" style={{ color: statsColor }}>
+          <div className="flex items-center gap-4 text-xs py-1 sm:py-0" style={{ color: statsColor }}>
             <div className="flex items-center gap-1.5">
               <Eye className="w-3.5 h-3.5" />
               <span>{views.toLocaleString()} views</span>
@@ -205,7 +211,7 @@ const InsightCard = ({ insight, isAdmin = false, onReadMore, onLike, onEdit, onD
           <div className="flex gap-2">
             <button
               onClick={() => onReadMore(_id)}
-              className="flex-1 inline-flex items-center justify-center px-4 py-2.5 rounded-full font-semibold text-sm transition-all duration-300 hover:opacity-90 hover:shadow-lg active:scale-95"
+              className="flex-1 inline-flex items-center justify-center px-4 py-3 sm:py-2.5 rounded-full font-semibold text-sm transition-all duration-300 hover:opacity-90 hover:shadow-lg active:scale-95"
               style={{
                 background: "linear-gradient(135deg,#0A3656,#1F5F89)",
                 color: "white",
