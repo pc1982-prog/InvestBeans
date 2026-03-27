@@ -114,6 +114,20 @@ const insightSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    // ✅ Tracks which logged-in users have already viewed (prevents duplicate counts)
+    viewedBy: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
+    // ✅ Tracks guest IPs so they also can't inflate views on refresh
+    viewedIPs: [
+      {
+        type: String,
+        trim: true,
+      },
+    ],
     likes: {
       type: Number,
       default: 0,
@@ -151,9 +165,25 @@ const insightSchema = new mongoose.Schema(
 insightSchema.index({ marketType: 1, isPublished: 1, publishedAt: -1 });
 insightSchema.index({ category: 1 });
 insightSchema.index({ sentiment: 1 });
+insightSchema.index({ viewedBy: 1 });   // ✅ Fast lookup for dedup check
 
-// Method to increment views
-insightSchema.methods.incrementViews = function () {
+
+insightSchema.methods.incrementViews = function (userId, ip) {
+  if (userId) {
+    // Logged-in user: check viewedBy array
+    const alreadyViewed = this.viewedBy.some(
+      (id) => id.toString() === userId.toString()
+    );
+    if (alreadyViewed) return Promise.resolve(this); // ← no increment, no DB write
+    this.viewedBy.push(userId);
+  } else if (ip) {
+    // Guest user: check viewedIPs array
+    // Keep the list capped at 500 to avoid unbounded growth on popular posts
+    if (this.viewedIPs.includes(ip)) return Promise.resolve(this);
+    if (this.viewedIPs.length >= 500) this.viewedIPs.shift(); // drop oldest
+    this.viewedIPs.push(ip);
+  }
+
   this.views += 1;
   return this.save();
 };
