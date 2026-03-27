@@ -459,15 +459,33 @@ export default function PlanCards({
   );
 
   return (
-    <div style={{
-      display: "grid",
-      gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-      gap: "24px",
-      alignItems: "start",
-      padding: "24px 16px",
-      maxWidth: "1200px",
-      margin: "0 auto",
-    }}>
+    <>
+      <style>{`
+        @media (max-width: 640px) {
+          .plan-cards-grid {
+            grid-template-columns: 1fr !important;
+            padding: 16px 12px !important;
+            gap: 20px !important;
+          }
+          .plan-cards-grid > * {
+            margin-top: 10px !important;
+            margin-bottom: 0px !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
+          }
+        }
+      `}</style>
+    <div
+      className="plan-cards-grid"
+      style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+        gap: "24px",
+        alignItems: "start",
+        padding: "24px 16px",
+        maxWidth: "1200px",
+        margin: "0 auto",
+      }}>
       {PLANS.map(plan => (
         <PlanCard
           key={plan.id}
@@ -478,5 +496,6 @@ export default function PlanCards({
         />
       ))}
     </div>
+    </>
   );
 }

@@ -152,11 +152,11 @@ const SensexNiftyCard = ({ cardBg, cardBorder, cardShadow, isLight, sensex, nift
             { label: "SENSEX", val: fmtVal(sensex?.price), chg: fmtChg(sensex?.chg), pos: sensexPos },
             { label: "NIFTY 50", val: fmtVal(nifty?.price), chg: fmtChg(nifty?.chg), pos: niftyPos },
           ].map(row => (
-            <div key={row.label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 5 }}>
-              <span style={{ fontSize: "10px", fontWeight: 700, color: isLight ? "#1f455f" : "rgba(255,255,255,0.6)" }}>{row.label}</span>
-              <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                <span style={{ fontSize: "14px", fontWeight: 800, color: isLight ? "#041421" : "#fff" }}>{row.val}</span>
-                <span style={{ fontSize: "9px", fontWeight: 700, color: row.pos ? "#22c55e" : "#ef4444", background: row.pos ? "rgba(34,197,94,0.12)" : "rgba(239,68,68,0.12)", border: `1px solid ${row.pos ? "rgba(34,197,94,0.25)" : "rgba(239,68,68,0.25)"}`, borderRadius: 4, padding: "1px 5px" }}>{row.chg}</span>
+            <div key={row.label} style={{ display: "flex", flexDirection: "column", marginBottom: 6 }}>
+              <span style={{ fontSize: "8px", fontWeight: 700, color: isLight ? "#1f455f" : "rgba(255,255,255,0.5)", marginBottom: 2 }}>{row.label}</span>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <span style={{ fontSize: "13px", fontWeight: 800, color: isLight ? "#041421" : "#fff", letterSpacing: "-0.02em" }}>{row.val}</span>
+                <span style={{ fontSize: "9px", fontWeight: 700, flexShrink: 0, color: row.pos ? "#22c55e" : "#ef4444", background: row.pos ? "rgba(34,197,94,0.12)" : "rgba(239,68,68,0.12)", border: `1px solid ${row.pos ? "rgba(34,197,94,0.25)" : "rgba(239,68,68,0.25)"}`, borderRadius: 4, padding: "1px 4px" }}>{row.chg}</span>
               </div>
             </div>
           ))}
@@ -221,16 +221,20 @@ const FiiDiiCard = ({ cardBg, cardBorder, cardShadow, isLight, fiiNet, diiNet, f
       <div className="md:hidden" style={{ padding: "10px 10px 10px 14px", position: "relative" }}>
         <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 3, background: isLight ? "#0A3656" : "#1F5F89", borderRadius: "8px 0 0 8px" }} />
         <div style={{ fontSize: "8px", fontWeight: 900, letterSpacing: "0.12em", textTransform: "uppercase", color: isLight ? "#0A3656" : "#74A8C9", marginBottom: 8 }}>FII · DII FLOW</div>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, marginBottom: 8 }}>
-          <div style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: 8, padding: "6px 8px" }}>
-            <div style={{ fontSize: "8px", fontWeight: 700, color: "rgba(239,68,68,0.7)", marginBottom: 2 }}>FII SELL</div>
-            <div style={{ fontSize: "13px", fontWeight: 800, color: "#f87171" }}>{loading ? "···" : fiiLabel}</div>
-            <div style={{ fontSize: "8px", color: "rgba(239,68,68,0.6)", marginTop: 2 }}>outflow</div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 5, marginBottom: 8 }}>
+          <div style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: 8, padding: "5px 8px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <div>
+              <div style={{ fontSize: "8px", fontWeight: 700, color: "rgba(239,68,68,0.7)", marginBottom: 1 }}>FII SELL</div>
+              <div style={{ fontSize: "8px", color: "rgba(239,68,68,0.6)" }}>outflow</div>
+            </div>
+            <div style={{ fontSize: "12px", fontWeight: 800, color: "#f87171" }}>{loading ? "···" : fiiLabel}</div>
           </div>
-          <div style={{ background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.2)", borderRadius: 8, padding: "6px 8px" }}>
-            <div style={{ fontSize: "8px", fontWeight: 700, color: "rgba(34,197,94,0.7)", marginBottom: 2 }}>DII BUY</div>
-            <div style={{ fontSize: "13px", fontWeight: 800, color: "#4ade80" }}>{loading ? "···" : diiLabel}</div>
-            <div style={{ fontSize: "8px", color: "rgba(34,197,94,0.6)", marginTop: 2 }}>inflow</div>
+          <div style={{ background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.2)", borderRadius: 8, padding: "5px 8px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <div>
+              <div style={{ fontSize: "8px", fontWeight: 700, color: "rgba(34,197,94,0.7)", marginBottom: 1 }}>DII BUY</div>
+              <div style={{ fontSize: "8px", color: "rgba(34,197,94,0.6)" }}>inflow</div>
+            </div>
+            <div style={{ fontSize: "12px", fontWeight: 800, color: "#4ade80" }}>{loading ? "···" : diiLabel}</div>
           </div>
         </div>
         <div style={{ height: 5, borderRadius: 99, overflow: "hidden", display: "flex", gap: 2 }}>
@@ -277,13 +281,13 @@ const IndiaVixCard = ({ cardBg, cardBorder, cardShadow, isLight, vixData }) => {
       <div className="md:hidden" style={{ padding: "10px 10px 10px 14px", position: "relative" }}>
         <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 3, background: fearColor, borderRadius: "8px 0 0 8px" }} />
         <div style={{ fontSize: "8px", fontWeight: 900, letterSpacing: "0.12em", textTransform: "uppercase", color: isLight ? "#0A3656" : "#74A8C9", marginBottom: 6 }}>INDIA VIX</div>
-        <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginBottom: 8 }}>
-          <span style={{ fontSize: "32px", fontWeight: 900, color: isLight ? "#041421" : "#fff", letterSpacing: "-0.04em", lineHeight: 1 }}>{vix.toFixed ? vix.toFixed(2) : vix}</span>
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 }}>
-            <span style={{ fontSize: "10px", fontWeight: 700, color: vixChange < 0 ? "#f87171" : "#4ade80" }}>
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 8, gap: 4 }}>
+          <span style={{ fontSize: "26px", fontWeight: 900, color: isLight ? "#041421" : "#fff", letterSpacing: "-0.04em", lineHeight: 1, flexShrink: 0 }}>{vix.toFixed ? vix.toFixed(2) : vix}</span>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4, minWidth: 0 }}>
+            <span style={{ fontSize: "10px", fontWeight: 700, color: vixChange < 0 ? "#f87171" : "#4ade80", whiteSpace: "nowrap" }}>
               {vixChange < 0 ? "▼" : "▲"} {Math.abs(vixChange).toFixed(2)}%
             </span>
-            <span style={{ fontSize: "8px", fontWeight: 800, padding: "2px 6px", borderRadius: 4, background: `${fearColor}20`, color: fearColor, border: `1px solid ${fearColor}40` }}>Fear: {fearLabel}</span>
+            <span style={{ fontSize: "8px", fontWeight: 800, padding: "2px 5px", borderRadius: 4, background: `${fearColor}20`, color: fearColor, border: `1px solid ${fearColor}40`, whiteSpace: "nowrap" }}>{fearLabel} Fear</span>
           </div>
         </div>
         <div style={{ position: "relative", height: 6, borderRadius: 99, overflow: "hidden", background: "linear-gradient(90deg,#22c55e,#84cc16,#f59e0b,#ef4444)" }}>
@@ -334,10 +338,10 @@ const GiftNiftyCard = ({ cardBg, cardBorder, cardShadow, isLight, liveGiftNifty,
         <div style={{ height: 3, background: isLight ? "#0A3656" : "#1F5F89", borderRadius: "8px 8px 0 0" }} />
         <div style={{ padding: "8px 10px 0 10px" }}>
           <div style={{ fontSize: "8px", fontWeight: 900, letterSpacing: "0.12em", textTransform: "uppercase", color: isLight ? "#0A3656" : "#74A8C9", marginBottom: 4 }}>GIFT NIFTY</div>
-          <div style={{ fontSize: "28px", fontWeight: 900, color: isLight ? "#041421" : "#fff", letterSpacing: "-0.03em", lineHeight: 1 }}>{displayPrice}</div>
-          <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 4, marginBottom: 2 }}>
-            <span style={{ fontSize: "9px", fontWeight: 700, color: pos ? "#4ade80" : "#f87171" }}>{displayChange}</span>
-            <span style={{ fontSize: "8px", color: isLight ? "rgba(13,37,64,0.45)" : "rgba(255,255,255,0.4)" }}>{sentiment}</span>
+          <div style={{ fontSize: "20px", fontWeight: 900, color: isLight ? "#041421" : "#fff", letterSpacing: "-0.03em", lineHeight: 1 }}>{displayPrice}</div>
+          <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 4, marginBottom: 2, overflow: "hidden", minWidth: 0 }}>
+            <span style={{ fontSize: "9px", fontWeight: 700, color: pos ? "#4ade80" : "#f87171", flexShrink: 0 }}>{displayChange}</span>
+            <span style={{ fontSize: "7px", color: isLight ? "rgba(13,37,64,0.45)" : "rgba(255,255,255,0.4)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0 }}>{sentiment}</span>
           </div>
         </div>
         <Sparkline positive={pos} color={isLight ? "#0A3656" : "#1F5F89"} />
@@ -376,14 +380,14 @@ const UsdInrCard = ({ cardBg, cardBorder, cardShadow, isLight, liveValue, liveCh
         <div style={{ fontSize: "8px", fontWeight: 900, letterSpacing: "0.12em", textTransform: "uppercase", color: isLight ? "#0A3656" : "#74A8C9", marginBottom: 5 }}>USD / INR</div>
         <div style={{ display: "flex", alignItems: "baseline", gap: 3, marginBottom: 4 }}>
           <span style={{ fontSize: "11px", fontWeight: 700, color: isLight ? "rgba(13,37,64,0.5)" : "rgba(255,255,255,0.4)" }}>₹</span>
-          <span style={{ fontSize: "28px", fontWeight: 900, color: isLight ? "#041421" : "#fff", letterSpacing: "-0.03em", lineHeight: 1 }}>{rate.toFixed ? rate.toFixed(2) : rate}</span>
+          <span style={{ fontSize: "22px", fontWeight: 900, color: isLight ? "#041421" : "#fff", letterSpacing: "-0.03em", lineHeight: 1 }}>{rate.toFixed ? rate.toFixed(2) : rate}</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 8 }}>
-          <span style={{ fontSize: "9px", fontWeight: 700, color: pos ? "#4ade80" : "#f87171" }}>
+          <span style={{ fontSize: "9px", fontWeight: 700, color: pos ? "#4ade80" : "#f87171", flexShrink: 0 }}>
             {changeVal != null ? `${pos ? "▲ +" : "▼ "}${Math.abs(changeVal).toFixed(2)}%` : "···"}
           </span>
-          <span style={{ fontSize: "8px", fontWeight: 600, color: "#06b6d4", background: "rgba(6,182,212,0.1)", border: "1px solid rgba(6,182,212,0.25)", borderRadius: 3, padding: "1px 5px" }}>
-            {changeVal == null ? "Loading…" : pos ? "Rupee Weakening" : "Rupee Strengthening"}
+          <span style={{ fontSize: "8px", fontWeight: 600, color: "#06b6d4", background: "rgba(6,182,212,0.1)", border: "1px solid rgba(6,182,212,0.25)", borderRadius: 3, padding: "1px 5px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "90px" }}>
+            {changeVal == null ? "Loading…" : pos ? "Weakening" : "Strengthening"}
           </span>
         </div>
         <div style={{ position: "relative", height: 5, borderRadius: 99, overflow: "hidden", background: "linear-gradient(90deg,#3b82f6,#06b6d4,#f59e0b,#ef4444)" }}>
@@ -824,9 +828,20 @@ const Hero = () => {
             </div>
           </div>
 
+          {/* ── Mobile-only card overflow fix ── */}
+          <style>{`
+            @media (max-width: 640px) {
+              .hero-stat-grid > * {
+                min-width: 0;
+                overflow: hidden;
+                box-sizing: border-box;
+              }
+            }
+          `}</style>
+
           {/* ── BHARAT grid ── */}
           {activeTab === "bharat" && (
-            <div className="mt-8 md:mt-10 grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-5 max-w-5xl mx-auto pb-4 md:pb-0 px-1 sm:px-0">
+            <div className="hero-stat-grid mt-8 md:mt-10 grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-5 max-w-5xl mx-auto pb-4 md:pb-0 px-1 sm:px-0">
               <SensexNiftyCard cardBg={cardBg} cardBorder={cardBorder} cardShadow={cardShadow} isLight={isLight}
                 sensex={bharatData.sensex} nifty={bharatData.nifty50} />
               <FiiDiiCard cardBg={cardBg} cardBorder={cardBorder} cardShadow={cardShadow} isLight={isLight}
@@ -847,7 +862,7 @@ const Hero = () => {
 
           {/* ── US grid ── */}
           {activeTab === "us" && (
-            <div className="mt-8 md:mt-10 grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-5 max-w-5xl mx-auto pb-4 md:pb-0 px-1 sm:px-0">
+            <div className="hero-stat-grid mt-8 md:mt-10 grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-5 max-w-5xl mx-auto pb-4 md:pb-0 px-1 sm:px-0">
               <USStatCard label="NASDAQ" value={usData.nasdaq} positive={usData.nasdaqPos} cardBg={cardBg} cardBorder={cardBorder} cardShadow={cardShadow} isLight={isLight}
                 path="/global" section="section-us" onNavigate={(p, s) => navigate(`${p}?scrollTo=${s}`)} />
               <USStatCard label="USD / INR" value={usData.usdInr} positive={usData.usdInrPos} cardBg={cardBg} cardBorder={cardBorder} cardShadow={cardShadow} isLight={isLight}

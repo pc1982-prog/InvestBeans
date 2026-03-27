@@ -113,7 +113,9 @@ export const getAllInsights = asyncHandler(async (req, res) => {
   const skip = (parseInt(page) - 1) * parseInt(limit);
 
   const insights = await Insight.find(query)
-    .sort(sort).limit(parseInt(limit)).skip(skip).lean();
+    .sort(sort).limit(parseInt(limit)).skip(skip)
+    .select("-viewedBy -viewedIPs")   // ✅ Never send tracking arrays to frontend
+    .lean();
 
   const userId = req.user?._id;
   const processedInsights = insights.map((insight) => {
@@ -147,15 +149,24 @@ export const getInsightById = asyncHandler(async (req, res) => {
   const insight = await Insight.findById(id).populate("author", "name email image");
   if (!insight) throw new ApiError(404, "Insight not found");
 
-  await insight.incrementViews();
+  // ✅ Pass userId (logged-in) or IP (guest) so the same person can't inflate views
+  const userId = req.user?._id || null;
+  const ip =
+    req.headers["x-forwarded-for"]?.split(",")[0]?.trim() ||
+    req.socket?.remoteAddress ||
+    null;
 
-  const userId   = req.user?._id;
+  await insight.incrementViews(userId, ip);
+
   const response = insight.toObject();
   response.isLiked =
     userId && Array.isArray(insight.likedBy)
       ? insight.likedBy.some((lid) => lid.toString() === userId.toString())
       : false;
   delete response.likedBy;
+  // ✅ Never expose internal tracking arrays to the frontend
+  delete response.viewedBy;
+  delete response.viewedIPs;
 
   return res.status(200).json(new ApiResponse(200, response, "Insight fetched successfully"));
 });
