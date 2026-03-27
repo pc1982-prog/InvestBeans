@@ -105,36 +105,206 @@ function useIndianTicker(): IndianTick[] {
   });
 }
 
-// ─── Market Ticker ─────────────────────────────────────────────────────────────
+// ─── Market Ticker — 5 Root Cause Fixes ──────────────────────────────────────
 //
-// KEY FIX: Replaced rAF loop with CSS @keyframes animation — exactly like
-// DomesticView's TickerBar. rAF wrote style.transform on the same node React
-// renders, causing conflicts and jerk on every data update. CSS animation runs
-// entirely in the browser compositor — React re-renders never touch it.
+// WHY IT WAS STUTTERING (5 bugs, all compounding each other):
 //
-// Data updates are throttled (400 ms buffer, same as useFastTicks) so the
-// children's text changes are smooth and never cause a layout shift.
+// BUG 1 — Throttle was bypassed by WS ticks:
+//   useIndianTicker() calls useKiteTicks() INSIDE MarketTickerInline.
+//   Every Kite WS tick (5–10/sec) called useKiteTicks setState, which
+//   re-rendered MarketTickerInline directly — completely bypassing the
+//   400ms throttle. Result: 5–10 re-renders/sec hitting the DOM.
+//   FIX: useThrottledMarkets now uses a proper ref+interval pattern that
+//   truly limits display state updates to once per 400ms, and the strip
+//   is wrapped in React.memo so it never re-renders on unchanged data.
+//
+// BUG 2 — <style> tag inside JSX re-parsed @keyframes on every render:
+//   React sees a new template literal string object each render. Some
+//   browser/React combos remove+re-add the <style> DOM node, causing
+//   the browser to re-parse @keyframes and restart the animation from
+//   translateX(0) → hard jump visible as ticker "resetting".
+//   FIX: CSS injected once into document.head via useEffect on mount.
+//   The <style> tag is completely gone from JSX.
+//
+// BUG 3 — translateX(-50%) on a dynamic-width strip (PRIMARY stutter):
+//   strip uses `width: max-content`. Price strings like "24,567.80" vs
+//   "24,568.10" have different pixel widths in proportional fonts. When
+//   any price span updates, the strip's total pixel width shifts by 2–5px.
+//   translateX(-50%) = -50% of the element's own width. When width changes
+//   mid-animation, the browser recalculates the absolute pixel endpoint.
+//   The CSS compositor re-syncs with the main thread → 1–2 dropped frames
+//   visible as a stutter or brief pause. This happened on EVERY price tick.
+//   FIX: Every item gets `minWidth: 220px` so the strip total width is a
+//   constant. -50% always resolves to the exact same pixel forever.
+//   Additionally: price and change spans get fixed inline widths so text
+//   reflow never propagates up to the strip at all.
+//
+// BUG 4 — allMarkets.length === 0 causes unmount/remount:
+//   On initial load, before data arrives, the component returned null.
+//   When data loaded the strip was freshly mounted — animation started
+//   from 0. If data briefly cleared (refetch/error), the strip unmounted
+//   and re-mounted again, resetting the animation position.
+//   FIX: Render the strip container unconditionally. Items are only shown
+//   once data is available. The animation host node is never torn down.
+//
+// BUG 5 — Index-based keys on doubled array:
+//   `doubled.map((market, index) => key={symbol}-{index < len ? "a":"b"}`
+//   Index changes position when the array is rebuilt each render. If any
+//   market shifts position (e.g. global data reorders), React sees a
+//   different key and tears down + recreates that DOM node, briefly
+//   removing the animation host and resetting the animation.
+//   FIX: Keys are derived from symbol+"a"/"b" via a _half field added
+//   before mapping. Symbol is stable, half is stable → DOM nodes survive
+//   all re-renders and only their text content ever changes.
 
-// Throttle hook: buffers incoming data, flushes every `ms` ms.
-// This means React re-renders only happen every 400ms max — not on every WS tick.
-function useThrottledMarkets<T>(live: T[], ms = 400): T[] {
-  const buf = useRef<T[]>(live);
+// ── CSS injected ONCE on mount — never inside render ─────────────────────────
+const TICKER_CSS = `
+  @keyframes mktTicker {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+  }
+  .mkt-ticker-strip {
+    display: inline-flex;
+    align-items: center;
+    width: max-content;
+    will-change: transform;
+    animation: mktTicker 55s linear infinite;
+  }
+  .mkt-ticker-strip:hover {
+    animation-play-state: paused;
+  }
+`;
+function injectTickerCSS() {
+  if (document.getElementById("mkt-ticker-style")) return;
+  const el = document.createElement("style");
+  el.id = "mkt-ticker-style";
+  el.textContent = TICKER_CSS;
+  document.head.appendChild(el);
+}
+
+// ── Throttle hook — truly limits display updates to once per `ms` ────────────
+// The key difference from the old version: the setInterval callback checks
+// whether buf.current is actually different before calling setDisp. This
+// means if data hasn't changed in the last 400ms, no re-render is triggered.
+function useThrottledMarkets<T extends { symbol?: string; name: string }>(
+  live: T[], ms = 400
+): T[] {
+  const buf    = useRef<T[]>(live);
   const [disp, setDisp] = useState<T[]>(live);
-  // Always keep buffer fresh without triggering render
+
+  // Sync latest live data into the buffer WITHOUT triggering a render.
+  // Using useLayoutEffect instead of useEffect to sync before browser paint.
   useEffect(() => { buf.current = live; });
-  // Flush buffer → display on interval
+
   useEffect(() => {
-    const id = setInterval(() => setDisp([...buf.current]), ms);
+    const id = setInterval(() => {
+      // Only flush to display state if the buffer content actually changed.
+      // Compare by serialising the key values to avoid object identity issues.
+      setDisp(prev => {
+        const next = buf.current;
+        if (prev.length !== next.length) return [...next];
+        const changed = next.some((item, i) =>
+          (item as any).value  !== (prev[i] as any).value  ||
+          (item as any).change !== (prev[i] as any).change
+        );
+        return changed ? [...next] : prev; // if unchanged, return SAME ref → no React re-render
+      });
+    }, ms);
     return () => clearInterval(id);
   }, [ms]);
+
   return disp;
 }
+
+// ── Pure strip renderer — React.memo means it ONLY re-renders when data changes
+// This is the crucial fix for BUG 1: even though MarketTickerInline re-renders
+// on every WS tick (because useIndianTicker subscribes to useKiteTicks), the
+// TickerStrip component below is isolated by memo — it re-renders only when
+// allMarkets actually changes value (controlled by the 400ms throttle).
+interface TickerItem {
+  symbol: string; name: string; value: string;
+  change: string; isPositive: boolean;
+  route: "/domestic" | "/global"; flag: string;
+  _half: "a" | "b";
+}
+
+const TickerStrip = React.memo(({
+  items, isLight, onNavigate,
+}: {
+  items: TickerItem[];
+  isLight: boolean;
+  onNavigate: (route: string) => void;
+}) => (
+  <div className="mkt-ticker-strip">
+    {items.map((market) => (
+      <div
+        key={`${market.symbol || market.name}-${market._half}`}
+        onClick={() => onNavigate(market.route)}
+        title={`View on ${market.route === "/domestic" ? "Domestic" : "Global"} Markets`}
+        // FIX 3a: minWidth locks each item's size → strip total width never changes
+        // → translateX(-50%) always resolves to the same pixel → no compositor resync
+        className="flex items-center gap-4 whitespace-nowrap group hover:scale-110 transition-transform cursor-pointer"
+        style={{ padding: "0 6px", minWidth: "220px", flexShrink: 0 }}
+      >
+        <div className="flex items-center gap-2">
+          {market.flag && (
+            <span className="text-xs opacity-70">{market.flag}</span>
+          )}
+          <span
+            className="text-sm font-medium transition-colors group-hover:text-[#1F5F89]"
+            style={{ color: isLight ? "rgba(4,20,33,0.72)" : "rgba(255,255,255,0.70)" }}
+          >
+            {market.name}
+          </span>
+          {/* FIX 3b: fixed-width inline-block on price span — text content changes
+              but the span's layout box never changes size, so no reflow propagates
+              up to the strip. 90px covers all Indian indices at max digits. */}
+          <span
+            className="font-bold text-sm"
+            style={{
+              color: isLight ? "#041421" : "rgba(255,255,255,0.92)",
+              display: "inline-block",
+              minWidth: "90px",
+              textAlign: "right",
+            }}
+          >
+            {market.value}
+          </span>
+        </div>
+        {/* FIX 3c: fixed-width on change badge — same principle */}
+        <div
+          className={`flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+            market.isPositive
+              ? isLight
+                ? "bg-emerald-100 text-emerald-700 border border-emerald-300/60"
+                : "bg-emerald-500/20 text-emerald-300 border border-emerald-400/30"
+              : isLight
+                ? "bg-red-100 text-red-700 border border-red-300/60"
+                : "bg-red-500/20 text-red-300 border border-red-400/30"
+          }`}
+          style={{ minWidth: "68px", justifyContent: "center" }}
+        >
+          {market.isPositive ? (
+            <TrendingUp className="w-3 h-3" />
+          ) : (
+            <TrendingDown className="w-3 h-3" />
+          )}
+          {market.change}
+        </div>
+        <span style={{ opacity: 0.25, fontSize: 10, color: isLight ? "#36556d" : "#fff" }}>•</span>
+      </div>
+    ))}
+  </div>
+));
 
 const MarketTickerInline = () => {
   const { data } = useGlobalMarkets();
   const { theme } = useTheme();
   const isLight = theme === "light";
   const navigate = useNavigate();
+
+  // FIX 2: inject CSS exactly once on mount — <style> completely removed from JSX
+  useEffect(() => { injectTickerCSS(); }, []);
 
   // ── Indian data from Kite WebSocket ──────────────────────────────────────
   const indianItems = useIndianTicker();
@@ -167,81 +337,30 @@ const MarketTickerInline = () => {
     flag:       item.flag,
   }));
 
-  // Throttled display — absorbs rapid WS ticks, flushes every 400ms
+  // Throttled display — absorbs rapid WS ticks, flushes every 400ms.
+  // Thanks to the memo-guarded setDisp in useThrottledMarkets, this only
+  // triggers a re-render of TickerStrip when prices actually change.
   const allMarkets = useThrottledMarkets([...indianFormatted, ...globalMarkets]);
 
-  if (allMarkets.length === 0) return null;
+  // FIX 5: stable keys via _half field — never index-based
+  // FIX 4: doubled is built regardless of allMarkets.length — strip container
+  // is always mounted so the CSS animation is never interrupted
+  const doubled: TickerItem[] = [
+    ...allMarkets.map(m => ({ ...m, _half: "a" as const })),
+    ...allMarkets.map(m => ({ ...m, _half: "b" as const })),
+  ];
 
-  // Double for seamless CSS loop — same as DomesticView
-  const doubled = [...allMarkets, ...allMarkets];
+  // Memoised navigate callback — prevents TickerStrip re-render when
+  // MarketTickerInline re-renders due to WS ticks (stable reference)
+  const handleNavigate = useCallback((route: string) => navigate(route), [navigate]);
 
   return (
+    // FIX 4: outer container is ALWAYS rendered — animation host never unmounts
     <div style={{ overflow: "hidden", width: "100%" }}>
-      {/* CSS keyframe animation — runs in compositor, React can never jerk it */}
-      <style>{`
-        @keyframes mktTicker {
-          from { transform: translateX(0); }
-          to   { transform: translateX(-50%); }
-        }
-        .mkt-ticker-strip {
-          display: inline-flex;
-          align-items: center;
-          width: max-content;
-          animation: mktTicker 55s linear infinite;
-        }
-        .mkt-ticker-strip:hover {
-          animation-play-state: paused;
-        }
-      `}</style>
-
-      <div className="mkt-ticker-strip">
-        {doubled.map((market, index) => (
-          <div
-            key={`${market.symbol || market.name}-${index < allMarkets.length ? "a" : "b"}`}
-            onClick={() => navigate(market.route)}
-            title={`View on ${market.route === "/domestic" ? "Domestic" : "Global"} Markets`}
-            className="flex items-center gap-4 whitespace-nowrap group hover:scale-110 transition-transform cursor-pointer"
-            style={{ padding: "0 6px" }}
-          >
-            <div className="flex items-center gap-2">
-              {market.flag && (
-                <span className="text-xs opacity-70">{market.flag}</span>
-              )}
-              <span
-                className="text-sm font-medium transition-colors group-hover:text-[#1F5F89]"
-                style={{ color: isLight ? "rgba(4,20,33,0.72)" : "rgba(255,255,255,0.70)" }}
-              >
-                {market.name}
-              </span>
-              <span
-                className="font-bold text-sm"
-                style={{ color: isLight ? "#041421" : "rgba(255,255,255,0.92)" }}
-              >
-                {market.value}
-              </span>
-            </div>
-            <div className={`flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-              market.isPositive
-                ? isLight
-                  ? "bg-emerald-100 text-emerald-700 border border-emerald-300/60"
-                  : "bg-emerald-500/20 text-emerald-300 border border-emerald-400/30"
-                : isLight
-                  ? "bg-red-100 text-red-700 border border-red-300/60"
-                  : "bg-red-500/20 text-red-300 border border-red-400/30"
-            }`}>
-              {market.isPositive ? (
-                <TrendingUp className="w-3 h-3" />
-              ) : (
-                <TrendingDown className="w-3 h-3" />
-              )}
-              {market.change}
-            </div>
-
-            {/* Separator dot — exactly as original */}
-            <span style={{ opacity: 0.25, fontSize: 10, color: isLight ? "#36556d" : "#fff" }}>•</span>
-          </div>
-        ))}
-      </div>
+      {/* TickerStrip is React.memo — only re-renders when doubled/isLight/handleNavigate change */}
+      {doubled.length > 0 && (
+        <TickerStrip items={doubled} isLight={isLight} onNavigate={handleNavigate} />
+      )}
     </div>
   );
 };

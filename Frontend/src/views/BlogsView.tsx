@@ -675,7 +675,7 @@ useEffect(() => {
           )}
 
           {/* Newsletter */}
-          <div className={`relative overflow-hidden rounded-[32px] p-10 sm:p-14 ${isLight ? "bg-gradient-to-br from-blue-50 via-indigo-50/60 to-blue-50 border border-blue-100 shadow-xl shadow-blue-100/50" : "border border-white/10 bg-gradient-to-br from-blue-500/20 via-indigo-500/10 to-purple-500/10 backdrop-blur-2xl text-white shadow-[0_30px_90px_-40px_rgba(81,148,246,0.3)]"}`}>
+          <div className={`relative overflow-hidden top-5 rounded-[32px] p-10 sm:p-14 ${isLight ? "bg-gradient-to-br from-blue-50 via-indigo-50/60 to-blue-50 border border-blue-100 shadow-xl shadow-blue-100/50" : "border border-white/10 bg-gradient-to-br from-blue-500/20 via-indigo-500/10 to-purple-500/10 backdrop-blur-2xl text-white shadow-[0_30px_90px_-40px_rgba(81,148,246,0.3)]"}`}>
             {isLight && <div className="absolute inset-0 opacity-40 bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.08),_transparent_60%)]" />}
             {!isLight && <div className="absolute inset-0 opacity-40 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.1),_transparent_60%)]" />}
 
